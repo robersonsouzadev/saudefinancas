@@ -1,6 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x", "linux-musl"]
 }
 
 datasource db {
@@ -28,13 +29,14 @@ model User {
 }
 
 model Agent {
-  id             String         @id @default(uuid())
-  name           String
-  description    String?
-  systemPrompt   String
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  conversations  Conversation[]
+  id                 String              @id @default(uuid())
+  name               String
+  description        String?
+  systemPrompt       String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  conversations      Conversation[]
+  knowledgeDocuments KnowledgeDocument[]
 }
 
 model LlmProvider {
