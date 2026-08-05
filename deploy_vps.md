@@ -21,13 +21,13 @@ git push -u origin main
 
 ---
 
-## 2. Como Hospedar na sua VPS (IP: `2.24.82.19`)
+## 2. Como Hospedar na sua VPS (IP: `72.60.249.235`)
 
 Conecte na sua VPS via SSH e execute os passos simples abaixo:
 
 ### Passo 1: Clonar o repositório na VPS
 ```bash
-ssh root@2.24.82.19
+ssh root@72.60.249.235
 git clone https://github.com/robersonsouzadev/saudefinancas.git
 cd saudefinancas
 ```
@@ -51,7 +51,7 @@ chmod +x deploy.sh
 
 Após subir os contêineres Docker, o sistema estará operando com todos os 4 serviços:
 
-- **🌐 Interface Web (Next.js 15):** [http://2.24.82.19:3000](http://2.24.82.19:3000)
-- **🔌 Backend API (NestJS 11):** [http://2.24.82.19:3001/api](http://2.24.82.19:3001/api)
-- **🐘 Banco de Dados pgvector:** `2.24.82.19:5432`
-- **⚡ Cache & Filas Redis:** `2.24.82.19:6379`
+- **🌐 Interface Web (Next.js 15):** [http://72.60.249.235:3000](http://72.60.249.235:3000)
+- **🔌 Backend API (NestJS 11):** [http://72.60.249.235:3001/api](http://72.60.249.235:3001/api)
+- **🐘 Banco de Dados pgvector:** `72.60.249.235:5432`
+- **⚡ Cache & Filas Redis:** `72.60.249.235:6379`

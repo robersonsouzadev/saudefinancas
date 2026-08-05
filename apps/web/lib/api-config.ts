@@ -12,8 +12,8 @@ export function getApiBaseUrl(): string {
       return 'https://app.robersonsouza.com.br';
     }
 
-    if (hostname === '2.24.82.19') {
-      return 'http://2.24.82.19:3001';
+    if (hostname === '72.60.249.235') {
+      return 'http://72.60.249.235:3001';
     }
 
     // Default fallback for any host (localhost, local IP, VPS IP)
