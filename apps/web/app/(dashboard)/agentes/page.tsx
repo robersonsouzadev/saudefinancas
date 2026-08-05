@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { 
+  Bot, Sliders, MessageSquare, Plus, Check, Edit3, Trash2, 
+  Sparkles, HeartPulse, Wallet, Apple, ShieldCheck, PhoneCall, RefreshCw
+} from 'lucide-react';
 
 interface AgentCard {
   id: string;
@@ -13,7 +17,6 @@ interface AgentCard {
   acountCount: number;
   isPrimary: boolean;
   isActive: boolean;
-  // WhatsApp settings
   whatsappEnabled?: boolean;
   whatsappIntegrationType?: 'uazapi' | 'meta';
   uazapiServerUrl?: string;
@@ -27,7 +30,7 @@ const initialAgents: AgentCard[] = [
     id: '1',
     name: 'Dra. Maya — Saúde & Longevidade',
     department: 'Saúde',
-    systemPrompt: 'Seu nome é Dra. Maya. Você é a ESPECIALISTA EM SAÚDE FÍSICA, SONO E LONGEVIDADE do sistema Saúde & Finanças. Sua função é analisar indicadores biológicos (sono, HRV, batimentos, passos), orientar sobre rotinas saudáveis e prevenir estresse metabólico.',
+    systemPrompt: 'Seu nome é Dra. Maya. Você é a especialista em saúde física, sono e longevidade do sistema. Sua função é analisar indicadores biológicos, orientar rotinas saudáveis e prevenir estresse metabólico.',
     modelName: 'gpt-4o-mini',
     provider: 'OpenAI',
     temperature: 0.7,
@@ -45,7 +48,7 @@ const initialAgents: AgentCard[] = [
     id: '2',
     name: 'Otávio — Estrategista Financeiro',
     department: 'Financeiro',
-    systemPrompt: 'Seu nome é Otávio. Você é o CONSULTOR FINANCEIRO E ESTRATEGISTA ORÇAMENTÁRIO do sistema Saúde & Finanças. Sua função é analisar extratos, identificar despesas desnecessárias, sugerir metas de economia e categorizar transações automaticamente.',
+    systemPrompt: 'Seu nome é Otávio. Você é o consultor financeiro e estrategista orçamentário. Sua função é analisar extratos, identificar despesas e sugerir metas de economia.',
     modelName: 'gpt-4o-mini',
     provider: 'OpenAI',
     temperature: 0.5,
@@ -61,28 +64,28 @@ const initialAgents: AgentCard[] = [
   },
   {
     id: '3',
-    name: 'Nutri Bia — Nutrição & Macros',
+    name: 'Nutri Bia — Nutrição Integrativa',
     department: 'Nutrição',
-    systemPrompt: 'Seu nome é Nutri Bia. Você é a ESPECIALISTA NUTRICIONAL E VISÃO COMPUTACIONAL do sistema Saúde & Finanças. Sua função é analisar fotos de refeições enviadas pelo usuário, extrair calorias/macronutrientes da Tabela TACO e sugerir ajustes na dieta.',
+    systemPrompt: 'Seu nome é Nutri Bia. Você é a nutricionista integrativa responsável pela análise de refeições por foto, contagem de macronutrientes e ajuste calórico.',
     modelName: 'gpt-4o-mini',
     provider: 'OpenAI',
     temperature: 0.6,
-    acountCount: 55,
+    acountCount: 54,
     isPrimary: false,
     isActive: true,
     whatsappEnabled: true,
     whatsappIntegrationType: 'uazapi',
     uazapiServerUrl: 'https://uazapi.com',
-    uazapiInstanceName: 'NUTRI_BIA_FOOD',
-    uazapiToken: 'token_nutribia_sec_2026',
+    uazapiInstanceName: 'NUTRI_BIA',
+    uazapiToken: 'token_bia_sec_2026',
     webhookUrl: 'https://app.robersonsouza.com.br/api/whatsapp/webhook/nutri-bia'
   },
   {
     id: '4',
-    name: 'Vita — Orquestradora Geral',
+    name: 'Vita — Assistente Principal (Orquestrador)',
     department: 'Orquestrador',
-    systemPrompt: 'Seu nome é Vita. Você é a ORQUESTRADORA PRINCIPAL DE BEM-ESTAR INTEGRADO (Saúde + Finanças). Sua função é correlacionar o impacto do estresse financeiro na saúde biológica do usuário e vice-versa, fornecendo relatórios executivos unificados.',
-    modelName: 'gpt-4o-mini',
+    systemPrompt: 'Seu nome é Vita. Você é o agente orquestrador principal do sistema Saúde & Finanças. Você correlaciona os dados de saúde com finanças e coordena a comunicação.',
+    modelName: 'gpt-4o',
     provider: 'OpenAI',
     temperature: 0.7,
     acountCount: 120,
@@ -91,569 +94,298 @@ const initialAgents: AgentCard[] = [
     whatsappEnabled: true,
     whatsappIntegrationType: 'uazapi',
     uazapiServerUrl: 'https://uazapi.com',
-    uazapiInstanceName: 'VITA_MAIN_BOT',
-    uazapiToken: 'token_vita_master_2026',
-    webhookUrl: 'https://app.robersonsouza.com.br/api/whatsapp/webhook/vita-master'
+    uazapiInstanceName: 'VITA_ORCHESTRATOR',
+    uazapiToken: 'token_vita_sec_2026',
+    webhookUrl: 'https://app.robersonsouza.com.br/api/whatsapp/webhook/vita'
   }
 ];
 
-export default function MeusAgentesPage() {
+export default function AgentesPage() {
   const [agents, setAgents] = useState<AgentCard[]>(initialAgents);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [editingAgent, setEditingAgent] = useState<AgentCard | null>(null);
-  const [activeTab, setActiveTab] = useState<'config' | 'whatsapp'>('config');
-
-  // Form state — Tab Config
-  const [name, setName] = useState('');
-  const [department, setDepartment] = useState<'Saúde' | 'Financeiro' | 'Nutrição' | 'Orquestrador'>('Saúde');
-  const [systemPrompt, setSystemPrompt] = useState('');
-  const [modelName, setModelName] = useState('gpt-4o-mini');
-  const [temperature, setTemperature] = useState(0.7);
-
-  // Form state — Tab WhatsApp
-  const [whatsappEnabled, setWhatsappEnabled] = useState(true);
-  const [whatsappIntegrationType, setWhatsappIntegrationType] = useState<'uazapi' | 'meta'>('uazapi');
-  const [uazapiServerUrl, setUazapiServerUrl] = useState('https://uazapi.com');
-  const [uazapiInstanceName, setUazapiInstanceName] = useState('');
-  const [uazapiToken, setUazapiToken] = useState('');
-  const [copiedWebhook, setCopiedWebhook] = useState(false);
-  const [testResult, setTestResult] = useState<string | null>(null);
-
-  const filteredAgents = agents.filter(a => 
-    a.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    a.systemPrompt.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleSetPrimary = (id: string) => {
-    setAgents(prev => prev.map(a => ({
-      ...a,
-      isPrimary: a.id === id
-    })));
-  };
+  const [selectedAgent, setSelectedAgent] = useState<AgentCard | null>(null);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'prompt' | 'whatsapp'>('prompt');
 
   const handleToggleActive = (id: string) => {
-    setAgents(prev => prev.map(a => ({
-      ...a,
-      isActive: a.id === id ? !a.isActive : a.isActive
-    })));
+    setAgents(prev => prev.map(a => a.id === id ? { ...a, isActive: !a.isActive } : a));
   };
 
-  const handleDelete = (id: string) => {
-    setAgents(prev => prev.filter(a => a.id !== id));
+  const handleOpenConfig = (agent: AgentCard) => {
+    setSelectedAgent({ ...agent });
+    setShowConfigModal(true);
   };
 
-  const handleOpenCreateModal = () => {
-    setEditingAgent(null);
-    setActiveTab('config');
-    setName('');
-    setDepartment('Saúde');
-    setSystemPrompt('');
-    setModelName('gpt-4o-mini');
-    setTemperature(0.7);
-
-    // WhatsApp defaults
-    setWhatsappEnabled(true);
-    setWhatsappIntegrationType('uazapi');
-    setUazapiServerUrl('https://uazapi.com');
-    setUazapiInstanceName('NOVO_AGENTE_BOT');
-    setUazapiToken('');
-
-    setShowModal(true);
-  };
-
-  const handleOpenEditModal = (agent: AgentCard) => {
-    setEditingAgent(agent);
-    setActiveTab('config');
-    setName(agent.name);
-    setDepartment(agent.department);
-    setSystemPrompt(agent.systemPrompt);
-    setModelName(agent.modelName);
-    setTemperature(agent.temperature);
-
-    // WhatsApp values
-    setWhatsappEnabled(agent.whatsappEnabled ?? true);
-    setWhatsappIntegrationType(agent.whatsappIntegrationType || 'uazapi');
-    setUazapiServerUrl(agent.uazapiServerUrl || 'https://uazapi.com');
-    setUazapiInstanceName(agent.uazapiInstanceName || agent.name.split(' ')[0].toUpperCase() + '_BOT');
-    setUazapiToken(agent.uazapiToken || '');
-
-    setShowModal(true);
-  };
-
-  const currentWebhookUrl = editingAgent?.webhookUrl || `https://app.robersonsouza.com.br/api/whatsapp/webhook/${(uazapiInstanceName || 'instancia').toLowerCase()}`;
-
-  const handleCopyWebhook = () => {
-    navigator.clipboard.writeText(currentWebhookUrl);
-    setCopiedWebhook(true);
-    setTimeout(() => setCopiedWebhook(false), 2000);
-  };
-
-  const handleTestWhatsapp = () => {
-    setTestResult('⚡ Instância UazAPI online! Webhook respondendo 200 OK.');
-    setTimeout(() => setTestResult(null), 3500);
-  };
-
-  const handleSaveAgent = (e: React.FormEvent) => {
+  const handleSaveConfig = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !systemPrompt) return;
+    if (!selectedAgent) return;
 
-    const agentData: Partial<AgentCard> = {
-      name,
-      department,
-      systemPrompt,
-      modelName,
-      temperature,
-      whatsappEnabled,
-      whatsappIntegrationType,
-      uazapiServerUrl,
-      uazapiInstanceName,
-      uazapiToken,
-      webhookUrl: currentWebhookUrl
-    };
+    setAgents(prev => prev.map(a => a.id === selectedAgent.id ? selectedAgent : a));
+    setShowConfigModal(false);
+  };
 
-    if (editingAgent) {
-      setAgents(prev => prev.map(a => a.id === editingAgent.id ? { ...a, ...agentData } : a));
-    } else {
-      const newAgent: AgentCard = {
-        id: String(Date.now()),
-        name,
-        department,
-        systemPrompt,
-        modelName,
-        provider: 'OpenAI',
-        temperature,
-        acountCount: 0,
-        isPrimary: false,
-        isActive: true,
-        ...agentData
-      };
-      setAgents([...agents, newAgent]);
+  const getDeptIcon = (dept: string) => {
+    switch (dept) {
+      case 'Saúde': return <HeartPulse className="w-4 h-4 text-[#f87171]" />;
+      case 'Financeiro': return <Wallet className="w-4 h-4 text-[#22c55e]" />;
+      case 'Nutrição': return <Apple className="w-4 h-4 text-[#4ade80]" />;
+      default: return <Sparkles className="w-4 h-4 text-[#5e6ad2]" />;
     }
-
-    setShowModal(false);
   };
 
   return (
-    <div className="space-y-6 text-white pb-12">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-xl text-sky-400">
-              🤖
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Meus Agentes & Canais WhatsApp</h1>
-              <p className="text-slate-400 text-xs mt-0.5">
-                Gerencie seus assistentes de IA, suas personalidades e canais individuais de WhatsApp UazAPI.
-              </p>
-            </div>
-          </div>
-        </div>
-
+    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
+      
+      {/* Linear Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div className="flex items-center space-x-3">
-          <div className="relative">
-            <input 
-              type="text" 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar agentes..." 
-              className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900 text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 w-48 sm:w-64"
-            />
-            <span className="absolute left-3 top-3 text-slate-500 text-xs">🔍</span>
+          <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#a855f7]">
+            <Bot className="w-4 h-4" />
           </div>
-
-          <button 
-            onClick={handleOpenCreateModal}
-            className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl transition shadow-lg shadow-sky-500/20 text-xs flex items-center space-x-2 flex-shrink-0"
-          >
-            <span>+</span>
-            <span>Criar Agente</span>
-          </button>
+          <div>
+            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Meus Agentes de IA</h1>
+            <p className="text-xs text-[#8a8f98]">Especialistas virtuais de saúde, nutrição, finanças e WhatsApp</p>
+          </div>
         </div>
+
+        <button 
+          onClick={() => {
+            const newAg: AgentCard = {
+              id: String(Date.now()),
+              name: 'Novo Agente Especialista',
+              department: 'Saúde',
+              systemPrompt: 'Você é um assistente especialista...',
+              modelName: 'gpt-4o-mini',
+              provider: 'OpenAI',
+              temperature: 0.7,
+              acountCount: 0,
+              isPrimary: false,
+              isActive: true,
+              whatsappEnabled: false
+            };
+            setSelectedAgent(newAg);
+            setShowConfigModal(true);
+          }}
+          className="h-8 px-3 rounded-md bg-[#f7f8f8] hover:bg-[#e1e2e2] text-[#080a0c] font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Criar Agente</span>
+        </button>
       </div>
 
-      {/* Grid of Agent Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-        {filteredAgents.map((agent) => (
-          <div 
-            key={agent.id} 
-            className={`bg-slate-900/90 border ${agent.isPrimary ? 'border-amber-500/50 shadow-amber-500/10' : 'border-slate-800'} rounded-2xl p-6 shadow-xl backdrop-blur-xl flex flex-col justify-between space-y-4 hover:border-slate-700 transition relative group`}
-          >
+      {/* Agents Linear Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {agents.map((a) => (
+          <div key={a.id} className="linear-card p-5 space-y-4 flex flex-col justify-between">
             <div className="space-y-3">
-              {/* Card Header */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center font-bold text-sky-400 text-lg">
-                    {agent.department === 'Saúde' ? '🩺' : agent.department === 'Financeiro' ? '💰' : agent.department === 'Nutrição' ? '🥗' : '🌟'}
+              
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-8 h-8 rounded bg-[#16191e] border border-[#ffffff10] flex items-center justify-center">
+                    {getDeptIcon(a.department)}
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-white group-hover:text-sky-400 transition">{agent.name}</h3>
-                    <div className="flex items-center space-x-2 mt-0.5">
-                      <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">{agent.department}</span>
-                      {agent.whatsappEnabled && (
-                        <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
-                          📱 WhatsApp UazAPI: {agent.uazapiInstanceName}
-                        </span>
-                      )}
-                    </div>
+                    <h3 className="font-semibold text-sm text-[#f7f8f8] tracking-tight">{a.name}</h3>
+                    <span className="text-[10px] text-[#8a8f98] font-mono">{a.provider} · {a.modelName}</span>
                   </div>
                 </div>
 
-                {/* Edit & Delete Action Icons */}
-                <div className="flex items-center space-x-2">
-                  <button 
-                    onClick={() => handleOpenEditModal(agent)}
-                    className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition text-xs"
-                    title="Editar Agente & WhatsApp"
-                  >
-                    ✏️
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(agent.id)}
-                    className="p-1.5 hover:bg-rose-500/20 rounded-lg text-slate-400 hover:text-rose-400 transition text-xs"
-                    title="Excluir Agente"
-                  >
-                    🗑️
-                  </button>
-                </div>
+                <button 
+                  onClick={() => handleToggleActive(a.id)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono border transition ${
+                    a.isActive 
+                      ? 'bg-[#4ade8010] text-[#4ade80] border-[#4ade8025]' 
+                      : 'bg-[#16191e] text-[#575c66] border-[#ffffff0e]'
+                  }`}
+                >
+                  {a.isActive ? 'ATIVO' : 'INATIVO'}
+                </button>
               </div>
 
               {/* System Prompt Snippet */}
-              <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed">
-                  {agent.systemPrompt}
-                </p>
+              <div className="p-3 rounded bg-[#16191e] border border-[#ffffff0a] text-[11px] text-[#8a8f98] font-mono line-clamp-3">
+                "{a.systemPrompt}"
               </div>
 
-              {/* Model & Usage Stats */}
-              <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-                <span className="font-mono text-[11px] text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-lg border border-sky-500/20">
-                  &gt;_ {agent.modelName}
+              {/* Badges Info */}
+              <div className="flex items-center space-x-2 text-[11px]">
+                <span className="px-2 py-0.5 rounded bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
+                  Temp: {a.temperature}
                 </span>
-                <span className="text-[11px] font-semibold text-slate-400">
-                  🔄 {agent.acountCount} acionamentos
-                </span>
+                {a.whatsappEnabled && (
+                  <span className="px-2 py-0.5 rounded bg-[#4ade8010] border border-[#4ade8020] text-[#4ade80] font-mono text-[10px] flex items-center gap-1">
+                    <PhoneCall className="w-3 h-3" /> WhatsApp UazAPI
+                  </span>
+                )}
               </div>
+
             </div>
 
-            {/* Action Badges Footer */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-800">
-              {agent.isPrimary ? (
-                <span className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full text-xs font-bold flex items-center gap-1.5">
-                  ⭐ PRINCIPAL
-                </span>
-              ) : (
-                <button 
-                  onClick={() => handleSetPrimary(agent.id)}
-                  className="px-3 py-1 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-full text-xs font-semibold transition"
-                >
-                  ⭐ DEFINIR PRINCIPAL
-                </button>
-              )}
-
+            {/* Actions */}
+            <div className="pt-3 border-t border-[#ffffff08] flex items-center justify-between">
+              <span className="text-[11px] text-[#575c66] font-mono">{a.acountCount} interações</span>
+              
               <button 
-                onClick={() => handleToggleActive(agent.id)}
-                className={`px-3 py-1 rounded-full text-xs font-bold border transition flex items-center gap-1.5 ${
-                  agent.isActive 
-                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
-                    : 'bg-slate-800 text-slate-400 border-slate-700'
-                }`}
+                onClick={() => handleOpenConfig(a)}
+                className="h-7 px-3 rounded bg-[#16191e] hover:bg-[#1d2127] border border-[#ffffff10] text-[11px] text-[#f7f8f8] font-medium flex items-center space-x-1.5 transition"
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${agent.isActive ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`}></span>
-                {agent.isActive ? 'ATIVO' : 'INATIVO'}
+                <Edit3 className="w-3 h-3 text-[#8a8f98]" />
+                <span>Configurar</span>
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Create / Edit Agent Modal with 2 Tabs (Configuração | WhatsApp) */}
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-2xl space-y-5 shadow-2xl overflow-y-auto max-h-[90vh]">
-            {/* Modal Header */}
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <div>
-                <h3 className="font-bold text-lg text-white">
-                  {editingAgent ? `Editar — ${editingAgent.name}` : 'Criar Novo Agente Especializado'}
-                </h3>
-                <p className="text-xs text-slate-400">Configure as personas autônomas e comportamento do motor LLM e WhatsApp</p>
-              </div>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white text-lg">✕</button>
+      {/* Config Modal */}
+      {showConfigModal && selectedAgent && (
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-xl space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
+            
+            <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
+              <h3 className="font-semibold text-sm text-[#f7f8f8]">{selectedAgent.name}</h3>
+              <button onClick={() => setShowConfigModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
             </div>
 
-            {/* Tab Navigation Buttons */}
-            <div className="flex items-center space-x-2 border-b border-slate-800 pb-3">
+            {/* Tabs */}
+            <div className="flex border-b border-[#ffffff0e] text-xs font-medium space-x-4">
               <button 
-                type="button"
-                onClick={() => setActiveTab('config')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
-                  activeTab === 'config' 
-                    ? 'bg-slate-800 text-white border border-slate-700' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-950'
-                }`}
+                onClick={() => setActiveTab('prompt')}
+                className={`pb-2 border-b-2 transition ${activeTab === 'prompt' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#8a8f98]'}`}
               >
-                <span>⚙️</span>
-                <span>Configuração</span>
+                Prompt & Modelo
               </button>
-
               <button 
-                type="button"
                 onClick={() => setActiveTab('whatsapp')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
-                  activeTab === 'whatsapp' 
-                    ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-950'
-                }`}
+                className={`pb-2 border-b-2 transition ${activeTab === 'whatsapp' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#8a8f98]'}`}
               >
-                <span>📱</span>
-                <span>WhatsApp</span>
+                Integração WhatsApp (UazAPI)
               </button>
             </div>
 
-            <form onSubmit={handleSaveAgent} className="space-y-4">
-              {/* TAB 1: CONFIGURAÇÃO */}
-              {activeTab === 'config' && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Nome do Agente</label>
-                      <input 
-                        type="text" 
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="ex: Dr. Lucas — Longevidade"
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Área / Módulo</label>
-                      <select 
-                        value={department}
-                        onChange={(e: any) => setDepartment(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs"
-                      >
-                        <option value="Saúde">Saúde Física & Sono</option>
-                        <option value="Financeiro">Estrategista Financeiro</option>
-                        <option value="Nutrição">Nutrição & Macros</option>
-                        <option value="Orquestrador">Orquestrador Geral</option>
-                      </select>
-                    </div>
+            <form onSubmit={handleSaveConfig} className="space-y-4 text-xs">
+              {activeTab === 'prompt' ? (
+                <>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome do Agente</label>
+                    <input 
+                      type="text" 
+                      value={selectedAgent.name}
+                      onChange={(e) => setSelectedAgent({ ...selectedAgent, name: e.target.value })}
+                      className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                    />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Prompt de Instruções (System Prompt)</label>
+                    <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">System Prompt (Instruções da IA)</label>
                     <textarea 
-                      rows={6}
-                      value={systemPrompt}
-                      onChange={(e) => setSystemPrompt(e.target.value)}
-                      placeholder="Seu nome é Lucas. Você é o especialista em..."
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs leading-relaxed" 
-                      required
+                      rows={5}
+                      value={selectedAgent.systemPrompt}
+                      onChange={(e) => setSelectedAgent({ ...selectedAgent, systemPrompt: e.target.value })}
+                      className="w-full p-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Modelo de IA</label>
+                      <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Modelo LLM</label>
                       <select 
-                        value={modelName}
-                        onChange={(e) => setModelName(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs"
+                        value={selectedAgent.modelName}
+                        onChange={(e) => setSelectedAgent({ ...selectedAgent, modelName: e.target.value })}
+                        className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none"
                       >
-                        <option value="gpt-4o-mini">gpt-4o-mini (Rápido e Barato)</option>
-                        <option value="gpt-4o">gpt-4o (Flagship Multimodal)</option>
-                        <option value="claude-3-5-sonnet">claude-3-5-sonnet (Alta precisão)</option>
-                        <option value="gemini-2-flash">gemini-2-flash (Ultra Rápido)</option>
+                        <option value="gpt-4o-mini">gpt-4o-mini</option>
+                        <option value="gpt-4o">gpt-4o</option>
+                        <option value="claude-3-5-sonnet">claude-3-5-sonnet</option>
+                        <option value="deepseek-v3">deepseek-v3</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Temperatura ({temperature})</label>
+                      <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Temperatura ({selectedAgent.temperature})</label>
                       <input 
-                        type="range" 
-                        min="0.1" 
-                        max="1.0" 
+                        type="range"
+                        min="0"
+                        max="1"
                         step="0.1"
-                        value={temperature}
-                        onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                        className="w-full accent-sky-500 cursor-pointer mt-2" 
+                        value={selectedAgent.temperature}
+                        onChange={(e) => setSelectedAgent({ ...selectedAgent, temperature: parseFloat(e.target.value) })}
+                        className="w-full mt-2"
                       />
                     </div>
                   </div>
-                </div>
-              )}
-
-              {/* TAB 2: WHATSAPP (EXACT MATCHING SACDIGITAL IMAGE 2) */}
-              {activeTab === 'whatsapp' && (
-                <div className="space-y-5">
-                  {/* Status Banner & Action Buttons */}
-                  <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between">
-                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-bold flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                      Canal configurado
-                    </span>
-
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        type="button"
-                        onClick={handleTestWhatsapp}
-                        className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center space-x-1.5"
-                      >
-                        <span>📡</span>
-                        <span>Testar Conexão</span>
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => setWhatsappEnabled(false)}
-                        className="p-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-xl text-xs"
-                      >
-                        🗑️
-                      </button>
-                    </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox"
+                      id="wa-check"
+                      checked={selectedAgent.whatsappEnabled || false}
+                      onChange={(e) => setSelectedAgent({ ...selectedAgent, whatsappEnabled: e.target.checked })}
+                      className="rounded bg-[#16191e] border-[#ffffff12]"
+                    />
+                    <label htmlFor="wa-check" className="text-xs font-semibold text-[#f7f8f8]">Ativar Atendimento WhatsApp via UazAPI</label>
                   </div>
 
-                  {testResult && (
-                    <div className="p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 font-semibold animate-pulse">
-                      {testResult}
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">URL do Servidor UazAPI</label>
+                    <input 
+                      type="text" 
+                      value={selectedAgent.uazapiServerUrl || ''}
+                      onChange={(e) => setSelectedAgent({ ...selectedAgent, uazapiServerUrl: e.target.value })}
+                      placeholder="https://uazapi.com"
+                      className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none"
+                    />
+                  </div>
 
-                  {/* Chat Automático Switch */}
-                  <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                        🤖 Chat Automático
-                      </h4>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Desative para pausar o robô no WhatsApp imediatamente.</p>
-                    </div>
-
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={whatsappEnabled} 
-                        onChange={(e) => setWhatsappEnabled(e.target.checked)}
-                        className="sr-only peer" 
-                      />
-                      <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
-                  </div>
-
-                  {/* Tipo de Integração Selector Buttons */}
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">TIPO DE INTEGRAÇÃO</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button 
-                        type="button"
-                        onClick={() => setWhatsappIntegrationType('uazapi')}
-                        className={`py-3 rounded-xl font-bold text-xs transition border flex items-center justify-center space-x-2 ${
-                          whatsappIntegrationType === 'uazapi' 
-                            ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md shadow-sky-500/20' 
-                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
-                        }`}
-                      >
-                        <span>🤖</span>
-                        <span>UazAPI</span>
-                      </button>
-
-                      <button 
-                        type="button"
-                        onClick={() => setWhatsappIntegrationType('meta')}
-                        className={`py-3 rounded-xl font-bold text-xs transition border flex items-center justify-center space-x-2 ${
-                          whatsappIntegrationType === 'meta' 
-                            ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md shadow-sky-500/20' 
-                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
-                        }`}
-                      >
-                        <span>🏢</span>
-                        <span>Meta WhatsApp</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* SERVER URL */}
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">SERVER URL</label>
-                    <input 
-                      type="text" 
-                      value={uazapiServerUrl}
-                      onChange={(e) => setUazapiServerUrl(e.target.value)}
-                      placeholder="https://coliseu.uazapi.com"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
-                    />
-                    <p className="text-[10px] text-slate-500 mt-1">URL base da API do servidor UazAPI.</p>
-                  </div>
-
-                  {/* INSTANCE NAME */}
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">INSTANCE NAME</label>
-                    <input 
-                      type="text" 
-                      value={uazapiInstanceName}
-                      onChange={(e) => setUazapiInstanceName(e.target.value)}
-                      placeholder="COLISEUSAC"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
-                    />
-                  </div>
-
-                  {/* TOKEN (API KEY) */}
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">TOKEN (API KEY)</label>
-                    <input 
-                      type="password" 
-                      value={uazapiToken}
-                      onChange={(e) => setUazapiToken(e.target.value)}
-                      placeholder="•••••••• (deixe vazio para manter)"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
-                    />
-                  </div>
-
-                  {/* URL DO WEBHOOK (COPIAR PARA A UAZAPI) */}
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">URL DO WEBHOOK (COPIAR PARA A UAZAPI)</label>
-                    <div className="flex items-center space-x-2">
+                      <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome da Instância</label>
                       <input 
                         type="text" 
-                        readOnly
-                        value={currentWebhookUrl}
-                        className="flex-1 px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950/80 text-sky-400 text-xs font-mono select-all" 
+                        value={selectedAgent.uazapiInstanceName || ''}
+                        onChange={(e) => setSelectedAgent({ ...selectedAgent, uazapiInstanceName: e.target.value })}
+                        placeholder="INSTANCE_NAME"
+                        className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none"
                       />
-                      <button 
-                        type="button"
-                        onClick={handleCopyWebhook}
-                        className="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center space-x-1"
-                        title="Copiar URL do Webhook"
-                      >
-                        <span>{copiedWebhook ? '✓ Copiado!' : '📋 Copiar'}</span>
-                      </button>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Token de Acesso</label>
+                      <input 
+                        type="password" 
+                        value={selectedAgent.uazapiToken || ''}
+                        onChange={(e) => setSelectedAgent({ ...selectedAgent, uazapiToken: e.target.value })}
+                        placeholder="token_sec_..."
+                        className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none"
+                      />
                     </div>
                   </div>
-                </div>
+                </>
               )}
 
-              <div className="pt-3 border-t border-slate-800 flex justify-end space-x-3">
+              <div className="flex justify-end space-x-2 pt-2">
                 <button 
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-800 text-slate-400 hover:text-white text-xs font-semibold"
+                  type="button" 
+                  onClick={() => setShowConfigModal(false)}
+                  className="h-8 px-3 rounded bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8] border border-[#ffffff0a]"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-7 py-2.5 rounded-xl text-xs transition shadow-lg shadow-sky-500/20"
+                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm"
                 >
-                  {editingAgent ? 'Salvar Agente & WhatsApp' : 'Criar Agente'}
+                  Salvar Alterações
                 </button>
               </div>
             </form>
+
           </div>
         </div>
       )}
+
     </div>
   );
 }

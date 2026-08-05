@@ -5,13 +5,18 @@ import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Bot, BookOpen, Cpu, HeartPulse, 
   Apple, Wallet, Sparkles, Users, UserCheck, MessageSquare, 
-  Settings, LogOut, ChevronDown, Bell, Search, Command
+  Settings, LogOut, ChevronDown, Search, Command
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const isActive = (path: string) => pathname === path;
+
+  // Icon color mapping — ONLY the icon gets colored when the item is active!
+  const getIconColor = (path: string, defaultColorClass: string, activeColorClass: string) => {
+    return isActive(path) ? activeColorClass : defaultColorClass;
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#080a0c] text-[#f7f8f8] font-sans antialiased">
@@ -48,17 +53,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <LayoutDashboard className="w-4 h-4" />
+                <LayoutDashboard className={`w-4 h-4 transition ${getIconColor('/', 'text-[#575c66]', 'text-[#f7f8f8]')}`} />
                 <span>Dashboard</span>
               </Link>
             </div>
           </div>
 
-          {/* AI ENGINE */}
+          {/* INTELIGÊNCIA */}
           <div>
             <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
               Inteligência
@@ -68,11 +73,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/agentes" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/agentes') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <Bot className="w-4 h-4" />
+                <Bot className={`w-4 h-4 transition ${getIconColor('/agentes', 'text-[#575c66]', 'text-[#a855f7]')}`} />
                 <span>Meus Agentes</span>
               </Link>
 
@@ -80,11 +85,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/base-conhecimento" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/base-conhecimento') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <BookOpen className="w-4 h-4" />
+                <BookOpen className={`w-4 h-4 transition ${getIconColor('/base-conhecimento', 'text-[#575c66]', 'text-[#facc15]')}`} />
                 <span>Base Conhecimento</span>
               </Link>
 
@@ -92,11 +97,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/provedores-ia" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/provedores-ia') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <Cpu className="w-4 h-4" />
+                <Cpu className={`w-4 h-4 transition ${getIconColor('/provedores-ia', 'text-[#575c66]', 'text-[#5e6ad2]')}`} />
                 <span>Provedores IA</span>
               </Link>
             </div>
@@ -112,11 +117,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/saude" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/saude') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <HeartPulse className="w-4 h-4" />
+                <HeartPulse className={`w-4 h-4 transition ${getIconColor('/saude', 'text-[#575c66]', 'text-[#f87171]')}`} />
                 <span>Saúde & Hábitos</span>
               </Link>
 
@@ -124,11 +129,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/saude/nutricao" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/saude/nutricao') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <Apple className="w-4 h-4" />
+                <Apple className={`w-4 h-4 transition ${getIconColor('/saude/nutricao', 'text-[#575c66]', 'text-[#4ade80]')}`} />
                 <span>Nutrição</span>
               </Link>
 
@@ -136,11 +141,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/financas" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/financas') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <Wallet className="w-4 h-4" />
+                <Wallet className={`w-4 h-4 transition ${getIconColor('/financas', 'text-[#575c66]', 'text-[#22c55e]')}`} />
                 <span>Finanças</span>
               </Link>
 
@@ -148,11 +153,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/insights" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/insights') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className={`w-4 h-4 transition ${getIconColor('/insights', 'text-[#575c66]', 'text-[#eab308]')}`} />
                 <span>Insights</span>
               </Link>
             </div>
@@ -168,11 +173,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/usuarios" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/usuarios') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <Users className="w-4 h-4" />
+                <Users className={`w-4 h-4 transition ${getIconColor('/usuarios', 'text-[#575c66]', 'text-[#3b82f6]')}`} />
                 <span>Usuários</span>
               </Link>
 
@@ -180,11 +185,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/familia" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/familia') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <UserCheck className="w-4 h-4" />
+                <UserCheck className={`w-4 h-4 transition ${getIconColor('/familia', 'text-[#575c66]', 'text-[#f97316]')}`} />
                 <span>Grupo Familiar</span>
               </Link>
 
@@ -192,11 +197,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/chat" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/chat') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <MessageSquare className="w-4 h-4" />
+                <MessageSquare className={`w-4 h-4 transition ${getIconColor('/chat', 'text-[#575c66]', 'text-[#c084fc]')}`} />
                 <span>Chat Vita</span>
               </Link>
 
@@ -204,11 +209,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href="/configuracoes" 
                 className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
                   isActive('/configuracoes') 
-                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
                     : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
                 }`}
               >
-                <Settings className="w-4 h-4" />
+                <Settings className={`w-4 h-4 transition ${getIconColor('/configuracoes', 'text-[#575c66]', 'text-[#a1a1aa]')}`} />
                 <span>Configurações</span>
               </Link>
             </div>
