@@ -1,0 +1,34 @@
+==============================================================================
+TABELA TACO — TABELA BRASILEIRA DE COMPOSIÇÃO DE ALIMENTOS (REFERÊNCIA DE NUTRIÇÃO)
+==============================================================================
+
+1. CEREAIS E DERIVADOS (por 100g de alimento preparado)
+------------------------------------------------------------------------------
+- Arroz branco cozido: 128 kcal | Carboidratos: 28.1g | Proteínas: 2.5g | Gorduras: 0.2g | Fibras: 1.6g
+- Arroz integral cozido: 124 kcal | Carboidratos: 25.8g | Proteínas: 2.6g | Gorduras: 1.0g | Fibras: 2.7g
+- Aveia em flocos: 394 kcal | Carboidratos: 66.6g | Proteínas: 13.9g | Gorduras: 8.5g | Fibras: 9.1g
+- Pão francês: 300 kcal | Carboidratos: 58.6g | Proteínas: 8.0g | Gorduras: 3.1g | Fibras: 2.3g
+- Macarrão cozido: 157 kcal | Carboidratos: 30.9g | Proteínas: 5.8g | Gorduras: 0.9g | Fibras: 1.8g
+
+2. LEGUMINOSAS E DERIVADOS (por 100g de alimento preparado)
+------------------------------------------------------------------------------
+- Feijão carioca cozido: 76 kcal | Carboidratos: 13.6g | Proteínas: 4.8g | Gorduras: 0.5g | Fibras: 8.5g
+- Feijão preto cozido: 77 kcal | Carboidratos: 14.0g | Proteínas: 4.5g | Gorduras: 0.5g | Fibras: 8.4g
+- Grão-de-bico cozido: 164 kcal | Carboidratos: 27.4g | Proteínas: 8.9g | Gorduras: 2.6g | Fibras: 7.6g
+- Lentilha cozida: 116 kcal | Carboidratos: 20.1g | Proteínas: 9.0g | Gorduras: 0.4g | Fibras: 7.9g
+
+3. CARNES, AVES E PEIXES (por 100g de alimento grelhado/cozido)
+------------------------------------------------------------------------------
+- Peito de frango grelhado: 165 kcal | Carboidratos: 0.0g | Proteínas: 31.5g | Gorduras: 3.2g | Fibras: 0.0g
+- Alcatra grelhada: 241 kcal | Carboidratos: 0.0g | Proteínas: 31.9g | Gorduras: 11.7g | Fibras: 0.0g
+- Patinho grelhado: 219 kcal | Carboidratos: 0.0g | Proteínas: 35.9g | Gorduras: 7.3g | Fibras: 0.0g
+- Salmão grelhado: 229 kcal | Carboidratos: 0.0g | Proteínas: 23.5g | Gorduras: 14.2g (Ômega-3) | Fibras: 0.0g
+- Ovo de galinha cozido (1 unidade ~50g): 78 kcal | Carboidratos: 0.6g | Proteínas: 6.3g | Gorduras: 5.3g
+
+4. TUBÉRCULOS E VEGETAIS (por 100g)
+------------------------------------------------------------------------------
+- Batata doce cozida: 77 kcal | Carboidratos: 18.4g | Proteínas: 0.6g | Gorduras: 0.1g | Fibras: 2.2g
+- Mandioca cozida: 125 kcal | Carboidratos: 30.1g | Proteínas: 0.6g | Gorduras: 0.3g | Fibras: 1.9g
+- Brócolis cozido: 25 kcal | Carboidratos: 4.4g | Proteínas: 2.1g | Gorduras: 0.5g | Fibras: 3.4g
+- Abacate: 160 kcal | Carboidratos: 8.5g | Proteínas: 2.0g | Gorduras: 14.7g (Monoinsaturada) | Fibras: 6.7g
+- Banana prata: 98 kcal | Carboidratos: 26.0g | Proteínas: 1.3g | Gorduras: 0.1g | Fibras: 2.0g

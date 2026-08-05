@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  sf-db:
+    image: ankane/pgvector:v0.5.1
+    container_name: sf-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sf_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sf_password_secure_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-saudefinancas}
+    ports:
+      - "5432:5432"
+    volumes:
+      - sf-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sf_user} -d ${POSTGRES_DB:-saudefinancas}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sf-redis:
+    image: redis:7.2-alpine
+    container_name: sf-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - sf-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sf-api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: sf-api
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sf_user}:${POSTGRES_PASSWORD:-sf_password_secure_2026}@sf-db:5432/${POSTGRES_DB:-saudefinancas}?schema=public
+      - REDIS_HOST=sf-redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-sf_jwt_secret_super_key_2026}
+      - MASTER_ENCRYPTION_KEY=${MASTER_ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+    depends_on:
+      sf-db:
+        condition: service_healthy
+      sf-redis:
+        condition: service_healthy
+
+  sf-web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: sf-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    depends_on:
+      - sf-api
+
+volumes:
+  sf-db-data:
+  sf-redis-data:
