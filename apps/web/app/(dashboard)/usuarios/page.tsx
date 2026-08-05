@@ -210,57 +210,95 @@ export default function UsuariosPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="text-[#575c66] border-b border-[#ffffff0e] uppercase font-semibold text-[10px]">
-                <tr>
-                  <th className="pb-3">Usuário</th>
-                  <th className="pb-3">Email</th>
-                  <th className="pb-3">📱 WhatsApp IA</th>
-                  <th className="pb-3">Cargo</th>
-                  <th className="pb-3">Status</th>
-                  <th className="pb-3 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#ffffff0a]">
-                {filteredUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-[#16191e] transition">
-                    <td className="py-3 font-medium text-[#f7f8f8]">{u.name}</td>
-                    <td className="py-3 font-mono text-[#8a8f98]">{u.email}</td>
-                    <td className="py-3 font-mono text-[#4ade80]">{u.whatsappPhone || 'Não informado'}</td>
-                    <td className="py-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
-                        u.isActive 
-                          ? 'bg-[#4ade8010] text-[#4ade80] border-[#4ade8025]' 
-                          : 'bg-[#16191e] text-[#575c66] border-[#ffffff0e]'
-                      }`}>
-                        {u.isActive ? 'ATIVO' : 'INATIVO'}
-                      </span>
-                    </td>
-                    <td className="py-3 text-right space-x-1">
+          <>
+            {/* Mobile Card List (< 640px) */}
+            <div className="space-y-3 sm:hidden">
+              {filteredUsers.map((u) => (
+                <div key={u.id} className="p-3 rounded-md bg-[#16191e] border border-[#ffffff0a] space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-[#f7f8f8]">{u.name}</div>
+                      <div className="text-[11px] font-mono text-[#8a8f98]">{u.email}</div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0f1115] border border-[#ffffff08] text-[#8a8f98]">
+                      {u.role}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] font-mono border-t border-[#ffffff08] pt-2">
+                    <span className="text-[#4ade80]">📱 {u.whatsappPhone || 'Não informado'}</span>
+                    <div className="space-x-1">
                       <button 
                         onClick={() => handleOpenEdit(u)}
                         className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f7f8f8]"
                       >
-                        <Edit3 className="w-3.5 h-3.5" />
+                        <Edit3 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDeleteUser(u.id)}
                         className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f87171]"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
-                    </td>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table (≥ 640px) */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="text-[#575c66] border-b border-[#ffffff0e] uppercase font-semibold text-[10px]">
+                  <tr>
+                    <th className="pb-3">Usuário</th>
+                    <th className="pb-3">Email</th>
+                    <th className="pb-3">📱 WhatsApp IA</th>
+                    <th className="pb-3">Cargo</th>
+                    <th className="pb-3">Status</th>
+                    <th className="pb-3 text-right">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[#ffffff0a]">
+                  {filteredUsers.map((u) => (
+                    <tr key={u.id} className="hover:bg-[#16191e] transition">
+                      <td className="py-3 font-medium text-[#f7f8f8]">{u.name}</td>
+                      <td className="py-3 font-mono text-[#8a8f98]">{u.email}</td>
+                      <td className="py-3 font-mono text-[#4ade80]">{u.whatsappPhone || 'Não informado'}</td>
+                      <td className="py-3">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                          u.isActive 
+                            ? 'bg-[#4ade8010] text-[#4ade80] border-[#4ade8025]' 
+                            : 'bg-[#16191e] text-[#575c66] border-[#ffffff0e]'
+                        }`}>
+                          {u.isActive ? 'ATIVO' : 'INATIVO'}
+                        </span>
+                      </td>
+                      <td className="py-3 text-right space-x-1">
+                        <button 
+                          onClick={() => handleOpenEdit(u)}
+                          className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f7f8f8]"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteUser(u.id)}
+                          className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f87171]"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

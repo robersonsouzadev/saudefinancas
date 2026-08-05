@@ -1,15 +1,17 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Bot, BookOpen, Cpu, HeartPulse, 
   Apple, Wallet, TrendingUp, Sparkles, Users, UserCheck, MessageSquare, 
-  Settings, LogOut, ChevronDown, Search, Command
+  Settings, LogOut, ChevronDown, Search, Command, Menu, X
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => pathname === path;
 
@@ -18,12 +20,216 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return isActive(path) ? activeColorClass : defaultColorClass;
   };
 
+  const navContent = (
+    <>
+      {/* VISÃO GERAL */}
+      <div>
+        <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          Geral
+        </div>
+        <div className="space-y-0.5">
+          <Link 
+            href="/" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <LayoutDashboard className={`w-4 h-4 transition ${getIconColor('/', 'text-[#575c66]', 'text-[#f7f8f8]')}`} />
+            <span>Dashboard</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* INTELIGÊNCIA */}
+      <div>
+        <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          Inteligência
+        </div>
+        <div className="space-y-0.5">
+          <Link 
+            href="/agentes" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/agentes') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Bot className={`w-4 h-4 transition ${getIconColor('/agentes', 'text-[#575c66]', 'text-[#a855f7]')}`} />
+            <span>Meus Agentes</span>
+          </Link>
+
+          <Link 
+            href="/base-conhecimento" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/base-conhecimento') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <BookOpen className={`w-4 h-4 transition ${getIconColor('/base-conhecimento', 'text-[#575c66]', 'text-[#facc15]')}`} />
+            <span>Base Conhecimento</span>
+          </Link>
+
+          <Link 
+            href="/provedores-ia" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/provedores-ia') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Cpu className={`w-4 h-4 transition ${getIconColor('/provedores-ia', 'text-[#575c66]', 'text-[#5e6ad2]')}`} />
+            <span>Provedores IA</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* BEM-ESTAR */}
+      <div>
+        <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          Bem-Estar
+        </div>
+        <div className="space-y-0.5">
+          <Link 
+            href="/saude" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/saude') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <HeartPulse className={`w-4 h-4 transition ${getIconColor('/saude', 'text-[#575c66]', 'text-[#f87171]')}`} />
+            <span>Saúde & Hábitos</span>
+          </Link>
+
+          <Link 
+            href="/saude/nutricao" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/saude/nutricao') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Apple className={`w-4 h-4 transition ${getIconColor('/saude/nutricao', 'text-[#575c66]', 'text-[#4ade80]')}`} />
+            <span>Nutrição</span>
+          </Link>
+
+          <Link 
+            href="/financas" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/financas') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Wallet className={`w-4 h-4 transition ${getIconColor('/financas', 'text-[#575c66]', 'text-[#22c55e]')}`} />
+            <span>Finanças</span>
+          </Link>
+
+          <Link 
+            href="/investimentos" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/investimentos') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <TrendingUp className={`w-4 h-4 transition ${getIconColor('/investimentos', 'text-[#575c66]', 'text-[#10b981]')}`} />
+            <span>Investimentos</span>
+          </Link>
+
+          <Link 
+            href="/insights" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/insights') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Sparkles className={`w-4 h-4 transition ${getIconColor('/insights', 'text-[#575c66]', 'text-[#eab308]')}`} />
+            <span>Insights</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* WORKSPACE & SISTEMA */}
+      <div>
+        <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          Workspace
+        </div>
+        <div className="space-y-0.5">
+          <Link 
+            href="/usuarios" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/usuarios') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Users className={`w-4 h-4 transition ${getIconColor('/usuarios', 'text-[#575c66]', 'text-[#3b82f6]')}`} />
+            <span>Usuários</span>
+          </Link>
+
+          <Link 
+            href="/familia" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/familia') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <UserCheck className={`w-4 h-4 transition ${getIconColor('/familia', 'text-[#575c66]', 'text-[#f97316]')}`} />
+            <span>Grupo Familiar</span>
+          </Link>
+
+          <Link 
+            href="/chat" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/chat') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <MessageSquare className={`w-4 h-4 transition ${getIconColor('/chat', 'text-[#575c66]', 'text-[#c084fc]')}`} />
+            <span>Chat Vita</span>
+          </Link>
+
+          <Link 
+            href="/configuracoes" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/configuracoes') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Settings className={`w-4 h-4 transition ${getIconColor('/configuracoes', 'text-[#575c66]', 'text-[#a1a1aa]')}`} />
+            <span>Configurações</span>
+          </Link>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#080a0c] text-[#f7f8f8] font-sans antialiased">
-      {/* Linear-Style Sleek Sidebar (220px width) */}
-      <aside className="w-[220px] bg-[#0f1115] border-r border-[#ffffff12] flex flex-col flex-shrink-0 select-none">
-        
-        {/* Workspace Header */}
+      
+      {/* Desktop Linear-Style Sleek Sidebar */}
+      <aside className="hidden md:flex w-[220px] bg-[#0f1115] border-r border-[#ffffff12] flex-col flex-shrink-0 select-none">
         <div className="h-12 px-3 flex items-center justify-between border-b border-[#ffffff0e]">
           <div className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition">
             <div className="w-5 h-5 rounded-md bg-[#5e6ad2] flex items-center justify-center font-bold text-white text-[10px] shadow-sm">
@@ -40,199 +246,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </div>
 
-        {/* Navigation Sections */}
         <nav className="flex-1 px-2 py-3 space-y-4 overflow-y-auto text-[13px]">
-          
-          {/* VISÃO GERAL */}
-          <div>
-            <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
-              Geral
-            </div>
-            <div className="space-y-0.5">
-              <Link 
-                href="/" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <LayoutDashboard className={`w-4 h-4 transition ${getIconColor('/', 'text-[#575c66]', 'text-[#f7f8f8]')}`} />
-                <span>Dashboard</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* INTELIGÊNCIA */}
-          <div>
-            <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
-              Inteligência
-            </div>
-            <div className="space-y-0.5">
-              <Link 
-                href="/agentes" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/agentes') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <Bot className={`w-4 h-4 transition ${getIconColor('/agentes', 'text-[#575c66]', 'text-[#a855f7]')}`} />
-                <span>Meus Agentes</span>
-              </Link>
-
-              <Link 
-                href="/base-conhecimento" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/base-conhecimento') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <BookOpen className={`w-4 h-4 transition ${getIconColor('/base-conhecimento', 'text-[#575c66]', 'text-[#facc15]')}`} />
-                <span>Base Conhecimento</span>
-              </Link>
-
-              <Link 
-                href="/provedores-ia" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/provedores-ia') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <Cpu className={`w-4 h-4 transition ${getIconColor('/provedores-ia', 'text-[#575c66]', 'text-[#5e6ad2]')}`} />
-                <span>Provedores IA</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* BEM-ESTAR */}
-          <div>
-            <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
-              Bem-Estar
-            </div>
-            <div className="space-y-0.5">
-              <Link 
-                href="/saude" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/saude') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <HeartPulse className={`w-4 h-4 transition ${getIconColor('/saude', 'text-[#575c66]', 'text-[#f87171]')}`} />
-                <span>Saúde & Hábitos</span>
-              </Link>
-
-              <Link 
-                href="/saude/nutricao" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/saude/nutricao') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <Apple className={`w-4 h-4 transition ${getIconColor('/saude/nutricao', 'text-[#575c66]', 'text-[#4ade80]')}`} />
-                <span>Nutrição</span>
-              </Link>
-
-              <Link 
-                href="/financas" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/financas') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <Wallet className={`w-4 h-4 transition ${getIconColor('/financas', 'text-[#575c66]', 'text-[#22c55e]')}`} />
-                <span>Finanças</span>
-              </Link>
-
-              <Link 
-                href="/investimentos" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/investimentos') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <TrendingUp className={`w-4 h-4 transition ${getIconColor('/investimentos', 'text-[#575c66]', 'text-[#10b981]')}`} />
-                <span>Investimentos</span>
-              </Link>
-
-              <Link 
-                href="/insights" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/insights') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <Sparkles className={`w-4 h-4 transition ${getIconColor('/insights', 'text-[#575c66]', 'text-[#eab308]')}`} />
-                <span>Insights</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* WORKSPACE & SISTEMA */}
-          <div>
-            <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
-              Workspace
-            </div>
-            <div className="space-y-0.5">
-              <Link 
-                href="/usuarios" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/usuarios') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <Users className={`w-4 h-4 transition ${getIconColor('/usuarios', 'text-[#575c66]', 'text-[#3b82f6]')}`} />
-                <span>Usuários</span>
-              </Link>
-
-              <Link 
-                href="/familia" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/familia') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <UserCheck className={`w-4 h-4 transition ${getIconColor('/familia', 'text-[#575c66]', 'text-[#f97316]')}`} />
-                <span>Grupo Familiar</span>
-              </Link>
-
-              <Link 
-                href="/chat" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/chat') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <MessageSquare className={`w-4 h-4 transition ${getIconColor('/chat', 'text-[#575c66]', 'text-[#c084fc]')}`} />
-                <span>Chat Vita</span>
-              </Link>
-
-              <Link 
-                href="/configuracoes" 
-                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
-                  isActive('/configuracoes') 
-                    ? 'bg-[#16191e] text-[#f7f8f8]' 
-                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-                }`}
-              >
-                <Settings className={`w-4 h-4 transition ${getIconColor('/configuracoes', 'text-[#575c66]', 'text-[#a1a1aa]')}`} />
-                <span>Configurações</span>
-              </Link>
-            </div>
-          </div>
+          {navContent}
         </nav>
 
-        {/* Footer Profile */}
         <div className="p-2 border-t border-[#ffffff0e] flex items-center justify-between">
           <div className="flex items-center space-x-2 px-1 py-1">
             <div className="w-6 h-6 rounded-full bg-[#1e2229] border border-[#ffffff12] flex items-center justify-center text-[10px] font-bold text-[#f7f8f8]">
@@ -247,23 +264,74 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
+      {/* Mobile Drawer Overlay & Sidebar */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div 
+            className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          <aside className="relative w-64 max-w-[80vw] bg-[#0f1115] border-r border-[#ffffff14] flex flex-col h-full z-10 shadow-2xl">
+            <div className="h-14 px-4 flex items-center justify-between border-b border-[#ffffff0e]">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 rounded-md bg-[#5e6ad2] flex items-center justify-center font-bold text-white text-xs shadow-sm">
+                  SF
+                </div>
+                <span className="font-semibold text-sm text-[#f7f8f8] tracking-tight">Saúde & Finanças</span>
+              </div>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-1.5 rounded-md hover:bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto text-sm">
+              {navContent}
+            </nav>
+
+            <div className="p-3 border-t border-[#ffffff0e] flex items-center justify-between bg-[#16191e]/50">
+              <div className="flex items-center space-x-2">
+                <div className="w-7 h-7 rounded-full bg-[#1e2229] border border-[#ffffff12] flex items-center justify-center text-xs font-bold text-[#f7f8f8]">
+                  R
+                </div>
+                <span className="text-xs font-medium text-[#8a8f98]">Roberson</span>
+              </div>
+
+              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="p-1.5 hover:text-rose-400 text-[#575c66] rounded transition">
+                <LogOut className="w-4 h-4" />
+              </Link>
+            </div>
+          </aside>
+        </div>
+      )}
+
       {/* Main Container Area */}
       <main className="flex-1 flex flex-col overflow-hidden bg-[#080a0c]">
         {/* Minimal Linear Header Bar */}
-        <header className="h-12 border-b border-[#ffffff0e] bg-[#0f1115]/50 backdrop-blur-md flex items-center justify-between px-4 flex-shrink-0 select-none">
+        <header className="h-12 border-b border-[#ffffff0e] bg-[#0f1115]/50 backdrop-blur-md flex items-center justify-between px-3 md:px-4 flex-shrink-0 select-none">
           <div className="flex items-center space-x-2 text-[12px] font-medium text-[#8a8f98]">
-            <span className="text-[#f7f8f8] font-semibold">Saúde & Finanças</span>
-            <span>/</span>
-            <span className="text-[#8a8f98] capitalize">{pathname === '/' ? 'Dashboard' : pathname.replace('/', '')}</span>
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-1.5 mr-1 rounded-md text-[#8a8f98] hover:text-white hover:bg-[#16191e] transition"
+              aria-label="Abrir Menu"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+            <span className="text-[#f7f8f8] font-semibold hidden sm:inline">Saúde & Finanças</span>
+            <span className="hidden sm:inline">/</span>
+            <span className="text-[#8a8f98] capitalize">{pathname === '/' ? 'Dashboard' : pathname.replace('/', '').replace('-', ' ')}</span>
           </div>
 
-          <div className="flex items-center space-x-3 text-[12px]">
-            <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-[#4ade8015] border border-[#4ade8030] text-[#4ade80] text-[11px] font-mono">
+          <div className="flex items-center space-x-2 sm:space-x-3 text-[12px]">
+            <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-[#4ade8015] border border-[#4ade8030] text-[#4ade80] text-[10px] sm:text-[11px] font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80]"></span>
               <span>Vita Online</span>
             </div>
 
-            <button className="flex items-center space-x-1 text-[#8a8f98] hover:text-[#f7f8f8] px-2 py-1 rounded hover:bg-[#16191e] transition text-[11px]">
+            <button className="hidden sm:flex items-center space-x-1 text-[#8a8f98] hover:text-[#f7f8f8] px-2 py-1 rounded hover:bg-[#16191e] transition text-[11px]">
               <Command className="w-3 h-3" />
               <span>K</span>
             </button>
@@ -271,7 +339,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-3 sm:p-6">
           {children}
         </div>
       </main>

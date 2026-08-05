@@ -143,36 +143,60 @@ export default function FinancasPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="text-[#575c66] border-b border-[#ffffff0e] uppercase font-semibold text-[10px]">
-                <tr>
-                  <th className="pb-3">Data</th>
-                  <th className="pb-3">Descrição</th>
-                  <th className="pb-3">Usuário</th>
-                  <th className="pb-3">Categoria</th>
-                  <th className="pb-3 text-right">Valor (R$)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#ffffff0a]">
-                {transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-[#16191e] transition">
-                    <td className="py-3 text-[#8a8f98] font-mono">{tx.date}</td>
-                    <td className="py-3 font-medium text-[#f7f8f8]">{tx.description}</td>
-                    <td className="py-3 text-[#8a8f98]">{tx.user}</td>
-                    <td className="py-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
+          <>
+            {/* Mobile Card List (< 640px) */}
+            <div className="space-y-3 sm:hidden">
+              {transactions.map((tx) => (
+                <div key={tx.id} className="p-3 rounded-md bg-[#16191e] border border-[#ffffff0a] flex items-center justify-between text-xs">
+                  <div className="space-y-1">
+                    <div className="font-semibold text-[#f7f8f8]">{tx.description}</div>
+                    <div className="flex items-center space-x-2 text-[10px] text-[#8a8f98]">
+                      <span className="font-mono">{tx.date}</span>
+                      <span>•</span>
+                      <span className="px-1.5 py-0.5 rounded bg-[#0f1115] border border-[#ffffff08] font-mono">
                         {tx.category}
                       </span>
-                    </td>
-                    <td className={`py-3 text-right font-mono font-bold ${tx.type === 'INCOME' ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-                      {tx.type === 'INCOME' ? '+' : '-'} R$ {tx.amount.toFixed(2)}
-                    </td>
+                    </div>
+                  </div>
+                  <div className={`font-mono font-bold text-sm ${tx.type === 'INCOME' ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+                    {tx.type === 'INCOME' ? '+' : '-'} R$ {tx.amount.toFixed(2)}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table (≥ 640px) */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="text-[#575c66] border-b border-[#ffffff0e] uppercase font-semibold text-[10px]">
+                  <tr>
+                    <th className="pb-3">Data</th>
+                    <th className="pb-3">Descrição</th>
+                    <th className="pb-3">Usuário</th>
+                    <th className="pb-3">Categoria</th>
+                    <th className="pb-3 text-right">Valor (R$)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[#ffffff0a]">
+                  {transactions.map((tx) => (
+                    <tr key={tx.id} className="hover:bg-[#16191e] transition">
+                      <td className="py-3 text-[#8a8f98] font-mono">{tx.date}</td>
+                      <td className="py-3 font-medium text-[#f7f8f8]">{tx.description}</td>
+                      <td className="py-3 text-[#8a8f98]">{tx.user}</td>
+                      <td className="py-3">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
+                          {tx.category}
+                        </span>
+                      </td>
+                      <td className={`py-3 text-right font-mono font-bold ${tx.type === 'INCOME' ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+                        {tx.type === 'INCOME' ? '+' : '-'} R$ {tx.amount.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

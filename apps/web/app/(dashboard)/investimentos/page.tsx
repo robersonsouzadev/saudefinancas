@@ -179,52 +179,98 @@ export default function InvestimentosPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="text-[#575c66] border-b border-[#ffffff0e] uppercase font-semibold text-[10px]">
-                <tr>
-                  <th className="pb-3">Ativo / Ticker</th>
-                  <th className="pb-3">Tipo</th>
-                  <th className="pb-3">Corretora</th>
-                  <th className="pb-3 text-right">Qtd</th>
-                  <th className="pb-3 text-right">Preço Médio</th>
-                  <th className="pb-3 text-right">Cotação Atual</th>
-                  <th className="pb-3 text-right">Total Investido</th>
-                  <th className="pb-3 text-right">Resultado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#ffffff0a]">
-                {assets.map((a) => {
-                  const invested = a.quantity * a.averagePrice;
-                  const currentVal = a.quantity * a.currentPrice;
-                  const profit = currentVal - invested;
-                  const profitPct = invested > 0 ? (profit / invested) * 100 : 0;
+          <>
+            {/* Mobile Card List (< 640px) */}
+            <div className="space-y-3 sm:hidden">
+              {assets.map((a) => {
+                const invested = a.quantity * a.averagePrice;
+                const currentVal = a.quantity * a.currentPrice;
+                const profit = currentVal - invested;
+                const profitPct = invested > 0 ? (profit / invested) * 100 : 0;
 
-                  return (
-                    <tr key={a.id} className="hover:bg-[#16191e] transition">
-                      <td className="py-3 font-medium text-[#f7f8f8]">
-                        <span className="font-bold block font-mono">{a.ticker}</span>
-                        <span className="text-[10px] text-[#8a8f98] font-sans">{a.name}</span>
-                      </td>
-                      <td className="py-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
-                          {a.type}
+                return (
+                  <div key={a.id} className="p-3 rounded-md bg-[#16191e] border border-[#ffffff0a] space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-sm font-mono text-[#f7f8f8]">{a.ticker}</span>
+                        <span className="text-[10px] text-[#8a8f98] block">{a.name}</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0f1115] border border-[#ffffff08] text-[#8a8f98]">
+                        {a.type}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 py-1 border-t border-b border-[#ffffff08] text-[11px] font-mono">
+                      <div>
+                        <span className="text-[#8a8f98] block text-[10px]">Posição Atual</span>
+                        <span className="font-bold text-[#f7f8f8]">R$ {currentVal.toFixed(2)}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[#8a8f98] block text-[10px]">Resultado</span>
+                        <span className={`font-bold ${profit >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+                          {profit >= 0 ? '+' : ''} R$ {profit.toFixed(2)} ({profitPct.toFixed(1)}%)
                         </span>
-                      </td>
-                      <td className="py-3 font-mono text-[#8a8f98]">{a.broker}</td>
-                      <td className="py-3 text-right font-mono text-[#f7f8f8]">{a.quantity}</td>
-                      <td className="py-3 text-right font-mono text-[#8a8f98]">R$ {a.averagePrice.toFixed(2)}</td>
-                      <td className="py-3 text-right font-mono text-[#f7f8f8]">R$ {a.currentPrice.toFixed(2)}</td>
-                      <td className="py-3 text-right font-mono font-bold text-[#f7f8f8]">R$ {currentVal.toFixed(2)}</td>
-                      <td className={`py-3 text-right font-mono font-bold ${profit >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-                        {profit >= 0 ? '+' : ''} R$ {profit.toFixed(2)} ({profitPct.toFixed(1)}%)
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between text-[10px] text-[#8a8f98] font-mono">
+                      <span>Qtd: {a.quantity}</span>
+                      <span>PM: R$ {a.averagePrice.toFixed(2)}</span>
+                      <span>Atual: R$ {a.currentPrice.toFixed(2)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table (≥ 640px) */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="text-[#575c66] border-b border-[#ffffff0e] uppercase font-semibold text-[10px]">
+                  <tr>
+                    <th className="pb-3">Ativo / Ticker</th>
+                    <th className="pb-3">Tipo</th>
+                    <th className="pb-3">Corretora</th>
+                    <th className="pb-3 text-right">Qtd</th>
+                    <th className="pb-3 text-right">Preço Médio</th>
+                    <th className="pb-3 text-right">Cotação Atual</th>
+                    <th className="pb-3 text-right">Total Investido</th>
+                    <th className="pb-3 text-right">Resultado</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#ffffff0a]">
+                  {assets.map((a) => {
+                    const invested = a.quantity * a.averagePrice;
+                    const currentVal = a.quantity * a.currentPrice;
+                    const profit = currentVal - invested;
+                    const profitPct = invested > 0 ? (profit / invested) * 100 : 0;
+
+                    return (
+                      <tr key={a.id} className="hover:bg-[#16191e] transition">
+                        <td className="py-3 font-medium text-[#f7f8f8]">
+                          <span className="font-bold block font-mono">{a.ticker}</span>
+                          <span className="text-[10px] text-[#8a8f98] font-sans">{a.name}</span>
+                        </td>
+                        <td className="py-3">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
+                            {a.type}
+                          </span>
+                        </td>
+                        <td className="py-3 font-mono text-[#8a8f98]">{a.broker}</td>
+                        <td className="py-3 text-right font-mono text-[#f7f8f8]">{a.quantity}</td>
+                        <td className="py-3 text-right font-mono text-[#8a8f98]">R$ {a.averagePrice.toFixed(2)}</td>
+                        <td className="py-3 text-right font-mono text-[#f7f8f8]">R$ {a.currentPrice.toFixed(2)}</td>
+                        <td className="py-3 text-right font-mono font-bold text-[#f7f8f8]">R$ {currentVal.toFixed(2)}</td>
+                        <td className={`py-3 text-right font-mono font-bold ${profit >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+                          {profit >= 0 ? '+' : ''} R$ {profit.toFixed(2)} ({profitPct.toFixed(1)}%)
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
