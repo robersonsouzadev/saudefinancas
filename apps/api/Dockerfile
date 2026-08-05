@@ -32,12 +32,9 @@ ENV NODE_ENV=production
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
 
-RUN npm install --only=production --legacy-peer-deps
-
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 
 EXPOSE 3001
 
