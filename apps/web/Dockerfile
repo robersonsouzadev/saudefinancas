@@ -16,6 +16,7 @@ COPY apps/web ./apps/web
 
 WORKDIR /app/apps/web
 ENV NEXT_TELEMETRY_DISABLED=1
+RUN mkdir -p public
 RUN npm run build
 
 # Production image stage
@@ -27,8 +28,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
-
-RUN npm install --only=production --legacy-peer-deps
 
 COPY --from=builder /app/apps/web/.next ./apps/web/.next
 COPY --from=builder /app/apps/web/public ./apps/web/public
