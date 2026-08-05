@@ -113,6 +113,9 @@ model Agent {
   name               String
   description        String?
   systemPrompt       String
+  modelName          String              @default("gpt-4o-mini")
+  temperature        Float               @default(0.7)
+  isDefault          Boolean             @default(false)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   conversations      Conversation[]

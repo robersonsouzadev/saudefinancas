@@ -9,12 +9,12 @@ import { LlmProvidersModule } from './modules/llm-providers/llm-providers.module
 import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 
-// Mocks for other modules to be implemented later
-@Module({}) class HealthTrackerModule {}
-@Module({}) class NutritionModule {}
-@Module({}) class FinanceModule {}
-@Module({}) class InsightsModule {}
-@Module({}) class DashboardModule {}
+import { HealthTrackerModule } from './modules/health-tracker/health-tracker.module';
+import { NutritionModule } from './modules/nutrition/nutrition.module';
+import { FinanceModule } from './modules/finance/finance.module';
+import { InsightsModule } from './modules/insights/insights.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { InvestmentsModule } from './modules/investments/investments.module';
 
 @Module({
   imports: [
@@ -35,6 +35,7 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
     FinanceModule,
     InsightsModule,
     DashboardModule,
+    InvestmentsModule,
   ],
 })
 export class AppModule {}

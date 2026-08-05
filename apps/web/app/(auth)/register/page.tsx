@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -9,10 +9,50 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [apiBaseUrl, setApiBaseUrl] = useState('http://localhost:3001');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      if (hostname === 'app.robersonsouza.com.br' || hostname.includes('robersonsouza.com.br')) {
+        setApiBaseUrl('https://app.robersonsouza.com.br');
+      } else {
+        setApiBaseUrl(`http://${hostname}:3001`);
+      }
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/');
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Erro ao realizar cadastro');
+      }
+
+      if (data.access_token) {
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message || 'Erro ao cadastrar usuário');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -25,6 +65,12 @@ export default function RegisterPage() {
           <h1 className="text-lg font-semibold text-[#f7f8f8] tracking-tight">Criar Nova Conta</h1>
           <p className="text-xs text-[#8a8f98]">Preencha seus dados para começar</p>
         </div>
+
+        {error && (
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-xs font-medium">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
@@ -62,9 +108,10 @@ export default function RegisterPage() {
           </div>
           <button 
             type="submit"
-            className="w-full h-9 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium rounded text-xs transition shadow-sm"
+            disabled={loading}
+            className="w-full h-9 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium rounded text-xs transition shadow-sm disabled:opacity-50"
           >
-            Cadastrar no Sistema
+            {loading ? 'Cadastrando...' : 'Cadastrar no Sistema'}
           </button>
         </form>
 

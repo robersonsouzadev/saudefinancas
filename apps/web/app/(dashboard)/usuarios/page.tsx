@@ -40,9 +40,20 @@ export default function UsuariosPage() {
     }
   }, []);
 
+  const getAuthHeaders = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${apiBaseUrl}/api/users`, { cache: 'no-store' });
+      const res = await fetch(`${apiBaseUrl}/api/users`, {
+        headers: getAuthHeaders(),
+        cache: 'no-store',
+      });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -95,39 +106,53 @@ export default function UsuariosPage() {
     setShowModal(true);
   };
 
-  const handleToggleActive = (id: string) => {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, isActive: !u.isActive } : u));
+  const handleDeleteUser = async (id: string) => {
+    try {
+      await fetch(`${apiBaseUrl}/api/users/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      await fetchUsers();
+    } catch (e) {
+      setUsers(prev => prev.filter(u => u.id !== id));
+    }
   };
 
-  const handleDeleteUser = (id: string) => {
-    setUsers(prev => prev.filter(u => u.id !== id));
-  };
-
-  const handleSaveUser = (e: React.FormEvent) => {
+  const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !name) return;
 
-    if (editingUser) {
-      setUsers(prev => prev.map(u => u.id === editingUser.id ? {
-        ...u,
-        name,
-        email,
-        phone,
-        whatsappPhone: whatsappPhone || phone,
-        role
-      } : u));
-    } else {
-      const newUser: UserItem = {
-        id: `usr_${Date.now()}`,
-        name,
-        email,
-        phone,
-        whatsappPhone: whatsappPhone || phone,
-        role,
-        isActive: true,
-        createdAt: new Date().toLocaleDateString('pt-BR')
-      };
-      setUsers([newUser, ...users]);
+    try {
+      if (editingUser) {
+        await fetch(`${apiBaseUrl}/api/users/${editingUser.id}`, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({
+            name,
+            email,
+            phone,
+            whatsappPhone: whatsappPhone || phone,
+            role,
+            ...(password ? { password } : {}),
+          }),
+        });
+      } else {
+        await fetch(`${apiBaseUrl}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            email,
+            password: password || 'Mudar123!',
+            phone,
+            whatsappPhone: whatsappPhone || phone,
+            role,
+          }),
+        });
+      }
+      await fetchUsers();
+    } catch (err) {
+      console.error(err);
     }
 
     setShowModal(false);
