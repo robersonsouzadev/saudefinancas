@@ -19,6 +19,8 @@ export default function UsuariosPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
+  const [modalError, setModalError] = useState('');
+  const [modalLoading, setModalLoading] = useState(false);
 
   // Form State
   const [name, setName] = useState('');
@@ -92,6 +94,7 @@ export default function UsuariosPage() {
     setWhatsappPhone('');
     setRole('MEMBER');
     setPassword('');
+    setModalError('');
     setShowModal(true);
   };
 
@@ -103,6 +106,7 @@ export default function UsuariosPage() {
     setWhatsappPhone(u.whatsappPhone || '');
     setRole(u.role);
     setPassword('');
+    setModalError('');
     setShowModal(true);
   };
 
@@ -121,41 +125,64 @@ export default function UsuariosPage() {
   const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !name) return;
+    setModalLoading(true);
+    setModalError('');
 
     try {
+      const payload = {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() || undefined,
+        whatsappPhone: (whatsappPhone || phone).trim() || undefined,
+        role,
+        ...(password ? { password } : {}),
+      };
+
+      let res;
       if (editingUser) {
-        await fetch(`${apiBaseUrl}/api/users/${editingUser.id}`, {
+        res = await fetch(`${apiBaseUrl}/api/users/${editingUser.id}`, {
           method: 'PUT',
           headers: getAuthHeaders(),
-          body: JSON.stringify({
-            name,
-            email,
-            phone,
-            whatsappPhone: whatsappPhone || phone,
-            role,
-            ...(password ? { password } : {}),
-          }),
+          body: JSON.stringify(payload),
         });
       } else {
-        await fetch(`${apiBaseUrl}/api/auth/register`, {
+        // Try admin endpoint first
+        res = await fetch(`${apiBaseUrl}/api/users`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name,
-            email,
-            password: password || 'Mudar123!',
-            phone,
-            whatsappPhone: whatsappPhone || phone,
-            role,
-          }),
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload),
         });
-      }
-      await fetchUsers();
-    } catch (err) {
-      console.error(err);
-    }
 
-    setShowModal(false);
+        // Fallback to register endpoint if unauthenticated
+        if (!res.ok && res.status === 401) {
+          res = await fetch(`${apiBaseUrl}/api/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...payload,
+              password: password || 'Mudar123!',
+            }),
+          });
+        }
+      }
+
+      const responseData = await res.json();
+      if (!res.ok) {
+        const errorMsg = Array.isArray(responseData.message)
+          ? responseData.message.join(', ')
+          : responseData.message || 'Erro ao salvar usuário';
+        setModalError(errorMsg);
+        setModalLoading(false);
+        return;
+      }
+
+      await fetchUsers();
+      setShowModal(false);
+    } catch (err: any) {
+      setModalError(err.message || 'Falha de conexão com a API');
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   return (
@@ -314,6 +341,11 @@ export default function UsuariosPage() {
             </div>
 
             <form onSubmit={handleSaveUser} className="space-y-4 text-xs">
+              {modalError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-xs font-medium">
+                  {modalError}
+                </div>
+              )}
               <div>
                 <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome Completo</label>
                 <input 

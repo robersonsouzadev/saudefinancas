@@ -11,8 +11,13 @@ export class AuthService {
   ) {}
 
   async register(data: any) {
+    const email = data.email?.trim().toLowerCase();
+    if (!email) {
+      throw new BadRequestException('Email é obrigatório');
+    }
+
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email },
     });
     if (existingUser) {
       throw new ConflictException('Email em uso');
@@ -21,14 +26,18 @@ export class AuthService {
     const count = await this.prisma.user.count();
     const role = count === 0 ? 'ADMIN' : (data.role || 'MEMBER');
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const cleanPhone = (val?: string) => (val && typeof val === 'string' && val.trim() !== '' ? val.trim() : null);
+    const phone = cleanPhone(data.phone);
+    const whatsappPhone = cleanPhone(data.whatsappPhone) || phone;
+
+    const hashedPassword = await bcrypt.hash(data.password || 'Mudar123!', 10);
     const user = await this.prisma.user.create({
       data: {
-        email: data.email,
-        name: data.name || data.email.split('@')[0],
+        email,
+        name: data.name ? data.name.trim() : email.split('@')[0],
         passwordHash: hashedPassword,
-        phone: data.phone || null,
-        whatsappPhone: data.whatsappPhone || data.phone || null,
+        phone,
+        whatsappPhone,
         role,
       },
     });

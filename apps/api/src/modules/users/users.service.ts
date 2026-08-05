@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 
@@ -73,19 +73,28 @@ export class UsersService {
   }
 
   async createUser(data: any) {
-    const existing = await this.prisma.user.findUnique({ where: { email: data.email } });
+    const email = data.email?.trim().toLowerCase();
+    if (!email) {
+      throw new BadRequestException('Email é obrigatório');
+    }
+
+    const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
       throw new ConflictException('Email em uso');
     }
 
+    const cleanPhone = (val?: string) => (val && typeof val === 'string' && val.trim() !== '' ? val.trim() : null);
+    const phone = cleanPhone(data.phone);
+    const whatsappPhone = cleanPhone(data.whatsappPhone) || phone;
+
     const hashedPassword = await bcrypt.hash(data.password || 'Mudar123!', 10);
     return this.prisma.user.create({
       data: {
-        email: data.email,
-        name: data.name || data.email.split('@')[0],
+        email,
+        name: data.name ? data.name.trim() : email.split('@')[0],
         passwordHash: hashedPassword,
-        phone: data.phone || null,
-        whatsappPhone: data.whatsappPhone || data.phone || null,
+        phone,
+        whatsappPhone,
         role: data.role || 'MEMBER',
       },
     });
@@ -97,15 +106,17 @@ export class UsersService {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    const updateData: any = {
-      name: data.name,
-      phone: data.phone,
-      whatsappPhone: data.whatsappPhone,
-      role: data.role,
-      isActive: data.isActive,
-    };
+    const cleanPhone = (val?: string) => (val && typeof val === 'string' && val.trim() !== '' ? val.trim() : null);
 
-    if (data.password) {
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name ? data.name.trim() : null;
+    if (data.email !== undefined) updateData.email = data.email.trim().toLowerCase();
+    if (data.phone !== undefined) updateData.phone = cleanPhone(data.phone);
+    if (data.whatsappPhone !== undefined) updateData.whatsappPhone = cleanPhone(data.whatsappPhone);
+    if (data.role !== undefined) updateData.role = data.role;
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+
+    if (data.password && typeof data.password === 'string' && data.password.trim() !== '') {
       updateData.passwordHash = await bcrypt.hash(data.password, 10);
     }
 
