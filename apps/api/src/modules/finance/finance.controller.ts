@@ -78,7 +78,7 @@ export class FinanceController {
 
   @Post('receipt/parse')
   @UseInterceptors(FileInterceptor('image'))
-  async parseReceipt(@UploadedFile() file: Express.Multer.File) {
-    return this.receiptOcrService.parseReceiptImage(file.buffer);
+  async parseReceipt(@UploadedFile() file: any) {
+    return this.receiptOcrService.parseReceiptImage(file?.buffer || Buffer.from(''));
   }
 }

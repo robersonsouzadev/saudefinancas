@@ -60,7 +60,7 @@ async function main() {
   for (const name of categories) {
     const existingCat = await prisma.transactionCategory.findFirst({ where: { name } });
     if (!existingCat) {
-      await prisma.transactionCategory.create({ data: { name, type: 'EXPENSE' } });
+      await prisma.transactionCategory.create({ data: { name } });
     }
   }
 
