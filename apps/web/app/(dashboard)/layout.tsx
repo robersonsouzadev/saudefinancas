@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Bot, BookOpen, Cpu, HeartPulse, 
-  Apple, Wallet, Sparkles, Users, UserCheck, MessageSquare, 
+  Apple, Wallet, TrendingUp, Sparkles, Users, UserCheck, MessageSquare, 
   Settings, LogOut, ChevronDown, Search, Command
 } from 'lucide-react';
 
@@ -147,6 +147,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 <Wallet className={`w-4 h-4 transition ${getIconColor('/financas', 'text-[#575c66]', 'text-[#22c55e]')}`} />
                 <span>Finanças</span>
+              </Link>
+
+              <Link 
+                href="/investimentos" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/investimentos') 
+                    ? 'bg-[#16191e] text-[#f7f8f8]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <TrendingUp className={`w-4 h-4 transition ${getIconColor('/investimentos', 'text-[#575c66]', 'text-[#10b981]')}`} />
+                <span>Investimentos</span>
               </Link>
 
               <Link 
