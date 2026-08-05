@@ -92,6 +92,10 @@ export default function UsuariosPage() {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, isActive: !u.isActive } : u));
   };
 
+  const handleDeleteUser = (id: string) => {
+    setUsers(prev => prev.filter(u => u.id !== id));
+  };
+
   const handleSaveUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !name) return;
@@ -236,6 +240,13 @@ export default function UsuariosPage() {
                       title="Editar Perfil"
                     >
                       ✏️
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteUser(u.id)}
+                      className="p-1.5 hover:bg-rose-500/20 rounded-lg text-slate-400 hover:text-rose-400 transition text-xs"
+                      title="Excluir Usuário"
+                    >
+                      🗑️
                     </button>
                   </td>
                 </tr>
