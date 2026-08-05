@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Users, Plus, Search, Edit3, Trash2, ShieldCheck, UserCheck, PhoneCall } from 'lucide-react';
 
 interface UserItem {
   id: string;
@@ -13,41 +14,8 @@ interface UserItem {
   createdAt: string;
 }
 
-const initialUsers: UserItem[] = [
-  {
-    id: 'usr_1',
-    name: 'Roberson Souza',
-    email: 'roberson@saudefinancas.com',
-    phone: '5567999887766',
-    whatsappPhone: '5567999887766',
-    role: 'ADMIN',
-    isActive: true,
-    createdAt: '2026-08-01'
-  },
-  {
-    id: 'usr_2',
-    name: 'Mariana Souza (Esposa)',
-    email: 'mariana@saudefinancas.com',
-    phone: '5567988776655',
-    whatsappPhone: '5567988776655',
-    role: 'MEMBER',
-    isActive: true,
-    createdAt: '2026-08-02'
-  },
-  {
-    id: 'usr_3',
-    name: 'Lucas Souza (Filho)',
-    email: 'lucas@saudefinancas.com',
-    phone: '5567977665544',
-    whatsappPhone: '5567977665544',
-    role: 'MEMBER',
-    isActive: true,
-    createdAt: '2026-08-03'
-  }
-];
-
 export default function UsuariosPage() {
-  const [users, setUsers] = useState<UserItem[]>(initialUsers);
+  const [users, setUsers] = useState<UserItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
@@ -59,6 +27,45 @@ export default function UsuariosPage() {
   const [whatsappPhone, setWhatsappPhone] = useState('');
   const [role, setRole] = useState<'ADMIN' | 'MEMBER' | 'VIEWER'>('MEMBER');
   const [password, setPassword] = useState('');
+  const [apiBaseUrl, setApiBaseUrl] = useState('http://localhost:3001');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      if (hostname === 'app.robersonsouza.com.br' || hostname.includes('robersonsouza.com.br')) {
+        setApiBaseUrl('https://app.robersonsouza.com.br');
+      } else {
+        setApiBaseUrl(`http://${hostname}:3001`);
+      }
+    }
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/users`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setUsers(data.map((u: any) => ({
+            id: u.id,
+            name: u.name || u.email.split('@')[0],
+            email: u.email,
+            phone: u.phone || '',
+            whatsappPhone: u.whatsappPhone || u.phone || '',
+            role: u.role || 'MEMBER',
+            isActive: u.isActive !== false,
+            createdAt: u.createdAt ? new Date(u.createdAt).toLocaleDateString('pt-BR') : 'Hoje'
+          })));
+        }
+      }
+    } catch (e) {
+      console.log('API not reached yet');
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [apiBaseUrl]);
 
   const filteredUsers = users.filter(u => 
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -118,7 +125,7 @@ export default function UsuariosPage() {
         whatsappPhone: whatsappPhone || phone,
         role,
         isActive: true,
-        createdAt: new Date().toISOString().split('T')[0]
+        createdAt: new Date().toLocaleDateString('pt-BR')
       };
       setUsers([newUser, ...users]);
     }
@@ -127,218 +134,202 @@ export default function UsuariosPage() {
   };
 
   return (
-    <div className="space-y-6 text-white pb-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-xl text-sky-400">
-              👥
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Controle de Usuários</h1>
-              <p className="text-slate-400 text-xs mt-0.5">
-                Gerencie permissões, cargos e números de WhatsApp para envio de mensagens da IA.
-              </p>
-            </div>
+    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
+      
+      {/* Linear Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#3b82f6]">
+            <Users className="w-4 h-4" />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Controle de Usuários</h1>
+            <p className="text-xs text-[#8a8f98]">Gerenciamento de acessos, permissões e telefones WhatsApp da IA</p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
           <div className="relative">
             <input 
               type="text" 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por nome, email ou WhatsApp..." 
-              className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900 text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 w-64 sm:w-80"
+              placeholder="Buscar usuário..." 
+              className="w-48 h-8 px-3 rounded-md bg-[#0f1115] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
             />
-            <span className="absolute left-3 top-3 text-slate-500 text-xs">🔍</span>
           </div>
 
           <button 
             onClick={handleOpenCreate}
-            className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl transition shadow-lg shadow-sky-500/20 text-xs flex items-center space-x-2 flex-shrink-0"
+            className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm flex-shrink-0"
           >
-            <span>+</span>
+            <Plus className="w-3.5 h-3.5" />
             <span>Novo Usuário</span>
           </button>
         </div>
       </div>
 
-      {/* Users Table Card */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden backdrop-blur-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
-              <tr>
-                <th className="px-6 py-4">Usuário</th>
-                <th className="px-6 py-4">Email</th>
-                <th className="px-6 py-4">📱 WhatsApp da IA</th>
-                <th className="px-6 py-4">Cargo / Função</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-800/40 transition">
-                  <td className="px-6 py-4 flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-sky-400 text-sm">
-                      {u.name.charAt(0)}
-                    </div>
-                    <div>
-                      <span className="font-bold text-white block">{u.name}</span>
-                      <span className="text-[10px] text-slate-500">Cadastrado em {u.createdAt}</span>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4 font-mono text-slate-300">
-                    {u.email}
-                  </td>
-
-                  <td className="px-6 py-4">
-                    {u.whatsappPhone ? (
-                      <span className="font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg text-[11px] flex items-center gap-1.5 w-max">
-                        <span>📱</span> {u.whatsappPhone}
-                      </span>
-                    ) : (
-                      <span className="text-slate-500 italic">Não informado</span>
-                    )}
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${
-                      u.role === 'ADMIN' 
-                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' 
-                        : u.role === 'MEMBER'
-                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-                        : 'bg-slate-800 text-slate-400 border-slate-700'
-                    }`}>
-                      {u.role === 'ADMIN' ? '👑 ADMINISTRADOR' : u.role === 'MEMBER' ? '👤 MEMBRO' : '👁️ VISUALIZADOR'}
-                    </span>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <button 
-                      onClick={() => handleToggleActive(u.id)}
-                      className={`px-3 py-1 rounded-full text-[10px] font-bold border transition flex items-center gap-1.5 ${
-                        u.isActive 
-                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
-                          : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                      }`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${u.isActive ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`}></span>
-                      {u.isActive ? 'ATIVO' : 'INATIVO'}
-                    </button>
-                  </td>
-
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <button 
-                      onClick={() => handleOpenEdit(u)}
-                      className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition text-xs"
-                      title="Editar Perfil"
-                    >
-                      ✏️
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteUser(u.id)}
-                      className="p-1.5 hover:bg-rose-500/20 rounded-lg text-slate-400 hover:text-rose-400 transition text-xs"
-                      title="Excluir Usuário"
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Users Table */}
+      <div className="linear-card p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+          <h3 className="text-sm font-semibold text-[#f7f8f8]">Usuários do Sistema</h3>
+          <span className="text-[11px] font-mono text-[#8a8f98]">{users.length} cadastrados</span>
         </div>
+
+        {users.length === 0 ? (
+          <div className="py-12 text-center space-y-2 border border-dashed border-[#ffffff0a] rounded-md">
+            <UserCheck className="w-8 h-8 text-[#575c66] mx-auto" />
+            <h4 className="text-xs font-semibold text-[#f7f8f8]">Nenhum usuário cadastrado além do Administrador</h4>
+            <p className="text-[11px] text-[#8a8f98] max-w-sm mx-auto">
+              Clique em "+ Novo Usuário" para cadastrar membros da equipe ou familiares.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="text-[#575c66] border-b border-[#ffffff0e] uppercase font-semibold text-[10px]">
+                <tr>
+                  <th className="pb-3">Usuário</th>
+                  <th className="pb-3">Email</th>
+                  <th className="pb-3">📱 WhatsApp IA</th>
+                  <th className="pb-3">Cargo</th>
+                  <th className="pb-3">Status</th>
+                  <th className="pb-3 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#ffffff0a]">
+                {filteredUsers.map((u) => (
+                  <tr key={u.id} className="hover:bg-[#16191e] transition">
+                    <td className="py-3 font-medium text-[#f7f8f8]">{u.name}</td>
+                    <td className="py-3 font-mono text-[#8a8f98]">{u.email}</td>
+                    <td className="py-3 font-mono text-[#4ade80]">{u.whatsappPhone || 'Não informado'}</td>
+                    <td className="py-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="py-3">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                        u.isActive 
+                          ? 'bg-[#4ade8010] text-[#4ade80] border-[#4ade8025]' 
+                          : 'bg-[#16191e] text-[#575c66] border-[#ffffff0e]'
+                      }`}>
+                        {u.isActive ? 'ATIVO' : 'INATIVO'}
+                      </span>
+                    </td>
+                    <td className="py-3 text-right space-x-1">
+                      <button 
+                        onClick={() => handleOpenEdit(u)}
+                        className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f7f8f8]"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteUser(u.id)}
+                        className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f87171]"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* User Modal */}
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-lg text-white">
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-md space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
+              <h3 className="font-semibold text-sm text-[#f7f8f8]">
                 {editingUser ? 'Editar Usuário' : 'Cadastrar Novo Usuário'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
             </div>
 
-            <form onSubmit={handleSaveUser} className="space-y-4">
+            <form onSubmit={handleSaveUser} className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Nome Completo</label>
+                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome Completo</label>
                 <input 
                   type="text" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="ex: Roberson Souza"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Email de Acesso</label>
+                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Email</label>
                   <input 
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="usuario@email.com"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Cargo / Função</label>
+                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Cargo / Função</label>
                   <select 
                     value={role}
                     onChange={(e: any) => setRole(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs"
+                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none"
                   >
-                    <option value="ADMIN">👑 Administrador</option>
-                    <option value="MEMBER">👤 Membro</option>
-                    <option value="VIEWER">👁️ Visualizador</option>
+                    <option value="ADMIN">ADMIN</option>
+                    <option value="MEMBER">MEMBER</option>
+                    <option value="VIEWER">VIEWER</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">📱 WhatsApp da IA (Com DDD)</label>
+                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">📱 WhatsApp da IA (Com DDD)</label>
                 <input 
                   type="text" 
                   value={whatsappPhone}
                   onChange={(e) => setWhatsappPhone(e.target.value)}
                   placeholder="5567999887766 (sem + ou traços)"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs font-mono" 
+                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]" 
                 />
-                <p className="text-[10px] text-slate-500 mt-1">Este é o número que os agentes (Dra. Maya, Otávio, Nutri Bia) usam para enviar mensagens proativas.</p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
-                  {editingUser ? 'Senha (Deixe em branco para manter)' : 'Senha Inicial'}
+                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">
+                  {editingUser ? 'Senha (opcional)' : 'Senha Inicial'}
                 </label>
                 <input 
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
                   required={!editingUser}
                 />
               </div>
 
-              <button 
-                type="submit"
-                className="w-full py-3 bg-sky-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-sky-400 transition"
-              >
-                {editingUser ? 'Salvar Alterações' : 'Criar Usuário'}
-              </button>
+              <div className="flex justify-end space-x-2 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)}
+                  className="h-8 px-3 rounded bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8] border border-[#ffffff0a]"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm"
+                >
+                  {editingUser ? 'Salvar' : 'Criar Usuário'}
+                </button>
+              </div>
             </form>
           </div>
         </div>

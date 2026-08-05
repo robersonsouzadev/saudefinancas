@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { UserCheck, Plus, BarChart, Users, Check, AlertCircle } from 'lucide-react';
 
 interface GroupMember {
   id: string;
@@ -13,36 +14,41 @@ interface GroupMember {
 interface CategoryAllocation {
   categoryId: string;
   categoryName: string;
-  icon: string;
   percentage: number;
 }
 
 const defaultCategories: CategoryAllocation[] = [
-  { categoryId: '1', categoryName: 'Alimentação', icon: '🍔', percentage: 30 },
-  { categoryId: '2', categoryName: 'Moradia', icon: '🏠', percentage: 20 },
-  { categoryId: '3', categoryName: 'Combustível & Transporte', icon: '⛽', percentage: 15 },
-  { categoryId: '4', categoryName: 'Vestuário', icon: '👕', percentage: 10 },
-  { categoryId: '5', categoryName: 'Educação', icon: '📚', percentage: 10 },
-  { categoryId: '6', categoryName: 'Lazer & Entretenimento', icon: '🎮', percentage: 8 },
-  { categoryId: '7', categoryName: 'Saúde & Farmácia', icon: '💊', percentage: 7 },
+  { categoryId: '1', categoryName: 'Alimentação', percentage: 30 },
+  { categoryId: '2', categoryName: 'Moradia', percentage: 20 },
+  { categoryId: '3', categoryName: 'Combustível & Transporte', percentage: 15 },
+  { categoryId: '4', categoryName: 'Vestuário', percentage: 10 },
+  { categoryId: '5', categoryName: 'Educação', percentage: 10 },
+  { categoryId: '6', categoryName: 'Lazer & Entretenimento', percentage: 8 },
+  { categoryId: '7', categoryName: 'Saúde & Farmácia', percentage: 7 },
 ];
 
 export default function FamiliaPage() {
-  const [groupName, setGroupName] = useState('Família Souza');
-  const [totalBudget, setTotalBudget] = useState(8000);
+  const [groupName, setGroupName] = useState('Grupo Familiar');
+  const [totalBudget, setTotalBudget] = useState(5000);
   const [categories, setCategories] = useState<CategoryAllocation[]>(defaultCategories);
-  
-  const [members, setMembers] = useState<GroupMember[]>([
-    { id: 'usr_1', name: 'Roberson Souza', email: 'roberson@saudefinancas.com', role: 'ADMIN', whatsappPhone: '5567999887766' },
-    { id: 'usr_2', name: 'Mariana Souza (Esposa)', email: 'mariana@saudefinancas.com', role: 'MEMBER', whatsappPhone: '5567988776655' },
-    { id: 'usr_3', name: 'Lucas Souza (Filho)', email: 'lucas@saudefinancas.com', role: 'MEMBER', whatsappPhone: '5567977665544' },
-  ]);
-
+  const [members, setMembers] = useState<GroupMember[]>([]);
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberPhone, setNewMemberPhone] = useState('');
+  const [apiBaseUrl, setApiBaseUrl] = useState('http://localhost:3001');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      if (hostname === 'app.robersonsouza.com.br' || hostname.includes('robersonsouza.com.br')) {
+        setApiBaseUrl('https://app.robersonsouza.com.br');
+      } else {
+        setApiBaseUrl(`http://${hostname}:3001`);
+      }
+    }
+  }, []);
 
   const totalPercentage = categories.reduce((sum, c) => sum + Number(c.percentage || 0), 0);
   const isPercentageValid = Math.abs(totalPercentage - 100) < 0.1;
@@ -74,155 +80,128 @@ export default function FamiliaPage() {
   };
 
   return (
-    <div className="space-y-6 text-white pb-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xl text-amber-400">
-              👨‍👩‍👧‍👦
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Grupo Familiar: {groupName}</h1>
-              <p className="text-slate-400 text-xs mt-0.5">
-                Gerencie os membros da família, orçamento unificado por percentuais e relatórios consolidados.
-              </p>
-            </div>
+    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
+      
+      {/* Linear Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#f97316]">
+            <UserCheck className="w-4 h-4" />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">{groupName}</h1>
+            <p className="text-xs text-[#8a8f98]">Orçamento familiar unificado com divisão percentual por categoria</p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
           <button 
             onClick={() => setShowBudgetModal(true)}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-amber-500/20 text-xs flex items-center space-x-2"
+            className="h-8 px-3 rounded-md bg-[#16191e] hover:bg-[#1d2127] border border-[#ffffff12] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
           >
-            <span>📊</span>
+            <BarChart className="w-3.5 h-3.5 text-[#f97316]" />
             <span>Configurar Orçamento (%)</span>
           </button>
           <button 
             onClick={() => setShowMemberModal(true)}
-            className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-sky-500/20 text-xs flex items-center space-x-2"
+            className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
           >
-            <span>+</span>
+            <Plus className="w-3.5 h-3.5" />
             <span>Adicionar Membro</span>
           </button>
         </div>
       </div>
 
       {/* Summary Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-xl space-y-1">
-          <span className="text-xs text-slate-400 font-semibold uppercase">Orçamento Familiar Total</span>
-          <div className="text-2xl font-black text-amber-400">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="linear-card p-4 space-y-2">
+          <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Teto Orçamentário Familiar</span>
+          <div className="text-3xl font-bold font-mono text-[#f7f8f8]">
             R$ {totalBudget.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </div>
-          <p className="text-[11px] text-slate-500">Mês de Agosto / 2026</p>
+          <span className="text-[11px] text-[#8a8f98] block">Mês Vigente</span>
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-xl space-y-1">
-          <span className="text-xs text-slate-400 font-semibold uppercase">Membros Conectados</span>
-          <div className="text-2xl font-black text-sky-400">
-            {members.length} Pessoas
+        <div className="linear-card p-4 space-y-2">
+          <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Membros no Grupo</span>
+          <div className="text-3xl font-bold font-mono text-[#f97316]">
+            {members.length} Integrantes
           </div>
-          <p className="text-[11px] text-slate-500">Visão financeira consolidada ativa</p>
+          <span className="text-[11px] text-[#8a8f98] block">Visão financeira compartilhada</span>
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-xl space-y-1">
-          <span className="text-xs text-slate-400 font-semibold uppercase">Distribuição Orçamentária</span>
-          <div className={`text-2xl font-black ${isPercentageValid ? 'text-emerald-400' : 'text-rose-400'}`}>
+        <div className="linear-card p-4 space-y-2">
+          <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Distribuição Orçamentária</span>
+          <div className={`text-3xl font-bold font-mono ${isPercentageValid ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
             {totalPercentage}% / 100%
           </div>
-          <p className="text-[11px] text-slate-500">
-            {isPercentageValid ? '✓ Divisão 100% calibrada' : '⚠️ A soma deve dar 100%'}
-          </p>
+          <span className="text-[11px] text-[#8a8f98] block">
+            {isPercentageValid ? '✓ Alocação 100% calibrada' : '⚠️ Ajuste a soma dos percentuais'}
+          </span>
         </div>
       </div>
 
       {/* Members Section */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h3 className="font-bold text-sm text-white flex items-center gap-2">
-            <span>👥</span> Membros do Grupo Familiar
-          </h3>
-          <span className="text-xs text-slate-400">{members.length} cadastrados</span>
+      <div className="linear-card p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+          <h3 className="text-sm font-semibold text-[#f7f8f8]">Membros do Grupo Familiar</h3>
+          <span className="text-[11px] font-mono text-[#8a8f98]">{members.length} cadastrados</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {members.map((m) => (
-            <div key={m.id} className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center font-bold text-sky-400">
-                  {m.name.charAt(0)}
-                </div>
+        {members.length === 0 ? (
+          <div className="py-8 text-center space-y-2 border border-dashed border-[#ffffff0a] rounded-md">
+            <Users className="w-8 h-8 text-[#575c66] mx-auto" />
+            <h4 className="text-xs font-semibold text-[#f7f8f8]">Nenhum membro adicionado ao grupo</h4>
+            <p className="text-[11px] text-[#8a8f98] max-w-sm mx-auto">
+              Clique em "+ Adicionar Membro" para convidar familiares para a gestão financeira conjunta.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {members.map((m) => (
+              <div key={m.id} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md flex justify-between items-center text-xs">
                 <div>
-                  <h4 className="font-bold text-xs text-white">{m.name}</h4>
-                  <span className="text-[10px] text-slate-400 font-mono">{m.email}</span>
-                  {m.whatsappPhone && (
-                    <span className="text-[10px] text-emerald-400 font-mono block">📱 {m.whatsappPhone}</span>
-                  )}
+                  <h4 className="font-medium text-[#f7f8f8]">{m.name}</h4>
+                  <span className="text-[10px] text-[#8a8f98] font-mono block">{m.email}</span>
                 </div>
-              </div>
 
-              <div className="flex flex-col items-end gap-1">
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${
-                  m.role === 'ADMIN' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-slate-800 text-slate-300 border-slate-700'
-                }`}>
-                  {m.role === 'ADMIN' ? '👑 ADMIN' : 'MEMBRO'}
-                </span>
-                {m.role !== 'ADMIN' && (
-                  <button 
-                    onClick={() => handleRemoveMember(m.id)}
-                    className="text-[10px] text-rose-400 hover:underline"
-                  >
-                    Remover
-                  </button>
-                )}
+                <button 
+                  onClick={() => handleRemoveMember(m.id)}
+                  className="text-[10px] text-[#f87171] hover:underline"
+                >
+                  Remover
+                </button>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Budget Allocation Breakdown Display */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div>
-            <h3 className="font-bold text-sm text-white flex items-center gap-2">
-              <span>📊</span> Orçamento por Categoria (% Estipulado)
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Calculado automaticamente sobre o valor total de R$ {totalBudget.toLocaleString('pt-BR')}</p>
-          </div>
-          <button 
-            onClick={() => setShowBudgetModal(true)}
-            className="text-xs text-sky-400 hover:underline font-semibold"
-          >
+      {/* Budget Allocation */}
+      <div className="linear-card p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+          <h3 className="text-sm font-semibold text-[#f7f8f8]">Teto por Categoria em Percentual (%)</h3>
+          <button onClick={() => setShowBudgetModal(true)} className="text-xs text-[#5e6ad2] hover:underline">
             Editar Percentuais
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {categories.map((c) => {
             const allocated = (totalBudget * c.percentage) / 100;
             return (
-              <div key={c.categoryId} className="p-4 bg-slate-950/80 border border-slate-800/80 rounded-xl space-y-2">
-                <div className="flex justify-between items-center text-xs font-bold text-slate-200">
-                  <span className="flex items-center gap-1.5">
-                    <span>{c.icon}</span>
-                    <span>{c.categoryName}</span>
-                  </span>
-                  <span className="text-amber-400">{c.percentage}%</span>
+              <div key={c.categoryId} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md space-y-2 text-xs">
+                <div className="flex justify-between items-center font-medium">
+                  <span className="text-[#f7f8f8]">{c.categoryName}</span>
+                  <span className="font-mono text-[#f97316]">{c.percentage}%</span>
                 </div>
 
-                <div className="flex justify-between items-baseline text-xs">
-                  <span className="text-slate-400 text-[11px]">Teto Orçado:</span>
-                  <span className="font-bold text-white">R$ {allocated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                <div className="flex justify-between text-[11px] font-mono text-[#8a8f98]">
+                  <span>Teto: R$ {allocated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
 
-                <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
-                  <div 
-                    className="h-full bg-gradient-to-r from-sky-500 to-amber-400 rounded-full" 
-                    style={{ width: `${c.percentage}%` }}
-                  ></div>
+                <div className="w-full bg-[#080a0c] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
+                  <div className="bg-[#f97316] h-full rounded-full" style={{ width: `${c.percentage}%` }}></div>
                 </div>
               </div>
             );
@@ -230,126 +209,129 @@ export default function FamiliaPage() {
         </div>
       </div>
 
-      {/* Add Member Modal */}
+      {/* Modal */}
       {showMemberModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-lg text-white">Adicionar Membro ao Grupo</h3>
-              <button onClick={() => setShowMemberModal(false)} className="text-slate-400 hover:text-white">✕</button>
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-md space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
+              <h3 className="font-semibold text-sm text-[#f7f8f8]">Adicionar Membro ao Grupo</h3>
+              <button onClick={() => setShowMemberModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
             </div>
 
-            <form onSubmit={handleAddMember} className="space-y-4">
+            <form onSubmit={handleAddMember} className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Nome do Membro</label>
+                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome do Membro</label>
                 <input 
                   type="text" 
                   value={newMemberName}
                   onChange={(e) => setNewMemberName(e.target.value)}
                   placeholder="ex: Carlos Souza"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none" 
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Email</label>
+                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Email</label>
                 <input 
                   type="email" 
                   value={newMemberEmail}
                   onChange={(e) => setNewMemberEmail(e.target.value)}
                   placeholder="membro@email.com"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none" 
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">📱 WhatsApp da IA</label>
+                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">📱 WhatsApp da IA</label>
                 <input 
                   type="text" 
                   value={newMemberPhone}
                   onChange={(e) => setNewMemberPhone(e.target.value)}
                   placeholder="5567999887766"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs font-mono" 
+                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none" 
                 />
               </div>
 
-              <button 
-                type="submit"
-                className="w-full py-3 bg-sky-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-sky-400 transition"
-              >
-                Confirmar e Adicionar
-              </button>
+              <div className="flex justify-end space-x-2 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowMemberModal(false)}
+                  className="h-8 px-3 rounded bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8] border border-[#ffffff0a]"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm"
+                >
+                  Adicionar
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Budget Setup Modal with Percentages */}
+      {/* Budget Modal */}
       {showBudgetModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <div>
-                <h3 className="font-bold text-lg text-white">Configurar Orçamento Familiar</h3>
-                <p className="text-xs text-slate-400">Defina o valor mensal e a divisão exata em % por categoria</p>
-              </div>
-              <button onClick={() => setShowBudgetModal(false)} className="text-slate-400 hover:text-white">✕</button>
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-lg space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
+              <h3 className="font-semibold text-sm text-[#f7f8f8]">Configurar Orçamento Familiar</h3>
+              <button onClick={() => setShowBudgetModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Valor Total Mensal (R$)</label>
+                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Valor Total Mensal (R$)</label>
                 <input 
                   type="number" 
                   value={totalBudget}
                   onChange={(e) => setTotalBudget(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-amber-400 font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 text-base" 
+                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono font-bold text-sm focus:outline-none" 
                 />
               </div>
 
-              <div className="space-y-3 pt-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-slate-300 uppercase">Categorias & Percentuais</label>
-                  <span className={`text-xs font-bold ${isPercentageValid ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    Soma: {totalPercentage}% {isPercentageValid ? '✓ OK' : '(deve dar 100%)'}
+              <div className="space-y-2">
+                <div className="flex justify-between font-semibold">
+                  <span className="text-[#8a8f98]">Categorias</span>
+                  <span className={isPercentageValid ? 'text-[#4ade80]' : 'text-[#f87171]'}>
+                    Soma: {totalPercentage}% {isPercentageValid ? '✓' : '(deve dar 100%)'}
                   </span>
                 </div>
 
                 {categories.map((c) => (
-                  <div key={c.categoryId} className="flex items-center justify-between space-x-3 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span className="text-xs text-slate-200 flex items-center gap-1.5 flex-1">
-                      <span>{c.icon}</span>
-                      <span>{c.categoryName}</span>
-                    </span>
-
-                    <div className="flex items-center space-x-2">
+                  <div key={c.categoryId} className="flex items-center justify-between p-2 rounded bg-[#16191e] border border-[#ffffff0a]">
+                    <span className="text-[#f7f8f8]">{c.categoryName}</span>
+                    <div className="flex items-center space-x-1">
                       <input 
                         type="number" 
-                        min="0" 
-                        max="100" 
                         value={c.percentage}
                         onChange={(e) => handlePercentageChange(c.categoryId, Number(e.target.value))}
-                        className="w-16 px-2 py-1 bg-slate-900 border border-slate-700 rounded-lg text-center text-xs font-bold text-amber-400 focus:outline-none"
+                        className="w-14 h-7 bg-[#080a0c] border border-[#ffffff10] rounded text-center text-xs font-mono font-bold text-[#f97316]"
                       />
-                      <span className="text-xs text-slate-400">%</span>
+                      <span className="text-[#8a8f98]">%</span>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <button 
-                disabled={!isPercentageValid}
-                onClick={() => setShowBudgetModal(false)}
-                className="w-full py-3 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-amber-400 transition disabled:opacity-40"
-              >
-                Salvar Orçamento (100%)
-              </button>
+              <div className="flex justify-end space-x-2 pt-2">
+                <button 
+                  disabled={!isPercentageValid}
+                  onClick={() => setShowBudgetModal(false)}
+                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm disabled:opacity-40"
+                >
+                  Salvar Orçamento
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }
