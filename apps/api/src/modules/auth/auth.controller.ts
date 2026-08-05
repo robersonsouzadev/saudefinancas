@@ -16,6 +16,16 @@ export class AuthController {
     return this.authService.login(body);
   }
 
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: { email: string; channel?: 'email' | 'whatsapp' }) {
+    return this.authService.forgotPassword(body.email, body.channel || 'whatsapp');
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { email: string; code: string; newPassword: string }) {
+    return this.authService.resetPassword(body);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getProfile(@Request() req: any) {

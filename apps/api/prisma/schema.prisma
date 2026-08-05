@@ -13,7 +13,13 @@ datasource db {
 model User {
   id                    String                 @id @default(uuid())
   email                 String                 @unique
+  name                  String?
   passwordHash          String
+  phone                 String?
+  whatsappPhone         String?                @unique
+  avatarUrl             String?
+  role                  String                 @default("MEMBER") // ADMIN, MEMBER, VIEWER
+  isActive              Boolean                @default(true)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   conversations         Conversation[]
@@ -26,6 +32,79 @@ model User {
   recurringTransactions RecurringTransaction[]
   insightLogs           InsightLog[]
   dailySummaries        DailySummary[]
+  familyMemberships     FamilyMember[]
+  sentInvites           FamilyInvite[]         @relation("InviteSender")
+  passwordResetCodes    PasswordResetCode[]
+}
+
+model FamilyGroup {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  avatarUrl   String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  members     FamilyMember[]
+  invites     FamilyInvite[]
+  budgets     FamilyBudget[]
+}
+
+model FamilyMember {
+  id        String      @id @default(uuid())
+  userId    String
+  groupId   String
+  role      String      @default("MEMBER") // ADMIN, MEMBER, VIEWER
+  joinedAt  DateTime    @default(now())
+  user      User        @relation(fields: [userId], references: [id])
+  group     FamilyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+}
+
+model FamilyInvite {
+  id        String      @id @default(uuid())
+  groupId   String
+  invitedBy String
+  email     String
+  status    String      @default("PENDING") // PENDING, ACCEPTED, REJECTED, EXPIRED
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+  group     FamilyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender    User        @relation("InviteSender", fields: [invitedBy], references: [id])
+}
+
+model PasswordResetCode {
+  id        String    @id @default(uuid())
+  userId    String
+  code      String
+  channel   String    @default("email") // "email" or "whatsapp"
+  usedAt    DateTime?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model FamilyBudget {
+  id          String             @id @default(uuid())
+  groupId     String
+  month       Int
+  year        Int
+  totalAmount Float
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  group       FamilyGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  allocations BudgetAllocation[]
+}
+
+model BudgetAllocation {
+  id              String              @id @default(uuid())
+  familyBudgetId  String
+  categoryId      String
+  percentage      Float
+  allocatedAmount Float
+  spentAmount     Float               @default(0)
+  familyBudget    FamilyBudget        @relation(fields: [familyBudgetId], references: [id], onDelete: Cascade)
+  category        TransactionCategory @relation(fields: [categoryId], references: [id])
 }
 
 model Agent {
@@ -64,7 +143,7 @@ model Message {
   id             String       @id @default(uuid())
   conversationId String
   content        String
-  role           String       // "user" or "assistant"
+  role           String // "user" or "assistant"
   createdAt      DateTime     @default(now())
   conversation   Conversation @relation(fields: [conversationId], references: [id])
 }
@@ -100,21 +179,21 @@ model KnowledgeChunk {
 }
 
 model HealthLog {
-  id        String   @id @default(uuid())
-  userId    String
-  type      String
-  value     Float
-  unit      String
-  loggedAt  DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  id       String   @id @default(uuid())
+  userId   String
+  type     String
+  value    Float
+  unit     String
+  loggedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
 }
 
 model MealLog {
-  id        String     @id @default(uuid())
-  userId    String
-  loggedAt  DateTime   @default(now())
-  items     MealItem[]
-  user      User       @relation(fields: [userId], references: [id])
+  id       String     @id @default(uuid())
+  userId   String
+  loggedAt DateTime   @default(now())
+  items    MealItem[]
+  user     User       @relation(fields: [userId], references: [id])
 }
 
 model MealItem {
@@ -126,47 +205,48 @@ model MealItem {
 }
 
 model HealthGoal {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
   type      String
   target    Float
   deadline  DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id])
 }
 
 model FinancialAccount {
-  id        String        @id @default(uuid())
-  userId    String
-  name      String
-  balance   Float         @default(0.0)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  user      User          @relation(fields: [userId], references: [id])
+  id           String        @id @default(uuid())
+  userId       String
+  name         String
+  balance      Float         @default(0.0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id])
   transactions Transaction[]
 }
 
 model TransactionCategory {
-  id        String        @id @default(uuid())
-  name      String
-  createdAt DateTime      @default(now())
+  id           String             @id @default(uuid())
+  name         String
+  createdAt    DateTime           @default(now())
   transactions Transaction[]
+  allocations  BudgetAllocation[]
 }
 
 model Transaction {
-  id         String              @id @default(uuid())
-  userId     String
-  accountId  String
-  categoryId String?
-  amount     Float
-  date       DateTime            @default(now())
+  id          String               @id @default(uuid())
+  userId      String
+  accountId   String
+  categoryId  String?
+  amount      Float
+  date        DateTime             @default(now())
   description String?
-  createdAt  DateTime            @default(now())
-  updatedAt  DateTime            @updatedAt
-  user       User                @relation(fields: [userId], references: [id])
-  account    FinancialAccount    @relation(fields: [accountId], references: [id])
-  category   TransactionCategory? @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  user        User                 @relation(fields: [userId], references: [id])
+  account     FinancialAccount     @relation(fields: [accountId], references: [id])
+  category    TransactionCategory? @relation(fields: [categoryId], references: [id])
 }
 
 model Budget {
@@ -198,9 +278,9 @@ model InsightLog {
 }
 
 model DailySummary {
-  id        String   @id @default(uuid())
-  userId    String
-  date      DateTime @default(now())
-  content   String
-  user      User     @relation(fields: [userId], references: [id])
+  id      String   @id @default(uuid())
+  userId  String
+  date    DateTime @default(now())
+  content String
+  user    User     @relation(fields: [userId], references: [id])
 }

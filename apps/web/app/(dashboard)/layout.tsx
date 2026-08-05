@@ -67,6 +67,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div>
             <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Sistema</div>
             <div className="space-y-1">
+              <Link href="/usuarios" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
+                <span className="text-base">👥</span>
+                <span>Controle de Usuários</span>
+              </Link>
+              <Link href="/familia" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
+                <span className="text-base">👨‍👩‍👧‍👦</span>
+                <span>Grupo Familiar</span>
+              </Link>
               <Link href="/chat" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
                 <span className="text-base">💬</span>
                 <span>Chat Conversacional</span>
