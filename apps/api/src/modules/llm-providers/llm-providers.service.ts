@@ -39,9 +39,9 @@ export class LlmProvidersService {
       const dbProv = providers.find(p => p.provider === def.type);
       let key = envKeys[def.type] || '';
 
-      if (dbProv?.apiKeyEncrypted) {
+      if (dbProv?.apiKey) {
         try {
-          key = this.encryption.decrypt(dbProv.apiKeyEncrypted);
+          key = this.encryption.decrypt(dbProv.apiKey);
         } catch {}
       }
 
@@ -76,14 +76,14 @@ export class LlmProvidersService {
     if (existing) {
       await this.prisma.llmProvider.update({
         where: { id: existing.id },
-        data: { apiKeyEncrypted: encryptedKey, isActive: ping.ok }
+        data: { apiKey: encryptedKey, isActive: ping.ok }
       });
     } else {
       await this.prisma.llmProvider.create({
         data: {
           name: `Provedor ${provider}`,
           provider,
-          apiKeyEncrypted: encryptedKey,
+          apiKey: encryptedKey,
           isActive: ping.ok
         }
       });
@@ -104,9 +104,9 @@ export class LlmProvidersService {
     let key = process.env[`${providerType.toUpperCase()}_API_KEY`] || '';
     const dbProv = await this.prisma.llmProvider.findFirst({ where: { provider: providerType } });
 
-    if (dbProv?.apiKeyEncrypted) {
+    if (dbProv?.apiKey) {
       try {
-        key = this.encryption.decrypt(dbProv.apiKeyEncrypted);
+        key = this.encryption.decrypt(dbProv.apiKey);
       } catch {}
     }
 

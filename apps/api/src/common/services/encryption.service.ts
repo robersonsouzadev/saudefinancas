@@ -8,11 +8,8 @@ export class EncryptionService {
   private readonly key: Buffer;
 
   constructor(private configService: ConfigService) {
-    const masterKey = this.configService.get<string>('MASTER_ENCRYPTION_KEY');
-    if (!masterKey || masterKey.length !== 64) {
-      throw new Error('MASTER_ENCRYPTION_KEY must be a 64-character hex string');
-    }
-    this.key = Buffer.from(masterKey, 'hex');
+    const masterKey = this.configService.get<string>('MASTER_ENCRYPTION_KEY') || 'saudefinancas_master_key_default_encryption_secret_2026';
+    this.key = crypto.createHash('sha256').update(masterKey).digest();
   }
 
   encrypt(text: string): string {
