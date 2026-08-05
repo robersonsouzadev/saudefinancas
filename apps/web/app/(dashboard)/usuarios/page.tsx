@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Users, Plus, Search, Edit3, Trash2, ShieldCheck, UserCheck, PhoneCall } from 'lucide-react';
+import { getApiBaseUrl } from '@/lib/api-config';
 
 interface UserItem {
   id: string;
@@ -32,14 +33,7 @@ export default function UsuariosPage() {
   const [apiBaseUrl, setApiBaseUrl] = useState('http://localhost:3001');
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      if (hostname === 'app.robersonsouza.com.br' || hostname.includes('robersonsouza.com.br')) {
-        setApiBaseUrl('https://app.robersonsouza.com.br');
-      } else {
-        setApiBaseUrl(`http://${hostname}:3001`);
-      }
-    }
+    setApiBaseUrl(getApiBaseUrl());
   }, []);
 
   const getAuthHeaders = () => {

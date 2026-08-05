@@ -6,7 +6,6 @@ export function getApiBaseUrl(): string {
     }
 
     const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
 
     if (hostname === 'app.robersonsouza.com.br' || hostname.includes('robersonsouza.com.br')) {
       return 'https://app.robersonsouza.com.br';
@@ -16,7 +15,7 @@ export function getApiBaseUrl(): string {
       return 'http://72.60.249.235:3001';
     }
 
-    // Default fallback for any host (localhost, local IP, VPS IP)
+    const protocol = window.location.protocol; // e.g. "http:" or "https:"
     return `${protocol}//${hostname}:3001`;
   }
 
