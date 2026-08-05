@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Apple, Camera, Sparkles, CheckCircle2, Utensils, Zap } from 'lucide-react';
 
 export default function NutricaoPage() {
   const [analyzing, setAnalyzing] = useState(false);
@@ -24,33 +25,45 @@ export default function NutricaoPage() {
   };
 
   return (
-    <div className="space-y-6 text-white pb-12">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Diário Nutricional com IA</h1>
-          <p className="text-slate-400 text-xs mt-1">Análise automática de refeições por Visão Computacional (Tabela TACO)</p>
+    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
+      
+      {/* Linear Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#4ade80]">
+            <Apple className="w-4 h-4" />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Diário Nutricional com Visão IA</h1>
+            <p className="text-xs text-[#8a8f98]">Análise automática de refeições por fotos (Tabela TACO)</p>
+          </div>
         </div>
-        <span className="px-3 py-1 bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-full text-xs font-semibold">
-          IA Vision Ativa
+
+        <span className="px-2.5 py-1 rounded bg-[#4ade8010] text-[#4ade80] border border-[#4ade8025] text-xs font-mono flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5" /> IA Vision Ativa
         </span>
       </div>
 
       {/* Upload Dropzone */}
-      <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl backdrop-blur-xl">
+      <div className="linear-card p-8 text-center space-y-4 flex flex-col items-center justify-center border-dashed">
         <div 
           onClick={handleSimulateVision}
-          className="border-2 border-dashed border-slate-700 hover:border-sky-500/60 rounded-2xl p-10 flex flex-col items-center justify-center text-center cursor-pointer bg-slate-950/40 hover:bg-slate-950/80 transition group"
+          className="w-full flex flex-col items-center justify-center cursor-pointer space-y-3 group"
         >
-          <div className="w-16 h-16 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition">
-            📸
+          <div className="w-12 h-12 rounded-md bg-[#16191e] border border-[#ffffff10] flex items-center justify-center text-[#4ade80] group-hover:bg-[#1d2127] transition">
+            <Camera className="w-6 h-6" />
           </div>
-          <h3 className="font-bold text-base text-white">Arraste uma foto da refeição ou clique aqui</h3>
-          <p className="text-xs text-slate-400 mt-1 max-w-sm">
-            Nossa IA identificará cada ingrediente, estimará a porção e calculará calorias e macronutrientes instantaneamente.
-          </p>
+
+          <div>
+            <h3 className="font-semibold text-sm text-[#f7f8f8]">Arraste uma foto da refeição ou clique para selecionar</h3>
+            <p className="text-xs text-[#8a8f98] mt-1 max-w-md">
+              A IA identifica os ingredientes, estima a porção e calcula calorias e macronutrientes instantaneamente.
+            </p>
+          </div>
+
           {analyzing && (
-            <div className="mt-4 flex items-center space-x-2 text-sky-400 text-xs font-semibold animate-pulse">
-              <div className="w-3 h-3 rounded-full bg-sky-400"></div>
+            <div className="flex items-center space-x-2 text-[#4ade80] text-xs font-mono animate-pulse pt-2">
+              <span className="w-2 h-2 rounded-full bg-[#4ade80]"></span>
               <span>Analisando prato com Vision AI (Tabela TACO)...</span>
             </div>
           )}
@@ -59,80 +72,67 @@ export default function NutricaoPage() {
 
       {/* Simulated AI Result Card */}
       {analyzedMeal && (
-        <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl shadow-2xl space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400">Refeição Identificada</span>
-              <h3 className="text-lg font-bold text-white">{analyzedMeal.name}</h3>
+        <div className="linear-card p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+            <div className="flex items-center space-x-2">
+              <Utensils className="w-4 h-4 text-[#4ade80]" />
+              <h3 className="font-semibold text-sm text-[#f7f8f8]">{analyzedMeal.name}</h3>
             </div>
-            <span className="text-xl font-extrabold text-emerald-400">{analyzedMeal.calories} kcal</span>
+            <span className="text-xs font-mono font-bold text-[#4ade80] bg-[#4ade8015] px-2.5 py-0.5 rounded border border-[#4ade8030]">
+              {analyzedMeal.calories} kcal
+            </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 uppercase">Carboidratos</span>
-              <p className="text-sm font-bold text-sky-400">{analyzedMeal.macros.carbs}g</p>
-            </div>
-            <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 uppercase">Proteínas</span>
-              <p className="text-sm font-bold text-emerald-400">{analyzedMeal.macros.protein}g</p>
-            </div>
-            <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 uppercase">Gorduras</span>
-              <p className="text-sm font-bold text-amber-400">{analyzedMeal.macros.fat}g</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Itens Detectados</h4>
-            <div className="space-y-1.5">
-              {analyzedMeal.items.map((item: any, i: number) => (
-                <div key={i} className="flex justify-between text-xs px-3 py-2 bg-slate-950/40 rounded-lg border border-slate-800/60">
-                  <span className="text-slate-200">{item.name} (~{item.weight})</span>
-                  <span className="text-slate-400 font-semibold">{item.calories}</span>
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {analyzedMeal.items.map((item: any) => (
+              <div key={item.name} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md flex justify-between items-center text-xs">
+                <span className="text-[#f7f8f8] font-medium">{item.name} ({item.weight})</span>
+                <span className="text-[#8a8f98] font-mono">{item.calories}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Daily Macros Overview */}
-      <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl backdrop-blur-xl space-y-4">
-        <h2 className="text-lg font-bold text-white">Progresso Diário de Macronutrientes</h2>
-        
-        <div className="space-y-4">
-          <div>
-            <div className="flex justify-between text-xs font-semibold mb-1.5">
-              <span className="text-slate-300">Carboidratos</span>
-              <span className="text-sky-400">180g / 250g (72%)</span>
+      {/* Macro Progress Bars */}
+      <div className="linear-card p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-[#f7f8f8] border-b border-[#ffffff0e] pb-3">
+          Progresso Diário de Macronutrientes
+        </h3>
+
+        <div className="space-y-4 text-xs font-mono">
+          <div className="space-y-1.5">
+            <div className="flex justify-between">
+              <span className="text-[#8a8f98]">Carboidratos</span>
+              <span className="text-[#f7f8f8] font-bold">180g / 250g (72%)</span>
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
-              <div className="bg-sky-500 h-full rounded-full transition-all duration-500" style={{ width: '72%' }}></div>
+            <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">
+              <div className="bg-[#5e6ad2] h-full rounded-full w-[72%]"></div>
             </div>
           </div>
 
-          <div>
-            <div className="flex justify-between text-xs font-semibold mb-1.5">
-              <span className="text-slate-300">Proteínas</span>
-              <span className="text-emerald-400">120g / 140g (85%)</span>
+          <div className="space-y-1.5">
+            <div className="flex justify-between">
+              <span className="text-[#8a8f98]">Proteínas</span>
+              <span className="text-[#f7f8f8] font-bold">120g / 140g (85%)</span>
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
-              <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: '85%' }}></div>
+            <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">
+              <div className="bg-[#4ade80] h-full rounded-full w-[85%]"></div>
             </div>
           </div>
 
-          <div>
-            <div className="flex justify-between text-xs font-semibold mb-1.5">
-              <span className="text-slate-300">Gorduras</span>
-              <span className="text-amber-400">55g / 65g (84%)</span>
+          <div className="space-y-1.5">
+            <div className="flex justify-between">
+              <span className="text-[#8a8f98]">Gorduras</span>
+              <span className="text-[#f7f8f8] font-bold">55g / 65g (84%)</span>
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
-              <div className="bg-amber-500 h-full rounded-full transition-all duration-500" style={{ width: '84%' }}></div>
+            <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">
+              <div className="bg-[#facc15] h-full rounded-full w-[84%]"></div>
             </div>
           </div>
         </div>
       </div>
+
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Settings, ShieldCheck, Key, PhoneCall, Check, Save } from 'lucide-react';
 
 export default function ConfiguracoesPage() {
   const [saved, setSaved] = useState(false);
@@ -19,145 +20,136 @@ export default function ConfiguracoesPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl text-white pb-12">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Configurações & Conexões</h1>
-          <p className="text-slate-400 text-xs mt-1">Gerencie chaves de API, LLM Hub, canal WhatsApp Uazapi e perfil</p>
+    <div className="space-y-6 text-[#f7f8f8] max-w-4xl mx-auto pb-12">
+      
+      {/* Linear Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#a1a1aa]">
+            <Settings className="w-4 h-4" />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Configurações do Sistema</h1>
+            <p className="text-xs text-[#8a8f98]">Central de chaves de API, canal WhatsApp UazAPI e segurança</p>
+          </div>
         </div>
+
         {saved && (
-          <span className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold animate-pulse">
-            ✓ Salvo com sucesso!
+          <span className="px-3 py-1 bg-[#4ade8015] text-[#4ade80] border border-[#4ade8030] rounded text-xs font-mono flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5" /> Salvo com Sucesso!
           </span>
         )}
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6">
-        {/* LLM Hub Section */}
-        <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl backdrop-blur-xl space-y-4">
-          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+      <form onSubmit={handleSave} className="space-y-4 text-xs">
+        
+        {/* Multi-LLM Section */}
+        <div className="linear-card p-5 space-y-4">
+          <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                🔀 Central Multi-LLM (Provedores de IA)
+              <h2 className="font-semibold text-sm text-[#f7f8f8] flex items-center gap-2">
+                <Key className="w-4 h-4 text-[#5e6ad2]" /> Central Multi-LLM (Chaves de API)
               </h2>
-              <p className="text-xs text-slate-400">As chaves são armazenadas com criptografia militar AES-256-GCM.</p>
+              <p className="text-[11px] text-[#8a8f98] mt-0.5">Armazenamento criptografado via AES-256 no banco de dados.</p>
             </div>
-            <span className="text-xs text-sky-400 bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/20">4 Provedores</span>
+            <span className="text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
+              4 Provedores
+            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">OpenAI API Key (GPT-4o / Vision / Whisper)</label>
+              <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">OpenAI API Key</label>
               <input 
                 type="password" 
                 value={openaiKey}
                 onChange={(e) => setOpenaiKey(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Anthropic API Key (Claude 3.5)</label>
+              <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Anthropic API Key</label>
               <input 
                 type="password" 
                 value={anthropicKey}
                 onChange={(e) => setAnthropicKey(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Google Gemini API Key (Gemini 2.0 Flash)</label>
+              <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Google Gemini API Key</label>
               <input 
                 type="password" 
                 value={geminiKey}
                 onChange={(e) => setGeminiKey(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">DeepSeek API Key (DeepSeek-V3)</label>
+              <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">DeepSeek API Key</label>
               <input 
                 type="password" 
                 value={deepseekKey}
                 onChange={(e) => setDeepseekKey(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
               />
             </div>
           </div>
         </div>
 
         {/* WhatsApp Uazapi Section */}
-        <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl backdrop-blur-xl space-y-4">
-          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div className="linear-card p-5 space-y-4">
+          <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                📱 Canal WhatsApp (Uazapi Gateway)
+              <h2 className="font-semibold text-sm text-[#f7f8f8] flex items-center gap-2">
+                <PhoneCall className="w-4 h-4 text-[#4ade80]" /> Canal Oficial WhatsApp (UazAPI)
               </h2>
-              <p className="text-xs text-slate-400">Conecte seu WhatsApp para interagir por voz, texto e fotos com a Vita.</p>
+              <p className="text-[11px] text-[#8a8f98] mt-0.5">Instância global para envio de alertas do assistente Vita.</p>
             </div>
-            <span className="text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Instância Conectada</span>
+            <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
+              UazAPI Ativo
+            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Nome da Instância Uazapi</label>
+              <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome da Instância UazAPI</label>
               <input 
                 type="text" 
                 value={uazapiInstance}
                 onChange={(e) => setUazapiInstance(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Token de Autenticação Uazapi</label>
+              <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Token de Autenticação</label>
               <input 
                 type="password" 
                 value={uazapiToken}
                 onChange={(e) => setUazapiToken(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
+                className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
               />
             </div>
           </div>
         </div>
 
-        {/* User Profile Section */}
-        <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl backdrop-blur-xl space-y-4">
-          <div className="border-b border-slate-800 pb-3">
-            <h2 className="text-base font-bold text-white">Perfil do Usuário</h2>
-            <p className="text-xs text-slate-400">Seus dados pessoais para personalizar os relatórios da Vita.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Nome Completo</label>
-              <input 
-                type="text" 
-                defaultValue="Roberson" 
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Email</label>
-              <input 
-                type="email" 
-                defaultValue="admin@saudefinancas.com" 
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs" 
-              />
-            </div>
-          </div>
+        {/* Submit */}
+        <div className="flex justify-end pt-2">
+          <button 
+            type="submit"
+            className="h-9 px-5 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium flex items-center space-x-1.5 transition shadow-sm"
+          >
+            <Save className="w-4 h-4" />
+            <span>Salvar Configurações</span>
+          </button>
         </div>
 
-        <button 
-          type="submit"
-          className="bg-gradient-to-r from-sky-500 to-emerald-500 text-slate-950 font-bold px-8 py-3 rounded-xl hover:opacity-95 transition shadow-lg shadow-sky-500/20 text-xs"
-        >
-          Salvar Todas as Configurações
-        </button>
       </form>
+
     </div>
   );
 }

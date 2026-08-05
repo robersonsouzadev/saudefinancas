@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { MessageSquare, Send, Mic, Paperclip, Sparkles, Bot, CheckCircle2 } from 'lucide-react';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState([
     {
       id: '1',
       sender: 'vita',
-      text: 'Olá! Eu sou a Vita, sua assistente pessoal de bem-estar integrado. Como posso te ajudar hoje? Você pode mandar texto, foto de refeição ou gravar um áudio!',
+      text: 'Olá! Eu sou a Vita, sua assistente pessoal de bem-estar integrado. Como posso te ajudar hoje? Você pode enviar mensagens de texto, fotos de refeições ou gravação de voz!',
       time: '12:00'
     },
     {
@@ -19,7 +20,7 @@ export default function ChatPage() {
     {
       id: '3',
       sender: 'vita',
-      text: 'Perfeito! Registrei o gasto de *R$ 45,00 em Alimentação* e seu log de *7 horas de sono* com qualidade boa. Seu marcador de bem-estar subiu 2 pontos! 🚀',
+      text: 'Perfeito! Registrei o gasto de R$ 45,00 na categoria Alimentação e o log de 7.0 horas de sono. Seu score de bem-estar subiu 2 pontos!',
       time: '12:01',
       toolBadge: '✓ Tools executadas: log_transaction & log_health'
     }
@@ -41,12 +42,11 @@ export default function ChatPage() {
     setMessages(prev => [...prev, userMsg]);
     setInput('');
 
-    // Simulate Vita AI Response
     setTimeout(() => {
       const vitaReply = {
         id: String(Date.now() + 1),
         sender: 'vita',
-        text: `Compreendido! Analisei seu pedido "${input}". Todos os dados foram atualizados e sincronizados no seu diário e no painel financeiro.`,
+        text: `Compreendido! Analisei o comando "${input}". Os dados foram atualizados e sincronizados no diário de biometria e finanças.`,
         time: 'Agora',
         toolBadge: '✓ Ferramenta Vita executada'
       };
@@ -58,99 +58,105 @@ export default function ChatPage() {
     setRecording(true);
     setTimeout(() => {
       setRecording(false);
-      setInput('Gastei 32 reais na farmácia e caminhei 30 minutos hoje à tarde.');
+      const voiceMsg = {
+        id: String(Date.now()),
+        sender: 'user',
+        text: '🎙️ [Áudio Transcrito via Whisper]: "Comprei um remédio na farmácia por 35 reais"',
+        time: 'Agora'
+      };
+      setMessages(prev => [...prev, voiceMsg]);
+
+      setTimeout(() => {
+        const reply = {
+          id: String(Date.now() + 1),
+          sender: 'vita',
+          text: 'Áudio processado com sucesso! Registrei a despesa de R$ 35,00 em Saúde & Farmácia.',
+          time: 'Agora',
+          toolBadge: '✓ Whisper API + log_transaction'
+        };
+        setMessages(prev => [...prev, reply]);
+      }, 1000);
     }, 2000);
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-7.5rem)] text-white">
+    <div className="flex flex-col h-[calc(100vh-80px)] text-[#f7f8f8] max-w-5xl mx-auto pb-4">
+      
       {/* Header */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl mb-4 flex items-center justify-between shadow-lg">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-400 flex items-center justify-center font-bold text-slate-950 text-lg">
-            V
-          </div>
-          <div>
-            <h2 className="font-bold text-sm text-white">Vita — Assistente de Bem-Estar</h2>
-            <p className="text-[11px] text-emerald-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Online • Whisper & Multi-LLM
-            </p>
-          </div>
+      <div className="flex items-center space-x-3 border-b border-[#ffffff0e] pb-3 flex-shrink-0">
+        <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#c084fc]">
+          <MessageSquare className="w-4 h-4" />
         </div>
-        <span className="text-xs bg-slate-800 text-slate-300 px-3 py-1 rounded-full border border-slate-700">
-          Uazapi & Web Connected
-        </span>
+        <div>
+          <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Chat Conversacional Vita</h1>
+          <p className="text-xs text-[#8a8f98]">Interface conversacional com execução em tempo real de ferramentas (MCP Loop)</p>
+        </div>
       </div>
 
-      {/* Messages Feed */}
-      <div className="flex-1 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl overflow-y-auto space-y-4 shadow-xl backdrop-blur-xl">
-        {messages.map((msg) => (
-          <div 
-            key={msg.id} 
-            className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
-          >
-            <div className="flex items-end space-x-2 max-w-[85%] sm:max-w-[70%]">
-              {msg.sender === 'vita' && (
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-400 flex items-center justify-center font-bold text-slate-950 text-xs flex-shrink-0 mb-1">
-                  V
-                </div>
-              )}
-              <div 
-                className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-lg ${
-                  msg.sender === 'user' 
-                    ? 'bg-gradient-to-r from-sky-500 to-emerald-500 text-slate-950 font-medium rounded-tr-none' 
-                    : 'bg-slate-800 border border-slate-700/70 text-slate-100 rounded-tl-none'
-                }`}
-              >
-                <p className="whitespace-pre-line">{msg.text}</p>
-                {msg.toolBadge && (
-                  <span className="inline-block mt-2 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">
-                    {msg.toolBadge}
-                  </span>
-                )}
-              </div>
-              {msg.sender === 'user' && (
-                <div className="w-8 h-8 rounded-xl bg-slate-700 flex items-center justify-center font-bold text-slate-300 text-xs flex-shrink-0 mb-1">
-                  U
-                </div>
-              )}
+      {/* Messages Scroll Area */}
+      <div className="flex-1 overflow-y-auto py-4 space-y-3">
+        {messages.map((m) => (
+          <div key={m.id} className={`flex items-start space-x-3 ${m.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+            <div className={`w-7 h-7 rounded flex items-center justify-center text-xs font-bold flex-shrink-0 border ${
+              m.sender === 'vita' 
+                ? 'bg-[#16191e] border-[#ffffff12] text-[#5e6ad2]' 
+                : 'bg-[#5e6ad2] border-[#5e6ad2] text-white'
+            }`}>
+              {m.sender === 'vita' ? <Bot className="w-4 h-4" /> : 'U'}
             </div>
-            <span className="text-[10px] text-slate-500 mt-1 px-1">{msg.time}</span>
+
+            <div className={`max-w-lg p-3 rounded-lg border text-xs space-y-1.5 ${
+              m.sender === 'vita' 
+                ? 'bg-[#0f1115] border-[#ffffff0e] text-[#f7f8f8]' 
+                : 'bg-[#16191e] border-[#ffffff12] text-[#f7f8f8]'
+            }`}>
+              <p className="leading-relaxed">{m.text}</p>
+
+              {m.toolBadge && (
+                <div className="text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230] flex items-center gap-1 w-max">
+                  <Sparkles className="w-3 h-3" />
+                  <span>{m.toolBadge}</span>
+                </div>
+              )}
+
+              <span className="text-[10px] text-[#575c66] block text-right font-mono">{m.time}</span>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Input Form */}
-      <form onSubmit={handleSend} className="mt-4 bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center space-x-3 shadow-2xl">
-        <button 
-          type="button" 
-          onClick={handleVoiceRecord}
-          className={`p-3 rounded-xl border transition ${
-            recording 
-              ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse' 
-              : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700'
-          }`}
-          title="Gravar áudio com Whisper STT"
-        >
-          🎙️ {recording ? 'Gravando...' : ''}
-        </button>
-
+      {/* Input Bar */}
+      <form onSubmit={handleSend} className="pt-3 border-t border-[#ffffff0e] flex items-center space-x-2 flex-shrink-0">
         <input 
           type="text" 
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Digite ou fale com a Vita (ex: 'Gastei 50 reais no mercado')..." 
-          className="flex-1 bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+          placeholder="Digite uma mensagem, um gasto ou biometria..."
+          className="flex-1 h-10 px-4 rounded-md bg-[#0f1115] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
         />
 
         <button 
-          type="submit"
-          className="px-5 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-emerald-500 text-slate-950 font-bold text-xs hover:opacity-95 transition shadow-lg shadow-sky-500/20 flex items-center space-x-1"
+          type="button" 
+          onClick={handleVoiceRecord}
+          className={`h-10 px-3 rounded-md border text-xs flex items-center space-x-1.5 transition ${
+            recording 
+              ? 'bg-[#f8717120] text-[#f87171] border-[#f8717140] animate-pulse' 
+              : 'bg-[#0f1115] border-[#ffffff12] text-[#8a8f98] hover:text-[#f7f8f8]'
+          }`}
         >
+          <Mic className="w-4 h-4" />
+          <span>{recording ? 'Gravando...' : 'Áudio'}</span>
+        </button>
+
+        <button 
+          type="submit"
+          className="h-10 px-4 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
+        >
+          <Send className="w-3.5 h-3.5" />
           <span>Enviar</span>
-          <span>➤</span>
         </button>
       </form>
+
     </div>
   );
 }

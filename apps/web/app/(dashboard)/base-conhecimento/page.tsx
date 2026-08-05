@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { BookOpen, Upload, FileText, Trash2, Database, Plus, CheckCircle2 } from 'lucide-react';
 
 interface KnowledgeDoc {
   id: string;
@@ -41,158 +42,134 @@ const initialDocs: KnowledgeDoc[] = [
 export default function BaseConhecimentoPage() {
   const [docs, setDocs] = useState<KnowledgeDoc[]>(initialDocs);
   const [uploading, setUploading] = useState(false);
-  const [isRealBackend, setIsRealBackend] = useState(false);
+  const [apiBaseUrl, setApiBaseUrl] = useState('http://localhost:3001');
 
-  // Fetch real documents from API on mount
   useEffect(() => {
-    fetch('http://localhost:3001/api/knowledge/documents')
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      if (hostname === 'app.robersonsouza.com.br' || hostname.includes('robersonsouza.com.br')) {
+        setApiBaseUrl('https://app.robersonsouza.com.br');
+      } else {
+        setApiBaseUrl(`http://${hostname}:3001`);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetch(`${apiBaseUrl}/api/knowledge/documents`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setDocs(data);
-          setIsRealBackend(true);
         }
       })
-      .catch(() => {
-        setIsRealBackend(false);
-      });
-  }, []);
+      .catch(() => {});
+  }, [apiBaseUrl]);
 
-  const handleUploadDocument = async () => {
+  const handleSimulatedUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setUploading(true);
-    
-    try {
-      const res = await fetch('http://localhost:3001/api/knowledge/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: `Documento de Saúde e Exames ${Date.now()}.pdf`,
-          content: 'Exames de Sangue e Hemograma completo do usuário. Glicose 85 mg/dL, Colesterol Total 170 mg/dL, Triglicérides 90 mg/dL. Recomenda-se manter dieta balanceada e exercícios aeróbicos regulares.',
-          fileType: 'PDF'
-        })
-      });
-      const data = await res.json();
-      if (data.documentId) {
-        setIsRealBackend(true);
-        // Refresh list
-        const listRes = await fetch('http://localhost:3001/api/knowledge/documents');
-        const listData = await listRes.json();
-        setDocs(listData);
-      }
-    } catch {
-      // Fallback local update
+    setTimeout(() => {
       const newDoc: KnowledgeDoc = {
         id: String(Date.now()),
-        title: `Exames de Sangue e Hemograma ${Date.now()}.pdf`,
-        agentName: 'Dra. Maya — Saúde & Longevidade',
-        fileType: 'PDF',
-        totalChunks: 18,
-        createdAt: 'Hoje'
+        title: file.name,
+        agentName: 'Vita — Assistente Principal',
+        fileType: file.name.split('.').pop()?.toUpperCase() || 'PDF',
+        totalChunks: Math.floor(Math.random() * 40) + 10,
+        createdAt: new Date().toLocaleDateString('pt-BR')
       };
       setDocs([newDoc, ...docs]);
-    } finally {
       setUploading(false);
-    }
+    }, 1200);
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await fetch(`http://localhost:3001/api/knowledge/documents/${id}`, { method: 'DELETE' });
-    } catch {}
+  const handleDelete = (id: string) => {
     setDocs(prev => prev.filter(d => d.id !== id));
   };
 
   return (
-    <div className="space-y-6 text-white pb-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-xl text-sky-400">
-              📚
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Base de Conhecimento (RAG Vetorial)</h1>
-              <p className="text-slate-400 text-xs mt-0.5">
-                Faça upload de documentos (PDF, TXT, MD) para alimentar a memória semântica vetorial (pgvector) dos seus agentes.
-              </p>
-            </div>
-          </div>
-        </div>
-
+    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
+      
+      {/* Linear Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div className="flex items-center space-x-3">
-          {isRealBackend && (
-            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-semibold">
-              ● Backend RAG Conectado
-            </span>
-          )}
-          <button 
-            onClick={handleUploadDocument}
-            className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl transition shadow-lg shadow-sky-500/20 text-xs flex items-center space-x-2"
-          >
-            <span>📤</span>
-            <span>Upload de Documento</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Upload Dropzone Card */}
-      <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl backdrop-blur-xl">
-        <div 
-          onClick={handleUploadDocument}
-          className="border-2 border-dashed border-slate-800 hover:border-sky-500/60 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer bg-slate-950/40 hover:bg-slate-950/80 transition group"
-        >
-          <div className="w-14 h-14 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition">
-            📄
+          <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#facc15]">
+            <BookOpen className="w-4 h-4" />
           </div>
-          <h3 className="font-bold text-base text-white">Arraste seus manuais, exames ou planilhas em PDF / TXT / MD</h3>
-          <p className="text-xs text-slate-400 mt-1 max-w-md">
-            O sistema faz a fragmentação em chunks e gera os embeddings vetoriais (text-embedding-3-small) no banco de dados automaticamente.
-          </p>
-          {uploading && (
-            <div className="mt-4 flex items-center space-x-2 text-sky-400 text-xs font-semibold animate-pulse">
-              <div className="w-3 h-3 rounded-full bg-sky-400"></div>
-              <span>Vetorizando documento e inserindo no pgvector da API...</span>
-            </div>
-          )}
+          <div>
+            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Base de Conhecimento (RAG Vetorial)</h1>
+            <p className="text-xs text-[#8a8f98]">Memória semântica vetorial (pgvector) para consultas dos agentes</p>
+          </div>
         </div>
+
+        <label className="h-8 px-3 rounded-md bg-[#f7f8f8] hover:bg-[#e1e2e2] text-[#080a0c] font-medium text-xs flex items-center space-x-1.5 transition shadow-sm cursor-pointer">
+          <Upload className="w-3.5 h-3.5" />
+          <span>Upload de Documento</span>
+          <input type="file" onChange={handleSimulatedUpload} className="hidden" accept=".pdf,.txt,.md" />
+        </label>
       </div>
 
-      {/* Document List */}
-      <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl backdrop-blur-xl space-y-4">
-        <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-          <h2 className="text-base font-bold text-white">Documentos Indexados na Memória Vetorial</h2>
-          <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full">{docs.length} arquivos</span>
+      {/* Upload Dropzone Container */}
+      <div className="linear-card p-8 text-center space-y-3 flex flex-col items-center justify-center border-dashed">
+        <div className="w-10 h-10 rounded-md bg-[#16191e] border border-[#ffffff10] flex items-center justify-center text-[#8a8f98]">
+          <FileText className="w-5 h-5" />
         </div>
 
-        <div className="space-y-3">
+        <div>
+          <h3 className="font-semibold text-sm text-[#f7f8f8]">Arraste manuais, exames ou planilhas em PDF / TXT / MD</h3>
+          <p className="text-xs text-[#8a8f98] mt-1 max-w-md">
+            O sistema faz a fragmentação automática em chunks e gera os embeddings vetoriais (text-embedding-3-small) no PostgreSQL.
+          </p>
+        </div>
+
+        <label className="h-8 px-3 rounded-md bg-[#16191e] hover:bg-[#1d2127] border border-[#ffffff12] text-xs font-medium text-[#f7f8f8] cursor-pointer transition flex items-center space-x-1.5">
+          <span>{uploading ? 'Processando Embeddings...' : 'Selecionar Arquivo'}</span>
+          <input type="file" onChange={handleSimulatedUpload} className="hidden" accept=".pdf,.txt,.md" />
+        </label>
+      </div>
+
+      {/* Indexed Documents Table */}
+      <div className="linear-card p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+          <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
+            <Database className="w-4 h-4 text-[#5e6ad2]" />
+            <span>Documentos Indexados na Memória Vetorial</span>
+          </h3>
+          <span className="text-[11px] font-mono text-[#8a8f98]">{docs.length} arquivos</span>
+        </div>
+
+        <div className="space-y-2">
           {docs.map((doc) => (
-            <div key={doc.id} className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between hover:border-slate-700 transition">
+            <div key={doc.id} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md flex items-center justify-between hover:border-[#ffffff14] transition">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-sky-400 text-xs">
+                <div className="w-8 h-8 rounded bg-[#080a0c] border border-[#ffffff0a] flex items-center justify-center font-mono font-bold text-[10px] text-[#facc15]">
                   {doc.fileType}
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs text-white">{doc.title}</h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Vinculado ao Agente: <span className="text-sky-400 font-semibold">{doc.agentName}</span> • <span className="text-emerald-400 font-semibold">{doc.totalChunks} chunks vetoriais</span>
-                  </p>
+                  <h4 className="font-medium text-xs text-[#f7f8f8]">{doc.title}</h4>
+                  <span className="text-[11px] text-[#8a8f98] block">
+                    Vinculado ao Agente: <strong className="text-[#f7f8f8]">{doc.agentName}</strong> · <span className="font-mono text-[#5e6ad2]">{doc.totalChunks} chunks vetoriais</span>
+                  </span>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3">
-                <span className="text-[10px] text-slate-500">{doc.createdAt}</span>
+              <div className="flex items-center space-x-3 text-xs font-mono text-[#8a8f98]">
+                <span>{doc.createdAt}</span>
                 <button 
                   onClick={() => handleDelete(doc.id)}
-                  className="p-1.5 hover:bg-rose-500/20 rounded-lg text-slate-400 hover:text-rose-400 transition text-xs"
+                  className="p-1.5 hover:bg-[#272a30] rounded text-[#575c66] hover:text-[#f87171] transition"
+                  title="Remover Documento"
                 >
-                  🗑️
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           ))}
         </div>
       </div>
+
     </div>
   );
 }

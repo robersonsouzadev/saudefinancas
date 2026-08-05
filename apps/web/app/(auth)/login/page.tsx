@@ -15,47 +15,47 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-400 mx-auto mb-3 flex items-center justify-center font-bold text-2xl text-slate-950">
+    <div className="min-h-screen flex items-center justify-center bg-[#080a0c] text-[#f7f8f8] p-4 font-sans">
+      <div className="w-full max-w-sm bg-[#0f1115] border border-[#ffffff12] rounded-lg p-6 space-y-6 shadow-2xl">
+        <div className="text-center space-y-2">
+          <div className="w-10 h-10 rounded-md bg-[#5e6ad2] mx-auto flex items-center justify-center font-bold text-lg text-white shadow-sm">
             SF
           </div>
-          <h1 className="text-2xl font-bold text-white">Saúde & Finanças</h1>
-          <p className="text-slate-400 text-sm mt-1">Acesse sua conta para continuar</p>
+          <h1 className="text-lg font-semibold text-[#f7f8f8] tracking-tight">Saúde & Finanças</h1>
+          <p className="text-xs text-[#8a8f98]">Entre na sua conta para continuar</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Email</label>
+            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider mb-1">Email</label>
             <input 
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500" 
+              className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Senha</label>
+            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider mb-1">Senha</label>
             <input 
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-sky-500" 
+              className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
               required
             />
           </div>
           <button 
             type="submit"
-            className="w-full bg-gradient-to-r from-sky-500 to-emerald-500 text-slate-950 py-3 rounded-xl font-bold hover:opacity-95 transition shadow-lg shadow-sky-500/20"
+            className="w-full h-9 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium rounded text-xs transition shadow-sm"
           >
             Entrar no Sistema
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
-          Não tem uma conta? <Link href="/register" className="text-sky-400 hover:underline font-medium">Cadastre-se</Link>
+        <p className="text-center text-[11px] text-[#8a8f98]">
+          Não tem uma conta? <Link href="/register" className="text-[#5e6ad2] hover:underline font-medium">Cadastre-se</Link>
         </p>
       </div>
     </div>
