@@ -1,132 +1,260 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { 
+  LayoutDashboard, Bot, BookOpen, Cpu, HeartPulse, 
+  Apple, Wallet, Sparkles, Users, UserCheck, MessageSquare, 
+  Settings, LogOut, ChevronDown, Bell, Search, Command
+} from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  const isActive = (path: string) => pathname === path;
+
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-950 text-white font-sans">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0">
-        <div className="p-5 border-b border-slate-800 flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-400 flex items-center justify-center font-black text-slate-950 text-xl shadow-lg shadow-sky-500/20">
-            SF
+    <div className="flex h-screen overflow-hidden bg-[#080a0c] text-[#f7f8f8] font-sans antialiased">
+      {/* Linear-Style Sleek Sidebar (220px width) */}
+      <aside className="w-[220px] bg-[#0f1115] border-r border-[#ffffff12] flex flex-col flex-shrink-0 select-none">
+        
+        {/* Workspace Header */}
+        <div className="h-12 px-3 flex items-center justify-between border-b border-[#ffffff0e]">
+          <div className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition">
+            <div className="w-5 h-5 rounded-md bg-[#5e6ad2] flex items-center justify-center font-bold text-white text-[10px] shadow-sm">
+              SF
+            </div>
+            <span className="font-semibold text-xs text-[#f7f8f8] tracking-tight">Saúde & Finanças</span>
+            <ChevronDown className="w-3 h-3 text-[#8a8f98]" />
           </div>
-          <div>
-            <h2 className="font-bold text-base text-white leading-tight">Saúde & Finanças</h2>
-            <p className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Vita Assistente Ativo
-            </p>
+
+          <div className="flex items-center space-x-1 text-[#8a8f98]">
+            <button className="p-1 hover:text-white rounded hover:bg-[#16191e] transition">
+              <Search className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
-        <nav className="flex-1 p-3 space-y-4 overflow-y-auto text-xs font-semibold">
-          {/* PRINCIPAL */}
+        {/* Navigation Sections */}
+        <nav className="flex-1 px-2 py-3 space-y-4 overflow-y-auto text-[13px]">
+          
+          {/* VISÃO GERAL */}
           <div>
-            <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Principal</div>
-            <div className="space-y-1">
-              <Link href="/" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">📊</span>
+            <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+              Geral
+            </div>
+            <div className="space-y-0.5">
+              <Link 
+                href="/" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4" />
                 <span>Dashboard</span>
               </Link>
-              <Link href="/agentes" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">🤖</span>
+            </div>
+          </div>
+
+          {/* AI ENGINE */}
+          <div>
+            <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+              Inteligência
+            </div>
+            <div className="space-y-0.5">
+              <Link 
+                href="/agentes" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/agentes') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <Bot className="w-4 h-4" />
                 <span>Meus Agentes</span>
               </Link>
-              <Link href="/base-conhecimento" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">📚</span>
-                <span>Base de Conhecimento</span>
+
+              <Link 
+                href="/base-conhecimento" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/base-conhecimento') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Base Conhecimento</span>
               </Link>
-              <Link href="/provedores-ia" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">🔀</span>
-                <span>Provedores de IA</span>
+
+              <Link 
+                href="/provedores-ia" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/provedores-ia') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <Cpu className="w-4 h-4" />
+                <span>Provedores IA</span>
               </Link>
             </div>
           </div>
 
           {/* BEM-ESTAR */}
           <div>
-            <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bem-Estar Integrado</div>
-            <div className="space-y-1">
-              <Link href="/saude" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">🏥</span>
+            <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+              Bem-Estar
+            </div>
+            <div className="space-y-0.5">
+              <Link 
+                href="/saude" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/saude') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <HeartPulse className="w-4 h-4" />
                 <span>Saúde & Hábitos</span>
               </Link>
-              <Link href="/saude/nutricao" className="flex items-center space-x-3 px-3 py-2 rounded-xl pl-8 text-[11px] text-sky-400 hover:bg-slate-800 hover:text-white transition">
-                <span>🥗 Diário Nutricional</span>
+
+              <Link 
+                href="/saude/nutricao" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/saude/nutricao') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <Apple className="w-4 h-4" />
+                <span>Nutrição</span>
               </Link>
-              <Link href="/financas" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">💰</span>
-                <span>Finanças & Contas</span>
+
+              <Link 
+                href="/financas" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/financas') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <Wallet className="w-4 h-4" />
+                <span>Finanças</span>
               </Link>
-              <Link href="/insights" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">🧠</span>
-                <span>Insights IA</span>
+
+              <Link 
+                href="/insights" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/insights') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Insights</span>
               </Link>
             </div>
           </div>
 
-          {/* SISTEMA */}
+          {/* WORKSPACE & SISTEMA */}
           <div>
-            <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Sistema</div>
-            <div className="space-y-1">
-              <Link href="/usuarios" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">👥</span>
-                <span>Controle de Usuários</span>
+            <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+              Workspace
+            </div>
+            <div className="space-y-0.5">
+              <Link 
+                href="/usuarios" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/usuarios') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>Usuários</span>
               </Link>
-              <Link href="/familia" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">👨‍👩‍👧‍👦</span>
+
+              <Link 
+                href="/familia" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/familia') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <UserCheck className="w-4 h-4" />
                 <span>Grupo Familiar</span>
               </Link>
-              <Link href="/chat" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">💬</span>
-                <span>Chat Conversacional</span>
+
+              <Link 
+                href="/chat" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/chat') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Chat Vita</span>
               </Link>
-              <Link href="/configuracoes" className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition">
-                <span className="text-base">⚙️</span>
+
+              <Link 
+                href="/configuracoes" 
+                className={`flex items-center space-x-2.5 px-2 py-1.5 rounded-md font-medium transition ${
+                  isActive('/configuracoes') 
+                    ? 'bg-[#5e6ad220] text-[#5e6ad2]' 
+                    : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                }`}
+              >
+                <Settings className="w-4 h-4" />
                 <span>Configurações</span>
               </Link>
             </div>
           </div>
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
-          <Link href="/login" className="flex items-center justify-center w-full py-2.5 text-xs font-bold text-rose-400 hover:bg-rose-500/10 rounded-xl border border-rose-500/20 transition">
-            🚪 Sair da Conta
+        {/* Footer Profile */}
+        <div className="p-2 border-t border-[#ffffff0e] flex items-center justify-between">
+          <div className="flex items-center space-x-2 px-1 py-1">
+            <div className="w-6 h-6 rounded-full bg-[#1e2229] border border-[#ffffff12] flex items-center justify-center text-[10px] font-bold text-[#f7f8f8]">
+              R
+            </div>
+            <span className="text-[12px] font-medium text-[#8a8f98] truncate max-w-[110px]">Roberson</span>
+          </div>
+
+          <Link href="/login" className="p-1 hover:text-rose-400 text-[#575c66] rounded transition" title="Sair">
+            <LogOut className="w-3.5 h-3.5" />
           </Link>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header Bar */}
-        <header className="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 flex-shrink-0">
-          <div className="flex items-center space-x-6">
-            <h1 className="text-base font-bold text-white">Painel Unificado</h1>
-            {/* Top Quick Links */}
-            <nav className="hidden lg:flex items-center space-x-1 text-xs font-medium">
-              <Link href="/" className="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition">Dashboard</Link>
-              <Link href="/agentes" className="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition">🤖 Meus Agentes</Link>
-              <Link href="/base-conhecimento" className="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition">📚 Base de Conhecimento</Link>
-              <Link href="/provedores-ia" className="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition">🔀 Provedores de IA</Link>
-              <Link href="/saude" className="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition">Saúde</Link>
-              <Link href="/financas" className="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition">Finanças</Link>
-              <Link href="/chat" className="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition">Chat Vita</Link>
-            </nav>
+      {/* Main Container Area */}
+      <main className="flex-1 flex flex-col overflow-hidden bg-[#080a0c]">
+        {/* Minimal Linear Header Bar */}
+        <header className="h-12 border-b border-[#ffffff0e] bg-[#0f1115]/50 backdrop-blur-md flex items-center justify-between px-4 flex-shrink-0 select-none">
+          <div className="flex items-center space-x-2 text-[12px] font-medium text-[#8a8f98]">
+            <span className="text-[#f7f8f8] font-semibold">Saúde & Finanças</span>
+            <span>/</span>
+            <span className="text-[#8a8f98] capitalize">{pathname === '/' ? 'Dashboard' : pathname.replace('/', '')}</span>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <Link href="/configuracoes" className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs" title="Configurações">
-              ⚙️
-            </Link>
-            <div className="flex items-center space-x-2 pl-2 border-l border-slate-800">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-400 flex items-center justify-center font-bold text-xs text-slate-950 shadow-md">
-                U
-              </div>
-              <span className="text-xs font-semibold text-slate-200 hidden sm:inline">Usuário</span>
+          <div className="flex items-center space-x-3 text-[12px]">
+            <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-[#4ade8015] border border-[#4ade8030] text-[#4ade80] text-[11px] font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80]"></span>
+              <span>Vita Online</span>
             </div>
+
+            <button className="flex items-center space-x-1 text-[#8a8f98] hover:text-[#f7f8f8] px-2 py-1 rounded hover:bg-[#16191e] transition text-[11px]">
+              <Command className="w-3 h-3" />
+              <span>K</span>
+            </button>
           </div>
         </header>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-auto p-6 bg-slate-950">
+        <div className="flex-1 overflow-auto p-6">
           {children}
         </div>
       </main>
