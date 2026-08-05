@@ -75,7 +75,8 @@ export default function ProvedoresIaPage() {
 
   // Fetch real status from backend API
   useEffect(() => {
-    fetch('http://localhost:3001/api/llm-providers')
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    fetch(`${apiBase}/api/llm-providers`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
@@ -90,9 +91,10 @@ export default function ProvedoresIaPage() {
 
   const handleTest = async (provider: ProviderCard) => {
     setTestingId(provider.id);
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     
     try {
-      const res = await fetch('http://localhost:3001/api/llm-providers/test', {
+      const res = await fetch(`${apiBase}/api/llm-providers/test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: provider.providerType })
@@ -105,17 +107,19 @@ export default function ProvedoresIaPage() {
           msg: '⚡ Conexão real validada com sucesso! Latência: 110ms',
           success: true
         });
+        setProviders(prev => prev.map(p => p.id === provider.id ? { ...p, status: 'CONECTADO', statusReason: 'Conexão ativa' } : p));
       } else {
         setTestResult({
           id: provider.id,
-          msg: `❌ Falha na conexão: ${data.reason || 'Chave API ausente ou recusada pelo servidor'}`,
+          msg: `❌ Falha na conexão: ${data.reason || 'Chave API recusada pelo provedor'}`,
           success: false
         });
+        setProviders(prev => prev.map(p => p.id === provider.id ? { ...p, status: 'DESCONECTADO', statusReason: data.reason } : p));
       }
-    } catch {
+    } catch (err: any) {
       setTestResult({
         id: provider.id,
-        msg: '❌ Chave API não configurada no servidor. Clique em + Adicionar Provedor para inserir a chave real.',
+        msg: `❌ Erro de comunicação com o servidor API (${err.message}). Verifique se a chave foi salva.`,
         success: false
       });
     } finally {
@@ -127,9 +131,10 @@ export default function ProvedoresIaPage() {
   const handleAddProvider = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!apiKey) return;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
     try {
-      const res = await fetch('http://localhost:3001/api/llm-providers/key', {
+      const res = await fetch(`${apiBase}/api/llm-providers/key`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: providerType, key: apiKey })
@@ -137,9 +142,11 @@ export default function ProvedoresIaPage() {
       const data = await res.json();
 
       // Refresh list
-      const listRes = await fetch('http://localhost:3001/api/llm-providers');
+      const listRes = await fetch(`${apiBase}/api/llm-providers`);
       const listData = await listRes.json();
-      setProviders(listData);
+      if (Array.isArray(listData)) {
+        setProviders(listData);
+      }
     } catch {
       setProviders(prev => prev.map(p => p.providerType === providerType ? {
         ...p,
