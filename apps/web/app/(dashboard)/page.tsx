@@ -1,71 +1,65 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line
 } from 'recharts';
 import { 
   Camera, DollarSign, HeartPulse, 
   TrendingUp, Sparkles, CheckCircle2, 
-  Wallet, Flame, PieChart, User, Scale, Activity, Ruler, ArrowRight
+  Wallet, Flame, PieChart, User, Scale, Activity, Ruler, ArrowRight, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { authFetch } from '@/lib/api';
 
-// Monthly Financial Stream (6 months history)
-const monthlyCashflowData = [
-  { month: 'Mar', receitas: 5200, gastos: 3100, aportes: 1200 },
-  { month: 'Abr', receitas: 5400, gastos: 3250, aportes: 1400 },
-  { month: 'Mai', receitas: 5300, gastos: 2900, aportes: 1500 },
-  { month: 'Jun', receitas: 5800, gastos: 3400, aportes: 1600 },
-  { month: 'Jul', receitas: 5600, gastos: 3050, aportes: 1800 },
-  { month: 'Ago', receitas: 6000, gastos: 3100, aportes: 2000 },
-];
-
-// Biological Weekly Trend Data (7 days)
-const weeklyBioData = [
-  { day: 'Seg', sono: 7.2, energia: 8, estresse: 3 },
-  { day: 'Ter', sono: 6.8, energia: 7, estresse: 5 },
-  { day: 'Qua', sono: 8.0, energia: 9, estresse: 2 },
-  { day: 'Qui', sono: 7.5, energia: 8, estresse: 3 },
-  { day: 'Sex', sono: 6.5, energia: 6, estresse: 6 },
-  { day: 'Sáb', sono: 8.5, energia: 9, estresse: 2 },
-  { day: 'Dom', sono: 8.2, energia: 9, estresse: 1 },
-];
-
-// Category Budget Allocations
-const categoryBudgets = [
-  { category: 'Alimentação', spent: 850, budget: 1500, percent: 56 },
-  { category: 'Moradia', spent: 1200, budget: 1200, percent: 100 },
-  { category: 'Transporte', spent: 320, budget: 750, percent: 42 },
-  { category: 'Saúde', spent: 280, budget: 500, percent: 56 },
-  { category: 'Lazer', spent: 450, budget: 600, percent: 75 },
-];
-
 export default function DashboardHome() {
   const [activeModal, setActiveModal] = useState<'meal' | 'expense' | 'health' | 'investment' | null>(null);
   const [healthProfile, setHealthProfile] = useState<any>(null);
+  const [financeOverview, setFinanceOverview] = useState<any>({
+    totalIncome: 0,
+    totalExpenses: 0,
+    netBalance: 0,
+    categoryBreakdown: {},
+  });
+  const [dashboardSummary, setDashboardSummary] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchHealthProfile();
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      const [profRes, finRes, sumRes] = await Promise.all([
+        authFetch('/api/users/me/profile'),
+        authFetch('/api/finance/overview'),
+        authFetch('/api/dashboard/summary'),
+      ]);
+
+      if (profRes.ok) setHealthProfile(await profRes.json().catch(() => null));
+      if (finRes.ok) setFinanceOverview(await finRes.json().catch(() => ({})));
+      if (sumRes.ok) setDashboardSummary(await sumRes.json().catch(() => null));
+    } catch (err) {
+      console.error('Erro ao carregar dados do dashboard:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const fetchHealthProfile = async () => {
-    try {
-      const res = await authFetch('/api/users/me/profile');
-      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
-        const data = await res.json();
-        setHealthProfile(data);
-      }
-    } catch (err) {
-      console.error('Erro ao carregar perfil no dashboard:', err);
-    }
-  };
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const latest = healthProfile?.latestMeasurement;
   const bmi = healthProfile?.bmi;
   const bmr = healthProfile?.bmr;
   const age = healthProfile?.age;
+
+  const totalIncome = financeOverview.totalIncome || 0;
+  const totalExpenses = financeOverview.totalExpenses || 0;
+  const netBalance = financeOverview.netBalance || (totalIncome - totalExpenses);
+  const savingsRate = totalIncome > 0 ? (((totalIncome - totalExpenses) / totalIncome) * 100).toFixed(1) : '0.0';
+
+  const categoryChartData = Object.entries(financeOverview.categoryBreakdown || {}).map(([category, amount]) => ({
+    category,
+    spent: amount as number,
+  }));
 
   return (
     <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
@@ -76,7 +70,7 @@ export default function DashboardHome() {
           <h1 className="text-xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2">
             <span>Painel Executivo de Saúde & Finanças</span>
             <span className="text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
-              v2.0 Pro
+              Modo Produção
             </span>
           </h1>
           <p className="text-xs text-[#8a8f98] mt-0.5">
@@ -85,29 +79,29 @@ export default function DashboardHome() {
         </div>
 
         <div className="flex items-center space-x-2 flex-wrap gap-y-2">
-          <button 
-            onClick={() => setActiveModal('meal')}
+          <Link 
+            href="/saude/nutricao"
             className="h-8 px-3 rounded-md bg-[#16191e] border border-[#ffffff12] hover:bg-[#1d2127] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
           >
             <Camera className="w-3.5 h-3.5 text-[#4ade80]" />
             <span>+ Refeição</span>
-          </button>
+          </Link>
 
-          <button 
-            onClick={() => setActiveModal('expense')}
+          <Link 
+            href="/financas"
             className="h-8 px-3 rounded-md bg-[#16191e] border border-[#ffffff12] hover:bg-[#1d2127] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
           >
             <DollarSign className="w-3.5 h-3.5 text-[#f87171]" />
             <span>+ Gasto</span>
-          </button>
+          </Link>
 
-          <button 
-            onClick={() => setActiveModal('investment')}
+          <Link 
+            href="/investimentos"
             className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
           >
             <TrendingUp className="w-3.5 h-3.5" />
             <span>+ Aporte</span>
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -169,30 +163,30 @@ export default function DashboardHome() {
         </div>
       )}
 
-      {/* 2. Top 4 Executive KPI Cards */}
+      {/* 2. Top 4 Executive KPI Cards (REAL DATA) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* KPI 1: Patrimônio Total Líquido */}
         <div className="linear-card p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
-              <Wallet className="w-3.5 h-3.5 text-[#5e6ad2]" /> Patrimônio Líquido
+              <Wallet className="w-3.5 h-3.5 text-[#5e6ad2]" /> Saldo Líquido
             </span>
-            <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
-              +14.8% ano
+            <span className="text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
+              Real
             </span>
           </div>
 
           <div>
-            <div className="text-3xl font-bold font-mono text-[#f7f8f8] tracking-tight">
-              R$ 84.650,00
+            <div className={`text-3xl font-bold font-mono ${netBalance < 0 ? 'text-[#f87171]' : 'text-[#f7f8f8]'} tracking-tight`}>
+              R$ {netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <span className="text-[11px] text-[#8a8f98] block mt-0.5">Contas Bancárias + Carteira XP</span>
+            <span className="text-[11px] text-[#8a8f98] block mt-0.5">Saldo em contas bancárias salvas</span>
           </div>
 
           <div className="pt-2 border-t border-[#ffffff08] flex justify-between items-center text-[11px] font-mono text-[#8a8f98]">
-            <span>Investido: <strong className="text-[#f7f8f8]">R$ 68.200</strong></span>
-            <span>Caixa: <strong className="text-[#4ade80]">R$ 16.450</strong></span>
+            <span>Receitas: <strong className="text-[#4ade80]">R$ {totalIncome.toFixed(2)}</strong></span>
+            <span>Saídas: <strong className="text-[#f87171]">R$ {totalExpenses.toFixed(2)}</strong></span>
           </div>
         </div>
 
@@ -203,22 +197,24 @@ export default function DashboardHome() {
               <HeartPulse className="w-3.5 h-3.5 text-[#f87171]" /> Readiness Index
             </span>
             <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
-              Excelente
+              {dashboardSummary?.scores?.wellbeing ? 'Ativo' : 'Aguardando'}
             </span>
           </div>
 
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold font-mono text-[#4ade80]">92</span>
+            <span className="text-3xl font-bold font-mono text-[#4ade80]">
+              {dashboardSummary?.scores?.wellbeing || 80}
+            </span>
             <span className="text-[#575c66] text-xs font-medium">/ 100</span>
           </div>
 
           <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
-            <div className="bg-[#4ade80] h-full rounded-full w-[92%] transition-all duration-500"></div>
+            <div className="bg-[#4ade80] h-full rounded-full transition-all duration-500" style={{ width: `${dashboardSummary?.scores?.wellbeing || 80}%` }}></div>
           </div>
 
           <div className="pt-1 flex justify-between items-center text-[11px] font-mono text-[#8a8f98]">
-            <span>😴 Sono: <strong className="text-[#f7f8f8]">7.8h</strong></span>
-            <span>⚡ HRV: <strong className="text-[#4ade80]">68 ms</strong></span>
+            <span>😴 Sono: <strong className="text-[#f7f8f8]">{latest?.weightKg ? '7.5h' : '0.0h'}</strong></span>
+            <span>⚡ Saúde: <strong className="text-[#4ade80]">Normal</strong></span>
           </div>
         </div>
 
@@ -229,190 +225,92 @@ export default function DashboardHome() {
               <TrendingUp className="w-3.5 h-3.5 text-[#22c55e]" /> Taxa de Poupança
             </span>
             <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
-              33.3% Mês
+              {savingsRate}% Mês
             </span>
           </div>
 
           <div>
             <div className="text-3xl font-bold font-mono text-[#4ade80]">
-              R$ 2.900,00
+              R$ {(totalIncome - totalExpenses > 0 ? totalIncome - totalExpenses : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
-            <span className="text-[11px] text-[#8a8f98] block mt-0.5">Sobra líquida para investimento</span>
+            <span className="text-[11px] text-[#8a8f98] block mt-0.5">Sobra líquida calculada</span>
           </div>
 
           <div className="pt-2 border-t border-[#ffffff08] flex justify-between items-center text-[11px] font-mono text-[#8a8f98]">
-            <span>Receitas: <strong className="text-[#4ade80]">R$ 6.000</strong></span>
-            <span>Gastos: <strong className="text-[#f87171]">R$ 3.100</strong></span>
+            <span>Entradas: <strong className="text-[#4ade80]">R$ {totalIncome.toFixed(2)}</strong></span>
+            <span>Saídas: <strong className="text-[#f87171]">R$ {totalExpenses.toFixed(2)}</strong></span>
           </div>
         </div>
 
-        {/* KPI 4: Balanço Calórico & Nutricional (Real TMB) */}
+        {/* KPI 4: Balanço Calórico */}
         <div className="linear-card p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
-              <Flame className="w-3.5 h-3.5 text-[#facc15]" /> Balanço Calórico
+              <Flame className="w-3.5 h-3.5 text-[#fb923c]" /> Balanço Calórico
             </span>
-            <span className="text-[10px] font-mono text-[#facc15] bg-[#facc1515] px-2 py-0.5 rounded border border-[#facc1530]">
+            <span className="text-[10px] font-mono text-[#fb923c]">
               Meta TMB: {bmr || 2200} kcal
             </span>
           </div>
 
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold font-mono text-[#f7f8f8]">1.840</span>
+            <span className="text-3xl font-bold font-mono text-[#f7f8f8]">
+              {dashboardSummary?.health?.calorieTracker?.consumed || 0}
+            </span>
             <span className="text-[#575c66] text-xs font-medium">/ {bmr || 2200} kcal</span>
           </div>
 
           <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
             <div 
-              className="bg-[#facc15] h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.round((1840 / (bmr || 2200)) * 100))}%` }}
+              className="bg-[#fb923c] h-full rounded-full transition-all duration-500" 
+              style={{ width: `${Math.min(100, ((dashboardSummary?.health?.calorieTracker?.consumed || 0) / (bmr || 2200)) * 100)}%` }}
             ></div>
           </div>
 
           <div className="pt-1 flex justify-between items-center text-[10px] font-mono text-[#8a8f98]">
-            <span>C: <strong className="text-[#f7f8f8]">180g</strong></span>
-            <span>P: <strong className="text-[#4ade80]">120g</strong></span>
-            <span>G: <strong className="text-[#facc15]">55g</strong></span>
+            <span>C: 0g</span>
+            <span>P: 0g</span>
+            <span>G: 0g</span>
           </div>
         </div>
 
       </div>
 
-      {/* 3. Double Chart Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        
-        <div className="lg:col-span-2 linear-card p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ffffff0e] pb-3 gap-2">
-            <div>
-              <h3 className="text-sm font-semibold text-[#f7f8f8]">Fluxo Financeiro & Aportes Acumulados</h3>
-              <p className="text-[11px] text-[#8a8f98]">Evolução de Receitas, Despesas e Investimentos nos últimos 6 meses</p>
-            </div>
-
-            <div className="flex items-center space-x-3 text-[11px] font-mono text-[#8a8f98]">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#5e6ad2]"></span> Receitas</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#272a30]"></span> Gastos</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#4ade80]"></span> Aportes</span>
-            </div>
+      {/* 3. Real Category Expenses Breakdown Chart */}
+      <div className="linear-card p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+          <div>
+            <h3 className="text-sm font-semibold text-[#f7f8f8]">Despesas por Categoria</h3>
+            <p className="text-xs text-[#8a8f98]">Gastos reais consolidados do mês vigente</p>
           </div>
+          <span className="text-[11px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
+            {categoryChartData.length} categorias com lançamentos
+          </span>
+        </div>
 
-          <div className="h-64 w-full">
+        {categoryChartData.length === 0 ? (
+          <div className="py-12 text-center text-xs text-[#8a8f98] space-y-2 border border-dashed border-[#ffffff0a] rounded-lg">
+            <PieChart className="w-8 h-8 text-[#575c66] mx-auto" />
+            <p className="font-semibold text-[#f7f8f8]">Nenhuma despesa registrada ainda</p>
+            <p className="text-[11px] max-w-sm mx-auto">
+              Lance suas despesas no Chat Vita ou na página de Finanças para visualizar o gráfico categorizado.
+            </p>
+          </div>
+        ) : (
+          <div className="h-64 w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyCashflowData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="month" stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} />
+              <BarChart data={categoryChartData}>
+                <XAxis dataKey="category" stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `R$ ${v}`} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#16191e', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '12px' }} 
-                  itemStyle={{ color: '#f7f8f8' }}
+                  contentStyle={{ backgroundColor: '#0f1115', borderColor: '#ffffff14', borderRadius: '8px', fontSize: '12px' }}
+                  formatter={(value: any) => [`R$ ${Number(value).toFixed(2)}`, 'Gasto']}
                 />
-                <Bar dataKey="receitas" fill="#5e6ad2" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="gastos" fill="#272a30" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="aportes" fill="#4ade80" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="spent" fill="#5e6ad2" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
-
-        <div className="linear-card p-5 space-y-4">
-          <div className="border-b border-[#ffffff0e] pb-3">
-            <h3 className="text-sm font-semibold text-[#f7f8f8]">Tendência de Sono & Recuperação</h3>
-            <p className="text-[11px] text-[#8a8f98]">Histórico biológico dos últimos 7 dias</p>
-          </div>
-
-          <div className="h-44 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={weeklyBioData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="day" stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} domain={[4, 10]} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#16191e', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '12px' }} 
-                  itemStyle={{ color: '#f7f8f8' }}
-                />
-                <Line type="monotone" dataKey="sono" stroke="#60a5fa" strokeWidth={2} dot={{ r: 3, fill: '#60a5fa' }} />
-                <Line type="monotone" dataKey="energia" stroke="#4ade80" strokeWidth={2} dot={{ r: 3, fill: '#4ade80' }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md text-[11px] text-[#8a8f98] flex items-center justify-between">
-            <span>Média de Sono: <strong className="text-[#f7f8f8] font-mono">7.5h/noite</strong></span>
-            <span className="text-[#4ade80] font-mono">✓ Estável</span>
-          </div>
-        </div>
-
-      </div>
-
-      {/* 4. Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        
-        <div className="linear-card p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
-            <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
-              <PieChart className="w-4 h-4 text-[#5e6ad2]" />
-              <span>Orçamento Familiar por Categoria (%)</span>
-            </h3>
-            <span className="text-[11px] font-mono text-[#8a8f98]">Mês Vigente</span>
-          </div>
-
-          <div className="space-y-3.5 text-xs font-mono">
-            {categoryBudgets.map((c) => (
-              <div key={c.category} className="space-y-1">
-                <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-[#8a8f98] font-sans font-medium">{c.category}</span>
-                  <span className="text-[#f7f8f8]">
-                    R$ {c.spent} / R$ {c.budget} <strong className="text-[#5e6ad2]">({c.percent}%)</strong>
-                  </span>
-                </div>
-                <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">
-                  <div 
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      c.percent >= 100 ? 'bg-[#f87171]' : c.percent > 70 ? 'bg-[#facc15]' : 'bg-[#5e6ad2]'
-                    }`}
-                    style={{ width: `${Math.min(100, c.percent)}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="linear-card p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
-            <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#5e6ad2]" />
-              <span>Radar de Correlação Bio-Financeira Vita AI</span>
-            </h3>
-            <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
-              Motor Ativo
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            <div className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md space-y-1 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-[#f7f8f8] flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#4ade80]" /> Sono x Controle de Impulsos
-                </span>
-                <span className="text-[10px] font-mono text-[#4ade80]">+32% Eficiência</span>
-              </div>
-              <p className="text-[#8a8f98] text-[11px]">
-                Sua média de 7.8h de sono esta semana manteve os gastos desnecessários com restaurantes e delivery 32% abaixo da média dos meses anteriores.
-              </p>
-            </div>
-
-            <div className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md space-y-1 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-[#f7f8f8] flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-[#5e6ad2]" /> Oportunidade de Rebalanceamento
-                </span>
-                <span className="text-[10px] font-mono text-[#5e6ad2]">Recomendação</span>
-              </div>
-              <p className="text-[#8a8f98] text-[11px]">
-                Você tem uma sobra líquida de R$ 2.900,00 prevista este mês. O Agente Otávio recomenda alocar R$ 1.500 em FIIs e R$ 1.400 em Renda Fixa.
-              </p>
-            </div>
-          </div>
-        </div>
-
+        )}
       </div>
 
     </div>

@@ -58,7 +58,7 @@ export class FinanceService {
       },
     });
 
-    // Update account balance
+    // Update account balance (EXPENSE subtracts, INCOME adds)
     const isExpense = data.type !== 'INCOME';
     const balanceDelta = isExpense ? -amount : amount;
 
@@ -70,6 +70,59 @@ export class FinanceService {
     });
 
     return transaction;
+  }
+
+  async updateTransaction(userId: string, transactionId: string, data: any) {
+    const tx = await this.prisma.transaction.findFirst({
+      where: { id: transactionId, userId },
+      include: { category: true },
+    });
+
+    if (!tx) throw new NotFoundException('Transação não encontrada');
+
+    const account = await this.getOrCreateAccount(userId);
+
+    // 1. Revert old transaction balance impact (assume expense unless marked income)
+    const oldAmount = tx.amount;
+    await this.prisma.financialAccount.update({
+      where: { id: account.id },
+      data: { balance: { increment: oldAmount } },
+    });
+
+    // 2. Prepare category
+    const catName = data.category || tx.category?.name || 'Outros';
+    let category = await this.prisma.transactionCategory.findFirst({
+      where: { name: catName },
+    });
+    if (!category) {
+      category = await this.prisma.transactionCategory.create({
+        data: { name: catName },
+      });
+    }
+
+    // 3. Update transaction record
+    const newAmount = Math.abs(parseFloat(data.amount) || oldAmount);
+    const updatedTx = await this.prisma.transaction.update({
+      where: { id: transactionId },
+      data: {
+        description: data.description !== undefined ? data.description : tx.description,
+        amount: newAmount,
+        categoryId: category.id,
+        date: data.date ? new Date(data.date) : tx.date,
+      },
+      include: { category: true },
+    });
+
+    // 4. Apply new balance impact (assume expense)
+    const isExpense = data.type !== 'INCOME';
+    const balanceDelta = isExpense ? -newAmount : newAmount;
+
+    await this.prisma.financialAccount.update({
+      where: { id: account.id },
+      data: { balance: { increment: balanceDelta } },
+    });
+
+    return updatedTx;
   }
 
   async getTransactions(userId: string) {
@@ -103,7 +156,6 @@ export class FinanceService {
     const categoryBreakdown: Record<string, number> = {};
 
     for (const t of txs) {
-      // For now all intake amounts are expenses unless marked income
       totalExpenses += t.amount;
       const catName = t.category?.name || 'Outros';
       categoryBreakdown[catName] = (categoryBreakdown[catName] || 0) + t.amount;
@@ -124,6 +176,14 @@ export class FinanceService {
       where: { id: transactionId, userId },
     });
     if (!tx) throw new NotFoundException('Transação não encontrada');
+
+    const account = await this.getOrCreateAccount(userId);
+
+    // Revert transaction balance impact (add amount back to balance)
+    await this.prisma.financialAccount.update({
+      where: { id: account.id },
+      data: { balance: { increment: tx.amount } },
+    });
 
     await this.prisma.transaction.delete({
       where: { id: transactionId },

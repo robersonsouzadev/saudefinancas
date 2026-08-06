@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Wallet, Plus, CreditCard, Loader2 } from 'lucide-react';
+import { Wallet, Plus, CreditCard, Loader2, Edit3, Trash2, Check, AlertCircle } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
 interface TransactionItem {
@@ -9,7 +9,6 @@ interface TransactionItem {
   date: string;
   description: string;
   category: string;
-  categoryColor?: string;
   type: 'EXPENSE' | 'INCOME';
   amount: number;
   user: string;
@@ -18,6 +17,8 @@ interface TransactionItem {
 export default function FinancasPage() {
   const [viewMode, setViewMode] = useState<'individual' | 'family'>('individual');
   const [showModal, setShowModal] = useState(false);
+  const [editingTx, setEditingTx] = useState<TransactionItem | null>(null);
+
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
   const [overview, setOverview] = useState<{ totalIncome: number; totalExpenses: number; netBalance: number }>({
     totalIncome: 0,
@@ -26,6 +27,7 @@ export default function FinancasPage() {
   });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -49,7 +51,7 @@ export default function FinancasPage() {
         setOverview(ovData);
       }
     } catch (err) {
-      console.error('Erro ao carregar transações financeiras:', err);
+      console.error('Erro ao carregar dados de finanças:', err);
     } finally {
       setLoading(false);
     }
@@ -59,14 +61,36 @@ export default function FinancasPage() {
     fetchFinanceData();
   }, [fetchFinanceData]);
 
-  const handleAddTransaction = async (e: React.FormEvent) => {
+  const handleOpenAdd = () => {
+    setEditingTx(null);
+    setDescription('');
+    setAmount('');
+    setCategory('Alimentação');
+    setType('EXPENSE');
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (tx: TransactionItem) => {
+    setEditingTx(tx);
+    setDescription(tx.description);
+    setAmount(String(tx.amount));
+    setCategory(tx.category || 'Alimentação');
+    setType(tx.type || 'EXPENSE');
+    setShowModal(true);
+  };
+
+  const handleSaveTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description || !amount || submitting) return;
 
     setSubmitting(true);
     try {
-      const res = await authFetch('/api/finance/transactions', {
-        method: 'POST',
+      const isEdit = !!editingTx;
+      const endpoint = isEdit ? `/api/finance/transactions/${editingTx.id}` : '/api/finance/transactions';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await authFetch(endpoint, {
+        method,
         body: JSON.stringify({
           description,
           amount: parseFloat(amount),
@@ -76,21 +100,35 @@ export default function FinancasPage() {
       });
 
       if (res.ok) {
-        setDescription('');
-        setAmount('');
         setShowModal(false);
+        setEditingTx(null);
         await fetchFinanceData();
       }
     } catch (err) {
-      console.error('Erro ao adicionar transação:', err);
+      console.error('Erro ao salvar transação:', err);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const totalIncome = overview.totalIncome || transactions.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
-  const totalExpense = overview.totalExpenses || transactions.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
-  const netBalance = overview.netBalance || (totalIncome - totalExpense);
+  const handleDeleteTransaction = async (id: string) => {
+    if (!confirm('Deseja apagar este lançamento? O valor será estornado do saldo.')) return;
+    setDeletingId(id);
+    try {
+      const res = await authFetch(`/api/finance/transactions/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        await fetchFinanceData();
+      }
+    } catch (err) {
+      console.error('Erro ao apagar transação:', err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const totalIncome = overview.totalIncome || 0;
+  const totalExpense = overview.totalExpenses || 0;
+  const netBalance = overview.netBalance || 0;
 
   return (
     <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
@@ -103,12 +141,11 @@ export default function FinancasPage() {
           </div>
           <div>
             <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Gestão Financeira & Orçamento</h1>
-            <p className="text-xs text-[#8a8f98]">Controle de contas, orçamentos e auto-categorização com IA</p>
+            <p className="text-xs text-[#8a8f98]">Controle de contas, orçamentos e edição de lançamentos</p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2">
-          {/* Toggle Button */}
           <div className="bg-[#0f1115] p-1 border border-[#ffffff12] rounded-md flex items-center space-x-1">
             <button 
               onClick={() => setViewMode('individual')}
@@ -134,7 +171,7 @@ export default function FinancasPage() {
           </div>
 
           <button 
-            onClick={() => setShowModal(true)}
+            onClick={handleOpenAdd}
             className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -147,7 +184,7 @@ export default function FinancasPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="linear-card p-4 space-y-2">
           <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Saldo Líquido</span>
-          <div className="text-3xl font-bold font-mono text-[#f7f8f8]">
+          <div className={`text-3xl font-bold font-mono ${netBalance < 0 ? 'text-[#f87171]' : 'text-[#f7f8f8]'}`}>
             R$ {netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <span className="text-[11px] text-[#8a8f98] block">Entradas - Saídas acumuladas</span>
@@ -189,7 +226,7 @@ export default function FinancasPage() {
             <CreditCard className="w-8 h-8 text-[#575c66] mx-auto" />
             <h4 className="text-xs font-semibold text-[#f7f8f8]">Nenhuma transação registrada ainda</h4>
             <p className="text-[11px] text-[#8a8f98] max-w-sm mx-auto">
-              Clique em "+ Nova Transação" ou envie um áudio / foto no Chat Vita para cadastrar automaticamente.
+              Clique em "+ Nova Transação" ou envie um áudio / texto no Chat Vita para cadastrar automaticamente.
             </p>
           </div>
         ) : (
@@ -208,8 +245,16 @@ export default function FinancasPage() {
                       </span>
                     </div>
                   </div>
-                  <div className={`font-mono font-bold text-sm ${tx.type === 'INCOME' ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-                    {tx.type === 'INCOME' ? '+' : '-'} R$ {tx.amount.toFixed(2)}
+                  <div className="flex items-center space-x-3">
+                    <div className={`font-mono font-bold text-sm ${tx.type === 'INCOME' ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+                      {tx.type === 'INCOME' ? '+' : '-'} R$ {tx.amount.toFixed(2)}
+                    </div>
+                    <button onClick={() => handleOpenEdit(tx)} className="text-[#8a8f98] hover:text-[#f7f8f8]">
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => handleDeleteTransaction(tx.id)} className="text-[#8a8f98] hover:text-[#f87171]">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -225,6 +270,7 @@ export default function FinancasPage() {
                     <th className="pb-3">Usuário</th>
                     <th className="pb-3">Categoria</th>
                     <th className="pb-3 text-right">Valor (R$)</th>
+                    <th className="pb-3 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#ffffff0a]">
@@ -243,6 +289,25 @@ export default function FinancasPage() {
                       <td className={`py-3 text-right font-mono font-bold ${tx.type === 'INCOME' ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
                         {tx.type === 'INCOME' ? '+' : '-'} R$ {tx.amount.toFixed(2)}
                       </td>
+                      <td className="py-3 text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button 
+                            onClick={() => handleOpenEdit(tx)}
+                            className="p-1 text-[#8a8f98] hover:text-[#5e6ad2] transition"
+                            title="Editar Valor / Categoria"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteTransaction(tx.id)}
+                            disabled={deletingId === tx.id}
+                            className="p-1 text-[#8a8f98] hover:text-[#f87171] transition disabled:opacity-50"
+                            title="Excluir Lançamento (Lixeira)"
+                          >
+                            {deletingId === tx.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -252,16 +317,18 @@ export default function FinancasPage() {
         )}
       </div>
 
-      {/* Add Transaction Modal */}
+      {/* Add / Edit Transaction Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-md space-y-4 shadow-2xl">
             <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
-              <h3 className="font-semibold text-sm text-[#f7f8f8]">Nova Transação</h3>
+              <h3 className="font-semibold text-sm text-[#f7f8f8]">
+                {editingTx ? 'Editar Lançamento' : 'Nova Transação'}
+              </h3>
               <button onClick={() => setShowModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
             </div>
 
-            <form onSubmit={handleAddTransaction} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveTransaction} className="space-y-4 text-xs">
               <div>
                 <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Descrição</label>
                 <input 
@@ -317,6 +384,7 @@ export default function FinancasPage() {
                   <option value="Saúde">Saúde & Farmácia</option>
                   <option value="Salário">Salário / Entradas</option>
                   <option value="Investimentos">Investimentos</option>
+                  <option value="Outros">Outros</option>
                 </select>
               </div>
 
@@ -334,7 +402,7 @@ export default function FinancasPage() {
                   className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm flex items-center space-x-1"
                 >
                   {submitting && <Loader2 className="w-3 h-3 animate-spin mr-1" />}
-                  <span>Salvar Transação</span>
+                  <span>{editingTx ? 'Atualizar Transação' : 'Salvar Transação'}</span>
                 </button>
               </div>
             </form>
