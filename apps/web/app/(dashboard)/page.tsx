@@ -52,8 +52,8 @@ export default function DashboardHome() {
 
   const fetchHealthProfile = async () => {
     try {
-      const res = await authFetch('/users/me/profile');
-      if (res.ok) {
+      const res = await authFetch('/api/users/me/profile');
+      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
         const data = await res.json();
         setHealthProfile(data);
       }

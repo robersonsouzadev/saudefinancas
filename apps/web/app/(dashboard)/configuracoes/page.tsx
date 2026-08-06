@@ -71,16 +71,25 @@ export default function ConfiguracoesPage() {
     loadProfileAndMeasurements();
   }, []);
 
+  const parseJsonResponse = async (res: Response) => {
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      return res.json();
+    }
+    const text = await res.text();
+    throw new Error(text || `Erro HTTP ${res.status}`);
+  };
+
   const loadProfileAndMeasurements = async () => {
     try {
       setLoading(true);
       const [profileRes, measurementsRes] = await Promise.all([
-        authFetch('/users/me/profile'),
-        authFetch('/users/me/measurements'),
+        authFetch('/api/users/me/profile'),
+        authFetch('/api/users/me/measurements'),
       ]);
 
-      if (profileRes.ok && (profileRes.headers.get('content-type') || '').includes('application/json')) {
-        const data = await profileRes.json();
+      if (profileRes.ok) {
+        const data = await parseJsonResponse(profileRes);
         setHealthProfile(data);
         if (data.user) {
           setName(data.user.name || '');
@@ -94,8 +103,8 @@ export default function ConfiguracoesPage() {
         }
       }
 
-      if (measurementsRes.ok && (measurementsRes.headers.get('content-type') || '').includes('application/json')) {
-        const list = await measurementsRes.json();
+      if (measurementsRes.ok) {
+        const list = await parseJsonResponse(measurementsRes);
         setMeasurements(list);
       }
     } catch (err: any) {
@@ -110,7 +119,7 @@ export default function ConfiguracoesPage() {
     e.preventDefault();
     setError('');
     try {
-      const res = await authFetch('/users/me/profile', {
+      const res = await authFetch('/api/users/me/profile', {
         method: 'PUT',
         body: JSON.stringify({
           name,
@@ -122,13 +131,9 @@ export default function ConfiguracoesPage() {
         }),
       });
 
-      const contentType = res.headers.get('content-type') || '';
       if (!res.ok) {
-        if (contentType.includes('application/json')) {
-          const data = await res.json();
-          throw new Error(data.message || 'Erro ao salvar perfil');
-        }
-        throw new Error('Servidor temporariamente indisponível. Tente novamente em instantes.');
+        const data = await parseJsonResponse(res);
+        throw new Error(data.message || 'Erro ao salvar perfil');
       }
 
       setSaved(true);
@@ -136,7 +141,7 @@ export default function ConfiguracoesPage() {
       await loadProfileAndMeasurements();
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
-      setError(err.message || 'Erro inesperado ao salvar perfil');
+      setError(err.message || 'Erro ao salvar perfil');
     }
   };
 
@@ -144,7 +149,7 @@ export default function ConfiguracoesPage() {
   const handleSaveMeasurement = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await authFetch('/users/me/measurements', {
+      const res = await authFetch('/api/users/me/measurements', {
         method: 'POST',
         body: JSON.stringify({
           measuredAt: measurementDate,
@@ -169,7 +174,7 @@ export default function ConfiguracoesPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
+        const data = await parseJsonResponse(res);
         throw new Error(data.message || 'Erro ao salvar medição');
       }
 
@@ -177,7 +182,7 @@ export default function ConfiguracoesPage() {
       resetMeasurementForm();
       await loadProfileAndMeasurements();
     } catch (err: any) {
-      alert(err.message);
+      alert(err.message || 'Erro ao salvar medição');
     }
   };
 
@@ -185,7 +190,7 @@ export default function ConfiguracoesPage() {
   const handleDeleteMeasurement = async (id: string) => {
     if (!confirm('Deseja realmente excluir esta medição corporal?')) return;
     try {
-      const res = await authFetch(`/users/me/measurements/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/users/me/measurements/${id}`, { method: 'DELETE' });
       if (res.ok) {
         await loadProfileAndMeasurements();
       }

@@ -38,13 +38,13 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
     headers.set('Content-Type', 'application/json');
   }
 
-  // Garantir que chamadas relativas passem pelo rewrite /api do Next.js (next.config.mjs)
-  let targetUrl = url;
-  if (!url.startsWith('http') && !url.startsWith('/api')) {
-    targetUrl = url.startsWith('/') ? `/api${url}` : `/api/${url}`;
+  // Ensure relative endpoints carry /api prefix if not already present
+  let endpoint = url;
+  if (endpoint.startsWith('/') && !endpoint.startsWith('/api/') && endpoint !== '/api') {
+    endpoint = `/api${endpoint}`;
   }
 
-  return fetch(targetUrl, {
+  return fetch(endpoint, {
     ...options,
     headers,
   });
