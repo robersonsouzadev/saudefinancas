@@ -16,12 +16,18 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const contentType = res.headers.get('content-type') || '';
       if (!contentType.includes('application/json')) {
@@ -41,7 +47,12 @@ export default function LoginPage() {
 
       router.push('/');
     } catch (err: any) {
-      setError(err.message || 'Erro ao realizar login');
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        setError('Tempo limite esgotado ao conectar ao servidor. Tente novamente.');
+      } else {
+        setError(err.message || 'Erro ao realizar login');
+      }
     } finally {
       setLoading(false);
     }
