@@ -1,84 +1,34 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Controller, Get, Post, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
 import { FinanceService } from './services/finance.service';
-import { BudgetService } from './services/budget.service';
-import { RecurringService } from './services/recurring.service';
-import { CategorizerService } from './services/categorizer.service';
-import { ReceiptOcrService } from './services/receipt-ocr.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('finance')
+@UseGuards(JwtAuthGuard)
 export class FinanceController {
-  constructor(
-    private readonly financeService: FinanceService,
-    private readonly budgetService: BudgetService,
-    private readonly recurringService: RecurringService,
-    private readonly categorizerService: CategorizerService,
-    private readonly receiptOcrService: ReceiptOcrService,
-  ) {}
+  constructor(private readonly financeService: FinanceService) {}
 
-  @Post('accounts')
-  async createAccount(@Body() data: any) {
-    return this.financeService.createAccount(data);
+  @Get('accounts')
+  async getUserAccounts(@Req() req: any) {
+    return this.financeService.getUserAccounts(req.user.id);
   }
 
-  @Get('accounts/:userId')
-  async getUserAccounts(@Param('userId') userId: string) {
-    return this.financeService.getUserAccounts(userId);
-  }
-
-  @Put('accounts/:accountId')
-  async updateAccount(@Param('accountId') accountId: string, @Body() data: any) {
-    return this.financeService.updateAccount(accountId, data);
-  }
-
-  @Delete('accounts/:accountId')
-  async deleteAccount(@Param('accountId') accountId: string) {
-    return this.financeService.deleteAccount(accountId);
+  @Get('transactions')
+  async getTransactions(@Req() req: any) {
+    return this.financeService.getTransactions(req.user.id);
   }
 
   @Post('transactions')
-  async createTransaction(@Body() data: any) {
-    return this.financeService.createTransaction(data);
+  async createTransaction(@Req() req: any, @Body() data: any) {
+    return this.financeService.createTransaction(req.user.id, data);
   }
 
-  @Get('transactions/:userId')
-  async getTransactions(@Param('userId') userId: string, @Query() filter: any) {
-    return this.financeService.getTransactions(userId, filter);
+  @Delete('transactions/:id')
+  async deleteTransaction(@Req() req: any, @Param('id') id: string) {
+    return this.financeService.deleteTransaction(req.user.id, id);
   }
 
-  @Put('transactions/:transactionId')
-  async updateTransaction(@Param('transactionId') transactionId: string, @Body() data: any) {
-    return this.financeService.updateTransaction(transactionId, data);
-  }
-
-  @Delete('transactions/:transactionId')
-  async deleteTransaction(@Param('transactionId') transactionId: string) {
-    return this.financeService.deleteTransaction(transactionId);
-  }
-
-  @Get('overview/:userId')
-  async getOverview(@Param('userId') userId: string, @Query('period') period: string) {
-    return this.financeService.getFinancialOverview(userId, period);
-  }
-
-  @Post('budgets')
-  async setBudget(@Body() data: any) {
-    return this.budgetService.setBudget(data);
-  }
-
-  @Get('budgets/:userId')
-  async getUserBudgets(@Param('userId') userId: string) {
-    return this.budgetService.getUserBudgets(userId);
-  }
-
-  @Post('categorize')
-  async categorize(@Body('description') description: string) {
-    return this.categorizerService.categorizeDescription(description);
-  }
-
-  @Post('receipt/parse')
-  @UseInterceptors(FileInterceptor('image'))
-  async parseReceipt(@UploadedFile() file: any) {
-    return this.receiptOcrService.parseReceiptImage(file?.buffer || Buffer.from(''));
+  @Get('overview')
+  async getOverview(@Req() req: any) {
+    return this.financeService.getFinancialOverview(req.user.id);
   }
 }

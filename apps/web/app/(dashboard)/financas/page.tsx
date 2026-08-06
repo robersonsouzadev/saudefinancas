@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Wallet, Plus, ArrowUpRight, ArrowDownRight, CreditCard, ShieldCheck } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Wallet, Plus, CreditCard, Loader2 } from 'lucide-react';
+import { authFetch } from '@/lib/api';
 
 interface TransactionItem {
   id: string;
   date: string;
   description: string;
   category: string;
-  categoryColor: string;
+  categoryColor?: string;
   type: 'EXPENSE' | 'INCOME';
   amount: number;
   user: string;
@@ -16,39 +17,80 @@ interface TransactionItem {
 
 export default function FinancasPage() {
   const [viewMode, setViewMode] = useState<'individual' | 'family'>('individual');
-  const [userRole, setUserRole] = useState<'ADMIN' | 'MEMBER'>('ADMIN');
   const [showModal, setShowModal] = useState(false);
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
-  
+  const [overview, setOverview] = useState<{ totalIncome: number; totalExpenses: number; netBalance: number }>({
+    totalIncome: 0,
+    totalExpenses: 0,
+    netBalance: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Alimentação');
   const [type, setType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
 
-  const handleAddTransaction = (e: React.FormEvent) => {
+  const fetchFinanceData = useCallback(async () => {
+    try {
+      const [txRes, ovRes] = await Promise.all([
+        authFetch('/api/finance/transactions'),
+        authFetch('/api/finance/overview'),
+      ]);
+
+      if (txRes.ok) {
+        const txData = await txRes.json();
+        setTransactions(txData);
+      }
+
+      if (ovRes.ok) {
+        const ovData = await ovRes.json();
+        setOverview(ovData);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar transações financeiras:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchFinanceData();
+  }, [fetchFinanceData]);
+
+  const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description || !amount) return;
+    if (!description || !amount || submitting) return;
 
-    const newTx: TransactionItem = {
-      id: String(Date.now()),
-      date: new Date().toLocaleDateString('pt-BR'),
-      description,
-      category,
-      categoryColor: type === 'INCOME' ? '#4ade80' : '#5e6ad2',
-      type,
-      amount: parseFloat(amount),
-      user: 'Você'
-    };
+    setSubmitting(true);
+    try {
+      const res = await authFetch('/api/finance/transactions', {
+        method: 'POST',
+        body: JSON.stringify({
+          description,
+          amount: parseFloat(amount),
+          category,
+          type,
+        }),
+      });
 
-    setTransactions([newTx, ...transactions]);
-    setDescription('');
-    setAmount('');
-    setShowModal(false);
+      if (res.ok) {
+        setDescription('');
+        setAmount('');
+        setShowModal(false);
+        await fetchFinanceData();
+      }
+    } catch (err) {
+      console.error('Erro ao adicionar transação:', err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const totalIncome = transactions.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
-  const totalExpense = transactions.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
-  const netBalance = totalIncome - totalExpense;
+  const totalIncome = overview.totalIncome || transactions.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
+  const totalExpense = overview.totalExpenses || transactions.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
+  const netBalance = overview.netBalance || (totalIncome - totalExpense);
 
   return (
     <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
@@ -61,7 +103,7 @@ export default function FinancasPage() {
           </div>
           <div>
             <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Gestão Financeira & Orçamento</h1>
-            <p className="text-xs text-[#8a8f98]">Controle de contas, orçamentos e auto-categorização</p>
+            <p className="text-xs text-[#8a8f98]">Controle de contas, orçamentos e auto-categorização com IA</p>
           </div>
         </div>
 
@@ -106,23 +148,23 @@ export default function FinancasPage() {
         <div className="linear-card p-4 space-y-2">
           <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Saldo Líquido</span>
           <div className="text-3xl font-bold font-mono text-[#f7f8f8]">
-            R$ {netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            R$ {netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-[#8a8f98] block">Entradas - Saídas</span>
+          <span className="text-[11px] text-[#8a8f98] block">Entradas - Saídas acumuladas</span>
         </div>
 
         <div className="linear-card p-4 space-y-2">
           <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Entradas</span>
           <div className="text-3xl font-bold font-mono text-[#4ade80]">
-            R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-[#8a8f98] block">Receitas acumuladas</span>
+          <span className="text-[11px] text-[#8a8f98] block">Receitas registradas</span>
         </div>
 
         <div className="linear-card p-4 space-y-2">
           <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Saídas</span>
           <div className="text-3xl font-bold font-mono text-[#f87171]">
-            R$ {totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            R$ {totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <span className="text-[11px] text-[#8a8f98] block">Despesas acumuladas</span>
         </div>
@@ -130,16 +172,24 @@ export default function FinancasPage() {
 
       {/* Transactions Table / Production Empty State */}
       <div className="linear-card p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-[#f7f8f8] border-b border-[#ffffff0e] pb-3">
-          Extrato de Transações
-        </h3>
+        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+          <h3 className="text-sm font-semibold text-[#f7f8f8]">
+            Extrato de Transações
+          </h3>
+          <span className="text-[11px] font-mono text-[#8a8f98]">{transactions.length} registros</span>
+        </div>
 
-        {transactions.length === 0 ? (
+        {loading ? (
+          <div className="py-12 flex justify-center items-center text-xs text-[#8a8f98] space-x-2">
+            <Loader2 className="w-4 h-4 animate-spin text-[#5e6ad2]" />
+            <span>Carregando extrato bancário...</span>
+          </div>
+        ) : transactions.length === 0 ? (
           <div className="py-12 text-center space-y-2 border border-dashed border-[#ffffff0a] rounded-md">
             <CreditCard className="w-8 h-8 text-[#575c66] mx-auto" />
             <h4 className="text-xs font-semibold text-[#f7f8f8]">Nenhuma transação registrada ainda</h4>
             <p className="text-[11px] text-[#8a8f98] max-w-sm mx-auto">
-              Clique em "+ Nova Transação" ou envie um áudio / foto de comprovante para a IA cadastrar automaticamente.
+              Clique em "+ Nova Transação" ou envie um áudio / foto no Chat Vita para cadastrar automaticamente.
             </p>
           </div>
         ) : (
@@ -151,7 +201,7 @@ export default function FinancasPage() {
                   <div className="space-y-1">
                     <div className="font-semibold text-[#f7f8f8]">{tx.description}</div>
                     <div className="flex items-center space-x-2 text-[10px] text-[#8a8f98]">
-                      <span className="font-mono">{tx.date}</span>
+                      <span className="font-mono">{new Date(tx.date).toLocaleDateString('pt-BR')}</span>
                       <span>•</span>
                       <span className="px-1.5 py-0.5 rounded bg-[#0f1115] border border-[#ffffff08] font-mono">
                         {tx.category}
@@ -180,9 +230,11 @@ export default function FinancasPage() {
                 <tbody className="divide-y divide-[#ffffff0a]">
                   {transactions.map((tx) => (
                     <tr key={tx.id} className="hover:bg-[#16191e] transition">
-                      <td className="py-3 text-[#8a8f98] font-mono">{tx.date}</td>
+                      <td className="py-3 text-[#8a8f98] font-mono">
+                        {new Date(tx.date).toLocaleDateString('pt-BR')}
+                      </td>
                       <td className="py-3 font-medium text-[#f7f8f8]">{tx.description}</td>
-                      <td className="py-3 text-[#8a8f98]">{tx.user}</td>
+                      <td className="py-3 text-[#8a8f98]">{tx.user || 'Você'}</td>
                       <td className="py-3">
                         <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
                           {tx.category}
@@ -216,7 +268,7 @@ export default function FinancasPage() {
                   type="text" 
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="ex: Mercado, Combustível, Salário"
+                  placeholder="ex: Almoço, Mercado, Combustível"
                   className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
                   required
                 />
@@ -278,9 +330,11 @@ export default function FinancasPage() {
                 </button>
                 <button 
                   type="submit"
-                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm"
+                  disabled={submitting}
+                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm flex items-center space-x-1"
                 >
-                  Salvar Transação
+                  {submitting && <Loader2 className="w-3 h-3 animate-spin mr-1" />}
+                  <span>Salvar Transação</span>
                 </button>
               </div>
             </form>

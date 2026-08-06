@@ -1,120 +1,134 @@
-import { Injectable } from '@nestjs/common';
-
-export interface FinancialAccount {
-  id: string;
-  userId: string;
-  name: string;
-  type: string;
-  balance: number;
-}
-
-export interface Transaction {
-  id: string;
-  userId: string;
-  accountId: string;
-  amount: number;
-  type: 'income' | 'expense';
-  category: string;
-  description: string;
-  date: Date;
-}
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
 
 @Injectable()
 export class FinanceService {
-  private accounts: FinancialAccount[] = [];
-  private transactions: Transaction[] = [];
+  constructor(private prisma: PrismaService) {}
 
-  async createAccount(data: Partial<FinancialAccount>): Promise<FinancialAccount> {
-    const account = { id: Math.random().toString(), balance: 0, ...data } as FinancialAccount;
-    this.accounts.push(account);
+  async getOrCreateAccount(userId: string) {
+    let account = await this.prisma.financialAccount.findFirst({
+      where: { userId },
+    });
+
+    if (!account) {
+      account = await this.prisma.financialAccount.create({
+        data: {
+          userId,
+          name: 'Conta Principal',
+          balance: 0,
+        },
+      });
+    }
+
     return account;
   }
 
-  async getUserAccounts(userId: string): Promise<FinancialAccount[]> {
-    return this.accounts.filter(a => a.userId === userId);
+  async getUserAccounts(userId: string) {
+    const account = await this.getOrCreateAccount(userId);
+    return [account];
   }
 
-  async updateAccount(accountId: string, data: Partial<FinancialAccount>): Promise<FinancialAccount> {
-    const idx = this.accounts.findIndex(a => a.id === accountId);
-    if (idx > -1) {
-      this.accounts[idx] = { ...this.accounts[idx], ...data };
-      return this.accounts[idx];
+  async createTransaction(userId: string, data: any) {
+    const account = await this.getOrCreateAccount(userId);
+
+    const catName = data.category || 'Outros';
+    let category = await this.prisma.transactionCategory.findFirst({
+      where: { name: catName },
+    });
+
+    if (!category) {
+      category = await this.prisma.transactionCategory.create({
+        data: { name: catName },
+      });
     }
-    throw new Error('Account not found');
-  }
 
-  async deleteAccount(accountId: string): Promise<void> {
-    this.accounts = this.accounts.filter(a => a.id !== accountId);
-  }
+    const amount = Math.abs(parseFloat(data.amount) || 0);
 
-  async createTransaction(data: Partial<Transaction>): Promise<Transaction> {
-    const transaction = { id: Math.random().toString(), date: new Date(), ...data } as Transaction;
-    this.transactions.push(transaction);
-    
+    const transaction = await this.prisma.transaction.create({
+      data: {
+        userId,
+        accountId: account.id,
+        categoryId: category.id,
+        amount,
+        description: data.description || 'Transação',
+        date: data.date ? new Date(data.date) : new Date(),
+      },
+      include: {
+        category: true,
+      },
+    });
+
     // Update account balance
-    const account = this.accounts.find(a => a.id === transaction.accountId);
-    if (account) {
-      account.balance += transaction.type === 'income' ? transaction.amount : -transaction.amount;
-    }
+    const isExpense = data.type !== 'INCOME';
+    const balanceDelta = isExpense ? -amount : amount;
+
+    await this.prisma.financialAccount.update({
+      where: { id: account.id },
+      data: {
+        balance: { increment: balanceDelta },
+      },
+    });
+
     return transaction;
   }
 
-  async getTransactions(userId: string, filter?: any): Promise<Transaction[]> {
-    return this.transactions.filter(t => t.userId === userId);
+  async getTransactions(userId: string) {
+    const txs = await this.prisma.transaction.findMany({
+      where: { userId },
+      orderBy: { date: 'desc' },
+      include: {
+        category: true,
+      },
+    });
+
+    return txs.map(t => ({
+      id: t.id,
+      date: t.date.toISOString(),
+      description: t.description || 'Transação',
+      category: t.category?.name || 'Outros',
+      type: 'EXPENSE' as const,
+      amount: t.amount,
+      user: 'Você',
+    }));
   }
 
-  async updateTransaction(transactionId: string, data: Partial<Transaction>): Promise<Transaction> {
-    const idx = this.transactions.findIndex(t => t.id === transactionId);
-    if (idx > -1) {
-      const oldType = this.transactions[idx].type;
-      const oldAmount = this.transactions[idx].amount;
-      const accountId = this.transactions[idx].accountId;
-      
-      this.transactions[idx] = { ...this.transactions[idx], ...data };
-      
-      const account = this.accounts.find(a => a.id === accountId);
-      if (account) {
-        account.balance -= oldType === 'income' ? oldAmount : -oldAmount;
-        account.balance += this.transactions[idx].type === 'income' ? this.transactions[idx].amount : -this.transactions[idx].amount;
-      }
-      return this.transactions[idx];
-    }
-    throw new Error('Transaction not found');
-  }
+  async getFinancialOverview(userId: string, period?: string) {
+    const txs = await this.prisma.transaction.findMany({
+      where: { userId },
+      include: { category: true },
+    });
 
-  async deleteTransaction(transactionId: string): Promise<void> {
-    const idx = this.transactions.findIndex(t => t.id === transactionId);
-    if (idx > -1) {
-      const { type, amount, accountId } = this.transactions[idx];
-      const account = this.accounts.find(a => a.id === accountId);
-      if (account) {
-        account.balance -= type === 'income' ? amount : -amount;
-      }
-      this.transactions.splice(idx, 1);
-    }
-  }
-
-  async getFinancialOverview(userId: string, period: string) {
-    const userTransactions = this.transactions.filter(t => t.userId === userId);
-    
     let totalIncome = 0;
     let totalExpenses = 0;
     const categoryBreakdown: Record<string, number> = {};
 
-    for (const t of userTransactions) {
-      if (t.type === 'income') {
-        totalIncome += t.amount;
-      } else {
-        totalExpenses += t.amount;
-        categoryBreakdown[t.category] = (categoryBreakdown[t.category] || 0) + t.amount;
-      }
+    for (const t of txs) {
+      // For now all intake amounts are expenses unless marked income
+      totalExpenses += t.amount;
+      const catName = t.category?.name || 'Outros';
+      categoryBreakdown[catName] = (categoryBreakdown[catName] || 0) + t.amount;
     }
+
+    const account = await this.getOrCreateAccount(userId);
 
     return {
       totalIncome,
       totalExpenses,
-      netBalance: totalIncome - totalExpenses,
-      categoryBreakdown
+      netBalance: account.balance,
+      categoryBreakdown,
     };
+  }
+
+  async deleteTransaction(userId: string, transactionId: string) {
+    const tx = await this.prisma.transaction.findFirst({
+      where: { id: transactionId, userId },
+    });
+    if (!tx) throw new NotFoundException('Transação não encontrada');
+
+    await this.prisma.transaction.delete({
+      where: { id: transactionId },
+    });
+
+    return { success: true };
   }
 }
