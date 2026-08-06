@@ -1,18 +1,26 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../providers/AuthProvider';
 import { setAuthToken } from '../../../lib/api';
 
-export default function LoginPage() {
+function LoginFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const errParam = searchParams.get('error');
+    if (errParam) {
+      setError(errParam);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +79,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md text-red-400 text-xs font-medium">
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md text-red-400 text-xs font-medium leading-relaxed">
             {error}
           </div>
         )}
@@ -148,14 +156,19 @@ export default function LoginPage() {
             {loading ? 'Entrando...' : 'Entrar no Sistema'}
           </button>
         </form>
-
-        <div className="text-center text-xs text-[#8a8f98]">
-          Não tem uma conta?{' '}
-          <Link href="/register" className="text-[#5e6ad2] hover:underline font-medium">
-            Cadastre-se
-          </Link>
-        </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#080a0c] text-[#f7f8f8]">
+        <div className="w-6 h-6 border-2 border-[#5e6ad2] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <LoginFormContent />
+    </Suspense>
   );
 }

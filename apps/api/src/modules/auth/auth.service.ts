@@ -16,14 +16,29 @@ export class AuthService {
       throw new BadRequestException('Email é obrigatório');
     }
 
+    const count = await this.prisma.user.count();
+
+    // Check if there is a pending family invite for this email
+    const pendingInvite = await this.prisma.familyInvite.findFirst({
+      where: {
+        email,
+        status: 'PENDING',
+        expiresAt: { gt: new Date() },
+      },
+    });
+
+    // In Closed Access mode, block public self-registration if not the initial setup or invited
+    if (count > 0 && !pendingInvite && !data.createdFromAdmin) {
+      throw new UnauthorizedException('Cadastros públicos desativados. Solicite permissão ao administrador.');
+    }
+
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
     if (existingUser) {
-      throw new ConflictException('Email em uso');
+      throw new ConflictException('Email já está em uso no sistema.');
     }
 
-    const count = await this.prisma.user.count();
     const role = count === 0 ? 'ADMIN' : (data.role || 'MEMBER');
 
     const cleanPhone = (val?: string) => (val && typeof val === 'string' && val.trim() !== '' ? val.trim() : null);
@@ -41,6 +56,20 @@ export class AuthService {
         role,
       },
     });
+
+    if (pendingInvite) {
+      await this.prisma.familyMember.create({
+        data: {
+          userId: user.id,
+          groupId: pendingInvite.groupId,
+          role: 'MEMBER',
+        },
+      });
+      await this.prisma.familyInvite.update({
+        where: { id: pendingInvite.id },
+        data: { status: 'ACCEPTED' },
+      });
+    }
 
     return this.generateToken(user);
   }
@@ -89,6 +118,9 @@ export class AuthService {
     });
 
     if (user) {
+      if (!user.isActive) {
+        throw new UnauthorizedException('Sua conta está inativa. Entre em contato com o administrador.');
+      }
       return this.generateToken(user);
     }
 
@@ -98,6 +130,9 @@ export class AuthService {
     });
 
     if (user) {
+      if (!user.isActive) {
+        throw new UnauthorizedException('Sua conta está inativa. Entre em contato com o administrador.');
+      }
       // Link googleId to existing local user
       user = await this.prisma.user.update({
         where: { id: user.id },
@@ -110,8 +145,26 @@ export class AuthService {
       return this.generateToken(user);
     }
 
-    // 3. Create new user for Google login
+    // 3. Check if there is a pending family invite for this email
+    const pendingInvite = await this.prisma.familyInvite.findFirst({
+      where: {
+        email,
+        status: 'PENDING',
+        expiresAt: { gt: new Date() },
+      },
+    });
+
+    // 4. Check total user count (first user is created automatically as ADMIN)
     const count = await this.prisma.user.count();
+
+    // If NOT first user AND NOT invited AND NOT pre-registered -> RESTRICT ACCESS
+    if (count > 0 && !pendingInvite) {
+      throw new UnauthorizedException(
+        `Acesso restrito. O e-mail (${email}) não possui permissão de acesso. Peça ao administrador para cadastrá-lo.`
+      );
+    }
+
+    // 5. Allowed to create account (Initial Admin or Invited Member)
     const role = count === 0 ? 'ADMIN' : 'MEMBER';
     const avatarUrl = photos && photos[0] ? photos[0].value : null;
 
@@ -125,6 +178,21 @@ export class AuthService {
         role,
       },
     });
+
+    // If invited, join family group automatically
+    if (pendingInvite) {
+      await this.prisma.familyMember.create({
+        data: {
+          userId: user.id,
+          groupId: pendingInvite.groupId,
+          role: 'MEMBER',
+        },
+      });
+      await this.prisma.familyInvite.update({
+        where: { id: pendingInvite.id },
+        data: { status: 'ACCEPTED' },
+      });
+    }
 
     return this.generateToken(user);
   }

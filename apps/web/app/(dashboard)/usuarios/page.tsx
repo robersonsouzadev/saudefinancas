@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Plus, Search, Edit3, Trash2, ShieldCheck, UserCheck, PhoneCall } from 'lucide-react';
+import { Users, Plus, Search, Edit3, Trash2, UserCheck, Send, Check, Copy, MessageSquare, Power } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/api-config';
+import { authFetch } from '@/lib/api';
 
 interface UserItem {
   id: string;
@@ -19,9 +20,12 @@ export default function UsuariosPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [selectedInviteUser, setSelectedInviteUser] = useState<UserItem | null>(null);
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
   const [modalError, setModalError] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Form State
   const [name, setName] = useState('');
@@ -35,14 +39,6 @@ export default function UsuariosPage() {
   useEffect(() => {
     setApiBaseUrl(getApiBaseUrl());
   }, []);
-
-  const getAuthHeaders = () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-    return {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-  };
 
   // Load initial cached users from localStorage
   useEffect(() => {
@@ -70,10 +66,7 @@ export default function UsuariosPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${apiBaseUrl}/api/users`, {
-        headers: getAuthHeaders(),
-        cache: 'no-store',
-      });
+      const res = await authFetch('/api/users');
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -129,14 +122,35 @@ export default function UsuariosPage() {
     setShowModal(true);
   };
 
+  const handleOpenInvite = (u: UserItem) => {
+    setSelectedInviteUser(u);
+    setCopied(false);
+    setShowInviteModal(true);
+  };
+
+  const handleToggleStatus = async (user: UserItem) => {
+    const updatedStatus = !user.isActive;
+    const updatedList = users.map(u => u.id === user.id ? { ...u, isActive: updatedStatus } : u);
+    saveUsersLocally(updatedList);
+
+    try {
+      await authFetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ isActive: updatedStatus }),
+      });
+    } catch (e) {
+      // Keep local state
+    }
+  };
+
   const handleDeleteUser = async (id: string) => {
-    const updated = users.filter(u => u.id !== id);
+    if (!confirm('Deseja inativar o acesso deste usuário?')) return;
+    const updated = users.map(u => u.id === id ? { ...u, isActive: false } : u);
     saveUsersLocally(updated);
 
     try {
-      await fetch(`${apiBaseUrl}/api/users/${id}`, {
+      await authFetch(`/api/users/${id}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(),
       });
     } catch (e) {
       // Keep local update
@@ -154,35 +168,26 @@ export default function UsuariosPage() {
     const targetPhone = phone.trim() || '';
     const targetWa = (whatsappPhone || phone).trim() || '';
 
-    let updatedUsers = [...users];
+    const newUserObj: UserItem = {
+      id: editingUser ? editingUser.id : `usr_${Date.now()}`,
+      name: targetName,
+      email: targetEmail,
+      phone: targetPhone,
+      whatsappPhone: targetWa,
+      role,
+      isActive: true,
+      createdAt: new Date().toLocaleDateString('pt-BR')
+    };
 
+    let updatedUsers = [...users];
     if (editingUser) {
-      updatedUsers = updatedUsers.map(u => u.id === editingUser.id ? {
-        ...u,
-        name: targetName,
-        email: targetEmail,
-        phone: targetPhone,
-        whatsappPhone: targetWa,
-        role
-      } : u);
+      updatedUsers = updatedUsers.map(u => u.id === editingUser.id ? newUserObj : u);
     } else {
-      const newUser: UserItem = {
-        id: `usr_${Date.now()}`,
-        name: targetName,
-        email: targetEmail,
-        phone: targetPhone,
-        whatsappPhone: targetWa,
-        role,
-        isActive: true,
-        createdAt: new Date().toLocaleDateString('pt-BR')
-      };
-      updatedUsers = [newUser, ...updatedUsers];
+      updatedUsers = [newUserObj, ...updatedUsers];
     }
 
-    // Immediately save local state and localStorage so the UI updates instantly
     saveUsersLocally(updatedUsers);
 
-    // Asynchronously sync with NestJS API server
     try {
       const payload = {
         name: targetName,
@@ -194,35 +199,44 @@ export default function UsuariosPage() {
       };
 
       if (editingUser) {
-        await fetch(`${apiBaseUrl}/api/users/${editingUser.id}`, {
+        await authFetch(`/api/users/${editingUser.id}`, {
           method: 'PUT',
-          headers: getAuthHeaders(),
           body: JSON.stringify(payload),
         });
       } else {
-        const res = await fetch(`${apiBaseUrl}/api/users`, {
+        await authFetch('/api/users', {
           method: 'POST',
-          headers: getAuthHeaders(),
           body: JSON.stringify(payload),
         });
-
-        if (!res.ok && res.status === 401) {
-          await fetch(`${apiBaseUrl}/api/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ...payload,
-              password: password || 'Mudar123!',
-            }),
-          });
-        }
       }
     } catch (err) {
       console.log('Background API sync deferred');
     } finally {
       setModalLoading(false);
       setShowModal(false);
+      
+      // If it was a new user, prompt the invite modal right away!
+      if (!editingUser) {
+        handleOpenInvite(newUserObj);
+      }
     }
+  };
+
+  const getInviteText = (u: UserItem) => {
+    return `Olá ${u.name}! Seu e-mail (${u.email}) foi autorizado a acessar o sistema Saúde & Finanças. Clique no link para entrar com sua conta Google:\nhttps://app.robersonsouza.com.br/login`;
+  };
+
+  const handleCopyInvite = (u: UserItem) => {
+    navigator.clipboard.writeText(getInviteText(u));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleSendWhatsApp = (u: UserItem) => {
+    const text = encodeURIComponent(getInviteText(u));
+    const phoneNum = (u.whatsappPhone || u.phone || '').replace(/\D/g, '');
+    const waUrl = phoneNum ? `https://wa.me/${phoneNum}?text=${text}` : `https://wa.me/?text=${text}`;
+    window.open(waUrl, '_blank');
   };
 
   return (
@@ -235,8 +249,8 @@ export default function UsuariosPage() {
             <Users className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Controle de Usuários</h1>
-            <p className="text-xs text-[#8a8f98]">Gerenciamento de acessos, permissões e telefones WhatsApp da IA</p>
+            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Controle de Usuários (Modo Restrito)</h1>
+            <p className="text-xs text-[#8a8f98]">Autorize e-mails para acesso ao sistema e envie convites</p>
           </div>
         </div>
 
@@ -246,7 +260,7 @@ export default function UsuariosPage() {
               type="text" 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar usuário..." 
+              placeholder="Buscar e-mail ou nome..." 
               className="w-48 h-8 px-3 rounded-md bg-[#0f1115] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
             />
           </div>
@@ -256,7 +270,7 @@ export default function UsuariosPage() {
             className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm flex-shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Novo Usuário</span>
+            <span>+ Autorizar E-mail</span>
           </button>
         </div>
       </div>
@@ -264,16 +278,16 @@ export default function UsuariosPage() {
       {/* Users Table */}
       <div className="linear-card p-5 space-y-4">
         <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
-          <h3 className="text-sm font-semibold text-[#f7f8f8]">Usuários do Sistema</h3>
-          <span className="text-[11px] font-mono text-[#8a8f98]">{users.length} cadastrados</span>
+          <h3 className="text-sm font-semibold text-[#f7f8f8]">Usuários Autorizados no Sistema</h3>
+          <span className="text-[11px] font-mono text-[#8a8f98]">{users.length} e-mails autorizados</span>
         </div>
 
         {users.length === 0 ? (
           <div className="py-12 text-center space-y-2 border border-dashed border-[#ffffff0a] rounded-md">
             <UserCheck className="w-8 h-8 text-[#575c66] mx-auto" />
-            <h4 className="text-xs font-semibold text-[#f7f8f8]">Nenhum usuário cadastrado além do Administrador</h4>
+            <h4 className="text-xs font-semibold text-[#f7f8f8]">Nenhum usuário cadastrado além de você</h4>
             <p className="text-[11px] text-[#8a8f98] max-w-sm mx-auto">
-              Clique em "+ Novo Usuário" para cadastrar membros da equipe ou familiares.
+              Clique em "+ Autorizar E-mail" para permitir que familiares ou membros acessem o sistema.
             </p>
           </div>
         ) : (
@@ -287,25 +301,34 @@ export default function UsuariosPage() {
                       <div className="font-semibold text-[#f7f8f8]">{u.name}</div>
                       <div className="text-[11px] font-mono text-[#8a8f98]">{u.email}</div>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0f1115] border border-[#ffffff08] text-[#8a8f98]">
-                      {u.role}
-                    </span>
+                    <button
+                      onClick={() => handleToggleStatus(u)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                        u.isActive 
+                          ? 'bg-[#4ade8010] text-[#4ade80] border-[#4ade8025]' 
+                          : 'bg-[#16191e] text-[#575c66] border-[#ffffff0e]'
+                      }`}
+                    >
+                      {u.isActive ? 'ATIVO' : 'BLOQUEADO'}
+                    </button>
                   </div>
 
                   <div className="flex items-center justify-between text-[11px] font-mono border-t border-[#ffffff08] pt-2">
-                    <span className="text-[#4ade80]">📱 {u.whatsappPhone || 'Não informado'}</span>
-                    <div className="space-x-1">
+                    <span className="text-[#4ade80]">📱 {u.whatsappPhone || 'Sem WhatsApp'}</span>
+                    <div className="flex items-center space-x-1">
+                      <button 
+                        onClick={() => handleOpenInvite(u)}
+                        className="px-2 py-1 bg-[#5e6ad2]/20 text-[#5e6ad2] rounded text-[10px] font-medium flex items-center space-x-1"
+                        title="Enviar Convite"
+                      >
+                        <Send className="w-3 h-3" />
+                        <span>Convite</span>
+                      </button>
                       <button 
                         onClick={() => handleOpenEdit(u)}
                         className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f7f8f8]"
                       >
                         <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteUser(u.id)}
-                        className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f87171]"
-                      >
-                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -318,12 +341,12 @@ export default function UsuariosPage() {
               <table className="w-full text-left text-xs">
                 <thead className="text-[#575c66] border-b border-[#ffffff0e] uppercase font-semibold text-[10px]">
                   <tr>
-                    <th className="pb-3">Usuário</th>
+                    <th className="pb-3">Usuário Autorizado</th>
                     <th className="pb-3">Email</th>
                     <th className="pb-3">📱 WhatsApp IA</th>
                     <th className="pb-3">Cargo</th>
                     <th className="pb-3">Status</th>
-                    <th className="pb-3 text-right">Ações</th>
+                    <th className="pb-3 text-right">Ações & Convite</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#ffffff0a]">
@@ -338,26 +361,41 @@ export default function UsuariosPage() {
                         </span>
                       </td>
                       <td className="py-3">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
-                          u.isActive 
-                            ? 'bg-[#4ade8010] text-[#4ade80] border-[#4ade8025]' 
-                            : 'bg-[#16191e] text-[#575c66] border-[#ffffff0e]'
-                        }`}>
-                          {u.isActive ? 'ATIVO' : 'INATIVO'}
-                        </span>
+                        <button
+                          onClick={() => handleToggleStatus(u)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition ${
+                            u.isActive 
+                              ? 'bg-[#4ade8010] text-[#4ade80] border-[#4ade8025] hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20' 
+                              : 'bg-[#16191e] text-[#575c66] border-[#ffffff0e] hover:bg-[#4ade8010] hover:text-[#4ade80]'
+                          }`}
+                          title="Clique para Ativar ou Bloquear acesso"
+                        >
+                          {u.isActive ? 'ATIVO' : 'BLOQUEADO'}
+                        </button>
                       </td>
-                      <td className="py-3 text-right space-x-1">
+                      <td className="py-3 text-right space-x-1.5">
+                        <button 
+                          onClick={() => handleOpenInvite(u)}
+                          className="px-2 py-1 bg-[#5e6ad2]/20 hover:bg-[#5e6ad2]/30 text-[#6e7be2] rounded text-[11px] font-medium inline-flex items-center space-x-1 transition"
+                          title="Enviar Convite de Acesso"
+                        >
+                          <Send className="w-3 h-3" />
+                          <span>Enviar Convite</span>
+                        </button>
+
                         <button 
                           onClick={() => handleOpenEdit(u)}
                           className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f7f8f8]"
+                          title="Editar Dados"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button 
                           onClick={() => handleDeleteUser(u.id)}
                           className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f87171]"
+                          title="Inativar Acesso"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Power className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -369,13 +407,13 @@ export default function UsuariosPage() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal: Convidar / Cadastrar */}
       {showModal && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-md space-y-4 shadow-2xl">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-xl p-6 w-full max-w-md space-y-4 shadow-2xl">
             <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
               <h3 className="font-semibold text-sm text-[#f7f8f8]">
-                {editingUser ? 'Editar Usuário' : 'Cadastrar Novo Usuário'}
+                {editingUser ? 'Editar Permissões do Usuário' : 'Autorizar Novo E-mail'}
               </h3>
               <button onClick={() => setShowModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
             </div>
@@ -392,21 +430,21 @@ export default function UsuariosPage() {
                   type="text" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="ex: Roberson Souza"
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
+                  placeholder="ex: Maria Silva"
+                  className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Email</label>
+                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">E-mail do Google</label>
                   <input 
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="usuario@email.com"
-                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
+                    placeholder="usuario@gmail.com"
+                    className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
                     required
                   />
                 </div>
@@ -416,7 +454,7 @@ export default function UsuariosPage() {
                   <select 
                     value={role}
                     onChange={(e: any) => setRole(e.target.value)}
-                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none"
+                    className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none"
                   >
                     <option value="ADMIN">ADMIN</option>
                     <option value="MEMBER">MEMBER</option>
@@ -426,27 +464,13 @@ export default function UsuariosPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">📱 WhatsApp da IA (Com DDD)</label>
+                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">📱 WhatsApp para Mensagens/Assistente IA (opcional)</label>
                 <input 
                   type="text" 
                   value={whatsappPhone}
                   onChange={(e) => setWhatsappPhone(e.target.value)}
                   placeholder="5567999887766 (sem + ou traços)"
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]" 
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">
-                  {editingUser ? 'Senha (opcional)' : 'Senha Inicial'}
-                </label>
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
-                  required={!editingUser}
+                  className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]" 
                 />
               </div>
 
@@ -454,18 +478,66 @@ export default function UsuariosPage() {
                 <button 
                   type="button" 
                   onClick={() => setShowModal(false)}
-                  className="h-8 px-3 rounded bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8] border border-[#ffffff0a]"
+                  className="h-9 px-4 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8] border border-[#ffffff0a]"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm"
+                  disabled={modalLoading}
+                  className="h-9 px-5 rounded-lg bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm disabled:opacity-50"
                 >
-                  {editingUser ? 'Salvar' : 'Criar Usuário'}
+                  {modalLoading ? 'Salvando...' : editingUser ? 'Salvar' : 'Autorizar e Gerar Convite'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Enviar Convite */}
+      {showInviteModal && selectedInviteUser && (
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-xl p-6 w-full max-w-md space-y-5 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
+              <div className="flex items-center space-x-2">
+                <Send className="w-4 h-4 text-[#5e6ad2]" />
+                <h3 className="font-semibold text-sm text-[#f7f8f8]">
+                  Enviar Convite de Acesso
+                </h3>
+              </div>
+              <button onClick={() => setShowInviteModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <p className="text-[#8a8f98]">
+                O e-mail <strong className="text-[#f7f8f8]">{selectedInviteUser.email}</strong> foi autorizado no sistema. Envie o texto do convite para ele:
+              </p>
+
+              <div className="p-3 bg-[#16191e] border border-[#ffffff12] rounded-lg text-xs font-mono text-[#f7f8f8] whitespace-pre-wrap leading-relaxed">
+                {getInviteText(selectedInviteUser)}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleCopyInvite(selectedInviteUser)}
+                  className="py-2.5 px-3 rounded-lg bg-[#16191e] hover:bg-[#272a30] border border-[#ffffff14] text-[#f7f8f8] font-medium flex items-center justify-center space-x-2 transition"
+                >
+                  {copied ? <Check className="w-4 h-4 text-[#4ade80]" /> : <Copy className="w-4 h-4 text-[#8a8f98]" />}
+                  <span>{copied ? 'Copiado!' : 'Copiar Texto'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSendWhatsApp(selectedInviteUser)}
+                  className="py-2.5 px-3 rounded-lg bg-[#22c55e] hover:bg-[#16a34a] text-white font-medium flex items-center justify-center space-x-2 transition shadow-sm"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Enviar WhatsApp</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
