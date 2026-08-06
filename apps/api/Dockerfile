@@ -35,12 +35,14 @@ COPY apps/api/package*.json ./apps/api/
 # Install production dependencies only
 RUN npm install --omit=dev --legacy-peer-deps
 
-# Copy built code, prisma schema, and pre-generated Prisma Client
+# Copy built code, prisma schema, pre-generated Prisma Client and Prisma CLI
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "cd apps/api && npx prisma db push --skip-generate && (node dist/src/main.js || node dist/main.js)"]
+CMD ["sh", "-c", "cd apps/api && (npx prisma db push --schema=prisma/schema.prisma --skip-generate --accept-data-loss || true) && (node dist/src/main.js || node dist/main.js)"]
