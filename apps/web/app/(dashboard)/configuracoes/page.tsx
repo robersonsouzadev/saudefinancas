@@ -79,7 +79,7 @@ export default function ConfiguracoesPage() {
         authFetch('/users/me/measurements'),
       ]);
 
-      if (profileRes.ok) {
+      if (profileRes.ok && (profileRes.headers.get('content-type') || '').includes('application/json')) {
         const data = await profileRes.json();
         setHealthProfile(data);
         if (data.user) {
@@ -94,7 +94,7 @@ export default function ConfiguracoesPage() {
         }
       }
 
-      if (measurementsRes.ok) {
+      if (measurementsRes.ok && (measurementsRes.headers.get('content-type') || '').includes('application/json')) {
         const list = await measurementsRes.json();
         setMeasurements(list);
       }
@@ -122,9 +122,13 @@ export default function ConfiguracoesPage() {
         }),
       });
 
+      const contentType = res.headers.get('content-type') || '';
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Erro ao salvar perfil');
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          throw new Error(data.message || 'Erro ao salvar perfil');
+        }
+        throw new Error('Servidor temporariamente indisponível. Tente novamente em instantes.');
       }
 
       setSaved(true);
@@ -132,7 +136,7 @@ export default function ConfiguracoesPage() {
       await loadProfileAndMeasurements();
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Erro inesperado ao salvar perfil');
     }
   };
 

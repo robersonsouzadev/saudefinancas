@@ -38,7 +38,13 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
     headers.set('Content-Type', 'application/json');
   }
 
-  return fetch(url, {
+  // Garantir que chamadas relativas passem pelo rewrite /api do Next.js (next.config.mjs)
+  let targetUrl = url;
+  if (!url.startsWith('http') && !url.startsWith('/api')) {
+    targetUrl = url.startsWith('/') ? `/api${url}` : `/api/${url}`;
+  }
+
+  return fetch(targetUrl, {
     ...options,
     headers,
   });
