@@ -1,14 +1,48 @@
-import { Injectable, UnauthorizedException, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
+
+  async onModuleInit() {
+    try {
+      const adminEmail = 'robersonsouza@outlook.com';
+      const existing = await this.prisma.user.findUnique({ where: { email: adminEmail } });
+      const defaultPasswordHash = await bcrypt.hash('Mudar123!', 10);
+
+      if (!existing) {
+        await this.prisma.user.create({
+          data: {
+            email: adminEmail,
+            name: 'Roberson Souza (Super Admin)',
+            passwordHash: defaultPasswordHash,
+            role: 'ADMIN',
+            isActive: true,
+            authProvider: 'LOCAL',
+          },
+        });
+        console.log(`✅ Super Admin garantido na inicialização: ${adminEmail}`);
+      } else {
+        await this.prisma.user.update({
+          where: { id: existing.id },
+          data: {
+            role: 'ADMIN',
+            isActive: true,
+            passwordHash: defaultPasswordHash,
+          },
+        });
+        console.log(`✅ Super Admin verificado e atualizado na inicialização: ${adminEmail}`);
+      }
+    } catch (err) {
+      console.error('Erro ao inicializar Super Admin:', err);
+    }
+  }
 
   async register(data: any) {
     const email = data.email?.trim().toLowerCase();
