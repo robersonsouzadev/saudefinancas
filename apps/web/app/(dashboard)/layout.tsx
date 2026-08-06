@@ -43,57 +43,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </div>
 
-      {/* INTELIGÊNCIA */}
+      {/* SAÚDE & BEM-ESTAR */}
       <div>
         <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
-          Inteligência
-        </div>
-        <div className="space-y-0.5">
-          <Link 
-            href="/agentes" 
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
-              isActive('/agentes') 
-                ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-            }`}
-          >
-            <Bot className={`w-4 h-4 transition ${getIconColor('/agentes', 'text-[#575c66]', 'text-[#a855f7]')}`} />
-            <span>Meus Agentes</span>
-          </Link>
-
-          <Link 
-            href="/base-conhecimento" 
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
-              isActive('/base-conhecimento') 
-                ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-            }`}
-          >
-            <BookOpen className={`w-4 h-4 transition ${getIconColor('/base-conhecimento', 'text-[#575c66]', 'text-[#facc15]')}`} />
-            <span>Base Conhecimento</span>
-          </Link>
-
-          <Link 
-            href="/provedores-ia" 
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
-              isActive('/provedores-ia') 
-                ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-            }`}
-          >
-            <Cpu className={`w-4 h-4 transition ${getIconColor('/provedores-ia', 'text-[#575c66]', 'text-[#5e6ad2]')}`} />
-            <span>Provedores IA</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* BEM-ESTAR */}
-      <div>
-        <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
-          Bem-Estar
+          Saúde & Bem-Estar
         </div>
         <div className="space-y-0.5">
           <Link 
@@ -134,7 +87,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Apple className={`w-4 h-4 transition ${getIconColor('/saude/nutricao', 'text-[#575c66]', 'text-[#4ade80]')}`} />
             <span>Nutrição</span>
           </Link>
+        </div>
+      </div>
 
+      {/* FINANÇAS & PATRIMÔNIO */}
+      <div>
+        <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          Finanças & Patrimônio
+        </div>
+        <div className="space-y-0.5">
           <Link 
             href="/financas" 
             onClick={() => setIsMobileMenuOpen(false)}
@@ -160,7 +121,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <TrendingUp className={`w-4 h-4 transition ${getIconColor('/investimentos', 'text-[#575c66]', 'text-[#10b981]')}`} />
             <span>Investimentos</span>
           </Link>
+        </div>
+      </div>
 
+      {/* INTELIGÊNCIA */}
+      <div>
+        <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          Inteligência
+        </div>
+        <div className="space-y-0.5">
           <Link 
             href="/insights" 
             onClick={() => setIsMobileMenuOpen(false)}
@@ -171,7 +140,46 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }`}
           >
             <Sparkles className={`w-4 h-4 transition ${getIconColor('/insights', 'text-[#575c66]', 'text-[#eab308]')}`} />
-            <span>Insights</span>
+            <span>Insights Bio-Financeiros</span>
+          </Link>
+
+          <Link 
+            href="/agentes" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/agentes') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Bot className={`w-4 h-4 transition ${getIconColor('/agentes', 'text-[#575c66]', 'text-[#a855f7]')}`} />
+            <span>Meus Agentes</span>
+          </Link>
+
+          <Link 
+            href="/base-conhecimento" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/base-conhecimento') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <BookOpen className={`w-4 h-4 transition ${getIconColor('/base-conhecimento', 'text-[#575c66]', 'text-[#facc15]')}`} />
+            <span>Base Conhecimento</span>
+          </Link>
+
+          <Link 
+            href="/provedores-ia" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/provedores-ia') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Cpu className={`w-4 h-4 transition ${getIconColor('/provedores-ia', 'text-[#575c66]', 'text-[#5e6ad2]')}`} />
+            <span>Provedores IA</span>
           </Link>
         </div>
       </div>
