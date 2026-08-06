@@ -31,14 +31,15 @@ ENV NODE_ENV=production
 
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
-COPY apps/api/prisma ./apps/api/prisma/
 
 # Install production dependencies only
 RUN npm install --omit=dev --legacy-peer-deps
 
-# Copy built distribution code and Prisma client
+# Copy built code, prisma schema, and pre-generated Prisma Client
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-RUN npx prisma generate --schema=apps/api/prisma/schema.prisma
+COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
 EXPOSE 3001
 
