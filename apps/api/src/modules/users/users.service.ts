@@ -136,6 +136,53 @@ export class UsersService {
     });
   }
 
+  async updateProfile(id: string, data: any) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    const cleanPhone = (val?: string) => (val && typeof val === 'string' && val.trim() !== '' ? val.trim() : null);
+
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name ? data.name.trim() : null;
+    if (data.phone !== undefined) updateData.phone = cleanPhone(data.phone);
+    if (data.whatsappPhone !== undefined) updateData.whatsappPhone = cleanPhone(data.whatsappPhone);
+    if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl;
+
+    if (data.birthDate !== undefined) {
+      updateData.birthDate = data.birthDate ? new Date(data.birthDate) : null;
+    }
+    if (data.biologicalSex !== undefined) {
+      updateData.biologicalSex = data.biologicalSex || null;
+    }
+    if (data.heightCm !== undefined) {
+      updateData.heightCm = data.heightCm ? parseFloat(data.heightCm) : null;
+    }
+
+    if (data.password && typeof data.password === 'string' && data.password.trim() !== '') {
+      updateData.passwordHash = await bcrypt.hash(data.password, 10);
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        whatsappPhone: true,
+        avatarUrl: true,
+        role: true,
+        isActive: true,
+        birthDate: true,
+        biologicalSex: true,
+        heightCm: true,
+      },
+    });
+  }
+
   async deleteUser(id: string) {
     return this.prisma.user.update({
       where: { id },

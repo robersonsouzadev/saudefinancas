@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, AreaChart, Area
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line
 } from 'recharts';
 import { 
-  Plus, Camera, DollarSign, Activity, HeartPulse, 
-  TrendingUp, Sparkles, AlertCircle, CheckCircle2, ArrowUpRight,
-  Wallet, Moon, Droplets, Dumbbell, ShieldCheck, Flame, PieChart, Layers
+  Camera, DollarSign, HeartPulse, 
+  TrendingUp, Sparkles, CheckCircle2, 
+  Wallet, Flame, PieChart, User, Scale, Activity, Ruler, ArrowRight
 } from 'lucide-react';
+import Link from 'next/link';
+import { authFetch } from '@/lib/api';
 
 // Monthly Financial Stream (6 months history)
 const monthlyCashflowData = [
@@ -42,6 +44,28 @@ const categoryBudgets = [
 
 export default function DashboardHome() {
   const [activeModal, setActiveModal] = useState<'meal' | 'expense' | 'health' | 'investment' | null>(null);
+  const [healthProfile, setHealthProfile] = useState<any>(null);
+
+  useEffect(() => {
+    fetchHealthProfile();
+  }, []);
+
+  const fetchHealthProfile = async () => {
+    try {
+      const res = await authFetch('/users/me/profile');
+      if (res.ok) {
+        const data = await res.json();
+        setHealthProfile(data);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar perfil no dashboard:', err);
+    }
+  };
+
+  const latest = healthProfile?.latestMeasurement;
+  const bmi = healthProfile?.bmi;
+  const bmr = healthProfile?.bmr;
+  const age = healthProfile?.age;
 
   return (
     <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
@@ -56,7 +80,7 @@ export default function DashboardHome() {
             </span>
           </h1>
           <p className="text-xs text-[#8a8f98] mt-0.5">
-            Métricas integradas de longevidade biológica, fluxo de caixa e patrimônio investido
+            Métricas integradas de longevidade biológica, composição corporal e fluxo de caixa
           </p>
         </div>
 
@@ -87,6 +111,64 @@ export default function DashboardHome() {
         </div>
       </div>
 
+      {/* BANNER DE PERFIL SAÚDE INTEGRAÇÃO SE EXISTIR */}
+      {healthProfile?.user && (
+        <div className="bg-[#16191e] border border-[#ffffff0d] rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full bg-[#5e6ad215] border border-[#5e6ad230] flex items-center justify-center text-[#5e6ad2] font-semibold text-sm">
+              <User className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-sm font-semibold text-[#f7f8f8]">{healthProfile.user.name || 'Usuário'}</h3>
+                {age !== null && age !== undefined && (
+                  <span className="text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
+                    {age} anos
+                  </span>
+                )}
+                {healthProfile.user.heightCm && (
+                  <span className="text-[10px] font-mono text-[#8a8f98]">
+                    • {healthProfile.user.heightCm} cm
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#8a8f98]">
+                {latest?.weightKg 
+                  ? `Peso atual: ${latest.weightKg} kg ${latest.bodyFatPercent ? `(${latest.bodyFatPercent}% BF)` : ''}` 
+                  : 'Nenhuma medição corporal registrada recentemente'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3 text-xs">
+            {bmi && (
+              <div className="bg-[#080a0c] px-3 py-1.5 rounded-lg border border-[#ffffff08] flex items-center space-x-2">
+                <Scale className="w-3.5 h-3.5 text-[#5e6ad2]" />
+                <span>IMC: <strong className="font-mono text-[#f7f8f8]">{bmi.bmi}</strong></span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold" style={{ color: bmi.statusColor, backgroundColor: `${bmi.statusColor}15` }}>
+                  {bmi.classification}
+                </span>
+              </div>
+            )}
+
+            {bmr && (
+              <div className="bg-[#080a0c] px-3 py-1.5 rounded-lg border border-[#ffffff08] flex items-center space-x-2">
+                <Flame className="w-3.5 h-3.5 text-[#fb923c]" />
+                <span>TMB: <strong className="font-mono text-[#f7f8f8]">{bmr} kcal</strong></span>
+              </div>
+            )}
+
+            <Link 
+              href="/configuracoes"
+              className="text-[#5e6ad2] hover:text-[#7d87e0] font-medium text-xs flex items-center space-x-1 transition"
+            >
+              <span>Editar Perfil</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* 2. Top 4 Executive KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
@@ -114,7 +196,7 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* KPI 2: Recovery / Readiness Score (Oura/Whoop Style) */}
+        {/* KPI 2: Recovery / Readiness Score */}
         <div className="linear-card p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
@@ -164,24 +246,27 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* KPI 4: Balanço Calórico & Nutricional */}
+        {/* KPI 4: Balanço Calórico & Nutricional (Real TMB) */}
         <div className="linear-card p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
               <Flame className="w-3.5 h-3.5 text-[#facc15]" /> Balanço Calórico
             </span>
             <span className="text-[10px] font-mono text-[#facc15] bg-[#facc1515] px-2 py-0.5 rounded border border-[#facc1530]">
-              360 kcal resta
+              Meta TMB: {bmr || 2200} kcal
             </span>
           </div>
 
           <div className="flex items-baseline space-x-2">
             <span className="text-3xl font-bold font-mono text-[#f7f8f8]">1.840</span>
-            <span className="text-[#575c66] text-xs font-medium">/ 2.200 kcal</span>
+            <span className="text-[#575c66] text-xs font-medium">/ {bmr || 2200} kcal</span>
           </div>
 
           <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
-            <div className="bg-[#facc15] h-full rounded-full w-[84%] transition-all duration-500"></div>
+            <div 
+              className="bg-[#facc15] h-full rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, Math.round((1840 / (bmr || 2200)) * 100))}%` }}
+            ></div>
           </div>
 
           <div className="pt-1 flex justify-between items-center text-[10px] font-mono text-[#8a8f98]">
@@ -193,10 +278,9 @@ export default function DashboardHome() {
 
       </div>
 
-      {/* 3. Double Chart Row (Financial Stream & Biological Trend) */}
+      {/* 3. Double Chart Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
-        {/* Financial Cashflow & Investment Stream Chart (2 Cols) */}
         <div className="lg:col-span-2 linear-card p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ffffff0e] pb-3 gap-2">
             <div>
@@ -228,7 +312,6 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Biological Sleep & Recovery Line Trend Chart (1 Col) */}
         <div className="linear-card p-5 space-y-4">
           <div className="border-b border-[#ffffff0e] pb-3">
             <h3 className="text-sm font-semibold text-[#f7f8f8]">Tendência de Sono & Recuperação</h3>
@@ -258,10 +341,9 @@ export default function DashboardHome() {
 
       </div>
 
-      {/* 4. Bottom Row: Category Budgets & Vita AI Bio-Financial Correlation Radar */}
+      {/* 4. Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
-        {/* Category Budget Allocation Widget */}
         <div className="linear-card p-5 space-y-4">
           <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
             <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
@@ -293,7 +375,6 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Vita AI Bio-Financial Correlation Radar */}
         <div className="linear-card p-5 space-y-4">
           <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
             <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">

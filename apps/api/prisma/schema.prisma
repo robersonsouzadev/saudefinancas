@@ -22,10 +22,14 @@ model User {
   avatarUrl             String?
   role                  String                 @default("MEMBER") // ADMIN, MEMBER, VIEWER
   isActive              Boolean                @default(true)
+  birthDate             DateTime?
+  biologicalSex         BiologicalSex?
+  heightCm              Float?
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   conversations         Conversation[]
   healthLogs            HealthLog[]
+  bodyMeasurements      BodyMeasurement[]
   mealLogs              MealLog[]
   healthGoals           HealthGoal[]
   financialAccounts     FinancialAccount[]
@@ -187,6 +191,11 @@ model KnowledgeChunk {
   document   KnowledgeDocument                     @relation(fields: [documentId], references: [id], onDelete: Cascade)
 }
 
+enum BiologicalSex {
+  MASCULINO
+  FEMININO
+}
+
 model HealthLog {
   id       String   @id @default(uuid())
   userId   String
@@ -195,6 +204,44 @@ model HealthLog {
   unit     String
   loggedAt DateTime @default(now())
   user     User     @relation(fields: [userId], references: [id])
+}
+
+model BodyMeasurement {
+  id             String   @id @default(uuid())
+  userId         String
+  measuredAt     DateTime @default(now())
+
+  // Composição corporal principal
+  weightKg       Float?   // Peso em kg
+  bodyFatPercent Float?   // % Gordura corporal
+
+  // Circunferências (cm)
+  waistCm        Float?   // Cintura
+  hipCm          Float?   // Quadril
+  chestCm        Float?   // Peito/Tórax
+  neckCm         Float?   // Pescoço
+  shoulderCm     Float?   // Ombros
+  abdomenCm      Float?   // Abdômen
+
+  // Membros superiores (cm)
+  leftBicepCm    Float?   // Bíceps esquerdo
+  rightBicepCm   Float?   // Bíceps direito
+  leftForearmCm  Float?   // Antebraço esquerdo
+  rightForearmCm Float?   // Antebraço direito
+
+  // Membros inferiores (cm)
+  leftThighCm    Float?   // Coxa esquerda
+  rightThighCm   Float?   // Coxa direita
+  leftCalfCm     Float?   // Panturrilha esquerda
+  rightCalfCm    Float?   // Panturrilha direita
+
+  notes          String?  // Observações livres
+
+  user           User     @relation(fields: [userId], references: [id])
+
+  createdAt      DateTime @default(now())
+
+  @@index([userId, measuredAt])
 }
 
 model MealLog {
