@@ -36,6 +36,8 @@ model User {
   sentInvites           FamilyInvite[]         @relation("InviteSender")
   passwordResetCodes    PasswordResetCode[]
   investmentAssets      InvestmentAsset[]
+  medications           Medication[]
+  medicationLogs        MedicationIntakeLog[]
 }
 
 model FamilyGroup {
@@ -315,5 +317,109 @@ model InvestmentTransaction {
   totalAmount Float
   date        DateTime        @default(now())
   asset       InvestmentAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+// ═══════════════════════════════════════════
+// MEDICAMENTOS & VITAMINAS
+// ═══════════════════════════════════════════
+
+model Medication {
+  id              String                @id @default(uuid())
+  userId          String
+  user            User                  @relation(fields: [userId], references: [id])
+  name            String
+  type            MedicationType        @default(MEDICAMENTO)
+  category        MedicationCategory    @default(CONTINUO)
+  priority        MedicationPriority    @default(IMPORTANTE)
+  dosage          String
+  unit            String
+  instructions    String?
+  currentStock    Int                   @default(0)
+  stockAlertAt    Int                   @default(5)
+  costPerUnit     Float?
+  pharmacy        String?
+  startDate       DateTime              @default(now())
+  endDate         DateTime?
+  isActive        Boolean               @default(true)
+  color           String                @default("#5e6ad2")
+  notes           String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  schedules       MedicationSchedule[]
+  intakeLogs      MedicationIntakeLog[]
+}
+
+model MedicationSchedule {
+  id               String             @id @default(uuid())
+  medicationId     String
+  medication       Medication         @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  time             String
+  windowMinutes    Int                @default(30)
+  period           SchedulePeriod     @default(MANHA)
+  frequency        ScheduleFrequency  @default(DIARIO)
+  intervalHours    Int?
+  weekDays         String?
+  notifyWhatsapp   Boolean            @default(true)
+  notifyPush       Boolean            @default(true)
+  escalateToFamily Boolean            @default(false)
+  escalateAfterMin Int                @default(45)
+  isActive         Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+}
+
+model MedicationIntakeLog {
+  id             String       @id @default(uuid())
+  medicationId   String
+  medication     Medication   @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  scheduledAt    DateTime
+  loggedAt       DateTime?
+  status         IntakeStatus @default(PENDENTE)
+  skipReason     String?
+  whatsappSentAt DateTime?
+  whatsappReadAt DateTime?
+  respondedVia   String?
+  createdAt      DateTime     @default(now())
+}
+
+enum MedicationType {
+  MEDICAMENTO
+  VITAMINA
+  SUPLEMENTO
+  FITOTERAPICO
+}
+
+enum MedicationCategory {
+  CONTINUO
+  TEMPORARIO
+  SOS
+}
+
+enum MedicationPriority {
+  CRITICO
+  IMPORTANTE
+  ROTINA
+}
+
+enum SchedulePeriod {
+  MADRUGADA
+  MANHA
+  TARDE
+  NOITE
+}
+
+enum ScheduleFrequency {
+  DIARIO
+  DIAS_ALTERNADOS
+  SEMANAL
+  INTERVALO_HORAS
+}
+
+enum IntakeStatus {
+  PENDENTE
+  TOMADO
+  ATRASADO
+  PULADO
 }
 

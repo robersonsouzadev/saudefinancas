@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Bot, BookOpen, Cpu, HeartPulse, 
   Apple, Wallet, TrendingUp, Sparkles, Users, UserCheck, MessageSquare, 
-  Settings, LogOut, ChevronDown, Search, Command, Menu, X
+  Settings, LogOut, ChevronDown, Search, Command, Menu, X, Pill
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -107,6 +107,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <HeartPulse className={`w-4 h-4 transition ${getIconColor('/saude', 'text-[#575c66]', 'text-[#f87171]')}`} />
             <span>Saúde & Hábitos</span>
+          </Link>
+
+          <Link 
+            href="/medicamentos" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/medicamentos') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Pill className={`w-4 h-4 transition ${getIconColor('/medicamentos', 'text-[#575c66]', 'text-[#f472b6]')}`} />
+            <span>Medicamentos</span>
           </Link>
 
           <Link 

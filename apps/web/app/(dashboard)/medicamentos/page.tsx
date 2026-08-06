@@ -1,0 +1,810 @@
+'use client';
+
+import { useState } from 'react';
+import { 
+  Pill, Plus, Clock, CheckCircle2, AlertTriangle, ShieldAlert, 
+  MessageSquare, DollarSign, Calendar, TrendingUp, Sparkles, 
+  Sun, Sunset, Moon, Coffee, Edit3, Trash2, Check, X, Bell, UserCheck
+} from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
+
+interface MedicationItem {
+  id: string;
+  name: string;
+  type: 'MEDICAMENTO' | 'VITAMINA' | 'SUPLEMENTO' | 'FITOTERAPICO';
+  dosage: string;
+  unit: string;
+  time: string;
+  period: 'MANHA' | 'TARDE' | 'NOITE' | 'MADRUGADA';
+  instructions: string;
+  currentStock: number;
+  stockAlertAt: number;
+  costPerUnit: number;
+  status: 'TOMADO' | 'PENDENTE' | 'PROXIMO' | 'ATRASADO';
+  notifyWhatsapp: boolean;
+  escalateToFamily: boolean;
+  color: string;
+}
+
+const initialMedications: MedicationItem[] = [
+  {
+    id: '1',
+    name: 'Losartana Potássica',
+    type: 'MEDICAMENTO',
+    dosage: '50mg',
+    unit: 'comprimido',
+    time: '08:00',
+    period: 'MANHA',
+    instructions: 'Tomar em jejum com água',
+    currentStock: 24,
+    stockAlertAt: 5,
+    costPerUnit: 0.85,
+    status: 'TOMADO',
+    notifyWhatsapp: true,
+    escalateToFamily: true,
+    color: '#f87171',
+  },
+  {
+    id: '2',
+    name: 'Vitamina D3 + K2',
+    type: 'VITAMINA',
+    dosage: '2000 UI',
+    unit: 'cápsula',
+    time: '08:30',
+    period: 'MANHA',
+    instructions: 'Tomar junto com o café da manhã',
+    currentStock: 3, // Low stock trigger!
+    stockAlertAt: 5,
+    costPerUnit: 1.20,
+    status: 'TOMADO',
+    notifyWhatsapp: true,
+    escalateToFamily: false,
+    color: '#facc15',
+  },
+  {
+    id: '3',
+    name: 'Ômega 3 Ultra Puro',
+    type: 'SUPLEMENTO',
+    dosage: '1000mg',
+    unit: 'cápsula',
+    time: '13:00',
+    period: 'TARDE',
+    instructions: 'Tomar com o almoço',
+    currentStock: 45,
+    stockAlertAt: 10,
+    costPerUnit: 1.50,
+    status: 'PENDENTE',
+    notifyWhatsapp: true,
+    escalateToFamily: false,
+    color: '#4ade80',
+  },
+  {
+    id: '4',
+    name: 'Magnésio Dimalato',
+    type: 'VITAMINA',
+    dosage: '400mg',
+    unit: 'cápsula',
+    time: '21:30',
+    period: 'NOITE',
+    instructions: 'Tomar 30 min antes de dormir',
+    currentStock: 18,
+    stockAlertAt: 7,
+    costPerUnit: 0.90,
+    status: 'PROXIMO',
+    notifyWhatsapp: true,
+    escalateToFamily: false,
+    color: '#60a5fa',
+  },
+];
+
+const adherenceTrendData = [
+  { day: 'Seg', score: 100 },
+  { day: 'Ter', score: 85 },
+  { day: 'Qua', score: 100 },
+  { day: 'Qui', score: 95 },
+  { day: 'Sex', score: 90 },
+  { day: 'Sáb', score: 100 },
+  { day: 'Dom', score: 100 },
+];
+
+export default function MedicamentosPage() {
+  const [medications, setMedications] = useState<MedicationItem[]>(initialMedications);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isWhatsappDemoOpen, setIsWhatsappDemoOpen] = useState(false);
+  const [selectedMedForDemo, setSelectedMedForDemo] = useState<MedicationItem | null>(null);
+
+  // Form State for new medication
+  const [formData, setFormData] = useState({
+    name: '',
+    type: 'MEDICAMENTO' as const,
+    dosage: '',
+    unit: 'comprimido',
+    time: '08:00',
+    period: 'MANHA' as const,
+    instructions: '',
+    currentStock: 30,
+    costPerUnit: 1.0,
+    notifyWhatsapp: true,
+    escalateToFamily: true,
+  });
+
+  const handleMarkAsTaken = (id: string) => {
+    setMedications((prev) =>
+      prev.map((med) => {
+        if (med.id === id) {
+          return {
+            ...med,
+            status: 'TOMADO',
+            currentStock: Math.max(0, med.currentStock - 1),
+          };
+        }
+        return med;
+      })
+    );
+  };
+
+  const handleAddMedication = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.dosage) return;
+
+    const newMed: MedicationItem = {
+      id: Date.now().toString(),
+      name: formData.name,
+      type: formData.type,
+      dosage: formData.dosage,
+      unit: formData.unit,
+      time: formData.time,
+      period: formData.period,
+      instructions: formData.instructions || 'Tomar conforme orientação',
+      currentStock: Number(formData.currentStock) || 30,
+      stockAlertAt: 5,
+      costPerUnit: Number(formData.costPerUnit) || 1.0,
+      status: 'PENDENTE',
+      notifyWhatsapp: formData.notifyWhatsapp,
+      escalateToFamily: formData.escalateToFamily,
+      color: formData.type === 'MEDICAMENTO' ? '#f87171' : formData.type === 'VITAMINA' ? '#facc15' : '#4ade80',
+    };
+
+    setMedications((prev) => [...prev, newMed]);
+    setIsAddModalOpen(false);
+    setFormData({
+      name: '',
+      type: 'MEDICAMENTO',
+      dosage: '',
+      unit: 'comprimido',
+      time: '08:00',
+      period: 'MANHA',
+      instructions: '',
+      currentStock: 30,
+      costPerUnit: 1.0,
+      notifyWhatsapp: true,
+      escalateToFamily: true,
+    });
+  };
+
+  // Metrics Calculations
+  const totalDosesToday = medications.length;
+  const takenDosesToday = medications.filter((m) => m.status === 'TOMADO').length;
+  const adherencePercent = totalDosesToday > 0 ? Math.round((takenDosesToday / totalDosesToday) * 100) : 100;
+  const lowStockItems = medications.filter((m) => m.currentStock <= m.stockAlertAt);
+  const totalMonthlySpend = medications.reduce((acc, m) => acc + m.costPerUnit * 30, 0);
+
+  return (
+    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
+      
+      {/* 1. Header & Quick Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
+        <div>
+          <h1 className="text-xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2">
+            <Pill className="w-5 h-5 text-[#f472b6]" />
+            <span>Controle de Medicamentos & Vitaminas</span>
+            <span className="text-[10px] font-mono text-[#f472b6] bg-[#f472b615] px-2 py-0.5 rounded border border-[#f472b630]">
+              WhatsApp Active
+            </span>
+          </h1>
+          <p className="text-xs text-[#8a8f98] mt-0.5">
+            Gestão inteligente de posologia, alertas de estoque, custo mensal e lembretes via WhatsApp com escalonamento familiar
+          </p>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <button 
+            onClick={() => {
+              setSelectedMedForDemo(medications[0]);
+              setIsWhatsappDemoOpen(true);
+            }}
+            className="h-8 px-3 rounded-md bg-[#16191e] border border-[#ffffff12] hover:bg-[#1d2127] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
+          >
+            <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
+            <span>📱 Testar WhatsApp</span>
+          </button>
+
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Novo Medicamento</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Top 4 Executive KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* KPI 1: Score de Aderência */}
+        <div className="linear-card p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#4ade80]" /> Score de Aderência
+            </span>
+            <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
+              Excelente
+            </span>
+          </div>
+
+          <div className="flex items-baseline space-x-2">
+            <span className="text-3xl font-bold font-mono text-[#4ade80]">{adherencePercent}%</span>
+            <span className="text-[#8a8f98] text-xs">dos horários</span>
+          </div>
+
+          <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
+            <div className="bg-[#4ade80] h-full rounded-full transition-all duration-500" style={{ width: `${adherencePercent}%` }}></div>
+          </div>
+
+          <span className="text-[11px] text-[#8a8f98] block">Nenhuma dose esquecida esta semana</span>
+        </div>
+
+        {/* KPI 2: Doses de Hoje */}
+        <div className="linear-card p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-[#60a5fa]" /> Doses de Hoje
+            </span>
+            <span className="text-[10px] font-mono text-[#60a5fa] bg-[#60a5fa15] px-2 py-0.5 rounded border border-[#60a5fa30]">
+              {takenDosesToday}/{totalDosesToday} Concluídas
+            </span>
+          </div>
+
+          <div className="flex items-baseline space-x-2">
+            <span className="text-3xl font-bold font-mono text-[#f7f8f8]">{takenDosesToday}</span>
+            <span className="text-[#8a8f98] text-xs">/ {totalDosesToday} tomadas</span>
+          </div>
+
+          <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
+            <div className="bg-[#60a5fa] h-full rounded-full transition-all duration-500" style={{ width: `${(takenDosesToday / totalDosesToday) * 100}%` }}></div>
+          </div>
+
+          <span className="text-[11px] text-[#8a8f98] block">Próxima: Magnésio às 21:30</span>
+        </div>
+
+        {/* KPI 3: Estoque Baixo */}
+        <div className="linear-card p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-[#facc15]" /> Alerta de Estoque
+            </span>
+            <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+              lowStockItems.length > 0 
+                ? 'text-[#facc15] bg-[#facc1515] border-[#facc1530]' 
+                : 'text-[#4ade80] bg-[#4ade8015] border-[#4ade8030]'
+            }`}>
+              {lowStockItems.length} Alerta{lowStockItems.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+
+          <div>
+            <div className="text-2xl font-bold font-mono text-[#f7f8f8]">
+              {lowStockItems.length > 0 ? lowStockItems[0].name : 'Estoque OK'}
+            </div>
+            <span className="text-[11px] text-[#facc15] block mt-0.5">
+              {lowStockItems.length > 0 ? `Restam apenas ${lowStockItems[0].currentStock} cápsulas` : 'Todos itens acima do mínimo'}
+            </span>
+          </div>
+
+          <div className="pt-1 border-t border-[#ffffff08] flex justify-between items-center text-[11px] font-mono text-[#8a8f98]">
+            <span>Farmácia recomendada: <strong className="text-[#f7f8f8]">Drogasil</strong></span>
+          </div>
+        </div>
+
+        {/* KPI 4: Custo Mensal Estimado */}
+        <div className="linear-card p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+              <DollarSign className="w-3.5 h-3.5 text-[#22c55e]" /> Custo Mensal em Saúde
+            </span>
+            <span className="text-[10px] font-mono text-[#22c55e] bg-[#22c55e15] px-2 py-0.5 rounded border border-[#22c55e30]">
+              Orçamento
+            </span>
+          </div>
+
+          <div>
+            <div className="text-3xl font-bold font-mono text-[#22c55e]">
+              R$ {totalMonthlySpend.toFixed(2)}
+            </div>
+            <span className="text-[11px] text-[#8a8f98] block mt-0.5">Custo médio por dose: R$ {(totalMonthlySpend / 120).toFixed(2)}</span>
+          </div>
+
+          <div className="pt-1 border-t border-[#ffffff08] flex justify-between items-center text-[11px] font-mono text-[#8a8f98]">
+            <span>Lançado em Finanças: <strong className="text-[#4ade80]">✓ Sincronizado</strong></span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* 3. Medisafe 4-Quadrant Visual Pillbox (Manhã, Tarde, Noite, Madrugada) */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-[#5e6ad2]" />
+            <span>Pillbox Visual de Hoje (Cronograma de Doses)</span>
+          </h2>
+          <span className="text-[11px] font-mono text-[#8a8f98]">
+            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          {/* Quadrant 1: MANHÃ (06:00 - 12:00) */}
+          <div className="linear-card p-4 space-y-3 border-t-2 border-t-[#facc15]">
+            <div className="flex items-center justify-between text-xs font-semibold border-b border-[#ffffff0e] pb-2">
+              <span className="flex items-center gap-1.5 text-[#facc15]">
+                <Sun className="w-4 h-4" /> MANHÃ
+              </span>
+              <span className="text-[10px] font-mono text-[#8a8f98]">06:00 - 12:00</span>
+            </div>
+
+            <div className="space-y-2.5">
+              {medications.filter((m) => m.period === 'MANHA').map((m) => (
+                <div key={m.id} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-semibold text-xs text-[#f7f8f8]">{m.name}</div>
+                      <div className="text-[11px] text-[#8a8f98] font-mono">{m.dosage} • {m.time}</div>
+                    </div>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                      m.status === 'TOMADO' 
+                        ? 'text-[#4ade80] bg-[#4ade8015] border border-[#4ade8030]' 
+                        : 'text-[#facc15] bg-[#facc1515] border border-[#facc1530]'
+                    }`}>
+                      {m.status === 'TOMADO' ? '✓ Tomado' : 'Pendente'}
+                    </span>
+                  </div>
+
+                  <p className="text-[10px] text-[#8a8f98]">{m.instructions}</p>
+
+                  {m.status !== 'TOMADO' && (
+                    <button 
+                      onClick={() => handleMarkAsTaken(m.id)}
+                      className="w-full py-1 rounded bg-[#4ade8020] hover:bg-[#4ade8030] text-[#4ade80] text-[11px] font-medium flex items-center justify-center space-x-1 transition"
+                    >
+                      <Check className="w-3 h-3" />
+                      <span>Marcar como Tomado</span>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quadrant 2: TARDE (12:00 - 18:00) */}
+          <div className="linear-card p-4 space-y-3 border-t-2 border-t-[#4ade80]">
+            <div className="flex items-center justify-between text-xs font-semibold border-b border-[#ffffff0e] pb-2">
+              <span className="flex items-center gap-1.5 text-[#4ade80]">
+                <Sunset className="w-4 h-4" /> TARDE
+              </span>
+              <span className="text-[10px] font-mono text-[#8a8f98]">12:00 - 18:00</span>
+            </div>
+
+            <div className="space-y-2.5">
+              {medications.filter((m) => m.period === 'TARDE').map((m) => (
+                <div key={m.id} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-semibold text-xs text-[#f7f8f8]">{m.name}</div>
+                      <div className="text-[11px] text-[#8a8f98] font-mono">{m.dosage} • {m.time}</div>
+                    </div>
+                    <span className="text-[10px] font-mono text-[#60a5fa] bg-[#60a5fa15] px-2 py-0.5 rounded border border-[#60a5fa30]">
+                      Próxima
+                    </span>
+                  </div>
+
+                  <p className="text-[10px] text-[#8a8f98]">{m.instructions}</p>
+
+                  <button 
+                    onClick={() => handleMarkAsTaken(m.id)}
+                    className="w-full py-1 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-[11px] font-medium flex items-center justify-center space-x-1 transition"
+                  >
+                    <Check className="w-3 h-3" />
+                    <span>Marcar como Tomado</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quadrant 3: NOITE (18:00 - 00:00) */}
+          <div className="linear-card p-4 space-y-3 border-t-2 border-t-[#60a5fa]">
+            <div className="flex items-center justify-between text-xs font-semibold border-b border-[#ffffff0e] pb-2">
+              <span className="flex items-center gap-1.5 text-[#60a5fa]">
+                <Moon className="w-4 h-4" /> NOITE
+              </span>
+              <span className="text-[10px] font-mono text-[#8a8f98]">18:00 - 00:00</span>
+            </div>
+
+            <div className="space-y-2.5">
+              {medications.filter((m) => m.period === 'NOITE').map((m) => (
+                <div key={m.id} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-semibold text-xs text-[#f7f8f8]">{m.name}</div>
+                      <div className="text-[11px] text-[#8a8f98] font-mono">{m.dosage} • {m.time}</div>
+                    </div>
+                    <span className="text-[10px] font-mono text-[#8a8f98] bg-[#16191e] px-2 py-0.5 rounded border border-[#ffffff10]">
+                      Aguardando
+                    </span>
+                  </div>
+
+                  <p className="text-[10px] text-[#8a8f98]">{m.instructions}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quadrant 4: MADRUGADA / SOS */}
+          <div className="linear-card p-4 space-y-3 border-t-2 border-t-[#a855f7]">
+            <div className="flex items-center justify-between text-xs font-semibold border-b border-[#ffffff0e] pb-2">
+              <span className="flex items-center gap-1.5 text-[#a855f7]">
+                <Coffee className="w-4 h-4" /> SOS / CONFORME NECESSIDADE
+              </span>
+            </div>
+
+            <div className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md text-center space-y-2">
+              <p className="text-[11px] text-[#8a8f98]">
+                Nenhum medicamento SOS ou analgésico cadastrado no momento.
+              </p>
+              <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="text-[11px] text-[#5e6ad2] hover:underline"
+              >
+                + Cadastrar item SOS
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 4. Adherence Trend & Full Medications Table */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        
+        {/* Adherence Trend Chart (1 Col) */}
+        <div className="linear-card p-5 space-y-4">
+          <div className="border-b border-[#ffffff0e] pb-3">
+            <h3 className="text-sm font-semibold text-[#f7f8f8]">Histórico de Aderência (7 dias)</h3>
+            <p className="text-[11px] text-[#8a8f98]">% de doses tomadas no horário estipulado</p>
+          </div>
+
+          <div className="h-44 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={adherenceTrendData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                <XAxis dataKey="day" stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} domain={[60, 100]} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#16191e', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '12px' }} 
+                  itemStyle={{ color: '#4ade80' }}
+                />
+                <Area type="monotone" dataKey="score" stroke="#4ade80" fill="#4ade8015" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md text-[11px] text-[#8a8f98] flex items-center justify-between">
+            <span>Aderência Semanal: <strong className="text-[#4ade80] font-mono">95.7%</strong></span>
+            <span className="text-[#4ade80] font-mono"> Meta &gt; 90%</span>
+          </div>
+        </div>
+
+        {/* Full Medications Active List Table (2 Cols) */}
+        <div className="lg:col-span-2 linear-card p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+            <div>
+              <h3 className="text-sm font-semibold text-[#f7f8f8]">Lista de Medicamentos & Vitaminas Ativos</h3>
+              <p className="text-[11px] text-[#8a8f98]">Detalhamento de posologia, estoque e custo por dose</p>
+            </div>
+            <span className="text-[11px] font-mono text-[#8a8f98]">{medications.length} Itens Cadastrados</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-mono">
+              <thead>
+                <tr className="border-b border-[#ffffff0e] text-[#8a8f98]">
+                  <th className="pb-2 font-medium">NOME</th>
+                  <th className="pb-2 font-medium">DOSAGEM</th>
+                  <th className="pb-2 font-medium">HORÁRIO</th>
+                  <th className="pb-2 font-medium">ESTOQUE</th>
+                  <th className="pb-2 font-medium">CUSTO/DOSE</th>
+                  <th className="pb-2 font-medium text-right">AÇÕES</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#ffffff08]">
+                {medications.map((m) => (
+                  <tr key={m.id} className="hover:bg-[#16191e] transition">
+                    <td className="py-2.5 font-sans font-medium text-[#f7f8f8] flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }}></span>
+                      <span>{m.name}</span>
+                      {m.notifyWhatsapp && (
+                        <span title="WhatsApp Ativo">
+                          <MessageSquare className="w-3 h-3 text-[#25D366]" />
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2.5 text-[#8a8f98]">{m.dosage}</td>
+                    <td className="py-2.5 text-[#f7f8f8]">{m.time}</td>
+                    <td className="py-2.5">
+                      <span className={`px-2 py-0.5 rounded text-[10px] ${
+                        m.currentStock <= m.stockAlertAt 
+                          ? 'text-[#facc15] bg-[#facc1515] border border-[#facc1530]' 
+                          : 'text-[#8a8f98]'
+                      }`}>
+                        {m.currentStock} {m.unit}s
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-[#4ade80]">R$ {m.costPerUnit.toFixed(2)}</td>
+                    <td className="py-2.5 text-right space-x-1">
+                      <button 
+                        onClick={() => {
+                          setSelectedMedForDemo(m);
+                          setIsWhatsappDemoOpen(true);
+                        }}
+                        className="p-1 hover:bg-[#1d2127] rounded text-[#8a8f98] hover:text-[#25D366]" 
+                        title="Simular Lembrete WhatsApp"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => setMedications((prev) => prev.filter((x) => x.id !== m.id))}
+                        className="p-1 hover:bg-[#1d2127] rounded text-[#8a8f98] hover:text-[#f87171]" 
+                        title="Remover"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      {/* 5. Modal 1: Add New Medication Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="linear-card w-full max-w-md p-6 space-y-4 border border-[#ffffff15] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+              <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
+                <Plus className="w-4 h-4 text-[#5e6ad2]" /> Cadastrar Novo Medicamento / Vitamina
+              </h3>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-[#8a8f98] hover:text-[#f7f8f8]">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddMedication} className="space-y-3 text-xs">
+              <div>
+                <label className="text-[#8a8f98] block mb-1 font-medium">Nome do Medicamento ou Vitamina</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Ex: Vitamina D3 2000UI, Losartana 50mg"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[#8a8f98] block mb-1 font-medium">Tipo</label>
+                  <select 
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  >
+                    <option value="MEDICAMENTO">Medicamento</option>
+                    <option value="VITAMINA">Vitamina</option>
+                    <option value="SUPLEMENTO">Suplemento</option>
+                    <option value="FITOTERAPICO">Fitoterápico</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[#8a8f98] block mb-1 font-medium">Período</label>
+                  <select 
+                    value={formData.period}
+                    onChange={(e) => setFormData({ ...formData, period: e.target.value as any })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  >
+                    <option value="MANHA">Manhã</option>
+                    <option value="TARDE">Tarde</option>
+                    <option value="NOITE">Noite</option>
+                    <option value="MADRUGADA">Madrugada</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[#8a8f98] block mb-1 font-medium">Dosagem</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="Ex: 50mg, 1000 UI, 5ml"
+                    value={formData.dosage}
+                    onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[#8a8f98] block mb-1 font-medium">Horário da Dose</label>
+                  <input 
+                    type="time" 
+                    value={formData.time}
+                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[#8a8f98] block mb-1 font-medium">Estoque Inicial</label>
+                  <input 
+                    type="number" 
+                    value={formData.currentStock}
+                    onChange={(e) => setFormData({ ...formData, currentStock: Number(e.target.value) })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[#8a8f98] block mb-1 font-medium">Custo por Dose (R$)</label>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    value={formData.costPerUnit}
+                    onChange={(e) => setFormData({ ...formData, costPerUnit: Number(e.target.value) })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[#8a8f98] block mb-1 font-medium">Instruções de Uso</label>
+                <input 
+                  type="text" 
+                  placeholder="Ex: Tomar em jejum, Não tomar com leite"
+                  value={formData.instructions}
+                  onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
+                  className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-[#ffffff0e] space-y-2">
+                <label className="flex items-center space-x-2 text-xs text-[#f7f8f8] cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.notifyWhatsapp}
+                    onChange={(e) => setFormData({ ...formData, notifyWhatsapp: e.target.checked })}
+                    className="accent-[#5e6ad2] rounded"
+                  />
+                  <span>Enviar lembrete interativo via <strong>WhatsApp</strong> no horário</span>
+                </label>
+
+                <label className="flex items-center space-x-2 text-xs text-[#f7f8f8] cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.escalateToFamily}
+                    onChange={(e) => setFormData({ ...formData, escalateToFamily: e.target.checked })}
+                    className="accent-[#5e6ad2] rounded"
+                  />
+                  <span>Escalonar para <strong>Grupo Familiar</strong> se ignorar por 45min</span>
+                </label>
+              </div>
+
+              <div className="pt-3 flex justify-end space-x-2">
+                <button 
+                  type="button" 
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-3 py-1.5 rounded bg-[#16191e] hover:bg-[#1d2127] text-[#8a8f98] text-xs font-medium"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-4 py-1.5 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-xs font-medium"
+                >
+                  Salvar Medicamento
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Modal 2: WhatsApp Interactive Demo Modal */}
+      {isWhatsappDemoOpen && selectedMedForDemo && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-sm bg-[#0b141a] rounded-2xl border border-[#ffffff15] shadow-2xl overflow-hidden text-[#e9edef] font-sans">
+            
+            {/* WhatsApp Header */}
+            <div className="bg-[#202c33] p-3 flex items-center justify-between border-b border-[#ffffff10]">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-full bg-[#00a884] flex items-center justify-center text-white font-bold text-xs">
+                  Vita
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-[#e9edef]">Saúde & Finanças Vita IA</div>
+                  <div className="text-[10px] text-[#00a884]">Bot Oficial Verificado</div>
+                </div>
+              </div>
+              <button onClick={() => setIsWhatsappDemoOpen(false)} className="text-[#8696a0] hover:text-[#e9edef]">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* WhatsApp Chat Area */}
+            <div className="p-4 space-y-3 bg-[#0b141a] text-xs">
+              <div className="bg-[#202c33] p-3 rounded-lg space-y-2 border border-[#ffffff0a]">
+                <div className="font-bold text-[#00a884] flex items-center gap-1.5">
+                  <Pill className="w-3.5 h-3.5" /> Lembrete de Medicamento!
+                </div>
+                <div className="text-[#e9edef]">
+                  Olá! Chegou a hora de tomar seu medicamento:
+                </div>
+                <div className="bg-[#111b21] p-2 rounded text-[11px] font-mono space-y-0.5">
+                  <div><strong>💊 {selectedMedForDemo.name}</strong></div>
+                  <div className="text-[#8696a0]">Dose: {selectedMedForDemo.dosage}</div>
+                  <div className="text-[#8696a0]">Horário: {selectedMedForDemo.time}</div>
+                  <div className="text-[#00a884]">📝 {selectedMedForDemo.instructions}</div>
+                </div>
+                <div className="text-[10px] text-[#8696a0] text-right">08:00 ✓✓</div>
+              </div>
+
+              {/* Interactive WhatsApp Reply Buttons */}
+              <div className="space-y-1.5 pt-1">
+                <button 
+                  onClick={() => {
+                    handleMarkAsTaken(selectedMedForDemo.id);
+                    setIsWhatsappDemoOpen(false);
+                  }}
+                  className="w-full py-2 bg-[#202c33] hover:bg-[#00a884] hover:text-white text-[#00a884] font-medium rounded text-center transition border border-[#00a88440]"
+                >
+                  ✅ Marcar como Tomado
+                </button>
+                <button 
+                  onClick={() => setIsWhatsappDemoOpen(false)}
+                  className="w-full py-2 bg-[#202c33] hover:bg-[#2a3942] text-[#e9edef] font-medium rounded text-center transition border border-[#ffffff10]"
+                >
+                  ⏰ Adiar 30 minutos
+                </button>
+                <button 
+                  onClick={() => setIsWhatsappDemoOpen(false)}
+                  className="w-full py-2 bg-[#202c33] hover:bg-[#f8717120] text-[#f87171] font-medium rounded text-center transition border border-[#f8717130]"
+                >
+                  ❌ Pular esta dose
+                </button>
+              </div>
+            </div>
+
+            <div className="p-2 bg-[#111b21] text-center text-[10px] text-[#8696a0] border-t border-[#ffffff0a]">
+              🔒 Comunicação direta via Uazapi WhatsApp API
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
