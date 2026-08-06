@@ -31,11 +31,15 @@ ENV NODE_ENV=production
 
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
+COPY apps/api/prisma ./apps/api/prisma/
 
+# Install production dependencies only
+RUN npm install --omit=dev --legacy-peer-deps
+
+# Copy built distribution code and Prisma client
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
-COPY --from=builder /app/node_modules ./node_modules
+RUN npx prisma generate --schema=apps/api/prisma/schema.prisma
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "cd apps/api && (npx prisma db push --accept-data-loss --skip-generate || true) && (node dist/src/main.js || node dist/main.js)"]
+CMD ["sh", "-c", "cd apps/api && (node dist/src/main.js || node dist/main.js)"]

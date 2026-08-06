@@ -29,10 +29,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
 
+# Install production dependencies only
+RUN npm install --omit=dev --legacy-peer-deps
+
 COPY --from=builder /app/apps/web/.next ./apps/web/.next
 COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder /app/apps/web/next.config.mjs ./apps/web/
-COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3000
 
