@@ -97,6 +97,20 @@ export class IntakeDispatcherService {
         registeredItems.push({ type: 'MEDICATION', id: medicationLog.id });
       }
 
+      if (intent === 'LAB_EXAM') {
+        const examLog = await this.prisma.labExam.create({
+          data: {
+            userId,
+            title: 'Exame de Sangue / Laboratorial',
+            laboratory: 'Detectado via Vita IA',
+            examDate: new Date(),
+            aiProcessed: true,
+            aiInsight: classifiedData.vita_insight || 'Laudo de exame registrado com sucesso.',
+          },
+        });
+        registeredItems.push({ type: 'LAB_EXAM', id: examLog.id, description: 'Laudo Laboratorial' });
+      }
+
       return {
         intent: classifiedData.primary_intent,
         registeredItems,

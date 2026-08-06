@@ -21,7 +21,7 @@ export class IntakeClassifierService {
 Sua tarefa é classificar o texto fornecido e extrair os dados estruturados.
 Retorne um objeto JSON com a seguinte estrutura:
 {
-  "primary_intent": "FINANCE" | "NUTRITION" | "HEALTH" | "MEDICATION" | "HYBRID",
+  "primary_intent": "FINANCE" | "NUTRITION" | "HEALTH" | "MEDICATION" | "LAB_EXAM" | "HYBRID",
   "confidence": número de 0.0 a 1.0,
   "nutrition_data": { "meal_type": string, "items": [{"name": string, "weight_g": number, "calories": number, "protein_g": number, "carbs_g": number, "fat_g": number}], "total_calories": number } | null,
   "finance_data": { "transactions": [{"amount": number, "description": string, "category": string}] } | null,
@@ -36,6 +36,7 @@ Exemplos:
 - "Almocei arroz com feijão e bife" -> NUTRITION com items e calories
 - "Dormi 7 horas" -> HEALTH com dados de sono
 - "Tomei meu remédio da pressão" -> MEDICATION
+- "Segue meu laudo de exame de sangue Fleury" -> LAB_EXAM
 - "Gastei 30 reais no almoço, comi arroz feijão e bife" -> HYBRID (ambos FINANCE e NUTRITION preenchidos)
 `;
 

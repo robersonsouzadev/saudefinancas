@@ -17,6 +17,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { InvestmentsModule } from './modules/investments/investments.module';
 import { MedicationsModule } from './modules/medications/medications.module';
 import { MultimodalIntakeModule } from './modules/multimodal-intake/multimodal-intake.module';
+import { LabExamsModule } from './modules/lab-exams/lab-exams.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { MultimodalIntakeModule } from './modules/multimodal-intake/multimodal-i
     InvestmentsModule,
     MedicationsModule,
     MultimodalIntakeModule,
+    LabExamsModule,
   ],
 })
 export class AppModule {}

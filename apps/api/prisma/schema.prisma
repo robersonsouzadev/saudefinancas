@@ -38,6 +38,7 @@ model User {
   investmentAssets      InvestmentAsset[]
   medications           Medication[]
   medicationLogs        MedicationIntakeLog[]
+  labExams              LabExam[]
 }
 
 model FamilyGroup {
@@ -422,4 +423,94 @@ enum IntakeStatus {
   ATRASADO
   PULADO
 }
+
+// ═══════════════════════════════════════════
+// EXAMES LABORATORIAIS & BIOMARCADORES
+// ═══════════════════════════════════════════
+
+model LabExam {
+  id           String          @id @default(uuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+  title        String
+  laboratory   String?
+  examDate     DateTime        @default(now())
+  sourceType   ExamSourceType  @default(PHOTO)
+  originalFile String?
+  aiProcessed  Boolean         @default(false)
+  aiInsight    String?
+  phenoAge     Float?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  results      LabResult[]
+}
+
+model LabResult {
+  id            String            @id @default(uuid())
+  examId        String
+  exam          LabExam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  biomarkerKey  String
+  biomarkerName String
+  category      BiomarkerCategory @default(METABOLICO)
+  value         Float
+  unit          String
+  referenceMin  Float?
+  referenceMax  Float?
+  optimalMin    Float?
+  optimalMax    Float?
+  status        BiomarkerStatus   @default(NORMAL)
+  delta         Float?
+  previousValue Float?
+  createdAt     DateTime          @default(now())
+
+  @@index([examId, biomarkerKey])
+}
+
+model BiomarkerReference {
+  id           String            @id @default(uuid())
+  key          String            @unique
+  name         String
+  category     BiomarkerCategory
+  defaultUnit  String
+  standardMin  Float?
+  standardMax  Float?
+  optimalMin   Float?
+  optimalMax   Float?
+  criticalLow  Float?
+  criticalHigh Float?
+  synonyms     String?
+  description  String?
+}
+
+enum ExamSourceType {
+  PHOTO
+  PDF
+  MANUAL
+  WHATSAPP
+}
+
+enum BiomarkerCategory {
+  HEMOGRAMA
+  LIPIDIOS
+  METABOLICO
+  TIREOIDE
+  HEPATICO
+  RENAL
+  VITAMINAS_MINERAIS
+  HORMONIOS
+  INFLAMACAO
+  MARCADORES_TUMORAIS
+  URINARIO
+  OUTROS
+}
+
+enum BiomarkerStatus {
+  CRITICO_BAIXO
+  BAIXO
+  NORMAL
+  OTIMO
+  ALTO
+  CRITICO_ALTO
+}
+
 
