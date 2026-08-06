@@ -13,9 +13,53 @@ export class AgentsService {
   ) {}
 
   async listAgents() {
-    return this.prisma.agent.findMany({
+    let agents = await this.prisma.agent.findMany({
       orderBy: { createdAt: 'asc' },
     });
+
+    if (agents.length === 0) {
+      const defaultList = [
+        {
+          name: 'Dra. Maya — Saúde & Longevidade',
+          description: 'Especialista em saúde física, biometria e longevidade.',
+          systemPrompt: 'Seu nome é Dra. Maya. Você é a especialista em saúde física, sono e longevidade do sistema Saúde & Finanças. Sua função é analisar indicadores biológicos, orientar rotinas saudáveis e prevenir estresse metabólico.',
+          modelName: 'gpt-4o-mini',
+          temperature: 0.7,
+        },
+        {
+          name: 'Otávio — Estrategista Financeiro',
+          description: 'Consultor orçamentário e analista de investimentos.',
+          systemPrompt: 'Seu nome é Otávio. Você é o consultor financeiro e estrategista orçamentário. Sua função é analisar extratos, identificar despesas e sugerir metas de economia.',
+          modelName: 'gpt-4o-mini',
+          temperature: 0.5,
+        },
+        {
+          name: 'Nutri Bia — Nutrição Integrativa',
+          description: 'Nutricionista responsável pela análise de macronutrientes.',
+          systemPrompt: 'Seu nome é Nutri Bia. Você é a nutricionista integrativa responsável pela análise de refeições por foto, contagem de macronutrientes e ajuste calórico personalizado.',
+          modelName: 'gpt-4o-mini',
+          temperature: 0.6,
+        },
+        {
+          name: 'Vita — Assistente Principal (Orquestrador)',
+          description: 'Agente master que correlaciona saúde com finanças.',
+          systemPrompt: 'Seu nome é Vita. Você é a assistente orquestradora principal do sistema Saúde & Finanças. Você correlaciona os dados de saúde com finanças e coordena a comunicação.',
+          modelName: 'gpt-4o',
+          temperature: 0.7,
+          isDefault: true,
+        },
+      ];
+
+      for (const ag of defaultList) {
+        await this.prisma.agent.create({ data: ag });
+      }
+
+      agents = await this.prisma.agent.findMany({
+        orderBy: { createdAt: 'asc' },
+      });
+    }
+
+    return agents;
   }
 
   async getAgent(id: string) {
@@ -38,7 +82,21 @@ export class AgentsService {
   }
 
   async updateAgent(id: string, data: any) {
-    await this.getAgent(id);
+    const existing = await this.prisma.agent.findUnique({ where: { id } });
+
+    if (!existing) {
+      return this.prisma.agent.create({
+        data: {
+          name: data.name || 'Agente Especialista',
+          description: data.description || '',
+          systemPrompt: data.systemPrompt || 'Você é um assistente atencioso.',
+          modelName: data.modelName || 'gpt-4o-mini',
+          temperature: data.temperature !== undefined ? parseFloat(data.temperature) : 0.7,
+          isDefault: data.isDefault || false,
+        },
+      });
+    }
+
     return this.prisma.agent.update({
       where: { id },
       data: {
@@ -53,7 +111,8 @@ export class AgentsService {
   }
 
   async deleteAgent(id: string) {
-    await this.getAgent(id);
+    const existing = await this.prisma.agent.findUnique({ where: { id } });
+    if (!existing) return { success: true };
     return this.prisma.agent.delete({ where: { id } });
   }
 
