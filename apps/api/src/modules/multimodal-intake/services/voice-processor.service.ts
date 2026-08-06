@@ -17,7 +17,7 @@ export class VoiceProcessorService {
     try {
       this.logger.log(`Transcribing audio of type ${mimeType}, size ${audioBuffer.length} bytes`);
       
-      const file = await toFile(audioBuffer, 'audio.webm', { type: mimeType });
+      const file = new File([audioBuffer as any], 'audio.webm', { type: mimeType });
       
       const response = await this.openai.audio.transcriptions.create({
         file,
