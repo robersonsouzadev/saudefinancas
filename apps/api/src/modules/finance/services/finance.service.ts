@@ -82,14 +82,7 @@ export class FinanceService {
 
     const account = await this.getOrCreateAccount(userId);
 
-    // 1. Revert old transaction balance impact (assume expense unless marked income)
-    const oldAmount = tx.amount;
-    await this.prisma.financialAccount.update({
-      where: { id: account.id },
-      data: { balance: { increment: oldAmount } },
-    });
-
-    // 2. Prepare category
+    // Prepare category
     const catName = data.category || tx.category?.name || 'Outros';
     let category = await this.prisma.transactionCategory.findFirst({
       where: { name: catName },
@@ -100,8 +93,8 @@ export class FinanceService {
       });
     }
 
-    // 3. Update transaction record
-    const newAmount = Math.abs(parseFloat(data.amount) || oldAmount);
+    // Update transaction record
+    const newAmount = Math.abs(parseFloat(data.amount) || tx.amount);
     const updatedTx = await this.prisma.transaction.update({
       where: { id: transactionId },
       data: {
@@ -113,14 +106,8 @@ export class FinanceService {
       include: { category: true },
     });
 
-    // 4. Apply new balance impact (assume expense)
-    const isExpense = data.type !== 'INCOME';
-    const balanceDelta = isExpense ? -newAmount : newAmount;
-
-    await this.prisma.financialAccount.update({
-      where: { id: account.id },
-      data: { balance: { increment: balanceDelta } },
-    });
+    // Recalculate full balance
+    await this.recalculateAccountBalance(userId);
 
     return updatedTx;
   }
@@ -161,12 +148,20 @@ export class FinanceService {
       categoryBreakdown[catName] = (categoryBreakdown[catName] || 0) + t.amount;
     }
 
+    const netBalance = txs.length > 0 ? (totalIncome - totalExpenses) : 0;
     const account = await this.getOrCreateAccount(userId);
+
+    if (account.balance !== netBalance) {
+      await this.prisma.financialAccount.update({
+        where: { id: account.id },
+        data: { balance: netBalance },
+      });
+    }
 
     return {
       totalIncome,
       totalExpenses,
-      netBalance: account.balance,
+      netBalance,
       categoryBreakdown,
     };
   }
@@ -177,18 +172,29 @@ export class FinanceService {
     });
     if (!tx) throw new NotFoundException('Transação não encontrada');
 
-    const account = await this.getOrCreateAccount(userId);
-
-    // Revert transaction balance impact (add amount back to balance)
-    await this.prisma.financialAccount.update({
-      where: { id: account.id },
-      data: { balance: { increment: tx.amount } },
-    });
-
     await this.prisma.transaction.delete({
       where: { id: transactionId },
     });
 
+    await this.recalculateAccountBalance(userId);
+
     return { success: true };
+  }
+
+  private async recalculateAccountBalance(userId: string) {
+    const account = await this.getOrCreateAccount(userId);
+    const txs = await this.prisma.transaction.findMany({
+      where: { userId },
+    });
+
+    let balance = 0;
+    for (const t of txs) {
+      balance -= t.amount; // default to expense
+    }
+
+    await this.prisma.financialAccount.update({
+      where: { id: account.id },
+      data: { balance },
+    });
   }
 }
