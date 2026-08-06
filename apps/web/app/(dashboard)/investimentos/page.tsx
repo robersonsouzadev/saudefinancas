@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { 
   TrendingUp, Plus, DollarSign, PieChart, Sparkles, 
-  ArrowUpRight, ArrowDownRight, Layers, Building2, Calculator, Check, AlertCircle, ShieldCheck
+  ArrowUpRight, ArrowDownRight, Layers, Building2, Calculator, Check, AlertCircle, ShieldCheck, Edit3, Trash2
 } from 'lucide-react';
 
 interface AssetItem {
@@ -18,15 +18,12 @@ interface AssetItem {
   targetPercent: number;
 }
 
-const initialAssets: AssetItem[] = [
-  { id: '1', ticker: 'HGLG11', name: 'CSHG Logística FII', type: 'FII', broker: 'XP Investimentos', quantity: 20, averagePrice: 160.00, currentPrice: 164.50, targetPercent: 35 },
-  { id: '2', ticker: 'PETR4', name: 'Petróleo Brasileiro S.A.', type: 'ACAO', broker: 'XP Investimentos', quantity: 100, averagePrice: 35.50, currentPrice: 38.20, targetPercent: 25 },
-  { id: '3', ticker: 'CDB XP 110% CDI', name: 'CDB Banco XP S.A.', type: 'RENDA_FIXA', broker: 'XP Investimentos', quantity: 1, averagePrice: 5000.00, currentPrice: 5240.00, targetPercent: 40 },
-];
+const initialAssets: AssetItem[] = [];
 
 export default function InvestimentosPage() {
   const [assets, setAssets] = useState<AssetItem[]>(initialAssets);
   const [showModal, setShowModal] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<AssetItem | null>(null);
   const [showAdviceModal, setShowAdviceModal] = useState(false);
   const [availableContribution, setAvailableContribution] = useState(1500);
 
@@ -37,6 +34,7 @@ export default function InvestimentosPage() {
   const [broker, setBroker] = useState('XP Investimentos');
   const [quantity, setQuantity] = useState('');
   const [averagePrice, setAveragePrice] = useState('');
+  const [currentPriceInput, setCurrentPriceInput] = useState('');
   const [targetPercent, setTargetPercent] = useState('');
 
   // Computations
@@ -45,33 +43,73 @@ export default function InvestimentosPage() {
   const totalProfit = currentTotalValue - totalInvested;
   const profitPercentage = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
 
-  const handleAddAsset = (e: React.FormEvent) => {
+  const handleOpenAdd = () => {
+    setEditingAsset(null);
+    setTicker('');
+    setName('');
+    setType('FII');
+    setBroker('XP Investimentos');
+    setQuantity('');
+    setAveragePrice('');
+    setCurrentPriceInput('');
+    setTargetPercent('');
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (asset: AssetItem) => {
+    setEditingAsset(asset);
+    setTicker(asset.ticker);
+    setName(asset.name);
+    setType(asset.type);
+    setBroker(asset.broker);
+    setQuantity(String(asset.quantity));
+    setAveragePrice(String(asset.averagePrice));
+    setCurrentPriceInput(String(asset.currentPrice));
+    setTargetPercent(String(asset.targetPercent));
+    setShowModal(true);
+  };
+
+  const handleSaveAsset = (e: React.FormEvent) => {
     e.preventDefault();
     if (!ticker || !quantity || !averagePrice) return;
 
     const qty = parseFloat(quantity);
     const avg = parseFloat(averagePrice);
-    const curr = avg * 1.02; // initial market price estimate
+    const curr = currentPriceInput ? parseFloat(currentPriceInput) : (avg * 1.02);
 
-    const newAsset: AssetItem = {
-      id: String(Date.now()),
-      ticker: ticker.toUpperCase(),
-      name: name || ticker.toUpperCase(),
-      type,
-      broker,
-      quantity: qty,
-      averagePrice: avg,
-      currentPrice: curr,
-      targetPercent: parseFloat(targetPercent) || 10,
-    };
+    if (editingAsset) {
+      setAssets(assets.map(a => a.id === editingAsset.id ? {
+        ...a,
+        ticker: ticker.toUpperCase(),
+        name: name || ticker.toUpperCase(),
+        type,
+        broker,
+        quantity: qty,
+        averagePrice: avg,
+        currentPrice: curr,
+        targetPercent: parseFloat(targetPercent) || 10,
+      } : a));
+    } else {
+      const newAsset: AssetItem = {
+        id: String(Date.now()),
+        ticker: ticker.toUpperCase(),
+        name: name || ticker.toUpperCase(),
+        type,
+        broker,
+        quantity: qty,
+        averagePrice: avg,
+        currentPrice: curr,
+        targetPercent: parseFloat(targetPercent) || 10,
+      };
+      setAssets([...assets, newAsset]);
+    }
 
-    setAssets([...assets, newAsset]);
-    setTicker('');
-    setName('');
-    setQuantity('');
-    setAveragePrice('');
-    setTargetPercent('');
     setShowModal(false);
+  };
+
+  const handleDeleteAsset = (id: string) => {
+    if (!confirm('Deseja remover este ativo da carteira?')) return;
+    setAssets(assets.filter(a => a.id !== id));
   };
 
   // AI Rebalance Calculation Logic
@@ -116,7 +154,7 @@ export default function InvestimentosPage() {
             <span>IA Dicas de Aporte</span>
           </button>
           <button 
-            onClick={() => setShowModal(true)}
+            onClick={handleOpenAdd}
             className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -130,7 +168,7 @@ export default function InvestimentosPage() {
         <div className="linear-card p-4 space-y-2">
           <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Patrimônio Atual</span>
           <div className="text-3xl font-bold font-mono text-[#f7f8f8]">
-            R$ {currentTotalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            R$ {currentTotalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <span className="text-[11px] text-[#8a8f98] block">Avaliação a mercado</span>
         </div>
@@ -138,7 +176,7 @@ export default function InvestimentosPage() {
         <div className="linear-card p-4 space-y-2">
           <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Total Aportado</span>
           <div className="text-3xl font-bold font-mono text-[#8a8f98]">
-            R$ {totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            R$ {totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <span className="text-[11px] text-[#8a8f98] block">Custo acumulado de aquisição</span>
         </div>
@@ -146,7 +184,7 @@ export default function InvestimentosPage() {
         <div className="linear-card p-4 space-y-2">
           <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Rentabilidade Total</span>
           <div className={`text-3xl font-bold font-mono ${totalProfit >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-            {totalProfit >= 0 ? '+' : ''} R$ {totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            {totalProfit >= 0 ? '+' : ''} R$ {totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <span className="text-[11px] text-[#8a8f98] block">Lucro ou prejuízo não realizado</span>
         </div>
@@ -195,9 +233,17 @@ export default function InvestimentosPage() {
                         <span className="font-bold text-sm font-mono text-[#f7f8f8]">{a.ticker}</span>
                         <span className="text-[10px] text-[#8a8f98] block">{a.name}</span>
                       </div>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0f1115] border border-[#ffffff08] text-[#8a8f98]">
-                        {a.type}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0f1115] border border-[#ffffff08] text-[#8a8f98]">
+                          {a.type}
+                        </span>
+                        <button onClick={() => handleOpenEdit(a)} className="text-[#8a8f98] hover:text-[#5e6ad2]">
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => handleDeleteAsset(a.id)} className="text-[#8a8f98] hover:text-[#f87171]">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 py-1 border-t border-b border-[#ffffff08] text-[11px] font-mono">
@@ -236,6 +282,7 @@ export default function InvestimentosPage() {
                     <th className="pb-3 text-right">Cotação Atual</th>
                     <th className="pb-3 text-right">Total Investido</th>
                     <th className="pb-3 text-right">Resultado</th>
+                    <th className="pb-3 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#ffffff0a]">
@@ -264,6 +311,24 @@ export default function InvestimentosPage() {
                         <td className={`py-3 text-right font-mono font-bold ${profit >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
                           {profit >= 0 ? '+' : ''} R$ {profit.toFixed(2)} ({profitPct.toFixed(1)}%)
                         </td>
+                        <td className="py-3 text-right">
+                          <div className="flex items-center justify-end space-x-2">
+                            <button 
+                              onClick={() => handleOpenEdit(a)}
+                              className="p-1 text-[#8a8f98] hover:text-[#5e6ad2] transition"
+                              title="Editar Ativo"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteAsset(a.id)}
+                              className="p-1 text-[#8a8f98] hover:text-[#f87171] transition"
+                              title="Remover da Carteira"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}
@@ -274,16 +339,18 @@ export default function InvestimentosPage() {
         )}
       </div>
 
-      {/* Add Asset Modal */}
+      {/* Add / Edit Asset Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-md space-y-4 shadow-2xl">
             <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
-              <h3 className="font-semibold text-sm text-[#f7f8f8]">Cadastrar Novo Ativo na Carteira</h3>
+              <h3 className="font-semibold text-sm text-[#f7f8f8]">
+                {editingAsset ? 'Editar Ativo da Carteira' : 'Cadastrar Novo Ativo'}
+              </h3>
               <button onClick={() => setShowModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
             </div>
 
-            <form onSubmit={handleAddAsset} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveAsset} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Ticker / Código</label>
@@ -354,13 +421,14 @@ export default function InvestimentosPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Corretora</label>
+                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Cotação Atual (R$)</label>
                   <input 
-                    type="text" 
-                    value={broker}
-                    onChange={(e) => setBroker(e.target.value)}
-                    placeholder="XP Investimentos"
-                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none" 
+                    type="number" 
+                    step="0.01"
+                    value={currentPriceInput}
+                    onChange={(e) => setCurrentPriceInput(e.target.value)}
+                    placeholder="Auto (opcional)"
+                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none" 
                   />
                 </div>
 
@@ -388,7 +456,7 @@ export default function InvestimentosPage() {
                   type="submit"
                   className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm"
                 >
-                  Salvar Ativo
+                  {editingAsset ? 'Atualizar Ativo' : 'Salvar Ativo'}
                 </button>
               </div>
             </form>
@@ -427,19 +495,23 @@ export default function InvestimentosPage() {
               </div>
 
               <div className="space-y-2">
-                {adviceItems.map(item => (
-                  <div key={item.id} className="p-3 rounded bg-[#16191e] border border-[#ffffff0a] flex items-center justify-between font-mono">
-                    <div>
-                      <span className="font-bold text-[#f7f8f8]">{item.ticker}</span>
-                      <span className="text-[10px] text-[#8a8f98] block">Atual: {item.currentPercent}% (Meta: {item.targetPercent}%)</span>
-                    </div>
+                {adviceItems.length === 0 ? (
+                  <p className="text-center text-[#8a8f98] py-4">Nenhum ativo cadastrado para recomendar aporte.</p>
+                ) : (
+                  adviceItems.map(item => (
+                    <div key={item.id} className="p-3 rounded bg-[#16191e] border border-[#ffffff0a] flex items-center justify-between font-mono">
+                      <div>
+                        <span className="font-bold text-[#f7f8f8]">{item.ticker}</span>
+                        <span className="text-[10px] text-[#8a8f98] block">Atual: {item.currentPercent}% (Meta: {item.targetPercent}%)</span>
+                      </div>
 
-                    <div className="text-right">
-                      <span className="text-[#4ade80] font-bold">R$ {item.suggestedAmount.toLocaleString('pt-BR')}</span>
-                      <span className="text-[10px] text-[#8a8f98] block">Aporte Sugerido</span>
+                      <div className="text-right">
+                        <span className="text-[#4ade80] font-bold">R$ {item.suggestedAmount.toLocaleString('pt-BR')}</span>
+                        <span className="text-[10px] text-[#8a8f98] block">Aporte Sugerido</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               <div className="flex justify-end space-x-2 pt-2">
