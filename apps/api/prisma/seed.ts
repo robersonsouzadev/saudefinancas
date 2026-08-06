@@ -1,10 +1,40 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 import * as fs from 'fs';
 import * as path from 'path';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  console.log('Seeding Super Admin user...');
+  const adminEmail = 'robersonsouza@outlook.com';
+  const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+  
+  if (!existingAdmin) {
+    const hashedPassword = await bcrypt.hash('Mudar123!', 10);
+    await prisma.user.create({
+      data: {
+        email: adminEmail,
+        name: 'Roberson Souza (Super Admin)',
+        passwordHash: hashedPassword,
+        role: 'ADMIN',
+        isActive: true,
+        authProvider: 'LOCAL',
+      },
+    });
+    console.log(`Super Admin user created: ${adminEmail}`);
+  } else {
+    // Ensure Super Admin has ADMIN role and is active
+    await prisma.user.update({
+      where: { id: existingAdmin.id },
+      data: {
+        role: 'ADMIN',
+        isActive: true,
+      },
+    });
+    console.log(`Super Admin user verified/updated: ${adminEmail}`);
+  }
+
   console.log('Seeding specialized AI agents...');
   
   const agentsData = [

@@ -45,4 +45,4 @@ COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "cd apps/api && (npx prisma db push --schema=prisma/schema.prisma --skip-generate --accept-data-loss || true) && (node dist/src/main.js || node dist/main.js)"]
+CMD ["sh", "-c", "cd apps/api && (npx prisma db push --schema=prisma/schema.prisma --skip-generate --accept-data-loss || true) && (npx prisma db seed || true) && (node dist/src/main.js || node dist/main.js)"]
