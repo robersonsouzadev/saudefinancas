@@ -8,6 +8,7 @@ import {
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine 
 } from 'recharts';
+import { authFetch } from '@/lib/api';
 
 interface LabResultItem {
   id: string;
@@ -86,16 +87,15 @@ export default function LabExamsPage() {
   const fetchDashboardSummary = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/lab-exams/dashboard`, { credentials: 'include' });
-      if (res.ok) {
+      const res = await authFetch('/api/lab-exams/dashboard');
+      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
         const data = await res.json();
         setSummary(data);
       } else {
-        // Fallback demo data if endpoint is not returning data yet
-        setDemoSummary();
+        setEmptySummary();
       }
     } catch {
-      setDemoSummary();
+      setEmptySummary();
     } finally {
       setIsLoading(false);
     }
@@ -103,85 +103,27 @@ export default function LabExamsPage() {
 
   const fetchBiomarkerHistory = async (key: string) => {
     try {
-      const res = await fetch(`${API_BASE}/lab-exams/history/${key}`, { credentials: 'include' });
-      if (res.ok) {
+      const res = await authFetch(`/api/lab-exams/history/${key}`);
+      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
         const data = await res.json();
         setHistoryData(data);
       } else {
-        setDemoHistory(key);
+        setHistoryData([]);
       }
     } catch {
-      setDemoHistory(key);
+      setHistoryData([]);
     }
   };
 
-  const setDemoSummary = () => {
+  const setEmptySummary = () => {
     setSummary({
-      phenoAge: 31.4,
-      chronologicalAge: 35,
-      totalExams: 3,
-      totalBiomarkers: 24,
-      attentionCount: 3,
-      optimalCount: 18,
-      recentPatterns: [
-        {
-          title: 'Resistência Insulínica Leve Flagged',
-          description: 'Elevação combinada de Insulina de Jejum (8.2 µIU/mL) e Razão Triglicerídeos/HDL (3.2). Recomendado reduzir carboidratos refinados.',
-          severity: 'WARNING',
-        },
-        {
-          title: 'Perfil Lipídico Excelente',
-          description: 'Queda de 23% no LDL-C (88 mg/dL) e aumento de 12% no HDL-C (58 mg/dL) vs exame anterior.',
-          severity: 'INFO',
-        },
-      ],
-      recentExams: [
-        {
-          id: '1',
-          title: 'Hemograma Completo + Perfil Lipídico',
-          laboratory: 'Fleury Medicina Diagnóstica',
-          examDate: '2026-07-15T00:00:00.000Z',
-          phenoAge: 31.4,
-          aiInsight: 'Seus marcadores cardiovasculares apresentaram evolução significativa. O LDL-C reduziu de 115 para 88 mg/dL (-23.4%), enquanto o HDL subiu para 58 mg/dL. Atenção para a Insulina de Jejum que apresentou leve elevação (8.2 µIU/mL), sinalizando padrão inicial de resistência insulínica.',
-          results: [
-            { id: '101', biomarkerKey: 'GLUCOSE', biomarkerName: 'Glicose de Jejum', category: 'METABOLICO', value: 92, unit: 'mg/dL', referenceMin: 70, referenceMax: 99, optimalMin: 75, optimalMax: 86, status: 'NORMAL', delta: 4.5, previousValue: 88 },
-            { id: '102', biomarkerKey: 'INSULIN', biomarkerName: 'Insulina de Jejum', category: 'METABOLICO', value: 8.2, unit: 'µIU/mL', referenceMin: 2.6, referenceMax: 24.9, optimalMin: 2.0, optimalMax: 5.0, status: 'ALTO', delta: 34.4, previousValue: 6.1 },
-            { id: '103', biomarkerKey: 'HBA1C', biomarkerName: 'Hemoglobina Glicada (HbA1c)', category: 'METABOLICO', value: 5.1, unit: '%', referenceMin: 4.0, referenceMax: 5.6, optimalMin: 4.8, optimalMax: 5.2, status: 'OTIMO', delta: -3.7, previousValue: 5.3 },
-            { id: '104', biomarkerKey: 'HOMA_IR', biomarkerName: 'HOMA-IR', category: 'METABOLICO', value: 1.86, unit: 'índice', referenceMin: 0, referenceMax: 2.15, optimalMin: 0, optimalMax: 1.0, status: 'NORMAL', delta: 43.0, previousValue: 1.3 },
-            { id: '105', biomarkerKey: 'TOTAL_CHOLESTEROL', biomarkerName: 'Colesterol Total', category: 'LIPIDIOS', value: 185, unit: 'mg/dL', referenceMin: 0, referenceMax: 190, optimalMin: 160, optimalMax: 190, status: 'OTIMO', delta: -11.9, previousValue: 210 },
-            { id: '106', biomarkerKey: 'LDL', biomarkerName: 'LDL Colesterol', category: 'LIPIDIOS', value: 88, unit: 'mg/dL', referenceMin: 0, referenceMax: 130, optimalMin: 50, optimalMax: 90, status: 'OTIMO', delta: -23.4, previousValue: 115 },
-            { id: '107', biomarkerKey: 'HDL', biomarkerName: 'HDL Colesterol', category: 'LIPIDIOS', value: 58, unit: 'mg/dL', referenceMin: 40, referenceMax: 100, optimalMin: 50, optimalMax: 80, status: 'OTIMO', delta: 11.5, previousValue: 52 },
-            { id: '108', biomarkerKey: 'TRIGLYCERIDES', biomarkerName: 'Triglicerídeos', category: 'LIPIDIOS', value: 95, unit: 'mg/dL', referenceMin: 0, referenceMax: 150, optimalMin: 40, optimalMax: 80, status: 'NORMAL', delta: -33.1, previousValue: 142 },
-            { id: '109', biomarkerKey: 'VITAMIN_D', biomarkerName: '25-OH Vitamina D', category: 'VITAMINAS_MINERAIS', value: 48.5, unit: 'ng/mL', referenceMin: 20, referenceMax: 100, optimalMin: 40, optimalMax: 60, status: 'OTIMO', delta: 27.6, previousValue: 38.0 },
-            { id: '110', biomarkerKey: 'TSH', biomarkerName: 'Hormônio Tireoestimulante (TSH)', category: 'TIREOIDE', value: 1.85, unit: 'mIU/L', referenceMin: 0.4, referenceMax: 4.5, optimalMin: 1.0, optimalMax: 2.0, status: 'OTIMO', delta: -2.6, previousValue: 1.90 },
-            { id: '111', biomarkerKey: 'ALT', biomarkerName: 'TGP (ALT)', category: 'HEPATICO', value: 22, unit: 'U/L', referenceMin: 7, referenceMax: 56, optimalMin: 12, optimalMax: 25, status: 'OTIMO', delta: -12.0, previousValue: 25 },
-            { id: '112', biomarkerKey: 'HS_CRP', biomarkerName: 'Proteína C Reativa (PCR-us)', category: 'INFLAMACAO', value: 0.45, unit: 'mg/L', referenceMin: 0, referenceMax: 3.0, optimalMin: 0, optimalMax: 0.5, status: 'OTIMO', delta: -43.7, previousValue: 0.80 },
-          ],
-        },
-      ],
+      totalExams: 0,
+      totalBiomarkers: 0,
+      attentionCount: 0,
+      optimalCount: 0,
+      recentPatterns: [],
+      recentExams: [],
     });
-  };
-
-  const setDemoHistory = (key: string) => {
-    const demos: Record<string, any[]> = {
-      GLUCOSE: [
-        { date: 'Jan 2025', value: 96, optimalMax: 86, refMax: 99 },
-        { date: 'Jul 2025', value: 88, optimalMax: 86, refMax: 99 },
-        { date: 'Jan 2026', value: 90, optimalMax: 86, refMax: 99 },
-        { date: 'Jul 2026', value: 92, optimalMax: 86, refMax: 99 },
-      ],
-      LDL: [
-        { date: 'Jan 2025', value: 135, optimalMax: 90, refMax: 130 },
-        { date: 'Jul 2025', value: 115, optimalMax: 90, refMax: 130 },
-        { date: 'Jul 2026', value: 88, optimalMax: 90, refMax: 130 },
-      ],
-      INSULIN: [
-        { date: 'Jan 2025', value: 5.2, optimalMax: 5.0, refMax: 24.9 },
-        { date: 'Jul 2025', value: 6.1, optimalMax: 5.0, refMax: 24.9 },
-        { date: 'Jul 2026', value: 8.2, optimalMax: 5.0, refMax: 24.9 },
-      ],
-    };
-    setHistoryData(demos[key] || demos.GLUCOSE);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

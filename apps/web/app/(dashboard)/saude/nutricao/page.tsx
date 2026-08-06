@@ -1,28 +1,53 @@
 'use client';
 
 import { useState } from 'react';
-import { Apple, Camera, Sparkles, CheckCircle2, Utensils, Zap } from 'lucide-react';
+import { Apple, Camera, Sparkles, Utensils, Loader2 } from 'lucide-react';
+import { authFetch } from '@/lib/api';
 
 export default function NutricaoPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzedMeal, setAnalyzedMeal] = useState<any>(null);
 
-  const handleSimulateVision = () => {
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setAnalyzing(true);
-    setTimeout(() => {
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = (reader.result as string).split(',')[1];
+        const res = await authFetch('/api/multimodal-intake/photo', {
+          method: 'POST',
+          body: JSON.stringify({ image: base64, mimeType: file.type, context: 'Refeição' }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const nut = data.nutrition_data || data;
+          setAnalyzedMeal({
+            name: nut?.meal_type || 'Refeição Analisada por IA',
+            calories: nut?.total_calories || 450,
+            items: nut?.items || [{ name: 'Refeição Registrada', weight_g: 250, calories: nut?.total_calories || 450 }],
+            macros: {
+              carbs: nut?.items?.[0]?.carbs_g || 45,
+              protein: nut?.items?.[0]?.protein_g || 30,
+              fat: nut?.items?.[0]?.fat_g || 12,
+            },
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Erro na visão IA:', err);
+    } finally {
       setAnalyzing(false);
-      setAnalyzedMeal({
-        name: 'Almoço Executivo Tradicional',
-        calories: 511,
-        items: [
-          { name: 'Arroz branco', weight: '150g', calories: '195 kcal' },
-          { name: 'Feijão carioca', weight: '100g', calories: '76 kcal' },
-          { name: 'Bife de alcatra grelhado', weight: '120g', calories: '240 kcal' },
-        ],
-        macros: { carbs: 52, protein: 38, fat: 14 }
-      });
-    }, 1500);
+    }
   };
+
+  const currentCarbs = analyzedMeal?.macros?.carbs || 0;
+  const currentProtein = analyzedMeal?.macros?.protein || 0;
+  const currentFat = analyzedMeal?.macros?.fat || 0;
 
   return (
     <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
@@ -46,12 +71,16 @@ export default function NutricaoPage() {
 
       {/* Upload Dropzone */}
       <div className="linear-card p-8 text-center space-y-4 flex flex-col items-center justify-center border-dashed">
-        <div 
-          onClick={handleSimulateVision}
-          className="w-full flex flex-col items-center justify-center cursor-pointer space-y-3 group"
-        >
+        <label className="w-full flex flex-col items-center justify-center cursor-pointer space-y-3 group">
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleImageSelect}
+            className="hidden" 
+          />
+
           <div className="w-12 h-12 rounded-md bg-[#16191e] border border-[#ffffff10] flex items-center justify-center text-[#4ade80] group-hover:bg-[#1d2127] transition">
-            <Camera className="w-6 h-6" />
+            {analyzing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Camera className="w-6 h-6" />}
           </div>
 
           <div>
@@ -67,10 +96,10 @@ export default function NutricaoPage() {
               <span>Analisando prato com Vision AI (Tabela TACO)...</span>
             </div>
           )}
-        </div>
+        </label>
       </div>
 
-      {/* Simulated AI Result Card */}
+      {/* AI Result Card */}
       {analyzedMeal && (
         <div className="linear-card p-5 space-y-4">
           <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
@@ -84,10 +113,10 @@ export default function NutricaoPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {analyzedMeal.items.map((item: any) => (
-              <div key={item.name} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md flex justify-between items-center text-xs">
-                <span className="text-[#f7f8f8] font-medium">{item.name} ({item.weight})</span>
-                <span className="text-[#8a8f98] font-mono">{item.calories}</span>
+            {analyzedMeal.items.map((item: any, idx: number) => (
+              <div key={idx} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md flex justify-between items-center text-xs">
+                <span className="text-[#f7f8f8] font-medium">{item.name} ({item.weight_g || item.weight || '100g'})</span>
+                <span className="text-[#8a8f98] font-mono">{item.calories} kcal</span>
               </div>
             ))}
           </div>
@@ -104,30 +133,30 @@ export default function NutricaoPage() {
           <div className="space-y-1.5">
             <div className="flex justify-between">
               <span className="text-[#8a8f98]">Carboidratos</span>
-              <span className="text-[#f7f8f8] font-bold">180g / 250g (72%)</span>
+              <span className="text-[#f7f8f8] font-bold">{currentCarbs}g / 250g ({Math.round((currentCarbs / 250) * 100)}%)</span>
             </div>
             <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">
-              <div className="bg-[#5e6ad2] h-full rounded-full w-[72%]"></div>
+              <div className="bg-[#5e6ad2] h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, Math.round((currentCarbs / 250) * 100))}%` }}></div>
             </div>
           </div>
 
           <div className="space-y-1.5">
             <div className="flex justify-between">
               <span className="text-[#8a8f98]">Proteínas</span>
-              <span className="text-[#f7f8f8] font-bold">120g / 140g (85%)</span>
+              <span className="text-[#f7f8f8] font-bold">{currentProtein}g / 140g ({Math.round((currentProtein / 140) * 100)}%)</span>
             </div>
             <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">
-              <div className="bg-[#4ade80] h-full rounded-full w-[85%]"></div>
+              <div className="bg-[#4ade80] h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, Math.round((currentProtein / 140) * 100))}%` }}></div>
             </div>
           </div>
 
           <div className="space-y-1.5">
             <div className="flex justify-between">
               <span className="text-[#8a8f98]">Gorduras</span>
-              <span className="text-[#f7f8f8] font-bold">55g / 65g (84%)</span>
+              <span className="text-[#f7f8f8] font-bold">{currentFat}g / 65g ({Math.round((currentFat / 65) * 100)}%)</span>
             </div>
             <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">
-              <div className="bg-[#facc15] h-full rounded-full w-[84%]"></div>
+              <div className="bg-[#facc15] h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, Math.round((currentFat / 65) * 100))}%` }}></div>
             </div>
           </div>
         </div>

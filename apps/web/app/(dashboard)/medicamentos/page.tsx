@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Pill, Plus, Clock, CheckCircle2, AlertTriangle, ShieldAlert, 
   MessageSquare, DollarSign, Calendar, TrendingUp, Sparkles, 
   Sun, Sunset, Moon, Coffee, Edit3, Trash2, Check, X, Bell, UserCheck
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
+import { authFetch } from '@/lib/api';
 
 interface MedicationItem {
   id: string;
@@ -26,92 +27,41 @@ interface MedicationItem {
   color: string;
 }
 
-const initialMedications: MedicationItem[] = [
-  {
-    id: '1',
-    name: 'Losartana Potássica',
-    type: 'MEDICAMENTO',
-    dosage: '50mg',
-    unit: 'comprimido',
-    time: '08:00',
-    period: 'MANHA',
-    instructions: 'Tomar em jejum com água',
-    currentStock: 24,
-    stockAlertAt: 5,
-    costPerUnit: 0.85,
-    status: 'TOMADO',
-    notifyWhatsapp: true,
-    escalateToFamily: true,
-    color: '#f87171',
-  },
-  {
-    id: '2',
-    name: 'Vitamina D3 + K2',
-    type: 'VITAMINA',
-    dosage: '2000 UI',
-    unit: 'cápsula',
-    time: '08:30',
-    period: 'MANHA',
-    instructions: 'Tomar junto com o café da manhã',
-    currentStock: 3, // Low stock trigger!
-    stockAlertAt: 5,
-    costPerUnit: 1.20,
-    status: 'TOMADO',
-    notifyWhatsapp: true,
-    escalateToFamily: false,
-    color: '#facc15',
-  },
-  {
-    id: '3',
-    name: 'Ômega 3 Ultra Puro',
-    type: 'SUPLEMENTO',
-    dosage: '1000mg',
-    unit: 'cápsula',
-    time: '13:00',
-    period: 'TARDE',
-    instructions: 'Tomar com o almoço',
-    currentStock: 45,
-    stockAlertAt: 10,
-    costPerUnit: 1.50,
-    status: 'PENDENTE',
-    notifyWhatsapp: true,
-    escalateToFamily: false,
-    color: '#4ade80',
-  },
-  {
-    id: '4',
-    name: 'Magnésio Dimalato',
-    type: 'VITAMINA',
-    dosage: '400mg',
-    unit: 'cápsula',
-    time: '21:30',
-    period: 'NOITE',
-    instructions: 'Tomar 30 min antes de dormir',
-    currentStock: 18,
-    stockAlertAt: 7,
-    costPerUnit: 0.90,
-    status: 'PROXIMO',
-    notifyWhatsapp: true,
-    escalateToFamily: false,
-    color: '#60a5fa',
-  },
-];
+const initialMedications: MedicationItem[] = [];
 
 const adherenceTrendData = [
   { day: 'Seg', score: 100 },
-  { day: 'Ter', score: 85 },
+  { day: 'Ter', score: 100 },
   { day: 'Qua', score: 100 },
-  { day: 'Qui', score: 95 },
-  { day: 'Sex', score: 90 },
+  { day: 'Qui', score: 100 },
+  { day: 'Sex', score: 100 },
   { day: 'Sáb', score: 100 },
   { day: 'Dom', score: 100 },
 ];
 
 export default function MedicamentosPage() {
-  const [medications, setMedications] = useState<MedicationItem[]>(initialMedications);
+  const [medications, setMedications] = useState<MedicationItem[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isWhatsappDemoOpen, setIsWhatsappDemoOpen] = useState(false);
   const [selectedMedForDemo, setSelectedMedForDemo] = useState<MedicationItem | null>(null);
+
+  useEffect(() => {
+    fetchMedications();
+  }, []);
+
+  const fetchMedications = async () => {
+    try {
+      const res = await authFetch('/api/medications');
+      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setMedications(data);
+        }
+      }
+    } catch (err) {
+      console.log('Sem medicamentos cadastrados no banco');
+    }
+  };
 
   // Form State for new medication
   const [formData, setFormData] = useState({
