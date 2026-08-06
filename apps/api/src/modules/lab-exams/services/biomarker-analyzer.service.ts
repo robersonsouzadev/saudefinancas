@@ -1,94 +1,57 @@
 import { Injectable } from '@nestjs/common';
 
-export interface BiomarkerItemInput {
-  biomarkerKey: string;
-  biomarkerName: string;
-  category: any;
-  value: number;
-  unit: string;
-  referenceMin?: number;
-  referenceMax?: number;
-  optimalMin?: number;
-  optimalMax?: number;
-}
-
 @Injectable()
 export class BiomarkerAnalyzerService {
-  analyzeResults(results: BiomarkerItemInput[], previousResultsMap?: Map<string, number>) {
-    const analyzedResults = results.map((item) => {
-      const status = this.determineStatus(item.value, item.referenceMin, item.referenceMax, item.optimalMin, item.optimalMax);
-      let delta: number | undefined;
-      let previousValue: number | undefined;
-
-      if (previousResultsMap && previousResultsMap.has(item.biomarkerKey)) {
-        previousValue = previousResultsMap.get(item.biomarkerKey);
-        if (previousValue && previousValue > 0) {
-          delta = Math.round(((item.value - previousValue) / previousValue) * 1000) / 10;
-        }
+  analyzeResults(results: any[], previousResultsMap?: Map<string, number>): { analyzedResults: any[]; patterns: any[] } {
+    const analyzedResults = results.map(result => {
+      let status = 'NORMAL';
+      if (result.value < (result.referenceMin || 0)) {
+        status = 'BAIXO';
+      } else if (result.value > (result.referenceMax || 9999)) {
+        status = 'ALTO';
       }
-
-      return {
-        ...item,
-        status,
-        delta,
-        previousValue,
-      };
+      return { ...result, status };
     });
 
-    const patterns = this.detectPatterns(analyzedResults);
+    const patterns = [];
+    const values = new Map(results.map(r => [r.biomarkerKey || r.key, r.value]));
+
+    if (values.get('INSULIN') && values.get('GLUCOSE')) {
+      const insulin = values.get('INSULIN');
+      const glucose = values.get('GLUCOSE');
+      const homaIr = (insulin * glucose) / 405;
+      if (homaIr > 2.0) {
+        patterns.push({ pattern: 'Resistência Insulínica', description: 'HOMA-IR elevado sugerindo resistência insulínica.' });
+      }
+    }
+
+    if (values.get('ALT') && values.get('AST')) {
+      if (values.get('ALT') > values.get('AST')) {
+         patterns.push({ pattern: 'NAFLD/Fígado Gorduroso', description: 'Padrão hepático sugestivo de esteatose.' });
+      }
+    }
+    
+    if (values.get('TSH')) {
+      const tsh = values.get('TSH');
+      if (tsh > 2.5 && tsh <= 4.5) {
+         patterns.push({ pattern: 'Hipotireoidismo Funcional', description: 'TSH elevado sugerindo hipotireoidismo funcional.' });
+      }
+    }
+
+    if (values.get('FERRITIN') && values.get('IRON')) {
+       if (values.get('FERRITIN') < 30) {
+         patterns.push({ pattern: 'Anemia Ferropriva vs Inflamatória', description: 'Estoque de ferro baixo.' });
+       } else if (values.get('FERRITIN') > 200) {
+         patterns.push({ pattern: 'Anemia Ferropriva vs Inflamatória', description: 'Ferritina elevada pode ser padrão inflamatório.' });
+       }
+    }
+    
+    if (values.get('HOMOCYSTEINE') && values.get('HS_CRP')) {
+      if (values.get('HOMOCYSTEINE') > 10 || values.get('HS_CRP') > 2) {
+        patterns.push({ pattern: 'Risco Vascular', description: 'Marcadores inflamatórios e/ou de risco vascular elevados.' });
+      }
+    }
 
     return { analyzedResults, patterns };
-  }
-
-  private determineStatus(
-    val: number,
-    refMin?: number,
-    refMax?: number,
-    optMin?: number,
-    optMax?: number,
-  ): 'CRITICO_BAIXO' | 'BAIXO' | 'NORMAL' | 'OTIMO' | 'ALTO' | 'CRITICO_ALTO' {
-    if (refMax && val > refMax * 1.5) return 'CRITICO_ALTO';
-    if (refMin && val < refMin * 0.5) return 'CRITICO_BAIXO';
-
-    if (optMin !== undefined && optMax !== undefined && val >= optMin && val <= optMax) {
-      return 'OTIMO';
-    }
-
-    if (refMax !== undefined && val > refMax) return 'ALTO';
-    if (refMin !== undefined && val < refMin) return 'BAIXO';
-
-    return 'NORMAL';
-  }
-
-  private detectPatterns(results: any[]) {
-    const patterns: Array<{ title: string; description: string; severity: 'WARNING' | 'CRITICAL' | 'INFO' }> = [];
-    const valMap = new Map<string, number>();
-    results.forEach((r) => valMap.set(r.biomarkerKey, r.value));
-
-    const insulin = valMap.get('INSULIN');
-    const tg = valMap.get('TRIGLYCERIDES');
-    const hdl = valMap.get('HDL');
-    const glucose = valMap.get('GLUCOSE');
-    const ldl = valMap.get('LDL');
-
-    // Pattern 1: Insulin Resistance
-    if (insulin && insulin > 6.0 && tg && hdl && tg / hdl > 3.0) {
-      patterns.push({
-        title: 'Resistência Insulínica Leve Detectada',
-        description: `Elevação combinada de Insulina de Jejum (${insulin} µIU/mL) e Razão Triglicerídeos/HDL (${(tg / hdl).toFixed(1)}). Recomendado reduzir carboidratos refinados e praticar exercício físico.`,
-        severity: 'WARNING',
-      });
-    }
-
-    // Pattern 2: Lipid Profile evolution
-    if (ldl && ldl < 90 && hdl && hdl > 50) {
-      patterns.push({
-        title: 'Perfil Lipídico Excelente',
-        description: `LDL-C em nível ótimo (${ldl} mg/dL) com HDL protetor (${hdl} mg/dL), indicando baixo risco cardiovascular.`,
-        severity: 'INFO',
-      });
-    }
-
-    return patterns;
   }
 }

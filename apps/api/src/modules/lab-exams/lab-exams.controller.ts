@@ -1,4 +1,4 @@
-import { Controller, Get, POST, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LabExamsService } from './services/lab-exams.service';
 
@@ -7,7 +7,7 @@ import { LabExamsService } from './services/lab-exams.service';
 export class LabExamsController {
   constructor(private readonly labExamsService: LabExamsService) {}
 
-  @POST('upload')
+  @Post('upload')
   async uploadExam(
     @Req() req: any,
     @Body() body: { image: string; mimeType: string; title?: string },

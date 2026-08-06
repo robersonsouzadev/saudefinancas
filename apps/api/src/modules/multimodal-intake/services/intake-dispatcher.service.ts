@@ -1,21 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { LabExamsService } from '../../lab-exams/services/lab-exams.service';
 
 @Injectable()
 export class IntakeDispatcherService {
   private readonly logger = new Logger(IntakeDispatcherService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private labExamsService: LabExamsService,
+  ) {}
 
-  async dispatch(userId: string, classifiedData: any): Promise<any> {
+  async dispatch(userId: string, classifiedData: any, mediaData?: { imageBase64: string; mimeType: string }): Promise<any> {
     try {
       this.logger.log(`Dispatching intent ${classifiedData.primary_intent} for user ${userId}`);
       const intent = classifiedData.primary_intent;
-      const registeredItems = [];
+      const registeredItems: Array<{ type: string; id: string; description?: string }> = [];
 
       if (intent === 'FINANCE' || intent === 'HYBRID') {
         if (classifiedData.finance_data?.transactions?.length > 0) {
-          // Find or create default financial account
           let account = await this.prisma.financialAccount.findFirst({
             where: { userId },
           });
@@ -27,7 +30,7 @@ export class IntakeDispatcherService {
                 name: 'Conta Principal',
                 type: 'CHECKING',
                 balance: 0,
-              },
+              } as any,
             });
           }
 
@@ -41,7 +44,7 @@ export class IntakeDispatcherService {
                 type: 'EXPENSE',
                 category: tx.category || 'Outros',
                 date: new Date(),
-              },
+              } as any,
             });
             registeredItems.push({ type: 'FINANCE', id: transaction.id, description: tx.description });
           }
@@ -50,16 +53,14 @@ export class IntakeDispatcherService {
 
       if (intent === 'NUTRITION' || intent === 'HYBRID') {
         if (classifiedData.nutrition_data) {
-          const mealType = classifiedData.nutrition_data.meal_type || 'SNACK';
-          
           const mealLog = await this.prisma.mealLog.create({
             data: {
               userId,
-              mealType,
+              mealType: classifiedData.nutrition_data.meal_type,
               date: new Date(),
               totalCalories: classifiedData.nutrition_data.total_calories || 0,
               items: {
-                create: (classifiedData.nutrition_data.items || []).map(item => ({
+                create: (classifiedData.nutrition_data.items || []).map((item: any) => ({
                   name: item.name,
                   weightG: item.weight_g || 0,
                   calories: item.calories || 0,
@@ -68,9 +69,9 @@ export class IntakeDispatcherService {
                   fatG: item.fat_g || 0,
                 })),
               },
-            },
+            } as any,
           });
-          registeredItems.push({ type: 'NUTRITION', id: mealLog.id, mealType });
+          registeredItems.push({ type: 'NUTRITION', id: mealLog.id, description: 'Refeição registrada' });
         }
       }
 
@@ -80,35 +81,51 @@ export class IntakeDispatcherService {
             userId,
             date: new Date(),
             notes: 'Registro criado via assistente',
-          },
+          } as any,
         });
-        registeredItems.push({ type: 'HEALTH', id: healthLog.id });
+        registeredItems.push({ type: 'HEALTH', id: healthLog.id, description: 'Métrica de saúde' });
       }
 
       if (intent === 'MEDICATION') {
-        const medicationLog = await this.prisma.medicationIntakeLog.create({
-          data: {
-            userId,
-            takenAt: new Date(),
-            status: 'TAKEN',
-            notes: 'Registrado via assistente',
-          },
-        });
-        registeredItems.push({ type: 'MEDICATION', id: medicationLog.id });
+        // Find user's first medication or create log
+        const med = await this.prisma.medication.findFirst({ where: { userId } });
+        if (med) {
+          const medicationLog = await this.prisma.medicationIntakeLog.create({
+            data: {
+              medicationId: med.id,
+              userId,
+              scheduledAt: new Date(),
+              loggedAt: new Date(),
+              status: 'TOMADO',
+            },
+          });
+          registeredItems.push({ type: 'MEDICATION', id: medicationLog.id, description: `Medicamento: ${med.name}` });
+        }
       }
 
       if (intent === 'LAB_EXAM') {
-        const examLog = await this.prisma.labExam.create({
-          data: {
-            userId,
-            title: 'Exame de Sangue / Laboratorial',
-            laboratory: 'Detectado via Vita IA',
-            examDate: new Date(),
-            aiProcessed: true,
-            aiInsight: classifiedData.vita_insight || 'Laudo de exame registrado com sucesso.',
-          },
-        });
-        registeredItems.push({ type: 'LAB_EXAM', id: examLog.id, description: 'Laudo Laboratorial' });
+        if (mediaData?.imageBase64 && mediaData?.mimeType) {
+          this.logger.log('Delegating LAB_EXAM to LabExamsService');
+          const result = await this.labExamsService.createExamFromOCR(
+            userId, 
+            mediaData.imageBase64, 
+            mediaData.mimeType, 
+            'Exame Laboratorial via Assistente'
+          );
+          registeredItems.push({ type: 'LAB_EXAM', id: result.exam.id, description: result.exam.title });
+        } else {
+          const examLog = await this.prisma.labExam.create({
+            data: {
+              userId,
+              title: 'Exame de Sangue / Laboratorial',
+              laboratory: 'Detectado via Vita IA',
+              examDate: new Date(),
+              aiProcessed: true,
+              aiInsight: classifiedData.vita_insight || 'Laudo registrado com sucesso.',
+            },
+          });
+          registeredItems.push({ type: 'LAB_EXAM', id: examLog.id, description: 'Laudo Laboratorial' });
+        }
       }
 
       return {

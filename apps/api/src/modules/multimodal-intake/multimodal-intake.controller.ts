@@ -18,7 +18,7 @@ export class MultimodalIntakeController {
 
   @Post('voice')
   @UseInterceptors(FileInterceptor('audio'))
-  async processVoice(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
+  async processVoice(@Req() req: any, @UploadedFile() file: any) {
     if (!file) {
       throw new BadRequestException('Audio file is required');
     }
@@ -40,7 +40,7 @@ export class MultimodalIntakeController {
 
     const userId = req.user.id;
     const classifiedData = await this.visionProcessor.analyzeImage(body.image, body.mimeType, body.context);
-    return this.intakeDispatcher.dispatch(userId, classifiedData);
+    return this.intakeDispatcher.dispatch(userId, classifiedData, { imageBase64: body.image, mimeType: body.mimeType });
   }
 
   @Post('text')
