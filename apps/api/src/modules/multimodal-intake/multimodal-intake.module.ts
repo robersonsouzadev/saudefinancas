@@ -6,6 +6,7 @@ import { VisionProcessorService } from './services/vision-processor.service';
 import { IntakeClassifierService } from './services/intake-classifier.service';
 import { IntakeDispatcherService } from './services/intake-dispatcher.service';
 import { LabExamsModule } from '../lab-exams/lab-exams.module';
+import { EncryptionService } from '../../common/services/encryption.service';
 
 @Module({
   imports: [PrismaModule, LabExamsModule],
@@ -15,6 +16,7 @@ import { LabExamsModule } from '../lab-exams/lab-exams.module';
     VisionProcessorService,
     IntakeClassifierService,
     IntakeDispatcherService,
+    EncryptionService,
   ],
   exports: [IntakeDispatcherService],
 })

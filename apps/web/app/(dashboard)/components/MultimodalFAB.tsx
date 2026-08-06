@@ -5,6 +5,7 @@ import {
   Mic, Camera, Type, X, Send, Loader2, CheckCircle2, 
   Image, FileText, Paperclip, Square, AlertCircle
 } from 'lucide-react';
+import { authFetch, getAuthToken } from '@/lib/api';
 
 type TabType = 'voice' | 'photo' | 'text';
 type ProcessingStatus = 'idle' | 'recording' | 'processing' | 'success' | 'error';
@@ -86,16 +87,23 @@ export default function MultimodalFAB() {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
 
-      const res = await fetch(`${API_BASE}/multimodal-intake/voice`, {
+      const token = getAuthToken();
+      const res = await fetch('/api/multimodal-intake/voice', {
         method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
-        credentials: 'include',
       });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || 'Erro ao processar áudio.');
+      }
+
       const data = await res.json();
       setResult(data);
       setStatus('success');
-    } catch {
-      setErrorMsg('Erro ao processar áudio. Tente novamente.');
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Erro ao processar áudio. Tente novamente.');
       setStatus('error');
     }
   };
@@ -120,17 +128,21 @@ export default function MultimodalFAB() {
     setStatus('processing');
     try {
       const base64 = imagePreview.split(',')[1];
-      const res = await fetch(`${API_BASE}/multimodal-intake/photo`, {
+      const res = await authFetch('/api/multimodal-intake/photo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: base64, mimeType: imageMimeType, context: imageContext }),
-        credentials: 'include',
       });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || 'Erro ao processar imagem.');
+      }
+
       const data = await res.json();
       setResult(data);
       setStatus('success');
-    } catch {
-      setErrorMsg('Erro ao processar imagem. Tente novamente.');
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Erro ao processar imagem. Tente novamente.');
       setStatus('error');
     }
   };
@@ -142,17 +154,21 @@ export default function MultimodalFAB() {
     if (!textInput.trim()) return;
     setStatus('processing');
     try {
-      const res = await fetch(`${API_BASE}/multimodal-intake/text`, {
+      const res = await authFetch('/api/multimodal-intake/text', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: textInput }),
-        credentials: 'include',
       });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || 'Erro ao processar texto.');
+      }
+
       const data = await res.json();
       setResult(data);
       setStatus('success');
-    } catch {
-      setErrorMsg('Erro ao processar texto. Tente novamente.');
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Erro ao processar texto. Tente novamente.');
       setStatus('error');
     }
   };
