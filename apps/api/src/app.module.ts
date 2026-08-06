@@ -16,6 +16,7 @@ import { InsightsModule } from './modules/insights/insights.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { InvestmentsModule } from './modules/investments/investments.module';
 import { MedicationsModule } from './modules/medications/medications.module';
+import { MultimodalIntakeModule } from './modules/multimodal-intake/multimodal-intake.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { MedicationsModule } from './modules/medications/medications.module';
     DashboardModule,
     InvestmentsModule,
     MedicationsModule,
+    MultimodalIntakeModule,
   ],
 })
 export class AppModule {}

@@ -8,6 +8,7 @@ import {
   Apple, Wallet, TrendingUp, Sparkles, Users, UserCheck, MessageSquare, 
   Settings, LogOut, ChevronDown, Search, Command, Menu, X, Pill
 } from 'lucide-react';
+import MultimodalFAB from './components/MultimodalFAB';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -364,6 +365,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </div>
       </main>
+
+      {/* Vita IA — Floating Action Button (Global) */}
+      <MultimodalFAB />
     </div>
   );
 }
