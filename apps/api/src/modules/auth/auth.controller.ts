@@ -1,10 +1,15 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { GoogleAuthGuard } from './google-auth.guard';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Post('register')
   async register(@Body() body: any) {
@@ -14,6 +19,25 @@ export class AuthController {
   @Post('login')
   async login(@Body() body: any) {
     return this.authService.login(body);
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuth() {
+    // Passport initiates redirect to Google
+  }
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuthCallback(@Request() req: any, @Res() res: any) {
+    const authResult = req.user; // { access_token, user }
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    
+    if (authResult?.access_token) {
+      return res.redirect(`${frontendUrl}/auth/callback?token=${authResult.access_token}`);
+    } else {
+      return res.redirect(`${frontendUrl}/login?error=google_failed`);
+    }
   }
 
   @Post('forgot-password')
@@ -32,3 +56,4 @@ export class AuthController {
     return req.user;
   }
 }
+

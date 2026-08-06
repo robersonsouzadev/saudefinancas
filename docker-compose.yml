@@ -50,6 +50,10 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL:-https://app.robersonsouza.com.br/api/auth/google/callback}
+      - FRONTEND_URL=${FRONTEND_URL:-https://app.robersonsouza.com.br}
     depends_on:
       sf-db:
         condition: service_healthy

@@ -52,10 +52,67 @@ export class AuthService {
     if (!user || !user.isActive) {
       throw new UnauthorizedException('Credenciais inválidas ou usuário inativo');
     }
+    if (!user.passwordHash) {
+      throw new BadRequestException('Esta conta utiliza login pelo Google. Por favor, entre com sua conta Google.');
+    }
     const isPasswordValid = await bcrypt.compare(data.password, user.passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
+    return this.generateToken(user);
+  }
+
+  async validateOrCreateGoogleUser(profile: any) {
+    const { id, emails, displayName, photos } = profile;
+    const email = emails && emails[0] ? emails[0].value.toLowerCase() : null;
+
+    if (!email) {
+      throw new BadRequestException('Email não fornecido pela conta Google');
+    }
+
+    // 1. Check if user exists by googleId
+    let user = await this.prisma.user.findUnique({
+      where: { googleId: id },
+    });
+
+    if (user) {
+      return this.generateToken(user);
+    }
+
+    // 2. Check if user exists by email (account linking)
+    user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (user) {
+      // Link googleId to existing local user
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          googleId: id,
+          authProvider: 'GOOGLE',
+          avatarUrl: user.avatarUrl || (photos && photos[0] ? photos[0].value : null),
+        },
+      });
+      return this.generateToken(user);
+    }
+
+    // 3. Create new user for Google login
+    const count = await this.prisma.user.count();
+    const role = count === 0 ? 'ADMIN' : 'MEMBER';
+    const avatarUrl = photos && photos[0] ? photos[0].value : null;
+
+    user = await this.prisma.user.create({
+      data: {
+        email,
+        name: displayName || email.split('@')[0],
+        googleId: id,
+        authProvider: 'GOOGLE',
+        avatarUrl,
+        role,
+      },
+    });
+
     return this.generateToken(user);
   }
 

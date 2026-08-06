@@ -9,10 +9,15 @@ import {
   Settings, LogOut, ChevronDown, Search, Command, Menu, X, Pill, TestTube
 } from 'lucide-react';
 import MultimodalFAB from './components/MultimodalFAB';
+import { useAuth } from '../providers/AuthProvider';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user, isLoading, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const displayName = user?.name || user?.email?.split('@')[0] || 'Usuário';
+  const initial = displayName.charAt(0).toUpperCase();
 
   const isActive = (path: string) => pathname === path;
 
@@ -286,16 +291,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         <div className="p-2 border-t border-[#ffffff0e] flex items-center justify-between">
-          <div className="flex items-center space-x-2 px-1 py-1">
-            <div className="w-6 h-6 rounded-full bg-[#1e2229] border border-[#ffffff12] flex items-center justify-center text-[10px] font-bold text-[#f7f8f8]">
-              R
-            </div>
-            <span className="text-[12px] font-medium text-[#8a8f98] truncate max-w-[110px]">Roberson</span>
+          <div className="flex items-center space-x-2 px-1 py-1 overflow-hidden">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={displayName} className="w-6 h-6 rounded-full object-cover border border-[#ffffff12]" />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-[#1e2229] border border-[#ffffff12] flex items-center justify-center text-[10px] font-bold text-[#f7f8f8]">
+                {initial}
+              </div>
+            )}
+            <span className="text-[12px] font-medium text-[#8a8f98] truncate max-w-[110px]">{displayName}</span>
           </div>
 
-          <Link href="/login" className="p-1 hover:text-rose-400 text-[#575c66] rounded transition" title="Sair">
+          <button onClick={logout} className="p-1 hover:text-rose-400 text-[#575c66] rounded transition" title="Sair do Sistema">
             <LogOut className="w-3.5 h-3.5" />
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -329,15 +338,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <div className="p-3 border-t border-[#ffffff0e] flex items-center justify-between bg-[#16191e]/50">
               <div className="flex items-center space-x-2">
-                <div className="w-7 h-7 rounded-full bg-[#1e2229] border border-[#ffffff12] flex items-center justify-center text-xs font-bold text-[#f7f8f8]">
-                  R
-                </div>
-                <span className="text-xs font-medium text-[#8a8f98]">Roberson</span>
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={displayName} className="w-7 h-7 rounded-full object-cover border border-[#ffffff12]" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-[#1e2229] border border-[#ffffff12] flex items-center justify-center text-xs font-bold text-[#f7f8f8]">
+                    {initial}
+                  </div>
+                )}
+                <span className="text-xs font-medium text-[#8a8f98]">{displayName}</span>
               </div>
 
-              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="p-1.5 hover:text-rose-400 text-[#575c66] rounded transition">
+              <button onClick={() => { setIsMobileMenuOpen(false); logout(); }} className="p-1.5 hover:text-rose-400 text-[#575c66] rounded transition" title="Sair do Sistema">
                 <LogOut className="w-4 h-4" />
-              </Link>
+              </button>
             </div>
           </aside>
         </div>
