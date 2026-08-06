@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -11,18 +11,6 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [apiBaseUrl, setApiBaseUrl] = useState('http://localhost:3001');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      if (hostname === 'app.robersonsouza.com.br' || hostname.includes('robersonsouza.com.br')) {
-        setApiBaseUrl('https://app.robersonsouza.com.br');
-      } else {
-        setApiBaseUrl(`http://${hostname}:3001`);
-      }
-    }
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,16 +18,21 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      const res = await fetch(`${apiBaseUrl}/api/auth/register`, {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       });
 
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Servidor indisponível no momento. Verifique a conexão e tente novamente.');
+      }
+
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'Erro ao realizar cadastro');
+        throw new Error(data.message || 'Erro ao realizar cadastro.');
       }
 
       if (data.access_token) {
@@ -62,8 +55,8 @@ export default function RegisterPage() {
           <div className="w-10 h-10 rounded-md bg-[#5e6ad2] mx-auto flex items-center justify-center font-bold text-lg text-white shadow-sm">
             SF
           </div>
-          <h1 className="text-lg font-semibold text-[#f7f8f8] tracking-tight">Criar Nova Conta</h1>
-          <p className="text-xs text-[#8a8f98]">Preencha seus dados para começar</p>
+          <h1 className="text-lg font-semibold text-[#f7f8f8] tracking-tight">Criar Conta</h1>
+          <p className="text-xs text-[#8a8f98]">Preencha os dados abaixo para se cadastrar</p>
         </div>
 
         {error && (
@@ -72,52 +65,64 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider mb-1">Nome Completo</label>
-            <input 
-              type="text" 
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold text-[#8a8f98] tracking-wider uppercase block">
+              NOME COMPLETO
+            </label>
+            <input
+              type="text"
+              required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="ex: Roberson Souza"
-              className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
-              required
+              placeholder="Seu nome"
+              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] transition"
             />
           </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider mb-1">Email</label>
-            <input 
-              type="email" 
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold text-[#8a8f98] tracking-wider uppercase block">
+              EMAIL
+            </label>
+            <input
+              type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="seuemail@exemplo.com"
-              className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
-              required
+              placeholder="seu@email.com"
+              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] transition"
             />
           </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider mb-1">Senha</label>
-            <input 
-              type="password" 
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold text-[#8a8f98] tracking-wider uppercase block">
+              SENHA
+            </label>
+            <input
+              type="password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
-              required
+              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] transition"
             />
           </div>
-          <button 
+
+          <button
             type="submit"
             disabled={loading}
-            className="w-full h-9 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium rounded text-xs transition shadow-sm disabled:opacity-50"
+            className="w-full py-2.5 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-sm font-medium transition shadow-sm disabled:opacity-50"
           >
-            {loading ? 'Cadastrando...' : 'Cadastrar no Sistema'}
+            {loading ? 'Cadastrando...' : 'Criar Conta'}
           </button>
         </form>
 
-        <p className="text-center text-[11px] text-[#8a8f98]">
-          Já tem uma conta? <Link href="/login" className="text-[#5e6ad2] hover:underline font-medium">Faça login</Link>
-        </p>
+        <div className="text-center text-xs text-[#8a8f98]">
+          Já tem uma conta?{' '}
+          <Link href="/login" className="text-[#5e6ad2] hover:underline font-medium">
+            Fazer Login
+          </Link>
+        </div>
       </div>
     </div>
   );

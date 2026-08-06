@@ -1,27 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('admin@saudefinancas.com');
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [apiBaseUrl, setApiBaseUrl] = useState('http://localhost:3001');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      if (hostname === 'app.robersonsouza.com.br' || hostname.includes('robersonsouza.com.br')) {
-        setApiBaseUrl('https://app.robersonsouza.com.br');
-      } else {
-        setApiBaseUrl(`http://${hostname}:3001`);
-      }
-    }
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,16 +17,21 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const res = await fetch(`${apiBaseUrl}/api/auth/login`, {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Servidor indisponível no momento. Verifique a conexão e tente novamente.');
+      }
+
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'Credenciais inválidas');
+        throw new Error(data.message || 'E-mail ou senha incorretos.');
       }
 
       if (data.access_token) {
@@ -71,39 +64,50 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider mb-1">Email</label>
-            <input 
-              type="email" 
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold text-[#8a8f98] tracking-wider uppercase block">
+              EMAIL
+            </label>
+            <input
+              type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
-              required
+              placeholder="seu@email.com"
+              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] transition"
             />
           </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider mb-1">Senha</label>
-            <input 
-              type="password" 
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold text-[#8a8f98] tracking-wider uppercase block">
+              SENHA
+            </label>
+            <input
+              type="password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
-              required
+              placeholder="••••••••"
+              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] transition"
             />
           </div>
-          <button 
+
+          <button
             type="submit"
             disabled={loading}
-            className="w-full h-9 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium rounded text-xs transition shadow-sm disabled:opacity-50"
+            className="w-full py-2.5 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-sm font-medium transition shadow-sm disabled:opacity-50"
           >
             {loading ? 'Entrando...' : 'Entrar no Sistema'}
           </button>
         </form>
 
-        <p className="text-center text-[11px] text-[#8a8f98]">
-          Não tem uma conta? <Link href="/register" className="text-[#5e6ad2] hover:underline font-medium">Cadastre-se</Link>
-        </p>
+        <div className="text-center text-xs text-[#8a8f98]">
+          Não tem uma conta?{' '}
+          <Link href="/register" className="text-[#5e6ad2] hover:underline font-medium">
+            Cadastre-se
+          </Link>
+        </div>
       </div>
     </div>
   );
