@@ -38,4 +38,4 @@ COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "cd apps/api && npx prisma migrate deploy && npx prisma db seed && node dist/main.js"]
+CMD ["sh", "-c", "cd apps/api && npx prisma db push --skip-generate && node dist/main.js"]
