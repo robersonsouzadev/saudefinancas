@@ -41,10 +41,15 @@ model User {
   familyMemberships     FamilyMember[]
   sentInvites           FamilyInvite[]         @relation("InviteSender")
   passwordResetCodes    PasswordResetCode[]
-  investmentAssets      InvestmentAsset[]
-  medications           Medication[]
-  medicationLogs        MedicationIntakeLog[]
-  labExams              LabExam[]
+  investmentAssets       InvestmentAsset[]
+  medications            Medication[]
+  medicationLogs         MedicationIntakeLog[]
+  labExams               LabExam[]
+  paymentAccounts        PaymentAccount[]
+  boletos                BoletoPayment[]
+  installmentGroups      InstallmentGroup[]
+  recurringRules         RecurringRule[]
+  openFinanceConnections OpenFinanceConnection[]
 }
 
 model FamilyGroup {
@@ -283,26 +288,49 @@ model FinancialAccount {
 }
 
 model TransactionCategory {
-  id           String             @id @default(uuid())
-  name         String
-  createdAt    DateTime           @default(now())
-  transactions Transaction[]
-  allocations  BudgetAllocation[]
+  id                String             @id @default(uuid())
+  name              String
+  icon              String?
+  color             String?
+  type              TransactionType?
+  isSystem          Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  transactions      Transaction[]
+  allocations       BudgetAllocation[]
+  installmentGroups InstallmentGroup[]
+  recurringRules    RecurringRule[]
 }
 
 model Transaction {
-  id          String               @id @default(uuid())
-  userId      String
-  accountId   String
-  categoryId  String?
-  amount      Float
-  date        DateTime             @default(now())
-  description String?
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
-  user        User                 @relation(fields: [userId], references: [id])
-  account     FinancialAccount     @relation(fields: [accountId], references: [id])
-  category    TransactionCategory? @relation(fields: [categoryId], references: [id])
+  id                 String               @id @default(uuid())
+  userId             String
+  accountId          String?
+  paymentAccountId   String?
+  creditCardId       String?
+  categoryId         String?
+  recurringId        String?
+  installmentGroupId String?
+  type               TransactionType      @default(EXPENSE)
+  paymentMethod      PaymentMethod        @default(PIX)
+  amount             Float
+  date               DateTime             @default(now())
+  description        String?
+  notes              String?
+  tags               String[]
+  isRecurring        Boolean              @default(false)
+  installmentNumber  Int?
+  attachmentUrl      String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  user               User                 @relation(fields: [userId], references: [id])
+  account            FinancialAccount?    @relation(fields: [accountId], references: [id])
+  paymentAccount     PaymentAccount?      @relation(fields: [paymentAccountId], references: [id])
+  creditCard         CreditCard?          @relation(fields: [creditCardId], references: [id])
+  category           TransactionCategory? @relation(fields: [categoryId], references: [id])
+  recurringRule      RecurringRule?       @relation(fields: [recurringId], references: [id])
+  installmentGroup   InstallmentGroup?    @relation(fields: [installmentGroupId], references: [id])
+  boleto             BoletoPayment?
 }
 
 model Budget {
@@ -560,6 +588,191 @@ enum BiomarkerStatus {
   OTIMO
   ALTO
   CRITICO_ALTO
+}
+
+// ═══════════════════════════════════════════
+// FINTECH ADVANCED MODULE (PHASE 1)
+// ═══════════════════════════════════════════
+
+enum TransactionType {
+  EXPENSE
+  INCOME
+  TRANSFER
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  PIX
+  CASH
+  BANK_TRANSFER
+  BOLETO
+  OTHER
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CASH_WALLET
+  DIGITAL_WALLET
+  INVESTMENT
+}
+
+enum BoletoStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum InstallmentStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  SEMIANNUAL
+  ANNUAL
+}
+
+model PaymentAccount {
+  id                  String          @id @default(uuid())
+  userId              String
+  name                String
+  bankName            String?
+  bankColor           String?
+  accountType         AccountType     @default(CHECKING)
+  balance             Float           @default(0.0)
+  isDefault           Boolean         @default(false)
+  isActive            Boolean         @default(true)
+  openFinanceProvider String?
+  openFinanceItemId   String?
+  lastSyncedAt        DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions        Transaction[]
+  creditCards         CreditCard[]
+  boletos             BoletoPayment[]
+  recurringRules      RecurringRule[]
+}
+
+model CreditCard {
+  id                String             @id @default(uuid())
+  paymentAccountId  String
+  name              String
+  lastFourDigits    String?
+  brand             String?
+  cardColor         String?
+  creditLimit       Float              @default(0.0)
+  closingDay        Int
+  dueDay            Int
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  paymentAccount    PaymentAccount     @relation(fields: [paymentAccountId], references: [id], onDelete: Cascade)
+  transactions      Transaction[]
+  installmentGroups InstallmentGroup[]
+}
+
+model BoletoPayment {
+  id               String         @id @default(uuid())
+  userId           String
+  description      String
+  barcode          String?
+  amount           Float
+  dueDate          DateTime
+  status           BoletoStatus   @default(PENDING)
+  paidAt           DateTime?
+  paidAmount       Float?
+  paymentMethod    PaymentMethod?
+  paymentAccountId String?
+  transactionId    String?        @unique
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentAccount   PaymentAccount? @relation(fields: [paymentAccountId], references: [id])
+  transaction      Transaction?    @relation(fields: [transactionId], references: [id])
+}
+
+model InstallmentGroup {
+  id                String               @id @default(uuid())
+  userId            String
+  creditCardId      String?
+  categoryId        String?
+  description       String
+  totalAmount       Float
+  totalInstallments Int
+  installmentAmount Float
+  startDate         DateTime
+  createdAt         DateTime             @default(now())
+
+  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creditCard        CreditCard?          @relation(fields: [creditCardId], references: [id])
+  category          TransactionCategory? @relation(fields: [categoryId], references: [id])
+  installments      Installment[]
+  transactions      Transaction[]
+}
+
+model Installment {
+  id                 String            @id @default(uuid())
+  installmentGroupId String
+  installmentNumber  Int
+  amount             Float
+  dueDate            DateTime
+  status             InstallmentStatus @default(PENDING)
+  paidAt             DateTime?
+  transactionId      String?
+
+  installmentGroup   InstallmentGroup  @relation(fields: [installmentGroupId], references: [id], onDelete: Cascade)
+}
+
+model RecurringRule {
+  id               String              @id @default(uuid())
+  userId           String
+  description      String
+  amount           Float
+  type             TransactionType     @default(EXPENSE)
+  paymentMethod    PaymentMethod       @default(PIX)
+  paymentAccountId String?
+  categoryId       String?
+  frequency        RecurrenceFrequency @default(MONTHLY)
+  dayOfMonth       Int?
+  startDate        DateTime
+  endDate          DateTime?
+  isActive         Boolean             @default(true)
+  lastGeneratedAt  DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentAccount   PaymentAccount?     @relation(fields: [paymentAccountId], references: [id])
+  category         TransactionCategory? @relation(fields: [categoryId], references: [id])
+  transactions     Transaction[]
+}
+
+model OpenFinanceConnection {
+  id              String    @id @default(uuid())
+  userId          String
+  provider        String
+  itemId          String
+  institutionName String
+  status          String    @default("CONNECTED")
+  accessToken     String?
+  lastSyncAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 

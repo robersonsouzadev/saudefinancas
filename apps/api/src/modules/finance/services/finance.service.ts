@@ -1,36 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { TransactionType, PaymentMethod } from '@prisma/client';
 
 @Injectable()
 export class FinanceService {
   constructor(private prisma: PrismaService) {}
 
-  async getOrCreateAccount(userId: string) {
-    let account = await this.prisma.financialAccount.findFirst({
-      where: { userId },
-    });
-
-    if (!account) {
-      account = await this.prisma.financialAccount.create({
-        data: {
-          userId,
-          name: 'Conta Principal',
-          balance: 0,
-        },
-      });
-    }
-
-    return account;
-  }
-
-  async getUserAccounts(userId: string) {
-    const account = await this.getOrCreateAccount(userId);
-    return [account];
-  }
-
   async createTransaction(userId: string, data: any) {
-    const account = await this.getOrCreateAccount(userId);
-
     const catName = data.category || 'Outros';
     let category = await this.prisma.transactionCategory.findFirst({
       where: { name: catName },
@@ -43,31 +19,98 @@ export class FinanceService {
     }
 
     const amount = Math.abs(parseFloat(data.amount) || 0);
+    const type = (data.type as TransactionType) || 'EXPENSE';
+    const paymentMethod = (data.paymentMethod as PaymentMethod) || 'PIX';
+
+    // Handle installments for CREDIT_CARD
+    if (paymentMethod === 'CREDIT_CARD' && data.installments > 1 && data.creditCardId) {
+      const installmentsCount = parseInt(data.installments, 10);
+      const installmentAmount = amount / installmentsCount;
+
+      const group = await this.prisma.installmentGroup.create({
+        data: {
+          userId,
+          creditCardId: data.creditCardId,
+          categoryId: category.id,
+          description: data.description || 'Compra Parcelada',
+          totalAmount: amount,
+          totalInstallments: installmentsCount,
+          installmentAmount,
+          startDate: data.date ? new Date(data.date) : new Date(),
+        }
+      });
+
+      const card = await this.prisma.creditCard.findUnique({ where: { id: data.creditCardId } });
+      const dueDay = card ? card.dueDay : 10;
+      
+      const transactions = [];
+      const baseDate = data.date ? new Date(data.date) : new Date();
+
+      for (let i = 1; i <= installmentsCount; i++) {
+        const dueDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, dueDay);
+
+        const tx = await this.prisma.transaction.create({
+          data: {
+            userId,
+            creditCardId: data.creditCardId,
+            categoryId: category.id,
+            installmentGroupId: group.id,
+            type,
+            paymentMethod,
+            amount: installmentAmount,
+            description: `${data.description || 'Compra'} (${i}/${installmentsCount})`,
+            date: dueDate,
+            notes: data.notes,
+            tags: data.tags || [],
+            installmentNumber: i
+          }
+        });
+
+        await this.prisma.installment.create({
+          data: {
+            installmentGroupId: group.id,
+            installmentNumber: i,
+            amount: installmentAmount,
+            dueDate,
+            transactionId: tx.id
+          }
+        });
+
+        transactions.push(tx);
+      }
+      return group;
+    }
 
     const transaction = await this.prisma.transaction.create({
       data: {
         userId,
-        accountId: account.id,
+        paymentAccountId: data.paymentAccountId,
+        creditCardId: data.creditCardId,
         categoryId: category.id,
+        type,
+        paymentMethod,
         amount,
         description: data.description || 'Transação',
         date: data.date ? new Date(data.date) : new Date(),
+        notes: data.notes,
+        tags: data.tags || [],
       },
       include: {
         category: true,
       },
     });
 
-    // Update account balance (EXPENSE subtracts, INCOME adds)
-    const isExpense = data.type !== 'INCOME';
-    const balanceDelta = isExpense ? -amount : amount;
+    if (data.paymentAccountId && paymentMethod !== 'CREDIT_CARD') {
+      const isExpense = type === 'EXPENSE';
+      const balanceDelta = isExpense ? -amount : amount;
 
-    await this.prisma.financialAccount.update({
-      where: { id: account.id },
-      data: {
-        balance: { increment: balanceDelta },
-      },
-    });
+      await this.prisma.paymentAccount.update({
+        where: { id: data.paymentAccountId },
+        data: {
+          balance: { increment: balanceDelta },
+        },
+      });
+    }
 
     return transaction;
   }
@@ -80,9 +123,6 @@ export class FinanceService {
 
     if (!tx) throw new NotFoundException('Transação não encontrada');
 
-    const account = await this.getOrCreateAccount(userId);
-
-    // Prepare category
     const catName = data.category || tx.category?.name || 'Outros';
     let category = await this.prisma.transactionCategory.findFirst({
       where: { name: catName },
@@ -93,8 +133,17 @@ export class FinanceService {
       });
     }
 
-    // Update transaction record
-    const newAmount = Math.abs(parseFloat(data.amount) || tx.amount);
+    const newAmount = data.amount !== undefined ? Math.abs(parseFloat(data.amount)) : tx.amount;
+    
+    // Reverse old balance
+    if (tx.paymentAccountId && tx.paymentMethod !== 'CREDIT_CARD') {
+      const oldDelta = tx.type === 'EXPENSE' ? tx.amount : -tx.amount;
+      await this.prisma.paymentAccount.update({
+        where: { id: tx.paymentAccountId },
+        data: { balance: { increment: oldDelta } }
+      });
+    }
+
     const updatedTx = await this.prisma.transaction.update({
       where: { id: transactionId },
       data: {
@@ -102,22 +151,47 @@ export class FinanceService {
         amount: newAmount,
         categoryId: category.id,
         date: data.date ? new Date(data.date) : tx.date,
+        type: data.type || tx.type,
+        paymentMethod: data.paymentMethod || tx.paymentMethod,
+        paymentAccountId: data.paymentAccountId !== undefined ? data.paymentAccountId : tx.paymentAccountId,
+        creditCardId: data.creditCardId !== undefined ? data.creditCardId : tx.creditCardId,
+        notes: data.notes !== undefined ? data.notes : tx.notes,
+        tags: data.tags !== undefined ? data.tags : tx.tags,
       },
       include: { category: true },
     });
 
-    // Recalculate full balance
-    await this.recalculateAccountBalance(userId);
+    // Apply new balance
+    if (updatedTx.paymentAccountId && updatedTx.paymentMethod !== 'CREDIT_CARD') {
+      const newDelta = updatedTx.type === 'EXPENSE' ? -updatedTx.amount : updatedTx.amount;
+      await this.prisma.paymentAccount.update({
+        where: { id: updatedTx.paymentAccountId },
+        data: { balance: { increment: newDelta } }
+      });
+    }
 
     return updatedTx;
   }
 
-  async getTransactions(userId: string) {
+  async getTransactions(userId: string, filters: any = {}) {
+    const where: any = { userId };
+    
+    if (filters.type) where.type = filters.type;
+    if (filters.categoryId) where.categoryId = filters.categoryId;
+    if (filters.accountId) where.paymentAccountId = filters.accountId;
+    if (filters.startDate || filters.endDate) {
+      where.date = {};
+      if (filters.startDate) where.date.gte = new Date(filters.startDate);
+      if (filters.endDate) where.date.lte = new Date(filters.endDate);
+    }
+
     const txs = await this.prisma.transaction.findMany({
-      where: { userId },
+      where,
       orderBy: { date: 'desc' },
       include: {
         category: true,
+        paymentAccount: true,
+        creditCard: true,
       },
     });
 
@@ -126,8 +200,13 @@ export class FinanceService {
       date: t.date.toISOString(),
       description: t.description || 'Transação',
       category: t.category?.name || 'Outros',
-      type: 'EXPENSE' as const,
+      type: t.type,
+      paymentMethod: t.paymentMethod,
+      paymentAccount: t.paymentAccount,
+      creditCard: t.creditCard,
       amount: t.amount,
+      notes: t.notes,
+      tags: t.tags,
       user: 'Você',
     }));
   }
@@ -143,20 +222,19 @@ export class FinanceService {
     const categoryBreakdown: Record<string, number> = {};
 
     for (const t of txs) {
-      totalExpenses += t.amount;
-      const catName = t.category?.name || 'Outros';
-      categoryBreakdown[catName] = (categoryBreakdown[catName] || 0) + t.amount;
+      if (t.type === 'INCOME') {
+        totalIncome += t.amount;
+      } else if (t.type === 'EXPENSE') {
+        totalExpenses += t.amount;
+        const catName = t.category?.name || 'Outros';
+        categoryBreakdown[catName] = (categoryBreakdown[catName] || 0) + t.amount;
+      }
     }
 
-    const netBalance = txs.length > 0 ? (totalIncome - totalExpenses) : 0;
-    const account = await this.getOrCreateAccount(userId);
-
-    if (account.balance !== netBalance) {
-      await this.prisma.financialAccount.update({
-        where: { id: account.id },
-        data: { balance: netBalance },
-      });
-    }
+    const accounts = await this.prisma.paymentAccount.findMany({
+      where: { userId, isActive: true }
+    });
+    const netBalance = accounts.reduce((acc, account) => acc + account.balance, 0);
 
     return {
       totalIncome,
@@ -172,29 +250,18 @@ export class FinanceService {
     });
     if (!tx) throw new NotFoundException('Transação não encontrada');
 
+    if (tx.paymentAccountId && tx.paymentMethod !== 'CREDIT_CARD') {
+      const delta = tx.type === 'EXPENSE' ? tx.amount : -tx.amount;
+      await this.prisma.paymentAccount.update({
+        where: { id: tx.paymentAccountId },
+        data: { balance: { increment: delta } }
+      });
+    }
+
     await this.prisma.transaction.delete({
       where: { id: transactionId },
     });
 
-    await this.recalculateAccountBalance(userId);
-
     return { success: true };
-  }
-
-  private async recalculateAccountBalance(userId: string) {
-    const account = await this.getOrCreateAccount(userId);
-    const txs = await this.prisma.transaction.findMany({
-      where: { userId },
-    });
-
-    let balance = 0;
-    for (const t of txs) {
-      balance -= t.amount; // default to expense
-    }
-
-    await this.prisma.financialAccount.update({
-      where: { id: account.id },
-      data: { balance },
-    });
   }
 }
