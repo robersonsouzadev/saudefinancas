@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Cpu, Key, CheckCircle2, AlertTriangle, RefreshCw, Plus, ShieldCheck, Zap } from 'lucide-react';
+import { Cpu, Key, CheckCircle2, AlertTriangle, RefreshCw, Plus, ShieldCheck, Check } from 'lucide-react';
+import { authFetch } from '@/lib/api';
 
 interface ProviderCard {
   id: string;
@@ -64,40 +65,27 @@ const initialProviders: ProviderCard[] = [
 
 export default function ProvedoresIAPage() {
   const [providers, setProviders] = useState<ProviderCard[]>(initialProviders);
-  const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
   const [testingMap, setTestingMap] = useState<Record<string, boolean>>({});
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string>('openai');
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [saveSuccess, setSaveSuccess] = useState('');
   const [saveError, setSaveError] = useState('');
-  const [apiBaseUrl, setApiBaseUrl] = useState('http://localhost:3001');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      if (hostname === 'app.robersonsouza.com.br' || hostname.includes('robersonsouza.com.br')) {
-        setApiBaseUrl('https://app.robersonsouza.com.br');
-      } else {
-        setApiBaseUrl(`http://${hostname}:3001`);
-      }
-    }
-  }, []);
 
   const fetchProvidersStatus = async () => {
     try {
-      const res = await fetch(`${apiBaseUrl}/api/llm-providers`, { cache: 'no-store' });
-      if (res.ok) {
+      const res = await authFetch('/api/llm-providers');
+      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setProviders(prev => prev.map(p => {
-            const found = data.find((d: any) => d.id === p.id || d.provider === p.providerType);
+            const found = data.find((d: any) => d.id === p.id || d.providerType === p.providerType);
             if (found) {
               return {
                 ...p,
-                status: found.isActive && found.apiKey ? 'CONECTADO' : 'DESCONECTADO',
-                hasKeyConfigured: !!found.apiKey,
-                statusReason: found.apiKey ? 'Chave configurada com sucesso.' : p.statusReason
+                status: found.status || (found.hasKeyConfigured ? 'CONECTADO' : 'DESCONECTADO'),
+                hasKeyConfigured: found.hasKeyConfigured,
+                statusReason: found.statusReason || p.statusReason
               };
             }
             return p;
@@ -105,13 +93,13 @@ export default function ProvedoresIAPage() {
         }
       }
     } catch (e) {
-      console.log('Fetching local providers state');
+      console.log('Erro ao carregar provedores:', e);
     }
   };
 
   useEffect(() => {
     fetchProvidersStatus();
-  }, [apiBaseUrl]);
+  }, []);
 
   const handleSaveKey = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,44 +108,51 @@ export default function ProvedoresIAPage() {
     setSaveSuccess('');
 
     try {
-      const res = await fetch(`${apiBaseUrl}/api/llm-providers`, {
+      const res = await authFetch('/api/llm-providers/key', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: selectedProvider.toUpperCase(),
           provider: selectedProvider,
-          apiKey: apiKeyInput,
-          isActive: true
+          key: apiKeyInput,
         })
       });
 
       if (res.ok) {
         setSaveSuccess('Chave API salva e criptografada com sucesso (AES-256)!');
         setApiKeyInput('');
-        fetchProvidersStatus();
+        await fetchProvidersStatus();
         setTimeout(() => {
           setModalOpen(false);
           setSaveSuccess('');
         }, 1200);
       } else {
-        setSaveError('Erro ao salvar chave no servidor.');
+        const errData = await res.json().catch(() => null);
+        setSaveError(errData?.message || 'Erro ao salvar chave no servidor.');
       }
-    } catch (err) {
-      setSaveError('Não foi possível se conectar ao servidor da API.');
+    } catch (err: any) {
+      setSaveError(err?.message || 'Não foi possível se conectar ao servidor da API.');
     }
   };
 
   const handleTestConnection = async (providerId: string) => {
     setTestingMap(prev => ({ ...prev, [providerId]: true }));
-    
-    setTimeout(() => {
+    try {
+      const res = await authFetch('/api/llm-providers/test', {
+        method: 'POST',
+        body: JSON.stringify({ provider: providerId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProviders(prev => prev.map(p => p.id === providerId ? {
+          ...p,
+          status: data.ok ? 'CONECTADO' : 'DESCONECTADO',
+          statusReason: data.reason || (data.ok ? 'Conexão ativada e validada!' : 'Falha na validação da chave API.')
+        } : p));
+      }
+    } catch (err) {
+      console.error('Erro ao testar conexão:', err);
+    } finally {
       setTestingMap(prev => ({ ...prev, [providerId]: false }));
-      setProviders(prev => prev.map(p => p.id === providerId ? {
-        ...p,
-        status: p.hasKeyConfigured ? 'CONECTADO' : 'DESCONECTADO',
-        statusReason: p.hasKeyConfigured ? 'Conexão testada e validada!' : 'Chave API ausente ou inválida.'
-      } : p));
-    }, 1000);
+    }
   };
 
   return (
