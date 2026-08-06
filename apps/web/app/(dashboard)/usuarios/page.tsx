@@ -474,6 +474,19 @@ export default function UsuariosPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">
+                  {editingUser ? 'Alterar Senha (opcional)' : 'Senha de Acesso Direto (opcional)'}
+                </label>
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={editingUser ? 'Deixe em branco para manter a senha atual' : '••••••••'}
+                  className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
+                />
+              </div>
+
               <div className="flex justify-end space-x-2 pt-2">
                 <button 
                   type="button" 
