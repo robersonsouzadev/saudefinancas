@@ -43,4 +43,4 @@ COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/clie
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "cd apps/api && (node dist/src/main.js || node dist/main.js)"]
+CMD ["sh", "-c", "cd apps/api && npx prisma db push --skip-generate && (node dist/src/main.js || node dist/main.js)"]

@@ -46,20 +46,33 @@ export class AuthService {
   }
 
   async login(data: any) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: data.email },
-    });
-    if (!user || !user.isActive) {
-      throw new UnauthorizedException('Credenciais inválidas ou usuário inativo');
+    const email = data.email?.trim().toLowerCase();
+    if (!email || !data.password) {
+      throw new BadRequestException('E-mail e senha são obrigatórios');
     }
-    if (!user.passwordHash) {
-      throw new BadRequestException('Esta conta utiliza login pelo Google. Por favor, entre com sua conta Google.');
+
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+      });
+      if (!user || !user.isActive) {
+        throw new UnauthorizedException('Credenciais inválidas ou usuário inativo');
+      }
+      if (!user.passwordHash) {
+        throw new BadRequestException('Esta conta utiliza login pelo Google. Por favor, entre com sua conta Google.');
+      }
+      const isPasswordValid = await bcrypt.compare(data.password, user.passwordHash);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Credenciais inválidas');
+      }
+      return this.generateToken(user);
+    } catch (err: any) {
+      if (err instanceof UnauthorizedException || err instanceof BadRequestException) {
+        throw err;
+      }
+      console.error('Erro no login:', err);
+      throw new UnauthorizedException('Credenciais inválidas ou falha ao autenticar');
     }
-    const isPasswordValid = await bcrypt.compare(data.password, user.passwordHash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciais inválidas');
-    }
-    return this.generateToken(user);
   }
 
   async validateOrCreateGoogleUser(profile: any) {
