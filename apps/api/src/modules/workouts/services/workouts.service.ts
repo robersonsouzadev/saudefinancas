@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ExerciseDBService } from './exercise-db.service';
-import { MUSCLE_GROUP_MAP, EQUIPMENT_TRANSLATION, translateExerciseName, determineMuscleSubGroup } from '../data/exercise-translations';
+import { MUSCLE_GROUP_MAP, EQUIPMENT_TRANSLATION, translateExerciseName, determineMuscleSubGroup, translateInstructions } from '../data/exercise-translations';
 
 @Injectable()
 export class WorkoutsService implements OnModuleInit {
@@ -141,7 +141,15 @@ export class WorkoutsService implements OnModuleInit {
       } else if (!gifUrl || gifUrl.includes('yuhonas') || gifUrl.includes('raw.githubusercontent.com') || gifUrl.endsWith('.jpg')) {
         gifUrl = 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/abs/3-4-sit-up.gif';
       }
-      return { ...ex, gifUrl };
+
+      let instructions = ex.instructions;
+      if (instructions) {
+        instructions = translateInstructions(instructions);
+      } else {
+        instructions = `Execução correta de ${ex.namePt}. Mantenha a postura e expire na fase concêntrica.`;
+      }
+
+      return { ...ex, gifUrl, instructions };
     });
   }
 
@@ -158,9 +166,10 @@ export class WorkoutsService implements OnModuleInit {
       const baseGroup = MUSCLE_GROUP_MAP[item.muscle] || 'OUTROS';
       const muscleGroup = determineMuscleSubGroup(baseGroup, item.name);
       const equipment = EQUIPMENT_TRANSLATION[item.equipment?.toLowerCase()] || item.equipment || 'Outro';
-      const instructionsText = Array.isArray(item.instructions) && item.instructions.length > 0
-        ? item.instructions.join(' ')
+      const rawInstructions = Array.isArray(item.instructions) && item.instructions.length > 0
+        ? item.instructions
         : `Execução correta de ${namePt}. Mantenha a postura e expire na fase concêntrica.`;
+      const instructionsText = translateInstructions(rawInstructions);
       const secondaryStr = Array.isArray(item.secondaryMuscles) ? item.secondaryMuscles.join(', ') : item.secondaryMuscles || null;
 
       const existing = await this.prisma.exercise.findFirst({

@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import * as fs from 'fs';
 import * as path from 'path';
+import { translateInstructions } from '../src/modules/workouts/data/exercise-translations';
 
 const prisma = new PrismaClient();
 
@@ -218,9 +219,10 @@ async function main() {
             const fullName = `${namePt} (${cleanEn})`;
             const mGroup = muscleGroupMap[mFolder] || 'OUTROS';
             const gifUrl = `${cdnBaseUrl}/${item.file}`;
-            const instructionsText = Array.isArray(item.instructions) && item.instructions.length > 0
-              ? item.instructions.join(' ')
-              : `Execução correta de ${namePt}. Mantenha a postura e expire na fase concêntrica.`;
+            const rawInst = Array.isArray(item.instructions) && item.instructions.length > 0
+              ? item.instructions
+              : [`Execução correta de ${namePt}. Mantenha a postura e expire na fase concêntrica.`];
+            const instructionsText = translateInstructions(rawInst);
             const secondaryStr = Array.isArray(item.secondaryMuscles) ? item.secondaryMuscles.join(', ') : item.secondaryMuscles || null;
 
             const existing = await prisma.exercise.findFirst({
