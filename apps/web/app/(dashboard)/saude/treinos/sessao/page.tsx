@@ -49,7 +49,7 @@ export default function WorkoutSessionPage() {
   const [expandedGifId, setExpandedGifId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchActiveSession();
+    fetchActiveSession(true);
   }, []);
 
   // Timer principal da sessão
@@ -84,9 +84,9 @@ export default function WorkoutSessionPage() {
     return () => clearInterval(timer);
   }, [restTimerActive, restTimerSeconds]);
 
-  const fetchActiveSession = async () => {
+  const fetchActiveSession = async (showLoadingSpinner = false) => {
     try {
-      setLoading(true);
+      if (showLoadingSpinner) setLoading(true);
       const res = await authFetch('/api/workouts/sessions/active');
       if (res.ok) {
         const data = await res.json();
@@ -101,11 +101,25 @@ export default function WorkoutSessionPage() {
     } catch (err) {
       console.error('Erro ao carregar sessão ativa:', err);
     } finally {
-      setLoading(false);
+      if (showLoadingSpinner) setLoading(false);
     }
   };
 
   const handleUpdateSet = async (setId: string, data: any) => {
+    // Optimistic UI update to prevent lag or scroll jumping
+    setSession((prevSession: any) => {
+      if (!prevSession) return prevSession;
+      return {
+        ...prevSession,
+        exercises: prevSession.exercises.map((ex: any) => ({
+          ...ex,
+          sets: ex.sets.map((set: any) =>
+            set.id === setId ? { ...set, ...data } : set
+          ),
+        })),
+      };
+    });
+
     try {
       const res = await authFetch(`/api/workouts/sets/${setId}`, {
         method: 'PUT',
@@ -118,10 +132,11 @@ export default function WorkoutSessionPage() {
         if (data.isCompleted) {
           startRestTimer(60);
         }
-        fetchActiveSession();
+        fetchActiveSession(false);
       }
     } catch (err) {
       console.error('Erro ao atualizar série:', err);
+      fetchActiveSession(false);
     }
   };
 
@@ -130,7 +145,7 @@ export default function WorkoutSessionPage() {
       const res = await authFetch(`/api/workouts/session-exercises/${sessionExerciseId}/set`, {
         method: 'POST',
       });
-      if (res.ok) fetchActiveSession();
+      if (res.ok) fetchActiveSession(false);
     } catch (err) {
       console.error('Erro ao adicionar série:', err);
     }
@@ -141,7 +156,7 @@ export default function WorkoutSessionPage() {
       const res = await authFetch(`/api/workouts/sets/${setId}`, {
         method: 'DELETE',
       });
-      if (res.ok) fetchActiveSession();
+      if (res.ok) fetchActiveSession(false);
     } catch (err) {
       console.error('Erro ao remover série:', err);
     }
@@ -173,7 +188,7 @@ export default function WorkoutSessionPage() {
 
       if (res.ok) {
         setIsAddExerciseModalOpen(false);
-        fetchActiveSession();
+        fetchActiveSession(false);
       }
     } catch (err) {
       console.error('Erro ao adicionar exercício:', err);
