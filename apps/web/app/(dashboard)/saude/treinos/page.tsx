@@ -85,6 +85,10 @@ export default function TreinosPage() {
   const [aiGoal, setAiGoal] = useState<'HYPERTROPHY' | 'STRENGTH' | 'CUT' | 'ATHLETIC'>('HYPERTROPHY');
   const [aiFrequency, setAiFrequency] = useState(5);
   const [aiExperience, setAiExperience] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('INTERMEDIATE');
+  const [aiSessionDuration, setAiSessionDuration] = useState<45 | 60 | 90>(60);
+  const [aiCardioDays, setAiCardioDays] = useState(0);
+  const [aiCardioDuration, setAiCardioDuration] = useState(20);
+  const [aiCardioType, setAiCardioType] = useState<'LISS' | 'HIIT' | 'MIXED'>('LISS');
   const [aiFocusMuscles, setAiFocusMuscles] = useState<string[]>([]);
   const [aiInjuries, setAiInjuries] = useState('');
   const [aiNotes, setAiNotes] = useState('');
@@ -215,6 +219,10 @@ export default function TreinosPage() {
           goal: aiGoal,
           weeklyFrequency: aiFrequency,
           experienceLevel: aiExperience,
+          sessionDurationMinutes: aiSessionDuration,
+          cardioDaysPerWeek: aiCardioDays,
+          cardioDurationMinutes: aiCardioDuration,
+          cardioType: aiCardioType,
           focusMuscles: aiFocusMuscles,
           injuries: aiInjuries,
           additionalNotes: aiNotes,
@@ -825,25 +833,50 @@ export default function TreinosPage() {
               </div>
             )}
 
-            {/* Step 2: Frequência e Detalhes */}
+            {/* Step 2: Frequência, Duração, Cardio e Detalhes */}
             {aiStep === 2 && (
               <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-medium text-[#8a8f98] block mb-1">Frequência Semanal ({aiFrequency} dias por semana)</label>
-                  <div className="flex gap-2">
-                    {[3, 4, 5, 6].map((freq) => (
-                      <button
-                        key={freq}
-                        onClick={() => setAiFrequency(freq)}
-                        className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${
-                          aiFrequency === freq
-                            ? 'bg-[#6366f1] text-white'
-                            : 'bg-[#16191e] text-[#8a8f98] hover:bg-[#1f242d]'
-                        }`}
-                      >
-                        {freq} Dias
-                      </button>
-                    ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-[#8a8f98] block mb-1">Frequência Semanal ({aiFrequency} dias)</label>
+                    <div className="flex gap-1.5">
+                      {[3, 4, 5, 6].map((freq) => (
+                        <button
+                          key={freq}
+                          onClick={() => setAiFrequency(freq)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition ${
+                            aiFrequency === freq
+                              ? 'bg-[#6366f1] text-white'
+                              : 'bg-[#16191e] text-[#8a8f98] hover:bg-[#1f242d]'
+                          }`}
+                        >
+                          {freq}d
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-[#8a8f98] block mb-1">Duração do Treino</label>
+                    <div className="flex gap-1.5">
+                      {[
+                        { min: 45, label: '45m ⚡' },
+                        { min: 60, label: '60m ⏱️' },
+                        { min: 90, label: '90m 💪' },
+                      ].map((dur) => (
+                        <button
+                          key={dur.min}
+                          onClick={() => setAiSessionDuration(dur.min as any)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition ${
+                            aiSessionDuration === dur.min
+                              ? 'bg-[#6366f1] text-white'
+                              : 'bg-[#16191e] text-[#8a8f98] hover:bg-[#1f242d]'
+                          }`}
+                        >
+                          {dur.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -856,8 +889,65 @@ export default function TreinosPage() {
                   >
                     <option value="BEGINNER">Iniciante (Menos de 6 meses de treino)</option>
                     <option value="INTERMEDIATE">Intermediário (6 meses a 2 anos)</option>
-                    <option value="ADVANCED">Avançado (Mais de 2 anos)</option>
+                    <option value="ADVANCED">Avançado (Mais de 2 anos de experiência)</option>
                   </select>
+                </div>
+
+                {/* Cardio Configuration */}
+                <div className="p-3 rounded-xl bg-[#16191e] border border-[#ffffff0e] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-[#f7f8f8]">Cardio Semanal</label>
+                    <span className="text-[11px] text-[#8a8f98]">
+                      {aiCardioDays === 0 ? 'Nenhum cardio' : `${aiCardioDays}x/sem por ${aiCardioDuration} min (${aiCardioType})`}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-1.5">
+                    {[0, 1, 2, 3, 4, 5].map((days) => (
+                      <button
+                        key={days}
+                        onClick={() => setAiCardioDays(days)}
+                        className={`flex-1 py-1 rounded-md text-xs font-medium transition ${
+                          aiCardioDays === days
+                            ? 'bg-[#6366f120] border border-[#6366f1] text-[#818cf8]'
+                            : 'bg-[#1f242d] text-[#8a8f98] border border-[#ffffff0a]'
+                        }`}
+                      >
+                        {days === 0 ? 'Off' : `${days}d`}
+                      </button>
+                    ))}
+                  </div>
+
+                  {aiCardioDays > 0 && (
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div>
+                        <label className="text-[11px] text-[#8a8f98] block mb-1">Duração por Sessão</label>
+                        <select
+                          value={aiCardioDuration}
+                          onChange={(e) => setAiCardioDuration(Number(e.target.value))}
+                          className="w-full px-2 py-1 rounded bg-[#0f1115] border border-[#ffffff10] text-xs text-[#f7f8f8]"
+                        >
+                          <option value={15}>15 Minutos</option>
+                          <option value={20}>20 Minutos</option>
+                          <option value={30}>30 Minutos</option>
+                          <option value={45}>45 Minutos</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] text-[#8a8f98] block mb-1">Intensidade / Tipo</label>
+                        <select
+                          value={aiCardioType}
+                          onChange={(e) => setAiCardioType(e.target.value as any)}
+                          className="w-full px-2 py-1 rounded bg-[#0f1115] border border-[#ffffff10] text-xs text-[#f7f8f8]"
+                        >
+                          <option value="LISS">LISS (Moderado/Leve)</option>
+                          <option value="HIIT">HIIT (Alta Intensidade)</option>
+                          <option value="MIXED">Misto (Variado)</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
