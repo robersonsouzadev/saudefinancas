@@ -820,23 +820,98 @@ export default function TreinosPage() {
           {/* Muscle Group Coverage Map */}
           {(weeklyProgress.muscleGroupCoverage.trained.length > 0 || weeklyProgress.muscleGroupCoverage.pending.length > 0) && (
             <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-3">
-              <h3 className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
-                <Target className="w-3.5 h-3.5 text-[#38bdf8]" />
-                Cobertura Muscular da Semana
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
+                  <Target className="w-3.5 h-3.5 text-[#38bdf8]" />
+                  Cobertura Muscular da Semana
+                </h3>
+                {weeklyProgress.muscleGroupCoverage.pending.length === 0 ? (
+                  <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/25">
+                    ✨ 100% dos grupos planejados treinados!
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono text-[#8a8f98]">
+                    {weeklyProgress.muscleGroupCoverage.trained.length} treinados / {weeklyProgress.muscleGroupCoverage.pending.length} pendentes
+                  </span>
+                )}
+              </div>
+
               <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
-                {weeklyProgress.muscleGroupCoverage.trained.map((mg: string) => (
-                  <div key={mg} className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-center space-y-0.5">
-                    <span className="text-[10px] font-semibold text-emerald-400 block truncate">{mg}</span>
-                    <span className="text-[9px] font-mono text-emerald-300/70">{weeklyProgress.muscleGroupCoverage.setsPerGroup[mg]}s</span>
-                  </div>
-                ))}
-                {weeklyProgress.muscleGroupCoverage.pending.map((mg: string) => (
-                  <div key={mg} className="p-2 rounded-lg bg-red-500/8 border border-red-500/20 text-center space-y-0.5">
-                    <span className="text-[10px] font-semibold text-red-400/80 block truncate">{mg}</span>
-                    <span className="text-[9px] font-mono text-red-300/50">Devendo!</span>
-                  </div>
-                ))}
+                {weeklyProgress.muscleGroupCoverage.trained.map((mg: string) => {
+                  const labelMap: Record<string, string> = {
+                    PEITORAL_SUPERIOR: 'Peitoral Sup.',
+                    PEITORAL_MEDIAL: 'Peitoral Med.',
+                    PEITORAL_INFERIOR: 'Peitoral Inf.',
+                    PEITORAL: 'Peitoral',
+                    PEITO: 'Peito',
+                    DORSAL: 'Dorsal',
+                    COSTAS: 'Costas',
+                    OMBRO_ANTERIOR: 'Ombro Ant.',
+                    OMBRO_LATERAL: 'Ombro Lat.',
+                    OMBRO_POSTERIOR: 'Ombro Post.',
+                    OMBROS: 'Ombros',
+                    BICEPS: 'Bíceps',
+                    TRICEPS: 'Tríceps',
+                    BRACOS: 'Braços',
+                    QUADRICEPS: 'Quadríceps',
+                    POSTERIOR_COXA: 'Post. Coxa',
+                    GLUTEOS: 'Glúteos',
+                    PANTURRILHA: 'Panturrilha',
+                    PERNAS: 'Pernas',
+                    ABDOMEN: 'Abdômen',
+                    CORE: 'Core',
+                    TRAPEZIO: 'Trapézio',
+                    ANTEBRACO: 'Antebraço',
+                  };
+                  const displayLabel = labelMap[mg] || mg.replace(/_/g, ' ');
+
+                  return (
+                    <div key={mg} className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-center space-y-0.5">
+                      <span className="text-[10px] font-semibold text-emerald-400 block truncate" title={mg}>
+                        {displayLabel}
+                      </span>
+                      <span className="text-[9px] font-mono text-emerald-300/70">{weeklyProgress.muscleGroupCoverage.setsPerGroup[mg]} séries</span>
+                    </div>
+                  );
+                })}
+
+                {weeklyProgress.muscleGroupCoverage.pending.map((mg: string) => {
+                  const labelMap: Record<string, string> = {
+                    PEITORAL_SUPERIOR: 'Peitoral Sup.',
+                    PEITORAL_MEDIAL: 'Peitoral Med.',
+                    PEITORAL_INFERIOR: 'Peitoral Inf.',
+                    PEITORAL: 'Peitoral',
+                    PEITO: 'Peito',
+                    DORSAL: 'Dorsal',
+                    COSTAS: 'Costas',
+                    OMBRO_ANTERIOR: 'Ombro Ant.',
+                    OMBRO_LATERAL: 'Ombro Lat.',
+                    OMBRO_POSTERIOR: 'Ombro Post.',
+                    OMBROS: 'Ombros',
+                    BICEPS: 'Bíceps',
+                    TRICEPS: 'Tríceps',
+                    BRACOS: 'Braços',
+                    QUADRICEPS: 'Quadríceps',
+                    POSTERIOR_COXA: 'Post. Coxa',
+                    GLUTEOS: 'Glúteos',
+                    PANTURRILHA: 'Panturrilha',
+                    PERNAS: 'Pernas',
+                    ABDOMEN: 'Abdômen',
+                    CORE: 'Core',
+                    TRAPEZIO: 'Trapézio',
+                    ANTEBRACO: 'Antebraço',
+                  };
+                  const displayLabel = labelMap[mg] || mg.replace(/_/g, ' ');
+
+                  return (
+                    <div key={mg} className="p-2 rounded-lg bg-red-500/8 border border-red-500/20 text-center space-y-0.5">
+                      <span className="text-[10px] font-semibold text-red-400/80 block truncate" title={mg}>
+                        {displayLabel}
+                      </span>
+                      <span className="text-[9px] font-mono text-red-300/50">Devendo!</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

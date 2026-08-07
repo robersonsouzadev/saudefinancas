@@ -614,10 +614,18 @@ export class WorkoutsService implements OnModuleInit {
       throw new NotFoundException('Sessão de treino não encontrada');
     }
 
+    // Auto-mark all sets in the session as completed upon finish
+    await this.prisma.exerciseSet.updateMany({
+      where: {
+        sessionExercise: { sessionId },
+      },
+      data: { isCompleted: true },
+    });
+
     const finishedAt = new Date();
     const durationMinutes = Math.max(1, Math.round((finishedAt.getTime() - session.startedAt.getTime()) / (1000 * 60)));
 
-    // Calculate total volume (sum of completed sets weight * reps)
+    // Calculate total volume (sum of weight * reps for all sets)
     let totalVolume = 0;
     let avgMet = 5.0;
     let metSum = 0;
@@ -630,9 +638,7 @@ export class WorkoutsService implements OnModuleInit {
       }
 
       for (const s of exItem.sets) {
-        if (s.isCompleted) {
-          totalVolume += s.weight * s.reps;
-        }
+        totalVolume += (s.weight || 0) * (s.reps || 0);
       }
     }
 
@@ -895,9 +901,11 @@ export class WorkoutsService implements OnModuleInit {
     const trainedMuscles: Record<string, number> = {};
     for (const session of thisWeekSessions) {
       for (const exItem of session.exercises) {
+        if (!exItem.exercise) continue;
         const mg = exItem.exercise.muscleGroup || 'OUTROS';
-        const completedSets = exItem.sets.filter((s) => s.isCompleted).length;
-        trainedMuscles[mg] = (trainedMuscles[mg] || 0) + completedSets;
+        // For completed sessions, count all sets (or completed sets)
+        const completedSetsCount = exItem.sets.filter((s) => s.isCompleted).length || exItem.sets.length || 1;
+        trainedMuscles[mg] = (trainedMuscles[mg] || 0) + completedSetsCount;
       }
     }
 
@@ -905,12 +913,17 @@ export class WorkoutsService implements OnModuleInit {
     const allPlannedMuscles = new Set<string>();
     for (const tpl of templates) {
       for (const item of tpl.items) {
-        if (item.exercise.muscleGroup) allPlannedMuscles.add(item.exercise.muscleGroup);
+        if (item.exercise && item.exercise.muscleGroup) {
+          allPlannedMuscles.add(item.exercise.muscleGroup);
+        }
       }
     }
 
-    const trainedMuscleList = Object.keys(trainedMuscles);
-    const pendingMuscleList = [...allPlannedMuscles].filter((m) => !trainedMuscles[m]);
+    // Only muscles with > 0 sets count as trained
+    const trainedMuscleList = Object.keys(trainedMuscles).filter((m) => trainedMuscles[m] > 0);
+
+    // Pending muscles are those in planned templates that have NOT been trained yet this week
+    const pendingMuscleList = [...allPlannedMuscles].filter((m) => !trainedMuscleList.includes(m));
 
     // --- Streaks ---
     const allHistoricalSessions = await this.prisma.workoutSession.findMany({
