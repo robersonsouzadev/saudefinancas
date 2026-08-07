@@ -18,6 +18,7 @@ import { authFetch } from '@/lib/api';
 export default function WorkoutHistoryPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [weeklyReport, setWeeklyReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,13 +28,15 @@ export default function WorkoutHistoryPage() {
   const loadHistory = async () => {
     try {
       setLoading(true);
-      const [sessionsRes, statsRes] = await Promise.all([
+      const [sessionsRes, statsRes, reportRes] = await Promise.all([
         authFetch('/api/workouts/sessions?limit=50'),
         authFetch('/api/workouts/stats'),
+        authFetch('/api/workouts/ai/weekly-report'),
       ]);
 
       if (sessionsRes.ok) setSessions(await sessionsRes.json());
       if (statsRes.ok) setStats(await statsRes.json());
+      if (reportRes.ok) setWeeklyReport(await reportRes.json());
     } catch (err) {
       console.error('Erro ao carregar histórico de treinos:', err);
     } finally {
@@ -91,6 +94,46 @@ export default function WorkoutHistoryPage() {
           <span className="text-[10px] text-[#575c66]">Assiduidade semanal</span>
         </div>
       </div>
+
+      {/* RELATÓRIO EXECUTIVO SEMANAL DO COACH IRON (FASE 3) */}
+      {weeklyReport && (
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-[#0f1115] via-[#16191e] to-[#0f1115] border border-[#6366f140] space-y-4 shadow-xl">
+          <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+            <div className="flex items-center space-x-2">
+              <span className="text-lg">🤖</span>
+              <div>
+                <h3 className="font-bold text-sm text-[#f7f8f8]">Relatório Semanal Executivo — Coach Iron</h3>
+                <span className="text-[10px] text-[#818cf8] font-mono">{weeklyReport.period} • {weeklyReport.userName}</span>
+              </div>
+            </div>
+            <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#6366f120] text-[#818cf8] border border-[#6366f140] font-mono">
+              Volume: {weeklyReport.totalVolumeTons} ton
+            </span>
+          </div>
+
+          <p className="text-xs text-[#f7f8f8] leading-relaxed bg-[#080a0c]/60 p-3 rounded-xl border border-[#ffffff08]">
+            {weeklyReport.coachVerdict}
+          </p>
+
+          {/* Ranking SFR dos Exercícios */}
+          {weeklyReport.topExercisesSFR?.length > 0 && (
+            <div className="space-y-2 pt-1">
+              <h4 className="text-xs font-semibold text-[#8a8f98]">Seus Exercícios Mais Eficientes (Relação Estímulo / Fadiga — SFR)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {weeklyReport.topExercisesSFR.map((sfr: any, idx: number) => (
+                  <div key={idx} className="p-2.5 rounded-lg bg-[#080a0c] border border-[#ffffff08] flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-semibold text-[#f7f8f8] block">{sfr.exerciseName}</span>
+                      <span className="text-[10px] text-[#8a8f98]">{sfr.tier} • RPE Médio: {sfr.avgRpe}</span>
+                    </div>
+                    <span className="text-xs font-bold text-[#818cf8] font-mono">SFR {sfr.sfrScore}/10</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Lista de Sessões Realizadas */}
       <div className="space-y-4">

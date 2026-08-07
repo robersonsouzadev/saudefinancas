@@ -100,6 +100,9 @@ export default function TreinosPage() {
   const [chatInput, setChatInput] = useState('');
   const [sendingChat, setSendingChat] = useState(false);
 
+  // Coach Insights (Phase 2)
+  const [coachInsights, setCoachInsights] = useState<any>(null);
+
   useEffect(() => {
     loadData();
   }, [selectedMuscleGroup, searchQuery]);
@@ -108,7 +111,7 @@ export default function TreinosPage() {
     try {
       setLoading(true);
 
-      const [statsRes, activeRes, templatesRes, exRes, sessionsRes] = await Promise.all([
+      const [statsRes, activeRes, templatesRes, exRes, sessionsRes, insightsRes] = await Promise.all([
         authFetch('/api/workouts/stats'),
         authFetch('/api/workouts/sessions/active'),
         authFetch('/api/workouts/templates'),
@@ -117,6 +120,7 @@ export default function TreinosPage() {
           ...(searchQuery && { search: searchQuery }),
         }).toString()}`),
         authFetch('/api/workouts/sessions?limit=5'),
+        authFetch('/api/workouts/ai/insights'),
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
@@ -124,6 +128,7 @@ export default function TreinosPage() {
       if (templatesRes.ok) setTemplates(await templatesRes.json());
       if (exRes.ok) setExercises(await exRes.json());
       if (sessionsRes.ok) setRecentSessions(await sessionsRes.json());
+      if (insightsRes.ok) setCoachInsights(await insightsRes.json());
     } catch (err) {
       console.error('Erro ao carregar dados de treinos:', err);
     } finally {
@@ -386,6 +391,102 @@ export default function TreinosPage() {
           <span className="text-[10px] text-[#575c66] mt-1">Treinos concluídos</span>
         </div>
       </div>
+
+      {/* FASE 2: BANNER DE INSIGHTS DO COACH IRON & MAPA DE RECUPERAÇÃO MUSCULAR */}
+      {coachInsights && (
+        <div className="space-y-4">
+          {/* Banner de Dica Inteligente */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-[#6366f115] via-[#a855f710] to-[#16191e] border border-[#6366f130] flex items-start space-x-3">
+            <div className="p-2 rounded-lg bg-[#6366f120] text-[#818cf8] mt-0.5">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div className="space-y-0.5 flex-1">
+              <h3 className="text-xs font-bold text-[#818cf8] uppercase tracking-wider">Coach Iron — Diagnóstico de Fadiga & Treino</h3>
+              <p className="text-xs text-[#f7f8f8] leading-relaxed">{coachInsights.summaryTip}</p>
+            </div>
+          </div>
+
+          {/* Grid de Recuperação por Grupo Muscular (Heatmap) */}
+          {coachInsights.recovery?.length > 0 && (
+            <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
+                    <Target className="w-3.5 h-3.5 text-[#38bdf8]" />
+                    Mapa de Recuperação Muscular (Recovery Decay)
+                  </h3>
+                  <p className="text-[11px] text-[#8a8f98]">
+                    Calculado com base nos últimos 7 dias de treino e volume de séries por grupo.
+                  </p>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#16191e] text-[#8a8f98]">
+                  48h+ Decay
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
+                {coachInsights.recovery.map((m: any) => (
+                  <div key={m.muscleGroup} className="p-2.5 rounded-lg bg-[#16191e] border border-[#ffffff08] space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-semibold text-[#f7f8f8]">{m.muscleGroup}</span>
+                      <span className={`text-[10px] font-mono ${m.status === 'OPTIMAL' ? 'text-[#4ade80]' : m.status === 'PARTIAL' ? 'text-[#facc15]' : 'text-[#f87171]'}`}>
+                        {m.recoveryPercent}%
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full h-1.5 rounded-full bg-[#080a0c] overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          m.status === 'OPTIMAL' ? 'bg-[#4ade80]' : m.status === 'PARTIAL' ? 'bg-[#facc15]' : 'bg-[#f87171]'
+                        }`}
+                        style={{ width: `${m.recoveryPercent}%` }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[9px] text-[#575c66]">
+                      <span>{m.weeklySets} séries/sem</span>
+                      <span>{m.hoursSinceLastTrained < 168 ? `${m.hoursSinceLastTrained}h atrás` : 'Descansado'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sugestões de Sobrecarga Progressiva */}
+          {coachInsights.overloadSuggestions?.length > 0 && (
+            <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-3">
+              <h3 className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-amber-400 fill-current" />
+                Sugestões de Progressão de Cargas (Coach Iron Engine)
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {coachInsights.overloadSuggestions.map((sug: any, idx: number) => (
+                  <div key={idx} className="p-3 rounded-lg bg-[#16191e] border border-[#ffffff08] flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-semibold text-[#f7f8f8] block">{sug.exerciseName}</span>
+                      <span className="text-[10px] text-[#8a8f98]">{sug.reason}</span>
+                    </div>
+
+                    {sug.action === 'INCREASE_WEIGHT' ? (
+                      <div className="text-right">
+                        <span className="text-[10px] text-[#575c66] line-through block">{sug.currentWeight}kg</span>
+                        <span className="font-bold text-[#4ade80] font-mono text-sm">+{sug.suggestedWeight}kg</span>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0f1115] text-[#8a8f98]">
+                        Manter {sug.currentWeight}kg
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Seção MEUS TREINOS (TEMPLATES) */}
       <div className="space-y-4">

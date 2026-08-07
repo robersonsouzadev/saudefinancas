@@ -150,4 +150,29 @@ export class WorkoutsController {
   async chatWithCoach(@Request() req: any, @Body() body: { message: string }) {
     return this.workoutAiService.chatWithCoach(req.user.id, body.message);
   }
+
+  @Get('ai/insights')
+  async getCoachInsights(@Request() req: any) {
+    return this.workoutAiService.getCoachInsights(req.user.id);
+  }
+
+  @Get('ai/recovery-status')
+  async getRecoveryStatus(@Request() req: any) {
+    return this.workoutAiService.calculateRecoveryStatus(req.user.id);
+  }
+
+  @Get('ai/progressive-overload')
+  async getProgressiveOverload(@Request() req: any) {
+    return this.workoutAiService.suggestProgressiveOverload(req.user.id);
+  }
+
+  @Get('ai/sfr-scores')
+  async getSFRScores(@Request() req: any) {
+    return this.workoutAiService.calculateSFRScores(req.user.id);
+  }
+
+  @Get('ai/weekly-report')
+  async getWeeklyExecutiveReport(@Request() req: any) {
+    return this.workoutAiService.getWeeklyExecutiveReport(req.user.id);
+  }
 }

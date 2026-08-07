@@ -269,6 +269,264 @@ Responda à dúvida do aluno de forma clara, usando tópicos e dicas práticas d
     }
   }
 
+  // ----------------------------------------------------
+  // FASE 2: MOTOR DE SOBRECARGA PROGRESSIVA E FADIGA
+  // ----------------------------------------------------
+
+  async calculateRecoveryStatus(userId: string) {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const recentSessions = await this.prisma.workoutSession.findMany({
+      where: {
+        userId,
+        finishedAt: { gte: sevenDaysAgo },
+      },
+      include: {
+        exercises: {
+          include: {
+            exercise: true,
+            sets: true,
+          },
+        },
+      },
+      orderBy: { finishedAt: 'desc' },
+    });
+
+    const muscleStats: Record<string, { lastTrained: Date | null; totalSets: number }> = {
+      PEITORAL: { lastTrained: null, totalSets: 0 },
+      DORSAL: { lastTrained: null, totalSets: 0 },
+      OMBRO: { lastTrained: null, totalSets: 0 },
+      BICEPS: { lastTrained: null, totalSets: 0 },
+      TRICEPS: { lastTrained: null, totalSets: 0 },
+      QUADRICEPS: { lastTrained: null, totalSets: 0 },
+      POSTERIOR_COXA: { lastTrained: null, totalSets: 0 },
+      GLUTEOS: { lastTrained: null, totalSets: 0 },
+      PANTURRILHA: { lastTrained: null, totalSets: 0 },
+      ABDOMEN: { lastTrained: null, totalSets: 0 },
+    };
+
+    const mapGroupKey = (mg: string) => {
+      if (mg.includes('PEITORAL')) return 'PEITORAL';
+      if (mg.includes('DORSAL') || mg.includes('BACK')) return 'DORSAL';
+      if (mg.includes('OMBRO') || mg.includes('SHOULDER')) return 'OMBRO';
+      if (mg.includes('BICEPS')) return 'BICEPS';
+      if (mg.includes('TRICEPS')) return 'TRICEPS';
+      if (mg.includes('QUADRICEPS') || mg.includes('QUADS')) return 'QUADRICEPS';
+      if (mg.includes('POSTERIOR') || mg.includes('HAMSTRING')) return 'POSTERIOR_COXA';
+      if (mg.includes('GLUTE')) return 'GLUTEOS';
+      if (mg.includes('PANTURRILHA') || mg.includes('CALV')) return 'PANTURRILHA';
+      if (mg.includes('ABDOMEN') || mg.includes('ABS')) return 'ABDOMEN';
+      return 'DORSAL';
+    };
+
+    for (const session of recentSessions) {
+      if (!session.finishedAt) continue;
+
+      for (const sessionEx of session.exercises) {
+        const key = mapGroupKey(sessionEx.exercise.muscleGroup || 'DORSAL');
+        const completedSetsCount = sessionEx.sets.filter((s) => s.isCompleted).length;
+
+        if (completedSetsCount > 0) {
+          if (!muscleStats[key].lastTrained || session.finishedAt > muscleStats[key].lastTrained!) {
+            muscleStats[key].lastTrained = session.finishedAt;
+          }
+          muscleStats[key].totalSets += completedSetsCount;
+        }
+      }
+    }
+
+    const now = new Date().getTime();
+
+    return Object.entries(muscleStats).map(([key, data]) => {
+      let recoveryPercent = 100;
+      let hoursSince = 168; // 7 days
+
+      if (data.lastTrained) {
+        hoursSince = Math.floor((now - data.lastTrained.getTime()) / (1000 * 60 * 60));
+        // Recovery decay formula: base 48h + 4h per set above 10 sets
+        const baseRecoveryNeededHours = Math.min(96, 48 + Math.max(0, data.totalSets - 10) * 4);
+        recoveryPercent = Math.min(100, Math.round((hoursSince / baseRecoveryNeededHours) * 100));
+      }
+
+      let status: 'OPTIMAL' | 'PARTIAL' | 'FATIGUED' = 'OPTIMAL';
+      if (recoveryPercent < 50) status = 'FATIGUED';
+      else if (recoveryPercent < 90) status = 'PARTIAL';
+
+      return {
+        muscleGroup: key,
+        recoveryPercent,
+        status,
+        hoursSinceLastTrained: hoursSince,
+        weeklySets: data.totalSets,
+        needsDeload: data.totalSets > 22,
+      };
+    });
+  }
+
+  async suggestProgressiveOverload(userId: string) {
+    const recentSessions = await this.prisma.workoutSession.findMany({
+      where: { userId, finishedAt: { not: null } },
+      orderBy: { finishedAt: 'desc' },
+      take: 3,
+      include: {
+        exercises: {
+          include: { exercise: true, sets: { orderBy: { setNumber: 'asc' } } },
+        },
+      },
+    });
+
+    const suggestions: Array<{
+      exerciseName: string;
+      currentWeight: number;
+      suggestedWeight: number;
+      action: 'INCREASE_WEIGHT' | 'MAINTAIN' | 'DELOAD';
+      reason: string;
+    }> = [];
+
+    if (recentSessions.length === 0) return suggestions;
+
+    const latestSession = recentSessions[0];
+
+    for (const exItem of latestSession.exercises) {
+      const completedSets = exItem.sets.filter((s) => s.isCompleted);
+      if (completedSets.length === 0) continue;
+
+      const maxWeight = Math.max(...completedSets.map((s) => s.weight || 0));
+      const avgRpe = completedSets.reduce((sum, s) => sum + (s.rpe || 7), 0) / completedSets.length;
+      const allCompleted = completedSets.length === exItem.sets.length;
+
+      const isUpper = exItem.exercise.muscleGroup?.includes('PEITORAL') || exItem.exercise.muscleGroup?.includes('DORSAL');
+      const isLower = exItem.exercise.muscleGroup?.includes('QUADRICEPS') || exItem.exercise.muscleGroup?.includes('GLUTEOS');
+      const increment = isLower ? 5.0 : isUpper ? 2.5 : 1.25;
+
+      if (allCompleted && avgRpe <= 7) {
+        suggestions.push({
+          exerciseName: exItem.exercise.namePt,
+          currentWeight: maxWeight,
+          suggestedWeight: maxWeight + increment,
+          action: 'INCREASE_WEIGHT',
+          reason: `RPE baixo (${avgRpe.toFixed(1)}) e todas as séries concluídas. Aumentar +${increment}kg no próximo treino.`,
+        });
+      } else if (!allCompleted || avgRpe >= 9.5) {
+        suggestions.push({
+          exerciseName: exItem.exercise.namePt,
+          currentWeight: maxWeight,
+          suggestedWeight: maxWeight,
+          action: 'MAINTAIN',
+          reason: `RPE alto (${avgRpe.toFixed(1)}) ou séries incompletas. Manter ${maxWeight}kg para consolidar a execução.`,
+        });
+      }
+    }
+
+    return suggestions;
+  }
+
+  async getCoachInsights(userId: string) {
+    const [recovery, overloadSuggestions] = await Promise.all([
+      this.calculateRecoveryStatus(userId),
+      this.suggestProgressiveOverload(userId),
+    ]);
+
+    const fatiguedMuscles = recovery.filter((r) => r.status === 'FATIGUED').map((r) => r.muscleGroup);
+    const deloadRecommended = recovery.some((r) => r.needsDeload);
+
+    return {
+      recovery,
+      overloadSuggestions,
+      fatiguedMuscles,
+      deloadRecommended,
+      summaryTip: deloadRecommended
+        ? '⚠️ Alto volume semanal detectado em alguns grupos. Coach Iron recomenda uma semana de Deload (-40% volume).'
+        : fatiguedMuscles.length > 0
+        ? `🟢 Músculos em recuperação: ${fatiguedMuscles.join(', ')}. Priorize o descanso desses grupos hoje.`
+        : '🔥 Todos os grupos musculares estão recuperados e prontos para treinar pesado!',
+    };
+  }
+
+  // ----------------------------------------------------
+  // FASE 3: INOVAÇÕES (SFR LEARNING & RELATÓRIO SEMANAL)
+  // ----------------------------------------------------
+
+  async calculateSFRScores(userId: string) {
+    const sessions = await this.prisma.workoutSession.findMany({
+      where: { userId, finishedAt: { not: null } },
+      take: 10,
+      orderBy: { finishedAt: 'desc' },
+      include: {
+        exercises: {
+          include: { exercise: true, sets: true },
+        },
+      },
+    });
+
+    const exerciseMap: Record<string, { name: string; totalSets: number; avgRpe: number; maxWeight: number }> = {};
+
+    for (const s of sessions) {
+      for (const exItem of s.exercises) {
+        const id = exItem.exerciseId;
+        const name = exItem.exercise.namePt;
+        const completedSets = exItem.sets.filter((st) => st.isCompleted);
+        if (completedSets.length === 0) continue;
+
+        const maxWeight = Math.max(...completedSets.map((st) => st.weight || 0));
+        const avgRpe = completedSets.reduce((sum, st) => sum + (st.rpe || 7), 0) / completedSets.length;
+
+        if (!exerciseMap[id]) {
+          exerciseMap[id] = { name, totalSets: 0, avgRpe: 0, maxWeight: 0 };
+        }
+
+        exerciseMap[id].totalSets += completedSets.length;
+        exerciseMap[id].avgRpe = (exerciseMap[id].avgRpe + avgRpe) / 2;
+        exerciseMap[id].maxWeight = Math.max(exerciseMap[id].maxWeight, maxWeight);
+      }
+    }
+
+    return Object.values(exerciseMap).map((item) => {
+      // SFR formula: Stimulus (weight * 0.1) / Fatigue (RPE scale modifier)
+      const sfrScore = Math.min(10, Math.max(1, Math.round(((item.maxWeight * 0.05) / Math.max(1, item.avgRpe - 5)) * 10) / 10));
+      return {
+        exerciseName: item.name,
+        totalSetsCompleted: item.totalSets,
+        avgRpe: Math.round(item.avgRpe * 10) / 10,
+        sfrScore,
+        tier: sfrScore >= 8 ? 'S-TIER (Excelente Estímulo)' : sfrScore >= 5 ? 'A-TIER (Bom Estímulo)' : 'B-TIER (Fadiga Alta)',
+      };
+    });
+  }
+
+  async getWeeklyExecutiveReport(userId: string) {
+    const context = await this.getUserContext(userId);
+    const recovery = await this.calculateRecoveryStatus(userId);
+    const sfr = await this.calculateSFRScores(userId);
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const weeklySessions = await this.prisma.workoutSession.findMany({
+      where: { userId, finishedAt: { gte: sevenDaysAgo } },
+      include: { exercises: { include: { exercise: true, sets: true } } },
+    });
+
+    const totalVolumeKg = weeklySessions.reduce((sum, s) => sum + (s.totalVolume || 0), 0);
+    const totalCaloriesKcal = weeklySessions.reduce((sum, s) => sum + (s.caloriesBurned || 0), 0);
+    const totalWorkouts = weeklySessions.length;
+
+    return {
+      period: 'Últimos 7 Dias',
+      userName: context.name,
+      totalWorkouts,
+      totalVolumeKg,
+      totalVolumeTons: (totalVolumeKg / 1000).toFixed(1),
+      totalCaloriesKcal,
+      muscleRecovery: recovery,
+      topExercisesSFR: sfr.sort((a, b) => b.sfrScore - a.sfrScore).slice(0, 5),
+      coachVerdict: totalWorkouts >= 4
+        ? `🏆 Excelente desempenho! Você concluiu ${totalWorkouts} treinos e movimentou ${(totalVolumeKg / 1000).toFixed(1)} toneladas. Mantenha a sobrecarga progressiva nos exercícios S-TIER.`
+        : `💪 Bons estímulos registrados (${totalWorkouts} treinos). Busque atingir 4 a 5 sessões na próxima semana para maximizar o volume adaptativo (MAV).`,
+    };
+  }
+
   private generateFallbackPlan(dto: GeneratePlanDto, context: any) {
     const exList = context.availableExercises;
     const findEx = (namePt: string) => exList.find((e: any) => e.namePt.includes(namePt))?.namePt || namePt;
@@ -316,3 +574,4 @@ Responda à dúvida do aluno de forma clara, usando tópicos e dicas práticas d
     };
   }
 }
+
