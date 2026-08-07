@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   TrendingUp,
   Calendar,
@@ -12,10 +13,14 @@ import {
   Star,
   CheckCircle2,
   Dumbbell,
+  RotateCcw,
+  Trash2,
+  Play,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
 export default function WorkoutHistoryPage() {
+  const router = useRouter();
   const [sessions, setSessions] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [weeklyReport, setWeeklyReport] = useState<any>(null);
@@ -41,6 +46,43 @@ export default function WorkoutHistoryPage() {
       console.error('Erro ao carregar histórico de treinos:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReopenSession = async (sessionId: string, title: string) => {
+    if (!confirm(`Deseja reabrir o treino "${title || 'Treino'}" para continuar registrando?`)) return;
+
+    try {
+      const res = await authFetch(`/api/workouts/sessions/${sessionId}/reopen`, {
+        method: 'PUT',
+      });
+
+      if (res.ok) {
+        router.push('/saude/treinos/sessao');
+      } else {
+        alert('Não foi possível reabrir o treino.');
+      }
+    } catch (err) {
+      console.error('Erro ao reabrir treino:', err);
+      alert('Erro de conexão ao reabrir treino.');
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!confirm('Tem certeza que deseja excluir o registro deste treino do histórico?')) return;
+
+    try {
+      const res = await authFetch(`/api/workouts/sessions/${sessionId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+      } else {
+        alert('Erro ao excluir treino do histórico.');
+      }
+    } catch (err) {
+      console.error('Erro ao excluir sessão de treino:', err);
     }
   };
 
@@ -171,21 +213,40 @@ export default function WorkoutHistoryPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-4 text-xs font-mono">
-                      <div className="flex items-center space-x-1 text-[#38bdf8]">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{sess.durationMinutes || 0} min</span>
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-4 text-xs font-mono">
+                        <div className="flex items-center space-x-1 text-[#38bdf8]">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{sess.durationMinutes || 0} min</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1 text-[#818cf8]">
+                          <Layers className="w-3.5 h-3.5" />
+                          <span>{sess.totalVolume || 0} kg</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1 text-[#f97316]">
+                          <Flame className="w-3.5 h-3.5" />
+                          <span>{sess.caloriesBurned || 0} kcal</span>
+                        </div>
                       </div>
 
-                      <div className="flex items-center space-x-1 text-[#818cf8]">
-                        <Layers className="w-3.5 h-3.5" />
-                        <span>{sess.totalVolume || 0} kg</span>
-                      </div>
+                      <button
+                        onClick={() => handleReopenSession(sess.id, sess.title)}
+                        className="px-2.5 py-1.5 rounded-lg bg-[#6366f120] text-[#818cf8] hover:bg-[#6366f130] text-xs font-medium transition flex items-center space-x-1 border border-[#6366f140]"
+                        title="Reabrir este treino concluído para continuar editando"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Reabrir</span>
+                      </button>
 
-                      <div className="flex items-center space-x-1 text-[#f97316]">
-                        <Flame className="w-3.5 h-3.5" />
-                        <span>{sess.caloriesBurned || 0} kcal</span>
-                      </div>
+                      <button
+                        onClick={() => handleDeleteSession(sess.id)}
+                        className="p-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
+                        title="Excluir Registro"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
 

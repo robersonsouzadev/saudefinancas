@@ -28,6 +28,8 @@ import {
   Zap,
   ShieldAlert,
   RefreshCw,
+  RotateCcw,
+  History,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
@@ -105,6 +107,65 @@ export default function TreinosPage() {
   ]);
   const [chatInput, setChatInput] = useState('');
   const [sendingChat, setSendingChat] = useState(false);
+
+  // Completed Sessions Modal State
+  const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
+  const [completedSessions, setCompletedSessions] = useState<any[]>([]);
+  const [loadingCompleted, setLoadingCompleted] = useState(false);
+
+  const fetchCompletedSessions = async () => {
+    try {
+      setLoadingCompleted(true);
+      const res = await authFetch('/api/workouts/sessions?limit=30');
+      if (res.ok) {
+        const data = await res.json();
+        setCompletedSessions(data);
+      }
+    } catch (e) {
+      console.error('Erro ao buscar treinos concluídos:', e);
+    } finally {
+      setLoadingCompleted(false);
+    }
+  };
+
+  const handleReopenSession = async (sessionId: string, title: string) => {
+    if (!confirm(`Deseja reabrir o treino "${title || 'Treino'}" para continuar registrando?`)) return;
+
+    try {
+      const res = await authFetch(`/api/workouts/sessions/${sessionId}/reopen`, {
+        method: 'PUT',
+      });
+
+      if (res.ok) {
+        setIsCompletedModalOpen(false);
+        router.push('/saude/treinos/sessao');
+      } else {
+        alert('Não foi possível reabrir o treino.');
+      }
+    } catch (err) {
+      console.error('Erro ao reabrir treino:', err);
+      alert('Erro de conexão ao reabrir treino.');
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!confirm('Tem certeza que deseja excluir o registro deste treino do histórico?')) return;
+
+    try {
+      const res = await authFetch(`/api/workouts/sessions/${sessionId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setCompletedSessions((prev) => prev.filter((s) => s.id !== sessionId));
+        loadData();
+      } else {
+        alert('Erro ao excluir treino do histórico.');
+      }
+    } catch (err) {
+      console.error('Erro ao excluir sessão de treino:', err);
+    }
+  };
 
   // Coach Insights (Phase 2)
   const [coachInsights, setCoachInsights] = useState<any>(null);
@@ -621,6 +682,17 @@ export default function TreinosPage() {
           </div>
 
           <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                setIsCompletedModalOpen(true);
+                fetchCompletedSessions();
+              }}
+              className="px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium text-[#818cf8] hover:bg-[#1f242d] transition flex items-center space-x-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Treinos Concluídos</span>
+            </button>
+
             <button
               onClick={() => {
                 setIsAiGeneratorOpen(true);
@@ -1336,6 +1408,118 @@ export default function TreinosPage() {
                 className="px-4 py-2 rounded-lg bg-[#6366f1] text-xs font-semibold text-white hover:bg-[#4f46e5]"
               >
                 Salvar Rotina
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL TREINOS CONCLUÍDOS / REABRIR TREINO */}
+      {isCompletedModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl p-6 max-w-3xl w-full space-y-4 max-h-[85vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-lg bg-[#6366f120] border border-[#6366f140] flex items-center justify-center text-[#818cf8]">
+                  <RotateCcw className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#f7f8f8]">Treinos Concluídos & Reabertura</h3>
+                  <p className="text-xs text-[#8a8f98]">
+                    Concluiu um treino sem querer? Clique em "Reabrir" para voltar à sessão e registrar novas séries.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsCompletedModalOpen(false)}
+                className="text-[#8a8f98] hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 space-y-3 pr-1 scrollbar-none">
+              {loadingCompleted ? (
+                <div className="py-12 text-center text-xs text-[#8a8f98] space-y-2">
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#6366f1]" />
+                  <p>Carregando treinos concluídos...</p>
+                </div>
+              ) : completedSessions.length === 0 ? (
+                <div className="py-12 text-center text-xs text-[#8a8f98] space-y-2">
+                  <Calendar className="w-8 h-8 text-[#575c66] mx-auto" />
+                  <p>Nenhum treino concluído recentemente.</p>
+                </div>
+              ) : (
+                completedSessions.map((sess) => {
+                  const finishedDate = sess.finishedAt ? new Date(sess.finishedAt) : new Date(sess.startedAt);
+                  return (
+                    <div
+                      key={sess.id}
+                      className="p-4 rounded-xl bg-[#16191e] border border-[#ffffff0e] hover:border-[#6366f140] transition space-y-2"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ffffff0a] pb-2">
+                        <div>
+                          <h4 className="font-bold text-sm text-[#f7f8f8]">{sess.title || 'Treino'}</h4>
+                          <span className="text-[11px] text-[#8a8f98]">
+                            Concluído em {finishedDate.toLocaleDateString('pt-BR')} às {finishedDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-3 text-xs font-mono text-[#8a8f98]">
+                            <span className="text-[#38bdf8]">{sess.durationMinutes || 0} min</span>
+                            <span className="text-[#818cf8]">{sess.totalVolume || 0} kg</span>
+                            <span className="text-[#f97316]">{sess.caloriesBurned || 0} kcal</span>
+                          </div>
+
+                          <button
+                            onClick={() => handleReopenSession(sess.id, sess.title)}
+                            className="px-3 py-1.5 rounded-lg bg-[#6366f1] hover:bg-[#4f46e5] text-white text-xs font-semibold shadow-md transition flex items-center space-x-1.5"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Reabrir Treino</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteSession(sess.id)}
+                            className="p-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
+                            title="Excluir Registro"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Resumo de Exercícios */}
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {sess.exercises?.map((se: any) => (
+                          <span
+                            key={se.id}
+                            className="px-2 py-0.5 rounded bg-[#0f1115] border border-[#ffffff0a] text-[10px] text-[#8a8f98]"
+                          >
+                            {se.exercise?.namePt || se.exercise?.name} ({se.sets?.filter((st: any) => st.isCompleted)?.length || 0} séries)
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="flex justify-between items-center pt-3 border-t border-[#ffffff0e]">
+              <Link
+                href="/saude/treinos/historico"
+                onClick={() => setIsCompletedModalOpen(false)}
+                className="text-xs text-[#818cf8] hover:underline font-medium"
+              >
+                Ver Relatório e Histórico Completo →
+              </Link>
+              <button
+                onClick={() => setIsCompletedModalOpen(false)}
+                className="px-4 py-1.5 rounded-lg bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+              >
+                Fechar
               </button>
             </div>
           </div>

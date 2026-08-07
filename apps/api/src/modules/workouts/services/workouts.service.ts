@@ -678,6 +678,37 @@ export class WorkoutsService implements OnModuleInit {
     });
   }
 
+  async reopenSession(userId: string, sessionId: string) {
+    const session = await this.prisma.workoutSession.findFirst({
+      where: { id: sessionId, userId },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Sessão de treino não encontrada');
+    }
+
+    return this.prisma.workoutSession.update({
+      where: { id: sessionId },
+      data: {
+        finishedAt: null,
+      },
+    });
+  }
+
+  async deleteSession(userId: string, sessionId: string) {
+    const session = await this.prisma.workoutSession.findFirst({
+      where: { id: sessionId, userId },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Sessão de treino não encontrada');
+    }
+
+    return this.prisma.workoutSession.delete({
+      where: { id: sessionId },
+    });
+  }
+
   // ----------------------------------------------------
   // HISTÓRICO E ESTATÍSTICAS
   // ----------------------------------------------------

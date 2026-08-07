@@ -132,6 +132,16 @@ export class WorkoutsController {
     return this.workoutsService.finishSession(req.user.id, sessionId, body);
   }
 
+  @Put('sessions/:id/reopen')
+  async reopenSession(@Request() req: any, @Param('id') sessionId: string) {
+    return this.workoutsService.reopenSession(req.user.id, sessionId);
+  }
+
+  @Delete('sessions/:id')
+  async deleteSession(@Request() req: any, @Param('id') sessionId: string) {
+    return this.workoutsService.deleteSession(req.user.id, sessionId);
+  }
+
   // ----------------------------------------------------
   // HISTÓRICO E ESTATÍSTICAS
   // ----------------------------------------------------
