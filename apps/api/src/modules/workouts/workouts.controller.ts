@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { WorkoutsService } from './services/workouts.service';
 import { WorkoutAIService, GeneratePlanDto } from './services/workout-ai.service';
+import { ExerciseDBService } from './services/exercise-db.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('workouts')
@@ -20,6 +21,7 @@ export class WorkoutsController {
   constructor(
     private readonly workoutsService: WorkoutsService,
     private readonly workoutAiService: WorkoutAIService,
+    private readonly exerciseDbService: ExerciseDBService,
   ) {}
 
   // ----------------------------------------------------
@@ -37,6 +39,11 @@ export class WorkoutsController {
   @Post('exercises')
   async createCustomExercise(@Request() req: any, @Body() body: any) {
     return this.workoutsService.createCustomExercise(req.user.id, body);
+  }
+
+  @Post('exercises/sync-gifs')
+  async syncExerciseGifs() {
+    return this.exerciseDbService.syncAllExerciseGifs();
   }
 
   // ----------------------------------------------------

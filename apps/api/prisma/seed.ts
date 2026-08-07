@@ -233,6 +233,11 @@ async function main() {
   for (const ex of exercises) {
     const fullName = `${ex.namePt} (${ex.nameEn})`;
     const existing = await prisma.exercise.findFirst({ where: { namePt: ex.namePt } });
+
+    // Open Exercise DB / MuscleWiki CDN fallback GIFs
+    const sanitizeName = ex.nameEn.replace(/ /g, '_').replace(/\//g, '_');
+    const demoGifUrl = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/${sanitizeName}/0.jpg`;
+
     if (!existing) {
       await prisma.exercise.create({
         data: {
@@ -243,8 +248,14 @@ async function main() {
           secondaryMuscle: ex.secondaryMuscle,
           equipment: ex.equipment,
           metValue: ex.metValue,
+          gifUrl: demoGifUrl,
           instructions: `Execução correta de ${ex.namePt}. Mantenha a postura e expire na fase concêntrica.`,
         }
+      });
+    } else if (!existing.gifUrl) {
+      await prisma.exercise.update({
+        where: { id: existing.id },
+        data: { gifUrl: demoGifUrl },
       });
     }
   }
