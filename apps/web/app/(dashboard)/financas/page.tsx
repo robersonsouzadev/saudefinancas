@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Wallet, Plus, Loader2, Edit3, Trash2, Check, Landmark, Receipt, CreditCard,
-  Smartphone, Banknote, X, PiggyBank, Search, Filter, PieChart, RefreshCw, Calendar, AlertTriangle, ArrowUpRight, ArrowDownRight, Camera
+  Smartphone, Banknote, X, PiggyBank, Search, Filter, PieChart, RefreshCw, Calendar, AlertTriangle, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
@@ -97,6 +97,10 @@ export default function FinancasPage() {
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [showRecurringModal, setShowRecurringModal] = useState(false);
 
+  // Edit Account / Card States
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [editingCard, setEditingCard] = useState<CreditCardItem | null>(null);
+
   // Transaction Modal State
   const [txType, setTxType] = useState<'EXPENSE' | 'INCOME' | 'TRANSFER' | 'BOLETO'>('EXPENSE');
   const [txAmount, setTxAmount] = useState('');
@@ -143,6 +147,10 @@ export default function FinancasPage() {
   const [recFreq, setRecFreq] = useState('MONTHLY');
   const [recDay, setRecDay] = useState('5');
 
+  const formatBRL = (val: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+  };
+
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
@@ -180,7 +188,100 @@ export default function FinancasPage() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  // Handlers
+  // Handlers for Accounts
+  const handleOpenAccountModal = (acc?: Account) => {
+    if (acc) {
+      setEditingAccount(acc);
+      setAccName(acc.name);
+      setAccBank(acc.bankName || 'Nubank');
+      setAccType(acc.accountType || 'CHECKING');
+      setAccBalance(String(acc.balance));
+    } else {
+      setEditingAccount(null);
+      setAccName('');
+      setAccBank('Nubank');
+      setAccType('CHECKING');
+      setAccBalance('0');
+    }
+    setShowAccountModal(true);
+  };
+
+  const handleSaveAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const endpoint = editingAccount ? `/api/finance/accounts/${editingAccount.id}` : '/api/finance/accounts';
+      const method = editingAccount ? 'PUT' : 'POST';
+      await authFetch(endpoint, {
+        method,
+        body: JSON.stringify({
+          name: accName,
+          bankName: accBank,
+          accountType: accType,
+          balance: parseFloat(accBalance || '0')
+        })
+      });
+      setShowAccountModal(false);
+      fetchAll();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteAccount = async (id: string) => {
+    if (!confirm('Excluir esta conta bancária?')) return;
+    try {
+      await authFetch(`/api/finance/accounts/${id}`, { method: 'DELETE' });
+      fetchAll();
+    } catch (err) { console.error(err); }
+  };
+
+  // Handlers for Cards
+  const handleOpenCardModal = (card?: CreditCardItem) => {
+    if (card) {
+      setEditingCard(card);
+      setCardName(card.name);
+      setCardLimit(String(card.creditLimit));
+      setCardClosing(String(card.closingDay));
+      setCardDue(String(card.dueDay));
+      setCardAccount(accounts[0]?.id || '');
+    } else {
+      setEditingCard(null);
+      setCardName('');
+      setCardLimit('');
+      setCardClosing('1');
+      setCardDue('10');
+      setCardAccount(accounts[0]?.id || '');
+    }
+    setShowCardModal(true);
+  };
+
+  const handleSaveCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const endpoint = editingCard ? `/api/finance/credit-cards/${editingCard.id}` : '/api/finance/credit-cards';
+      const method = editingCard ? 'PUT' : 'POST';
+      await authFetch(endpoint, {
+        method,
+        body: JSON.stringify({
+          paymentAccountId: cardAccount || undefined,
+          name: cardName,
+          creditLimit: parseFloat(cardLimit || '0'),
+          closingDay: parseInt(cardClosing, 10),
+          dueDay: parseInt(cardDue, 10)
+        })
+      });
+      setShowCardModal(false);
+      fetchAll();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteCard = async (id: string) => {
+    if (!confirm('Excluir este cartão de crédito?')) return;
+    try {
+      await authFetch(`/api/finance/credit-cards/${id}`, { method: 'DELETE' });
+      fetchAll();
+    } catch (err) { console.error(err); }
+  };
+
+  // Handlers for Transactions
   const handleOpenTx = (tx?: TransactionItem) => {
     if (tx) {
       setEditingTx(tx);
@@ -198,8 +299,8 @@ export default function FinancasPage() {
       setTxCategory('Alimentação');
       setTxMethod('CRÉDITO');
       setTxBank('');
-      setTxAccount('');
-      setTxCard('');
+      setTxAccount(accounts[0]?.id || '');
+      setTxCard(creditCards[0]?.id || '');
       setTxInstallments('1');
       setTxDueDate('');
     }
@@ -233,46 +334,6 @@ export default function FinancasPage() {
     } finally {
       setSubmittingTx(false);
     }
-  };
-
-  const handleCreateAccount = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await authFetch('/api/finance/accounts', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: accName,
-          bankName: accBank,
-          accountType: accType,
-          balance: parseFloat(accBalance || '0')
-        })
-      });
-      setShowAccountModal(false);
-      setAccName('');
-      setAccBalance('0');
-      fetchAll();
-    } catch (err) { console.error(err); }
-  };
-
-  const handleCreateCard = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!cardAccount) { alert('Selecione uma conta vinculada!'); return; }
-    try {
-      await authFetch('/api/finance/credit-cards', {
-        method: 'POST',
-        body: JSON.stringify({
-          paymentAccountId: cardAccount,
-          name: cardName,
-          creditLimit: parseFloat(cardLimit || '0'),
-          closingDay: parseInt(cardClosing, 10),
-          dueDay: parseInt(cardDue, 10)
-        })
-      });
-      setShowCardModal(false);
-      setCardName('');
-      setCardLimit('');
-      fetchAll();
-    } catch (err) { console.error(err); }
   };
 
   const handleSaveBudget = async (e: React.FormEvent) => {
@@ -411,7 +472,7 @@ export default function FinancasPage() {
         <div className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-xl flex items-center justify-between">
           <div>
             <span className="text-[10px] text-[#8a8f98] font-bold uppercase tracking-wider">Saldo Líquido em Contas</span>
-            <div className="text-2xl font-bold font-mono text-[#f7f8f8] mt-1">R$ {overview.netBalance.toFixed(2)}</div>
+            <div className="text-2xl font-bold font-mono text-[#f7f8f8] mt-1">{formatBRL(overview.netBalance)}</div>
           </div>
           <div className="w-10 h-10 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center text-[#22c55e]">
             <Landmark className="w-5 h-5" />
@@ -421,7 +482,7 @@ export default function FinancasPage() {
           <div>
             <span className="text-[10px] text-[#8a8f98] font-bold uppercase tracking-wider">Entradas no Mês</span>
             <div className="text-2xl font-bold font-mono text-[#4ade80] mt-1 flex items-center">
-              <ArrowUpRight className="w-4 h-4 mr-1" /> R$ {overview.totalIncome.toFixed(2)}
+              <ArrowUpRight className="w-4 h-4 mr-1" /> {formatBRL(overview.totalIncome)}
             </div>
           </div>
           <div className="w-10 h-10 rounded-lg bg-[#4ade80]/10 border border-[#4ade80]/20 flex items-center justify-center text-[#4ade80]">
@@ -432,7 +493,7 @@ export default function FinancasPage() {
           <div>
             <span className="text-[10px] text-[#8a8f98] font-bold uppercase tracking-wider">Saídas no Mês</span>
             <div className="text-2xl font-bold font-mono text-[#f87171] mt-1 flex items-center">
-              <ArrowDownRight className="w-4 h-4 mr-1" /> R$ {overview.totalExpenses.toFixed(2)}
+              <ArrowDownRight className="w-4 h-4 mr-1" /> {formatBRL(overview.totalExpenses)}
             </div>
           </div>
           <div className="w-10 h-10 rounded-lg bg-[#f87171]/10 border border-[#f87171]/20 flex items-center justify-center text-[#f87171]">
@@ -446,11 +507,11 @@ export default function FinancasPage() {
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-sm font-semibold flex items-center"><Landmark className="w-4 h-4 mr-2 text-[#8a8f98]"/> Minhas Contas & Cartões</h2>
           <div className="flex space-x-2">
-            <button onClick={() => setShowAccountModal(true)} className="text-[11px] text-[#5e6ad2] hover:underline font-medium flex items-center">
+            <button onClick={() => handleOpenAccountModal()} className="text-[11px] text-[#5e6ad2] hover:underline font-medium flex items-center">
               + Nova Conta
             </button>
             <span className="text-[#8a8f98]">•</span>
-            <button onClick={() => setShowCardModal(true)} className="text-[11px] text-[#5e6ad2] hover:underline font-medium flex items-center">
+            <button onClick={() => handleOpenCardModal()} className="text-[11px] text-[#5e6ad2] hover:underline font-medium flex items-center">
               + Novo Cartão
             </button>
           </div>
@@ -458,40 +519,46 @@ export default function FinancasPage() {
         <div className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar">
           {/* Accounts */}
           {accounts.map(acc => (
-            <div key={acc.id} className="min-w-[210px] flex-shrink-0 p-4 rounded-xl border border-[#ffffff14] bg-[#0f1115] relative overflow-hidden">
+            <div key={acc.id} className="min-w-[210px] flex-shrink-0 p-4 rounded-xl border border-[#ffffff14] bg-[#0f1115] relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: getBankColor(acc.bankName) }} />
-              <div className="flex justify-between items-start mb-4 pl-2">
+              <div className="flex justify-between items-start mb-3 pl-2">
                 <div>
                   <span className="text-xs font-semibold block">{acc.name}</span>
                   <span className="text-[10px] text-[#8a8f98]">{acc.bankName || 'Banco'}</span>
                 </div>
-                <PiggyBank className="w-4 h-4 text-[#8a8f98]" />
+                <div className="flex items-center space-x-1">
+                  <button onClick={() => handleOpenAccountModal(acc)} className="text-[#8a8f98] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDeleteAccount(acc.id)} className="text-[#8a8f98] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
               </div>
               <div className="pl-2">
                 <span className="text-[10px] text-[#8a8f98] uppercase font-bold">Saldo Disponível</span>
-                <div className="text-lg font-bold font-mono text-[#f7f8f8]">R$ {acc.balance.toFixed(2)}</div>
+                <div className="text-lg font-bold font-mono text-[#f7f8f8]">{formatBRL(acc.balance)}</div>
               </div>
             </div>
           ))}
           {/* Credit Cards */}
           {creditCards.map(cc => (
-            <div key={cc.id} className="min-w-[210px] flex-shrink-0 p-4 rounded-xl border border-[#ffffff14] bg-[#0f1115] relative overflow-hidden">
+            <div key={cc.id} className="min-w-[210px] flex-shrink-0 p-4 rounded-xl border border-[#ffffff14] bg-[#0f1115] relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: getBankColor(cc.name) }} />
               <div className="flex justify-between items-start mb-3 pl-2">
                 <div>
                   <span className="text-xs font-semibold block">{cc.name}</span>
                   <span className="text-[10px] text-[#8a8f98]">Venc. dia {cc.dueDay}</span>
                 </div>
-                <CreditCard className="w-4 h-4 text-[#8a8f98]" />
+                <div className="flex items-center space-x-1">
+                  <button onClick={() => handleOpenCardModal(cc)} className="text-[#8a8f98] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDeleteCard(cc.id)} className="text-[#8a8f98] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
               </div>
               <div className="pl-2">
                 <span className="text-[10px] text-[#8a8f98] uppercase font-bold">Fatura Atual</span>
-                <div className="text-lg font-bold font-mono text-[#f87171]">R$ {(cc.usedLimit || 0).toFixed(2)}</div>
-                <div className="text-[10px] text-[#8a8f98] mt-1">Limite Livre: R$ {(cc.availableLimit || 0).toFixed(2)}</div>
+                <div className="text-lg font-bold font-mono text-[#f87171]">{formatBRL(cc.usedLimit || 0)}</div>
+                <div className="text-[10px] text-[#8a8f98] mt-1">Limite Livre: {formatBRL(cc.availableLimit || 0)}</div>
               </div>
             </div>
           ))}
-          <button onClick={() => setShowAccountModal(true)} className="min-w-[150px] flex-shrink-0 p-4 rounded-xl border border-dashed border-[#ffffff20] flex flex-col items-center justify-center text-[#8a8f98] hover:text-[#f7f8f8] hover:border-[#ffffff40] transition">
+          <button onClick={() => handleOpenAccountModal()} className="min-w-[150px] flex-shrink-0 p-4 rounded-xl border border-dashed border-[#ffffff20] flex flex-col items-center justify-center text-[#8a8f98] hover:text-[#f7f8f8] hover:border-[#ffffff40] transition">
             <Plus className="w-5 h-5 mb-1" />
             <span className="text-xs font-medium">+ Adicionar</span>
           </button>
@@ -608,7 +675,7 @@ export default function FinancasPage() {
                           )}
                         </td>
                         <td className={`p-3 text-right font-mono font-bold ${tx.type === 'INCOME' ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-                          {tx.type === 'INCOME' ? '+' : '-'} R$ {tx.amount.toFixed(2)}
+                          {tx.type === 'INCOME' ? '+' : '-'} {formatBRL(tx.amount)}
                         </td>
                         <td className="p-3 text-right space-x-2">
                           <button onClick={() => handleOpenTx(tx)} className="text-[#8a8f98] hover:text-[#5e6ad2]"><Edit3 className="w-3.5 h-3.5 inline" /></button>
@@ -629,7 +696,7 @@ export default function FinancasPage() {
                 <div className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-lg">
                   <div className="text-[11px] text-[#8a8f98] uppercase font-semibold">Total Pendente</div>
                   <div className="text-2xl font-bold font-mono text-[#f7f8f8] mt-1">
-                    R$ {boletos.filter(b=>b.status==='PENDING').reduce((a,b)=>a+b.amount,0).toFixed(2)}
+                    {formatBRL(boletos.filter(b=>b.status==='PENDING').reduce((a,b)=>a+b.amount,0))}
                   </div>
                 </div>
                 <div className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-lg">
@@ -666,7 +733,7 @@ export default function FinancasPage() {
                         <td className="p-3 font-medium">{b.description}</td>
                         <td className="p-3 font-mono text-[#8a8f98]">{new Date(b.dueDate).toLocaleDateString('pt-BR')}</td>
                         <td className="p-3 font-mono text-[10px] text-[#575c66] truncate max-w-[150px]">{b.barcode || '—'}</td>
-                        <td className="p-3 text-right font-mono font-bold">R$ {b.amount.toFixed(2)}</td>
+                        <td className="p-3 text-right font-mono font-bold">{formatBRL(b.amount)}</td>
                         <td className="p-3 text-center">
                           {b.status === 'PENDING' && <span className="px-2 py-0.5 rounded-full bg-[#fbbf24] text-black text-[10px] font-bold">PENDENTE 🟡</span>}
                           {b.status === 'PAID' && <span className="px-2 py-0.5 rounded-full bg-[#4ade80] text-black text-[10px] font-bold">PAGO 🟢</span>}
@@ -692,7 +759,7 @@ export default function FinancasPage() {
             <div className="space-y-6 pt-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-sm font-bold text-[#f7f8f8]">Contas Bancárias & Carteiras</h3>
-                <button onClick={() => setShowAccountModal(true)} className="px-3 py-1.5 bg-[#5e6ad2] text-white text-xs font-medium rounded-lg flex items-center">
+                <button onClick={() => handleOpenAccountModal()} className="px-3 py-1.5 bg-[#5e6ad2] text-white text-xs font-medium rounded-lg flex items-center">
                   <Plus className="w-3.5 h-3.5 mr-1" /> Nova Conta
                 </button>
               </div>
@@ -702,11 +769,15 @@ export default function FinancasPage() {
                   <div key={acc.id} className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-xl space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-sm">{acc.name}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] border border-[#ffffff14] text-[#8a8f98]">{acc.bankName || 'Banco'}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] border border-[#ffffff14] text-[#8a8f98]">{acc.bankName || 'Banco'}</span>
+                        <button onClick={() => handleOpenAccountModal(acc)} className="text-[#8a8f98] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteAccount(acc.id)} className="text-[#8a8f98] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
                     </div>
                     <div>
                       <div className="text-[10px] text-[#8a8f98] uppercase">Saldo Atual</div>
-                      <div className="text-xl font-bold font-mono">R$ {acc.balance.toFixed(2)}</div>
+                      <div className="text-xl font-bold font-mono text-[#f7f8f8]">{formatBRL(acc.balance)}</div>
                     </div>
                   </div>
                 ))}
@@ -714,7 +785,7 @@ export default function FinancasPage() {
 
               <div className="flex justify-between items-center pt-4">
                 <h3 className="text-sm font-bold text-[#f7f8f8]">Cartões de Crédito</h3>
-                <button onClick={() => setShowCardModal(true)} className="px-3 py-1.5 bg-[#5e6ad2] text-white text-xs font-medium rounded-lg flex items-center">
+                <button onClick={() => handleOpenCardModal()} className="px-3 py-1.5 bg-[#5e6ad2] text-white text-xs font-medium rounded-lg flex items-center">
                   <Plus className="w-3.5 h-3.5 mr-1" /> Novo Cartão
                 </button>
               </div>
@@ -724,16 +795,19 @@ export default function FinancasPage() {
                   <div key={cc.id} className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-xl space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-sm">{cc.name}</span>
-                      <CreditCard className="w-4 h-4 text-[#8a8f98]" />
+                      <div className="flex items-center space-x-2">
+                        <button onClick={() => handleOpenCardModal(cc)} className="text-[#8a8f98] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteCard(cc.id)} className="text-[#8a8f98] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <div className="text-[10px] text-[#8a8f98] uppercase">Fatura Atual</div>
-                        <div className="text-base font-bold font-mono text-[#f87171]">R$ {(cc.usedLimit || 0).toFixed(2)}</div>
+                        <div className="text-base font-bold font-mono text-[#f87171]">{formatBRL(cc.usedLimit || 0)}</div>
                       </div>
                       <div>
                         <div className="text-[10px] text-[#8a8f98] uppercase">Limite Disponível</div>
-                        <div className="text-base font-bold font-mono text-[#4ade80]">R$ {(cc.availableLimit || 0).toFixed(2)}</div>
+                        <div className="text-base font-bold font-mono text-[#4ade80]">{formatBRL(cc.availableLimit || 0)}</div>
                       </div>
                     </div>
                     <div className="text-[10px] text-[#8a8f98] border-t border-[#ffffff0a] pt-2 flex justify-between">
@@ -787,7 +861,7 @@ export default function FinancasPage() {
                       {/* Progress Bar */}
                       <div className="space-y-1">
                         <div className="flex justify-between text-xs font-mono">
-                          <span>R$ {b.spent.toFixed(2)} de R$ {b.amount.toFixed(2)}</span>
+                          <span>{formatBRL(b.spent)} de {formatBRL(b.amount)}</span>
                           <span className={b.isExceeded ? 'text-[#f87171] font-bold' : 'text-[#8a8f98]'}>{b.percentage}%</span>
                         </div>
                         <div className="w-full h-2 bg-[#16191e] rounded-full overflow-hidden border border-[#ffffff0a]">
@@ -800,8 +874,8 @@ export default function FinancasPage() {
 
                       <div className="text-[10px] text-[#8a8f98]">
                         {b.isExceeded
-                          ? `Excedido em R$ ${(b.spent - b.amount).toFixed(2)}`
-                          : `Restante disponível: R$ ${b.remaining.toFixed(2)}`
+                          ? `Excedido em ${formatBRL(b.spent - b.amount)}`
+                          : `Restante disponível: ${formatBRL(b.remaining)}`
                         }
                       </div>
                     </div>
@@ -816,7 +890,7 @@ export default function FinancasPage() {
             <div className="space-y-6 pt-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-sm font-bold text-[#f7f8f8]">Contas Fócas & Assinaturas Recorrentes</h3>
+                  <h3 className="text-sm font-bold text-[#f7f8f8]">Contas Fixas & Assinaturas Recorrentes</h3>
                   <p className="text-xs text-[#8a8f98]">Controle despesas e receitas fixas automáticas (aluguel, internet, assinaturas).</p>
                 </div>
                 <button onClick={() => setShowRecurringModal(true)} className="px-3 py-1.5 bg-[#5e6ad2] text-white text-xs font-medium rounded-lg flex items-center">
@@ -847,7 +921,7 @@ export default function FinancasPage() {
                           <td className="p-3 uppercase text-[10px] text-[#8a8f98] font-bold">{r.frequency}</td>
                           <td className="p-3">Dia {r.dayOfMonth || 1}</td>
                           <td className={`p-3 text-right font-mono font-bold ${r.type === 'INCOME' ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-                            {r.type === 'INCOME' ? '+' : '-'} R$ {r.amount.toFixed(2)}
+                            {r.type === 'INCOME' ? '+' : '-'} {formatBRL(r.amount)}
                           </td>
                           <td className="p-3 text-right">
                             <button onClick={() => handleDeleteRecurring(r.id)} className="text-[#8a8f98] hover:text-[#f87171]">
@@ -944,40 +1018,42 @@ export default function FinancasPage() {
         </div>
       )}
 
-      {/* ACCOUNT MODAL */}
+      {/* ACCOUNT MODAL (CREATE & EDIT) */}
       {showAccountModal && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
             <button onClick={() => setShowAccountModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8]"><X className="w-5 h-5"/></button>
-            <h3 className="text-base font-bold mb-4">Nova Conta Bancária</h3>
+            <h3 className="text-base font-bold mb-4">{editingAccount ? 'Editar Conta Bancária' : 'Nova Conta Bancária'}</h3>
 
-            <form onSubmit={handleCreateAccount} className="space-y-3 text-xs">
+            <form onSubmit={handleSaveAccount} className="space-y-3 text-xs">
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Nome da Conta</label>
                 <input type="text" value={accName} onChange={e=>setAccName(e.target.value)} placeholder="Ex: Conta Corrente Principal" required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
               </div>
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Instituição / Banco</label>
-                <input type="text" value={accBank} onChange={e=>setAccBank(e.target.value)} placeholder="Ex: Nubank, Itaú" required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
+                <input type="text" value={accBank} onChange={e=>setAccBank(e.target.value)} placeholder="Ex: Nubank, Bradesco, Itaú" required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
               </div>
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Saldo Inicial (R$)</label>
-                <input type="number" step="0.01" value={accBalance} onChange={e=>setAccBalance(e.target.value)} required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none" />
+                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Saldo Atual (R$)</label>
+                <input type="number" step="0.01" value={accBalance} onChange={e=>setAccBalance(e.target.value)} required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none text-[#22c55e]" />
               </div>
-              <button type="submit" className="w-full h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">Criar Conta</button>
+              <button type="submit" className="w-full h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">
+                {editingAccount ? 'Atualizar Saldo e Dados' : 'Criar Conta'}
+              </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* CREDIT CARD MODAL */}
+      {/* CREDIT CARD MODAL (CREATE & EDIT) */}
       {showCardModal && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
             <button onClick={() => setShowCardModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8]"><X className="w-5 h-5"/></button>
-            <h3 className="text-base font-bold mb-4">Novo Cartão de Crédito</h3>
+            <h3 className="text-base font-bold mb-4">{editingCard ? 'Editar Cartão de Crédito' : 'Novo Cartão de Crédito'}</h3>
 
-            <form onSubmit={handleCreateCard} className="space-y-3 text-xs">
+            <form onSubmit={handleSaveCard} className="space-y-3 text-xs">
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Conta Vinculada</label>
                 <select value={cardAccount} onChange={e=>setCardAccount(e.target.value)} required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none">
@@ -1003,7 +1079,9 @@ export default function FinancasPage() {
                   <input type="number" min="1" max="31" value={cardDue} onChange={e=>setCardDue(e.target.value)} required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
                 </div>
               </div>
-              <button type="submit" className="w-full h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">Criar Cartão</button>
+              <button type="submit" className="w-full h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">
+                {editingCard ? 'Salvar Alterações' : 'Criar Cartão'}
+              </button>
             </form>
           </div>
         </div>

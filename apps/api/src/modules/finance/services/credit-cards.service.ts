@@ -67,6 +67,25 @@ export class CreditCardsService {
     };
   }
 
+  async updateCard(userId: string, id: string, data: any) {
+    const card = await this.prisma.creditCard.findFirst({
+      where: { id, paymentAccount: { userId } }
+    });
+    if (!card) throw new NotFoundException('Cartão não encontrado');
+
+    return this.prisma.creditCard.update({
+      where: { id },
+      data: {
+        name: data.name !== undefined ? data.name : card.name,
+        creditLimit: data.creditLimit !== undefined ? parseFloat(data.creditLimit) : card.creditLimit,
+        closingDay: data.closingDay !== undefined ? parseInt(data.closingDay) : card.closingDay,
+        dueDay: data.dueDay !== undefined ? parseInt(data.dueDay) : card.dueDay,
+        brand: data.brand !== undefined ? data.brand : card.brand,
+        cardColor: data.cardColor !== undefined ? data.cardColor : card.cardColor,
+      }
+    });
+  }
+
   async deleteCard(userId: string, id: string) {
     const card = await this.prisma.creditCard.findFirst({
       where: { id, paymentAccount: { userId } }

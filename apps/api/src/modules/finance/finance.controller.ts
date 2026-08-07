@@ -81,6 +81,11 @@ export class FinanceController {
     return this.creditCardsService.createCard(req.user.id, data);
   }
 
+  @Put('credit-cards/:id')
+  async updateCreditCard(@Req() req: any, @Param('id') id: string, @Body() data: any) {
+    return this.creditCardsService.updateCard(req.user.id, id, data);
+  }
+
   @Get('credit-cards/:id/bill')
   async getCreditCardBill(@Req() req: any, @Param('id') id: string, @Query('month') month: string, @Query('year') year: string) {
     return this.creditCardsService.getCardBill(req.user.id, id, parseInt(month), parseInt(year));
