@@ -17,9 +17,12 @@ import {
   X,
   Sparkles,
   AlertCircle,
-  Star,
   Eye,
   EyeOff,
+  XCircle,
+  AlertTriangle,
+  Loader2,
+  Star,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
@@ -45,8 +48,29 @@ export default function WorkoutSessionPage() {
   const [notes, setNotes] = useState('');
   const [finishedSummary, setFinishedSummary] = useState<any>(null);
 
+  // Cancel Modal State
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
+
   // GIF Preview Toggle
   const [expandedGifId, setExpandedGifId] = useState<string | null>(null);
+
+  const handleCancelSession = async () => {
+    if (!session?.id) return;
+    try {
+      setIsCanceling(true);
+      const res = await authFetch(`/api/workouts/sessions/${session.id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        router.push('/saude/treinos');
+      }
+    } catch (err) {
+      console.error('Erro ao cancelar treino:', err);
+    } finally {
+      setIsCanceling(false);
+    }
+  };
 
   useEffect(() => {
     fetchActiveSession(true);
@@ -281,13 +305,23 @@ export default function WorkoutSessionPage() {
           <span>Voltar</span>
         </button>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#16191e] border border-[#ffffff12] text-xs font-mono text-[#38bdf8]">
             <Clock className="w-3.5 h-3.5" />
             <span>{formatSeconds(elapsedSeconds)}</span>
           </div>
 
           <button
+            type="button"
+            onClick={() => setIsCancelModalOpen(true)}
+            className="px-3 py-1.5 rounded-lg bg-[#ef444415] hover:bg-[#ef444425] text-[#ef4444] border border-[#ef444440] text-xs font-semibold transition flex items-center space-x-1"
+          >
+            <XCircle className="w-3.5 h-3.5" />
+            <span>Cancelar Treino</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setIsFinishModalOpen(true)}
             className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition"
           >
@@ -619,6 +653,63 @@ export default function WorkoutSessionPage() {
                 className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-lg"
               >
                 Confirmar & Finalizar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CANCELAR E DESCARTAR TREINO */}
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#0f1115] border border-[#ef444430] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <button
+              onClick={() => setIsCancelModalOpen(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-full bg-[#ef444415] border border-[#ef444430] flex items-center justify-center text-[#ef4444] shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#f7f8f8]">Cancelar Treino em Andamento?</h3>
+                <p className="text-xs text-[#8a8f98]">Esta ação não registrará este treino no histórico.</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#16191e] border border-[#ffffff0a] text-xs text-[#8a8f98] space-y-1.5">
+              <p>
+                Você iniciou <strong className="text-white">{session?.title || 'este treino'}</strong> sem querer?
+              </p>
+              <p className="text-[11px] text-[#ef4444]">
+                • Os registros gravados nesta sessão serão excluídos.<br />
+                • A ficha voltará a ficar em aberto para quando você quiser treinar novamente.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 pt-3 border-t border-[#ffffff0e]">
+              <button
+                type="button"
+                onClick={() => setIsCancelModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+              >
+                Manter Treino Ativo
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelSession}
+                disabled={isCanceling}
+                className="px-4 py-2 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white text-xs font-bold transition flex items-center space-x-1.5 shadow-lg shadow-red-500/20"
+              >
+                {isCanceling ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <XCircle className="w-3.5 h-3.5" />
+                )}
+                <span>Sim, Cancelar e Descartar</span>
               </button>
             </div>
           </div>
