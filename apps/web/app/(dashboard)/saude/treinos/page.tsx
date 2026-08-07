@@ -1027,19 +1027,28 @@ export default function TreinosPage() {
               )}
             </div>
 
-            <div className="w-full h-56 rounded-xl bg-[#16191e] border border-[#ffffff0e] flex items-center justify-center overflow-hidden relative">
+            <div className="w-full h-64 rounded-xl bg-[#16191e] border border-[#ffffff0e] flex items-center justify-center overflow-hidden relative group">
+              <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md border border-[#ffffff15] text-[10px] font-medium text-[#818cf8] flex items-center space-x-1">
+                <Sparkles className="w-3 h-3 text-[#38bdf8]" />
+                <span>Animação 3D — Demonstração em Loop</span>
+              </div>
+
               {selectedExerciseModal.gifUrl ? (
                 <img
                   src={selectedExerciseModal.gifUrl}
                   alt={selectedExerciseModal.namePt}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain p-2"
+                  onError={(e) => {
+                    // Fallback on image loading error
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
                 />
               ) : (
                 <div className="text-center p-6 space-y-2">
                   <Dumbbell className="w-12 h-12 text-[#575c66] mx-auto animate-pulse" />
                   <p className="text-xs text-[#8a8f98]">Demonstração 3D de Execução</p>
                   <span className="text-[10px] text-[#575c66] block">
-                    Equipamento necessário: {selectedExerciseModal.equipment}
+                    Equipamento necessário: {selectedExerciseModal.equipment || 'Livre'}
                   </span>
                 </div>
               )}

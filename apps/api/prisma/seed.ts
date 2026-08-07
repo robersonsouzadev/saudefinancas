@@ -159,123 +159,116 @@ async function main() {
     }
   }
 
-  console.log('Seeding standard bodybuilding exercises...');
-  const exercises = [
-    // Peito
-    { namePt: 'Supino Reto com Barra', nameEn: 'Barbell Bench Press', muscleGroup: 'PEITORAL_MEDIAL', secondaryMuscle: 'Tríceps, Deltoide Anterior', equipment: 'BARBELL', metValue: 6.0 },
-    { namePt: 'Supino Inclinado com Halteres', nameEn: 'Incline Dumbbell Press', muscleGroup: 'PEITORAL_SUPERIOR', secondaryMuscle: 'Deltoide Anterior, Tríceps', equipment: 'DUMBBELL', metValue: 5.5 },
-    { namePt: 'Supino Declinado com Barra', nameEn: 'Decline Barbell Press', muscleGroup: 'PEITORAL_INFERIOR', secondaryMuscle: 'Tríceps', equipment: 'BARBELL', metValue: 5.5 },
-    { namePt: 'Crucifixo Reto com Halteres', nameEn: 'Flat Dumbbell Flyes', muscleGroup: 'PEITORAL_MEDIAL', secondaryMuscle: 'Deltoide Anterior', equipment: 'DUMBBELL', metValue: 5.0 },
-    { namePt: 'Crossover na Polia Alta', nameEn: 'High Cable Flyes', muscleGroup: 'PEITORAL_INFERIOR', secondaryMuscle: 'Peitoral Medial', equipment: 'CABLE', metValue: 5.0 },
-    { namePt: 'Crossover na Polia Baixa', nameEn: 'Low Cable Flyes', muscleGroup: 'PEITORAL_SUPERIOR', secondaryMuscle: 'Deltoide Anterior', equipment: 'CABLE', metValue: 5.0 },
-    { namePt: 'Peck Deck / Voador', nameEn: 'Machine Pec Deck', muscleGroup: 'PEITORAL_MEDIAL', secondaryMuscle: 'Deltoide Anterior', equipment: 'MACHINE', metValue: 4.5 },
-    { namePt: 'Flexão de Braço', nameEn: 'Push-up', muscleGroup: 'PEITORAL_MEDIAL', secondaryMuscle: 'Tríceps, Core', equipment: 'BODYWEIGHT', metValue: 5.0 },
-    { namePt: 'Paralelas para Peito (Dips)', nameEn: 'Chest Dips', muscleGroup: 'PEITORAL_INFERIOR', secondaryMuscle: 'Tríceps, Deltoide Anterior', equipment: 'BODYWEIGHT', metValue: 6.0 },
-
-    // Costas & Trapézio
-    { namePt: 'Puxada Frontal Aberta', nameEn: 'Wide Lat Pulldown', muscleGroup: 'DORSAL', secondaryMuscle: 'Bíceps, Deltoide Posterior', equipment: 'CABLE', metValue: 5.0 },
-    { namePt: 'Remada Curvada com Barra', nameEn: 'Bent-Over Barbell Row', muscleGroup: 'DORSAL', secondaryMuscle: 'Trapézio, Bíceps, Lombar', equipment: 'BARBELL', metValue: 6.0 },
-    { namePt: 'Remada Unilateral com Halter (Serrote)', nameEn: 'Single-Arm Dumbbell Row', muscleGroup: 'DORSAL', secondaryMuscle: 'Bíceps', equipment: 'DUMBBELL', metValue: 5.5 },
-    { namePt: 'Remada Baixa no Cabo (Triângulo)', nameEn: 'Seated Cable Row', muscleGroup: 'DORSAL', secondaryMuscle: 'Trapézio, Bíceps', equipment: 'CABLE', metValue: 5.0 },
-    { namePt: 'Barra Fixa Pronada', nameEn: 'Pull-up', muscleGroup: 'DORSAL', secondaryMuscle: 'Bíceps, Core', equipment: 'BODYWEIGHT', metValue: 6.0 },
-    { namePt: 'Pulldown com Corda na Polia', nameEn: 'Cable Rope Pulldown', muscleGroup: 'DORSAL', secondaryMuscle: 'Tríceps (cabeça longa)', equipment: 'CABLE', metValue: 4.5 },
-    { namePt: 'Levantamento Terra', nameEn: 'Deadlift', muscleGroup: 'LOMBAR', secondaryMuscle: 'Glúteos, Quadríceps, Trapézio', equipment: 'BARBELL', metValue: 7.0 },
-    { namePt: 'Encolhimento com Halteres', nameEn: 'Dumbbell Shrugs', muscleGroup: 'TRAPEZIO', secondaryMuscle: 'Antebraço', equipment: 'DUMBBELL', metValue: 4.5 },
-    { namePt: 'Encolhimento com Barra', nameEn: 'Barbell Shrugs', muscleGroup: 'TRAPEZIO', secondaryMuscle: 'Antebraço', equipment: 'BARBELL', metValue: 5.0 },
-
-    // Ombros
-    { namePt: 'Desenvolvimento Militar com Barra', nameEn: 'Overhead Military Press', muscleGroup: 'OMBRO_ANTERIOR', secondaryMuscle: 'Deltoide Lateral, Tríceps', equipment: 'BARBELL', metValue: 6.0 },
-    { namePt: 'Desenvolvimento com Halteres Sentado', nameEn: 'Seated Dumbbell Shoulder Press', muscleGroup: 'OMBRO_ANTERIOR', secondaryMuscle: 'Tríceps', equipment: 'DUMBBELL', metValue: 5.5 },
-    { namePt: 'Elevação Lateral com Halteres', nameEn: 'Dumbbell Lateral Raise', muscleGroup: 'OMBRO_LATERAL', secondaryMuscle: 'Trapézio', equipment: 'DUMBBELL', metValue: 4.5 },
-    { namePt: 'Elevação Lateral na Polia', nameEn: 'Cable Lateral Raise', muscleGroup: 'OMBRO_LATERAL', secondaryMuscle: 'Trapézio', equipment: 'CABLE', metValue: 4.5 },
-    { namePt: 'Elevação Frontal com Halteres', nameEn: 'Dumbbell Front Raise', muscleGroup: 'OMBRO_ANTERIOR', secondaryMuscle: 'Peitoral Superior', equipment: 'DUMBBELL', metValue: 4.5 },
-    { namePt: 'Crucifixo Inverso no Peck Deck', nameEn: 'Reverse Pec Deck Fly', muscleGroup: 'OMBRO_POSTERIOR', secondaryMuscle: 'Trapézio, Romboides', equipment: 'MACHINE', metValue: 4.5 },
-    { namePt: 'Face Pull na Polia', nameEn: 'Cable Face Pull', muscleGroup: 'OMBRO_POSTERIOR', secondaryMuscle: 'Trapézio, Manguito Rotador', equipment: 'CABLE', metValue: 4.5 },
-
-    // Bíceps & Antebraço
-    { namePt: 'Rosca Direta com Barra W', nameEn: 'EZ-Bar Biceps Curl', muscleGroup: 'BICEPS', secondaryMuscle: 'Antebraço', equipment: 'BARBELL', metValue: 4.5 },
-    { namePt: 'Rosca Alternada com Halteres', nameEn: 'Alternating Dumbbell Curl', muscleGroup: 'BICEPS', secondaryMuscle: 'Antebraço', equipment: 'DUMBBELL', metValue: 4.5 },
-    { namePt: 'Rosca Martelo', nameEn: 'Dumbbell Hammer Curl', muscleGroup: 'BICEPS', secondaryMuscle: 'Braquiorradial, Antebraço', equipment: 'DUMBBELL', metValue: 4.5 },
-    { namePt: 'Rosca Scott com Barra EZ', nameEn: 'Preacher Curl', muscleGroup: 'BICEPS', secondaryMuscle: 'Antebraço', equipment: 'BARBELL', metValue: 4.5 },
-    { namePt: 'Rosca Concentrada', nameEn: 'Concentration Curl', muscleGroup: 'BICEPS', secondaryMuscle: 'Braquial', equipment: 'DUMBBELL', metValue: 4.0 },
-    { namePt: 'Rosca Inversa', nameEn: 'Reverse Barbell Curl', muscleGroup: 'ANTEBRACO', secondaryMuscle: 'Bíceps', equipment: 'BARBELL', metValue: 4.0 },
-
-    // Tríceps
-    { namePt: 'Tríceps Pulley na Corda', nameEn: 'Rope Pushdown', muscleGroup: 'TRICEPS', secondaryMuscle: 'Antebraço', equipment: 'CABLE', metValue: 4.5 },
-    { namePt: 'Tríceps Pulley com Barra Reta', nameEn: 'Straight Bar Pushdown', muscleGroup: 'TRICEPS', secondaryMuscle: 'Antebraço', equipment: 'CABLE', metValue: 4.5 },
-    { namePt: 'Tríceps Testa com Barra W', nameEn: 'Skullcrushers / Lying Triceps Extension', muscleGroup: 'TRICEPS', secondaryMuscle: 'Antebraço', equipment: 'BARBELL', metValue: 5.0 },
-    { namePt: 'Tríceps Francês com Halter', nameEn: 'Overhead Dumbbell Extension', muscleGroup: 'TRICEPS', secondaryMuscle: 'Core', equipment: 'DUMBBELL', metValue: 4.5 },
-    { namePt: 'Tríceps Coice no Cabo', nameEn: 'Cable Kickback', muscleGroup: 'TRICEPS', secondaryMuscle: 'Antebraço', equipment: 'CABLE', metValue: 4.0 },
-
-    // Pernas & Glúteos
-    { namePt: 'Agachamento Livre com Barra', nameEn: 'Barbell Back Squat', muscleGroup: 'QUADRICEPS', secondaryMuscle: 'Glúteos, Isquiotibiais, Lombar', equipment: 'BARBELL', metValue: 7.0 },
-    { namePt: 'Leg Press 45°', nameEn: '45° Leg Press', muscleGroup: 'QUADRICEPS', secondaryMuscle: 'Glúteos', equipment: 'MACHINE', metValue: 6.0 },
-    { namePt: 'Cadeira Extensora', nameEn: 'Leg Extension Machine', muscleGroup: 'QUADRICEPS', secondaryMuscle: 'Nenhum', equipment: 'MACHINE', metValue: 4.5 },
-    { namePt: 'Agachamento Búlgaro com Halteres', nameEn: 'Bulgarian Split Squat', muscleGroup: 'QUADRICEPS', secondaryMuscle: 'Glúteos', equipment: 'DUMBBELL', metValue: 6.5 },
-    { namePt: 'Hack Squat na Máquina', nameEn: 'Hack Squat Machine', muscleGroup: 'QUADRICEPS', secondaryMuscle: 'Glúteos', equipment: 'MACHINE', metValue: 6.0 },
-    { namePt: 'Mesa Flexora', nameEn: 'Lying Leg Curl', muscleGroup: 'POSTERIOR_COXA', secondaryMuscle: 'Panturrilha', equipment: 'MACHINE', metValue: 4.5 },
-    { namePt: 'Cadeira Flexora', nameEn: 'Seated Leg Curl', muscleGroup: 'POSTERIOR_COXA', secondaryMuscle: 'Panturrilha', equipment: 'MACHINE', metValue: 4.5 },
-    { namePt: 'Stiff com Barra', nameEn: 'Barbell Stiff Leg Deadlift', muscleGroup: 'POSTERIOR_COXA', secondaryMuscle: 'Glúteos, Lombar', equipment: 'BARBELL', metValue: 6.0 },
-    { namePt: 'Elevação Pélvica com Barra (Hip Thrust)', nameEn: 'Barbell Hip Thrust', muscleGroup: 'GLUTEOS', secondaryMuscle: 'Isquiotibiais', equipment: 'BARBELL', metValue: 6.0 },
-    { namePt: 'Cadeira Abdutora', nameEn: 'Abductor Machine', muscleGroup: 'GLUTEOS', secondaryMuscle: 'Glúteo Médio', equipment: 'MACHINE', metValue: 4.0 },
-    { namePt: 'Panturrilha em Pé na Máquina', nameEn: 'Standing Calf Raise', muscleGroup: 'PANTURRILHA', secondaryMuscle: 'Sóleo', equipment: 'MACHINE', metValue: 4.0 },
-    { namePt: 'Panturrilha Sentado (Gêmeos)', nameEn: 'Seated Calf Raise', muscleGroup: 'PANTURRILHA', secondaryMuscle: 'Gastrocnêmio', equipment: 'MACHINE', metValue: 4.0 },
-
-    // Abdômen & Cardio
-    { namePt: 'Abdominal Supra no Solo', nameEn: 'Abdominal Crunch', muscleGroup: 'ABDOMEN', secondaryMuscle: 'Nenhum', equipment: 'BODYWEIGHT', metValue: 4.0 },
-    { namePt: 'Prancha Abdominal Isométrica', nameEn: 'Plank', muscleGroup: 'ABDOMEN', secondaryMuscle: 'Ombros, Glúteos', equipment: 'BODYWEIGHT', metValue: 4.5 },
-    { namePt: 'Elevação de Pernas na Barra Fixa', nameEn: 'Hanging Leg Raise', muscleGroup: 'ABDOMEN', secondaryMuscle: 'Flexores do Quadril', equipment: 'BODYWEIGHT', metValue: 5.0 },
-    { namePt: 'Abdominal Infra no Banco Inclinado', nameEn: 'Incline Leg Raise', muscleGroup: 'ABDOMEN', secondaryMuscle: 'Flexores do Quadril', equipment: 'BODYWEIGHT', metValue: 4.5 },
-    { namePt: 'Corrida na Esteira', nameEn: 'Treadmill Running', muscleGroup: 'CARDIO', secondaryMuscle: 'Pernas', equipment: 'MACHINE', metValue: 8.0 },
-    { namePt: 'Bicicleta Ergométrica', nameEn: 'Stationary Bike', muscleGroup: 'CARDIO', secondaryMuscle: 'Quadríceps', equipment: 'MACHINE', metValue: 7.0 }
+  console.log('Seeding 1,323 3D exercises with animated GIFs from ExerciseGymGifsDB CDN...');
+  const cdnBaseUrl = 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0';
+  const muscleFolders = [
+    'pectorals', 'lats', 'delts', 'biceps', 'triceps', 'quads', 'hamstrings',
+    'abs', 'glutes', 'calves', 'forearms', 'traps', 'upper-back', 'abductors',
+    'adductors', 'cardio', 'levator-scapulae', 'serratus-anterior', 'spine',
   ];
 
-  for (const ex of exercises) {
-    const fullName = `${ex.namePt} (${ex.nameEn})`;
-    const existing = await prisma.exercise.findFirst({ where: { namePt: ex.namePt } });
+  const muscleGroupMap: Record<string, string> = {
+    pectorals: 'PEITORAL', lats: 'DORSAL', delts: 'OMBRO', biceps: 'BICEPS',
+    triceps: 'TRICEPS', quads: 'QUADRICEPS', hamstrings: 'POSTERIOR_COXA',
+    abs: 'ABDOMEN', glutes: 'GLUTEOS', calves: 'PANTURRILHA', forearms: 'ANTEBRACO',
+    traps: 'TRAPEZIO', 'upper-back': 'DORSAL', abductors: 'GLUTEOS', adductors: 'COXA',
+    cardio: 'CARDIO', 'levator-scapulae': 'TRAPEZIO', 'serratus-anterior': 'ABDOMEN', spine: 'LOMBAR',
+  };
 
-    const lontraMap: Record<string, string> = {
-      'Supino Reto com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/barbell-bench-press.gif',
-      'Supino Inclinado com Halteres': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/dumbbell-incline-bench-press.gif',
-      'Flexão de Braço': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/push-up.gif',
-      'Puxada Frontal Aberta': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/lats/cable-pulldown.gif',
-      'Barra Fixa Pronada': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/lats/pull-up.gif',
-      'Desenvolvimento Militar com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/delts/barbell-standing-wide-military-press.gif',
-      'Elevação Lateral com Halteres': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/delts/dumbbell-lateral-raise.gif',
-      'Rosca Direta com Barra W': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/biceps/barbell-curl.gif',
-      'Rosca Martelo': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/biceps/dumbbell-hammer-curl.gif',
-      'Tríceps Pulley na Corda': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/triceps/barbell-lying-triceps-extension.gif',
-      'Agachamento Livre com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/quads/barbell-bench-squat.gif',
-      'Leg Press 45°': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/quads/barbell-bench-squat.gif',
-      'Stiff com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/hamstrings/barbell-straight-leg-deadlift.gif',
-      'Abdominal Supra no Solo': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/abs/3-4-sit-up.gif',
-    };
+  const namePtMap: Record<string, string> = {
+    'barbell bench press': 'Supino Reto com Barra',
+    'dumbbell incline bench press': 'Supino Inclinado com Halteres',
+    'push-up': 'Flexão de Braço',
+    'cable pulldown': 'Puxada Frontal no Cabo',
+    'pull-up': 'Barra Fixa Pronada',
+    'barbell standing wide military press': 'Desenvolvimento Militar com Barra',
+    'dumbbell lateral raise': 'Elevação Lateral com Halteres',
+    'barbell curl': 'Rosca Direta com Barra',
+    'dumbbell hammer curl': 'Rosca Martelo com Halteres',
+    'barbell lying triceps extension': 'Tríceps Testa com Barra',
+    'barbell bench squat': 'Agachamento Livre com Barra',
+    'barbell straight leg deadlift': 'Stiff com Barra',
+    '3-4 sit-up': 'Abdominal Supra no Solo',
+  };
 
-    const demoGifUrl = lontraMap[ex.namePt] || `https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/abs/3-4-sit-up.gif`;
+  let totalSeeded = 0;
 
-    if (!existing) {
-      await prisma.exercise.create({
-        data: {
-          name: fullName,
-          namePt: ex.namePt,
-          nameEn: ex.nameEn,
-          muscleGroup: ex.muscleGroup,
-          secondaryMuscle: ex.secondaryMuscle,
-          equipment: ex.equipment,
-          metValue: ex.metValue,
-          gifUrl: demoGifUrl,
-          instructions: `Execução correta de ${ex.namePt}. Mantenha a postura e expire na fase concêntrica.`,
+  for (const mFolder of muscleFolders) {
+    try {
+      const res = await fetch(`${cdnBaseUrl}/api/en/muscles/${mFolder}.json`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.exercises)) {
+          for (const item of data.exercises) {
+            const cleanEn = item.name.trim();
+            const lowerEn = cleanEn.toLowerCase();
+            const namePt = namePtMap[lowerEn] || cleanEn
+              .replace(/\bBarbell\b/gi, 'com Barra')
+              .replace(/\bDumbbell\b/gi, 'com Halteres')
+              .replace(/\bCable\b/gi, 'no Cabo')
+              .replace(/\bBand\b/gi, 'com Elástico')
+              .replace(/\bBench Press\b/gi, 'Supino')
+              .replace(/\bSquat\b/gi, 'Agachamento')
+              .replace(/\bDeadlift\b/gi, 'Levantamento Terra')
+              .replace(/\bCurl\b/gi, 'Rosca')
+              .replace(/\bPushdown\b/gi, 'Extensão')
+              .replace(/\bPulldown\b/gi, 'Puxada')
+              .replace(/\bCrunch\b/gi, 'Abdominal');
+
+            const fullName = `${namePt} (${cleanEn})`;
+            const mGroup = muscleGroupMap[mFolder] || 'OUTROS';
+            const gifUrl = `${cdnBaseUrl}/${item.file}`;
+            const instructionsText = Array.isArray(item.instructions) && item.instructions.length > 0
+              ? item.instructions.join(' ')
+              : `Execução correta de ${namePt}. Mantenha a postura e expire na fase concêntrica.`;
+            const secondaryStr = Array.isArray(item.secondaryMuscles) ? item.secondaryMuscles.join(', ') : item.secondaryMuscles || null;
+
+            const existing = await prisma.exercise.findFirst({
+              where: {
+                OR: [
+                  { namePt },
+                  { nameEn: cleanEn },
+                ],
+              },
+            });
+
+            if (!existing) {
+              await prisma.exercise.create({
+                data: {
+                  name: fullName,
+                  namePt,
+                  nameEn: cleanEn,
+                  muscleGroup: mGroup,
+                  secondaryMuscle: secondaryStr,
+                  equipment: item.equipment || 'Outro',
+                  metValue: 5.0,
+                  gifUrl,
+                  instructions: instructionsText,
+                },
+              });
+            } else {
+              await prisma.exercise.update({
+                where: { id: existing.id },
+                data: {
+                  name: fullName,
+                  namePt,
+                  nameEn: cleanEn,
+                  muscleGroup: mGroup,
+                  gifUrl,
+                  instructions: instructionsText,
+                },
+              });
+            }
+            totalSeeded++;
+          }
         }
-      });
-    } else {
-      await prisma.exercise.update({
-        where: { id: existing.id },
-        data: { gifUrl: demoGifUrl },
-      });
+      }
+    } catch (e) {
+      console.warn(`Erro ao carregar muscle folder ${mFolder}:`, e);
     }
   }
-  console.log(`Seeded ${exercises.length} standard bodybuilding exercises.`);
 
+  console.log(`Finalizado seed de ${totalSeeded} exercícios 3D!`);
   console.log('Seeding completed successfully!');
 }
 

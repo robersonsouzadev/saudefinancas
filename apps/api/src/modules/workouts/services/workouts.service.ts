@@ -1,13 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { ExerciseDBService } from './exercise-db.service';
+import { MUSCLE_GROUP_MAP, EQUIPMENT_TRANSLATION, translateExerciseName } from '../data/exercise-translations';
 
 @Injectable()
 export class WorkoutsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(WorkoutsService.name);
 
-  // ----------------------------------------------------
-  // EXERCÍCIOS
-  // ----------------------------------------------------
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly exerciseDBService: ExerciseDBService,
+  ) {}
+
   // ----------------------------------------------------
   // EXERCÍCIOS
   // ----------------------------------------------------
@@ -48,39 +52,74 @@ export class WorkoutsService {
     });
   }
 
-  private async autoSeedExercises() {
-    const defaultExercises = [
-      { namePt: 'Supino Reto com Barra', nameEn: 'Barbell Bench Press', muscleGroup: 'PEITORAL_MEDIAL', secondaryMuscle: 'Tríceps, Deltoide Anterior', equipment: 'BARBELL', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/barbell-bench-press.gif' },
-      { namePt: 'Supino Inclinado com Halteres', nameEn: 'Incline Dumbbell Press', muscleGroup: 'PEITORAL_SUPERIOR', secondaryMuscle: 'Deltoide Anterior, Tríceps', equipment: 'DUMBBELL', metValue: 5.5, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/dumbbell-incline-bench-press.gif' },
-      { namePt: 'Flexão de Braço', nameEn: 'Push-up', muscleGroup: 'PEITORAL_MEDIAL', secondaryMuscle: 'Tríceps, Core', equipment: 'BODYWEIGHT', metValue: 5.0, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/push-up.gif' },
-      { namePt: 'Puxada Frontal Aberta', nameEn: 'Wide Lat Pulldown', muscleGroup: 'DORSAL', secondaryMuscle: 'Bíceps, Deltoide Posterior', equipment: 'CABLE', metValue: 5.0, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/lats/cable-pulldown.gif' },
-      { namePt: 'Remada Curvada com Barra', nameEn: 'Bent-Over Barbell Row', muscleGroup: 'DORSAL', secondaryMuscle: 'Trapézio, Bíceps, Lombar', equipment: 'BARBELL', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/lats/pull-up.gif' },
-      { namePt: 'Barra Fixa Pronada', nameEn: 'Pull-up', muscleGroup: 'DORSAL', secondaryMuscle: 'Bíceps, Core', equipment: 'BODYWEIGHT', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/lats/pull-up.gif' },
-      { namePt: 'Desenvolvimento Militar com Barra', nameEn: 'Overhead Military Press', muscleGroup: 'OMBRO_ANTERIOR', secondaryMuscle: 'Deltoide Lateral, Tríceps', equipment: 'BARBELL', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/delts/barbell-standing-wide-military-press.gif' },
-      { namePt: 'Elevação Lateral com Halteres', nameEn: 'Dumbbell Lateral Raise', muscleGroup: 'OMBRO_LATERAL', secondaryMuscle: 'Trapézio', equipment: 'DUMBBELL', metValue: 4.5, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/delts/dumbbell-lateral-raise.gif' },
-      { namePt: 'Rosca Direta com Barra W', nameEn: 'EZ-Bar Biceps Curl', muscleGroup: 'BICEPS', secondaryMuscle: 'Antebraço', equipment: 'BARBELL', metValue: 4.5, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/biceps/barbell-curl.gif' },
-      { namePt: 'Rosca Martelo', nameEn: 'Dumbbell Hammer Curl', muscleGroup: 'BICEPS', secondaryMuscle: 'Braquiorradial', equipment: 'DUMBBELL', metValue: 4.5, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/biceps/dumbbell-hammer-curl.gif' },
-      { namePt: 'Tríceps Pulley na Corda', nameEn: 'Rope Pushdown', muscleGroup: 'TRICEPS', secondaryMuscle: 'Antebraço', equipment: 'CABLE', metValue: 4.5, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/triceps/barbell-lying-triceps-extension.gif' },
-      { namePt: 'Agachamento Livre com Barra', nameEn: 'Barbell Back Squat', muscleGroup: 'QUADRICEPS', secondaryMuscle: 'Glúteos, Isquiotibiais', equipment: 'BARBELL', metValue: 7.0, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/quads/barbell-bench-squat.gif' },
-      { namePt: 'Leg Press 45°', nameEn: '45° Leg Press', muscleGroup: 'QUADRICEPS', secondaryMuscle: 'Glúteos', equipment: 'MACHINE', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/quads/barbell-bench-squat.gif' },
-      { namePt: 'Stiff com Barra', nameEn: 'Barbell Stiff Leg Deadlift', muscleGroup: 'POSTERIOR_COXA', secondaryMuscle: 'Glúteos, Lombar', equipment: 'BARBELL', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/hamstrings/barbell-straight-leg-deadlift.gif' },
-      { namePt: 'Abdominal Supra no Solo', nameEn: 'Abdominal Crunch', muscleGroup: 'ABDOMEN', secondaryMuscle: 'Nenhum', equipment: 'BODYWEIGHT', metValue: 4.0, gifUrl: 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/abs/3-4-sit-up.gif' },
-    ];
+  public async syncExercisesFromCDN() {
+    this.logger.log('Sincronizando 1.323 exercícios 3D a partir do CDN jsDelivr...');
+    const cdnItems = await this.exerciseDBService.fetchAllExercisesFromCDN();
 
-    for (const ex of defaultExercises) {
-      await this.prisma.exercise.create({
-        data: {
-          name: `${ex.namePt} (${ex.nameEn})`,
-          namePt: ex.namePt,
-          nameEn: ex.nameEn,
-          muscleGroup: ex.muscleGroup,
-          secondaryMuscle: ex.secondaryMuscle,
-          equipment: ex.equipment,
-          metValue: ex.metValue,
-          gifUrl: ex.gifUrl,
-          instructions: `Execução correta de ${ex.namePt}. Mantenha a postura e expire na fase concêntrica.`,
+    let createdCount = 0;
+    let updatedCount = 0;
+
+    for (const item of cdnItems) {
+      const { namePt, nameEn } = translateExerciseName(item.name);
+      const fullName = `${namePt} (${nameEn})`;
+      const muscleGroup = MUSCLE_GROUP_MAP[item.muscle] || 'OUTROS';
+      const equipment = EQUIPMENT_TRANSLATION[item.equipment?.toLowerCase()] || item.equipment || 'Outro';
+      const instructionsText = Array.isArray(item.instructions) && item.instructions.length > 0
+        ? item.instructions.join(' ')
+        : `Execução correta de ${namePt}. Mantenha a postura e expire na fase concêntrica.`;
+      const secondaryStr = Array.isArray(item.secondaryMuscles) ? item.secondaryMuscles.join(', ') : item.secondaryMuscles || null;
+
+      const existing = await this.prisma.exercise.findFirst({
+        where: {
+          OR: [
+            { namePt },
+            { nameEn },
+          ],
         },
       });
+
+      if (!existing) {
+        await this.prisma.exercise.create({
+          data: {
+            name: fullName,
+            namePt,
+            nameEn,
+            muscleGroup,
+            secondaryMuscle: secondaryStr,
+            equipment,
+            metValue: 5.0,
+            gifUrl: item.gifUrl,
+            instructions: instructionsText,
+          },
+        });
+        createdCount++;
+      } else {
+        await this.prisma.exercise.update({
+          where: { id: existing.id },
+          data: {
+            name: fullName,
+            namePt,
+            nameEn,
+            muscleGroup,
+            gifUrl: item.gifUrl,
+            instructions: instructionsText,
+            secondaryMuscle: secondaryStr || existing.secondaryMuscle,
+            equipment: equipment || existing.equipment,
+          },
+        });
+        updatedCount++;
+      }
+    }
+
+    this.logger.log(`Sincronização concluída! Criados: ${createdCount}, Atualizados: ${updatedCount}.`);
+    return { createdCount, updatedCount, totalCDNItems: cdnItems.length };
+  }
+
+  private async autoSeedExercises() {
+    try {
+      await this.syncExercisesFromCDN();
+    } catch (err) {
+      this.logger.error('Erro ao auto-semear exercícios do CDN, usando catálogo fallback...', err);
     }
   }
 

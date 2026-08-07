@@ -1,10 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { MUSCLE_GROUP_MAP, EQUIPMENT_TRANSLATION, translateExerciseName } from '../data/exercise-translations';
+
+export interface CDNExerciseItem {
+  id: string;
+  slug: string;
+  name: string;
+  muscle: string;
+  bodyPart: string;
+  equipment: string;
+  category?: string;
+  secondaryMuscles?: string[];
+  instructions?: string[];
+  file: string;
+  gifUrl: string;
+}
 
 @Injectable()
 export class ExerciseDBService {
   private readonly logger = new Logger(ExerciseDBService.name);
+  private readonly cdnBaseUrl = 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0';
+
+  private readonly musclesList = [
+    'pectorals', 'lats', 'delts', 'biceps', 'triceps', 'quads', 'hamstrings',
+    'abs', 'glutes', 'calves', 'forearms', 'traps', 'upper-back', 'abductors',
+    'adductors', 'cardio', 'levator-scapulae', 'serratus-anterior', 'spine',
+  ];
 
   // Free/Open fallback GIF map for instant zero-config demonstration (100% verified status 200)
   private readonly defaultGifMap: Record<string, string> = {
@@ -28,6 +50,41 @@ export class ExerciseDBService {
     private configService: ConfigService,
     private prisma: PrismaService,
   ) {}
+
+  /**
+   * Fetches all 1,323 3D animated exercises from ExerciseGymGifsDB jsDelivr CDN
+   */
+  async fetchAllExercisesFromCDN(): Promise<CDNExerciseItem[]> {
+    const allExercises: CDNExerciseItem[] = [];
+    const seenIds = new Set<string>();
+
+    this.logger.log('Iniciando busca do catálogo completo de 1.323 exercícios 3D no jsDelivr CDN...');
+
+    for (const muscle of this.musclesList) {
+      try {
+        const res = await fetch(`${this.cdnBaseUrl}/api/en/muscles/${muscle}.json`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.exercises)) {
+            for (const item of data.exercises) {
+              if (!seenIds.has(item.id)) {
+                seenIds.add(item.id);
+                allExercises.push({
+                  ...item,
+                  gifUrl: `${this.cdnBaseUrl}/${item.file}`,
+                });
+              }
+            }
+          }
+        }
+      } catch (err) {
+        this.logger.warn(`Erro ao buscar exercicios para muscle ${muscle} do CDN`, err);
+      }
+    }
+
+    this.logger.log(`Catálogo carregado do CDN com sucesso: ${allExercises.length} exercícios 3D.`);
+    return allExercises;
+  }
 
   /**
    * Fetches exercise GIF URL from ExerciseDB (via RapidAPI) or free CDN fallback

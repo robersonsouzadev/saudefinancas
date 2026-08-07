@@ -46,6 +46,11 @@ export class WorkoutsController {
     return this.exerciseDbService.syncAllExerciseGifs();
   }
 
+  @Post('exercises/sync-cdn')
+  async syncCDNExercises() {
+    return this.workoutsService.syncExercisesFromCDN();
+  }
+
   // ----------------------------------------------------
   // TEMPLATES
   // ----------------------------------------------------
