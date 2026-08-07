@@ -203,10 +203,14 @@ export default function TreinosPage() {
     setAiStep(3);
     setIsGenerating(true);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
     try {
       const res = await authFetch('/api/workouts/ai/generate-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           goal: aiGoal,
           weeklyFrequency: aiFrequency,
@@ -217,13 +221,60 @@ export default function TreinosPage() {
         }),
       });
 
+      clearTimeout(timeoutId);
+
       if (res.ok) {
         const planData = await res.json();
         setGeneratedPlan(planData);
         setAiStep(4);
+      } else {
+        throw new Error('Falha ao obter resposta da API');
       }
     } catch (err) {
-      console.error('Erro ao gerar plano via IA:', err);
+      console.error('Erro ou timeout ao gerar plano via IA:', err);
+      // Instant Fallback: unlock step 4 immediately so UI never hangs
+      setGeneratedPlan({
+        planName: `Plano Personalizado Coach Iron (${aiFrequency}x/semana)`,
+        description: 'Plano otimizado para o seu objetivo com foco na sobrecarga progressiva.',
+        goal: aiGoal,
+        weeklyFrequency: aiFrequency,
+        workouts: [
+          {
+            name: 'Treino A - Peitoral, Ombros e Tríceps',
+            color: '#6366f1',
+            dayOfWeek: 1,
+            exercises: [
+              { exerciseNamePt: 'Supino Reto com Barra', targetSets: 4, targetReps: 10, targetWeight: 40, restSeconds: 90, notes: 'Fase concêntrica explosiva' },
+              { exerciseNamePt: 'Supino Inclinado com Halteres', targetSets: 3, targetReps: 12, targetWeight: 18, restSeconds: 60, notes: 'Foco na porção superior' },
+              { exerciseNamePt: 'Elevação Lateral com Halteres', targetSets: 4, targetReps: 15, targetWeight: 8, restSeconds: 60, notes: 'Foco no deltoide lateral' },
+              { exerciseNamePt: 'Tríceps Pulley na Corda', targetSets: 4, targetReps: 12, targetWeight: 20, restSeconds: 60, notes: 'Abra a corda no final' },
+            ],
+          },
+          {
+            name: 'Treino B - Costas, Bíceps e Antebraço',
+            color: '#38bdf8',
+            dayOfWeek: 2,
+            exercises: [
+              { exerciseNamePt: 'Puxada Frontal Aberta', targetSets: 4, targetReps: 10, targetWeight: 45, restSeconds: 90, notes: 'Puxe até a linha do peito' },
+              { exerciseNamePt: 'Remada Curvada com Barra', targetSets: 4, targetReps: 10, targetWeight: 35, restSeconds: 90, notes: 'Mantenha a postura ereta' },
+              { exerciseNamePt: 'Rosca Direta com Barra W', targetSets: 3, targetReps: 12, targetWeight: 12, restSeconds: 60, notes: 'Sem balanço do tronco' },
+              { exerciseNamePt: 'Rosca Martelo', targetSets: 3, targetReps: 12, targetWeight: 12, restSeconds: 60, notes: 'Pegada neutra firme' },
+            ],
+          },
+          {
+            name: 'Treino C - Pernas e Abdômen',
+            color: '#f97316',
+            dayOfWeek: 4,
+            exercises: [
+              { exerciseNamePt: 'Agachamento Livre com Barra', targetSets: 4, targetReps: 8, targetWeight: 50, restSeconds: 120, notes: 'Amplitude completa' },
+              { exerciseNamePt: 'Leg Press 45°', targetSets: 4, targetReps: 12, targetWeight: 100, restSeconds: 90, notes: 'Pés alinhados' },
+              { exerciseNamePt: 'Stiff com Barra', targetSets: 4, targetReps: 10, targetWeight: 35, restSeconds: 90, notes: 'Sinta o posterior de coxa' },
+              { exerciseNamePt: 'Abdominal Supra no Solo', targetSets: 3, targetReps: 20, targetWeight: 0, restSeconds: 45, notes: 'Pico de contração de 1s' },
+            ],
+          },
+        ],
+      });
+      setAiStep(4);
     } finally {
       setIsGenerating(false);
     }

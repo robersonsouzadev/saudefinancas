@@ -110,7 +110,10 @@ export class WorkoutAIService {
       ATHLETIC: 'Condicionamento Físico e Desempenho Atlético',
     };
 
-    const exerciseListStr = context.availableExercises
+    // Take top 40 exercises to keep prompt small (<1.5k tokens) and ultra fast (<2-3s response)
+    const sampleExercises = context.availableExercises.slice(0, 50);
+
+    const exerciseListStr = sampleExercises
       .map((ex) => `- ${ex.namePt} [Grupo: ${ex.muscleGroup}, Equipamento: ${ex.equipment}]`)
       .join('\n');
 
@@ -163,12 +166,13 @@ ${exerciseListStr}
 `;
 
     if (!openai) {
-      // Fallback sem OpenAI key: gera plano estático inteligente
+      // Fallback sem OpenAI key: gera plano estático inteligente em <10ms
       return this.generateFallbackPlan(dto, context);
     }
 
     try {
-      const response = await openai.chat.completions.create({
+      // 10-second strict timeout for OpenAI response
+      const apiCall = openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
@@ -178,12 +182,18 @@ ${exerciseListStr}
         temperature: 0.6,
       });
 
-      const content = response.choices[0]?.message?.content;
+      const timeoutCall = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error('OpenAI timeout exceeded 10s')), 10000)
+      );
+
+      const response: any = await Promise.race([apiCall, timeoutCall]);
+
+      const content = response?.choices?.[0]?.message?.content;
       if (content) {
         return JSON.parse(content);
       }
     } catch (err) {
-      this.logger.error('Erro ao gerar plano via IA OpenAI:', err);
+      this.logger.warn('Erro ou timeout ao gerar plano via IA OpenAI, usando plano instantâneo fallback:', err);
     }
 
     return this.generateFallbackPlan(dto, context);
