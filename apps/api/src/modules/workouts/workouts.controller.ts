@@ -160,6 +160,11 @@ export class WorkoutsController {
     return this.workoutsService.getStats(req.user.id);
   }
 
+  @Get('weekly-progress')
+  async getWeeklyProgress(@Request() req: any) {
+    return this.workoutsService.getWeeklyProgress(req.user.id);
+  }
+
   // ----------------------------------------------------
   // IA PERSONAL TRAINER (COACH IRON)
   // ----------------------------------------------------

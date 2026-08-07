@@ -795,4 +795,253 @@ export class WorkoutsService implements OnModuleInit {
       muscleBreakdown: muscleMap,
     };
   }
+
+  // ----------------------------------------------------
+  // PROGRESSO SEMANAL COMPLETO (CICLO + DASHBOARD)
+  // ----------------------------------------------------
+  async getWeeklyProgress(userId: string) {
+    const now = new Date();
+
+    // Calculate Monday 00:00 of current week
+    const dayOfWeekNow = now.getDay(); // 0=Sun
+    const diffToMonday = dayOfWeekNow === 0 ? 6 : dayOfWeekNow - 1;
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - diffToMonday);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    // Previous week range
+    const prevWeekStart = new Date(weekStart);
+    prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+    const prevWeekEnd = new Date(weekStart);
+    prevWeekEnd.setMilliseconds(-1);
+
+    // Fetch active templates
+    const templates = await this.prisma.workoutTemplate.findMany({
+      where: { userId, isActive: true },
+      include: {
+        items: {
+          include: { exercise: true },
+          orderBy: { order: 'asc' },
+        },
+      },
+      orderBy: { order: 'asc' },
+    });
+
+    // Fetch ALL completed sessions this week
+    const thisWeekSessions = await this.prisma.workoutSession.findMany({
+      where: {
+        userId,
+        finishedAt: { not: null },
+        startedAt: { gte: weekStart, lte: weekEnd },
+      },
+      include: {
+        exercises: {
+          include: { exercise: true, sets: true },
+        },
+      },
+      orderBy: { startedAt: 'desc' },
+    });
+
+    // Fetch previous week sessions for comparison
+    const prevWeekSessions = await this.prisma.workoutSession.findMany({
+      where: {
+        userId,
+        finishedAt: { not: null },
+        startedAt: { gte: prevWeekStart, lte: prevWeekEnd },
+      },
+    });
+
+    // --- Template Progress ---
+    const templateProgress = templates.map((tpl) => {
+      const matchingSession = thisWeekSessions.find(
+        (s) =>
+          s.templateId === tpl.id ||
+          (s.title && tpl.name && s.title.toLowerCase().trim() === tpl.name.toLowerCase().trim()),
+      );
+
+      return {
+        templateId: tpl.id,
+        templateName: tpl.name,
+        dayOfWeek: tpl.dayOfWeek,
+        color: tpl.color,
+        isCompleted: !!matchingSession,
+        completedSessionId: matchingSession?.id || null,
+        completedAt: matchingSession?.finishedAt || null,
+        durationMinutes: matchingSession?.durationMinutes || 0,
+        totalVolume: matchingSession?.totalVolume || 0,
+        caloriesBurned: matchingSession?.caloriesBurned || 0,
+        rating: matchingSession?.rating || null,
+      };
+    });
+
+    // --- Summary ---
+    const plannedDays = templates.filter((t) => t.dayOfWeek != null).length;
+    const completedDays = templateProgress.filter((t) => t.isCompleted).length;
+    const pendingDays = plannedDays - completedDays;
+
+    const totalVolumeWeek = thisWeekSessions.reduce((a, s) => a + (s.totalVolume || 0), 0);
+    const totalCaloriesWeek = thisWeekSessions.reduce((a, s) => a + (s.caloriesBurned || 0), 0);
+    const totalDurationWeek = thisWeekSessions.reduce((a, s) => a + (s.durationMinutes || 0), 0);
+    const avgDurationMin = thisWeekSessions.length > 0 ? Math.round(totalDurationWeek / thisWeekSessions.length) : 0;
+
+    const ratings = thisWeekSessions.filter((s) => s.rating).map((s) => s.rating!);
+    const avgRating = ratings.length > 0 ? parseFloat((ratings.reduce((a, r) => a + r, 0) / ratings.length).toFixed(1)) : 0;
+
+    // --- Muscle Group Coverage ---
+    const trainedMuscles: Record<string, number> = {};
+    for (const session of thisWeekSessions) {
+      for (const exItem of session.exercises) {
+        const mg = exItem.exercise.muscleGroup || 'OUTROS';
+        const completedSets = exItem.sets.filter((s) => s.isCompleted).length;
+        trainedMuscles[mg] = (trainedMuscles[mg] || 0) + completedSets;
+      }
+    }
+
+    // All planned muscle groups from templates
+    const allPlannedMuscles = new Set<string>();
+    for (const tpl of templates) {
+      for (const item of tpl.items) {
+        if (item.exercise.muscleGroup) allPlannedMuscles.add(item.exercise.muscleGroup);
+      }
+    }
+
+    const trainedMuscleList = Object.keys(trainedMuscles);
+    const pendingMuscleList = [...allPlannedMuscles].filter((m) => !trainedMuscles[m]);
+
+    // --- Streaks ---
+    const allHistoricalSessions = await this.prisma.workoutSession.findMany({
+      where: { userId, finishedAt: { not: null } },
+      select: { startedAt: true },
+      orderBy: { startedAt: 'desc' },
+      take: 365, // Last year max
+    });
+
+    // Calculate daily streak
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let tempStreak = 0;
+
+    if (allHistoricalSessions.length > 0) {
+      const uniqueDays = new Set<string>();
+      for (const s of allHistoricalSessions) {
+        uniqueDays.add(s.startedAt.toISOString().split('T')[0]);
+      }
+
+      const sortedDays = [...uniqueDays].sort().reverse();
+
+      // Check if trained today or yesterday to start the streak
+      const today = now.toISOString().split('T')[0];
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      if (sortedDays[0] === today || sortedDays[0] === yesterdayStr) {
+        currentStreak = 1;
+        for (let i = 1; i < sortedDays.length; i++) {
+          const curr = new Date(sortedDays[i - 1]);
+          const prev = new Date(sortedDays[i]);
+          const diffDays = Math.round((curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
+          if (diffDays === 1) {
+            currentStreak++;
+          } else {
+            break;
+          }
+        }
+      }
+
+      // Calculate longest streak
+      tempStreak = 1;
+      const allSorted = [...uniqueDays].sort();
+      for (let i = 1; i < allSorted.length; i++) {
+        const curr = new Date(allSorted[i]);
+        const prev = new Date(allSorted[i - 1]);
+        const diffDays = Math.round((curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays === 1) {
+          tempStreak++;
+        } else {
+          tempStreak = 1;
+        }
+        if (tempStreak > longestStreak) longestStreak = tempStreak;
+      }
+      if (tempStreak > longestStreak) longestStreak = tempStreak;
+      if (currentStreak > longestStreak) longestStreak = currentStreak;
+    }
+
+    // Weekly consistency: how many consecutive weeks the user completed all planned days
+    let weeksConsistent = 0;
+    if (plannedDays > 0 && completedDays >= plannedDays) {
+      weeksConsistent = 1;
+      // Check previous weeks
+      for (let w = 1; w <= 12; w++) {
+        const wStart = new Date(weekStart);
+        wStart.setDate(wStart.getDate() - 7 * w);
+        const wEnd = new Date(wStart);
+        wEnd.setDate(wEnd.getDate() + 6);
+        wEnd.setHours(23, 59, 59, 999);
+
+        const wSessions = await this.prisma.workoutSession.count({
+          where: {
+            userId,
+            finishedAt: { not: null },
+            startedAt: { gte: wStart, lte: wEnd },
+          },
+        });
+
+        if (wSessions >= plannedDays) {
+          weeksConsistent++;
+        } else {
+          break;
+        }
+      }
+    }
+
+    // --- Comparison with previous week ---
+    const prevVolume = prevWeekSessions.reduce((a, s) => a + (s.totalVolume || 0), 0);
+    const prevCalories = prevWeekSessions.reduce((a, s) => a + (s.caloriesBurned || 0), 0);
+
+    const volumeChange = prevVolume > 0 ? parseFloat((((totalVolumeWeek - prevVolume) / prevVolume) * 100).toFixed(1)) : 0;
+    const caloriesChange = prevCalories > 0 ? parseFloat((((totalCaloriesWeek - prevCalories) / prevCalories) * 100).toFixed(1)) : 0;
+    const daysChange = thisWeekSessions.length - prevWeekSessions.length;
+
+    return {
+      weekStartDate: weekStart.toISOString(),
+      weekEndDate: weekEnd.toISOString(),
+
+      templateProgress,
+
+      summary: {
+        plannedDays,
+        completedDays,
+        pendingDays,
+        totalVolumeWeek: Math.round(totalVolumeWeek),
+        totalCaloriesWeek: Math.round(totalCaloriesWeek),
+        totalDurationMin: totalDurationWeek,
+        avgDurationMin,
+        avgRating,
+      },
+
+      muscleGroupCoverage: {
+        trained: trainedMuscleList,
+        pending: pendingMuscleList,
+        setsPerGroup: trainedMuscles,
+      },
+
+      streaks: {
+        currentStreak,
+        longestStreak,
+        weeklyGoalMet: plannedDays > 0 && completedDays >= plannedDays,
+        weeksConsistent,
+      },
+
+      comparison: {
+        volumeChange,
+        caloriesChange,
+        daysChange,
+      },
+    };
+  }
 }

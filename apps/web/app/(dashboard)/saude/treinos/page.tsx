@@ -67,6 +67,7 @@ export default function TreinosPage() {
   const [exercises, setExercises] = useState<any[]>([]);
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
   const [activeSession, setActiveSession] = useState<any>(null);
+  const [weeklyProgress, setWeeklyProgress] = useState<any>(null);
 
   // Filters & Loading
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('ALL');
@@ -227,6 +228,11 @@ export default function TreinosPage() {
       authFetch('/api/workouts/ai/insights')
         .then(async (res) => { if (res.ok) setCoachInsights(await res.json()); })
         .catch((e) => console.error('Erro ao carregar insights:', e));
+
+      // 7. Fetch Weekly Progress (Cycle Dashboard)
+      authFetch('/api/workouts/weekly-progress')
+        .then(async (res) => { if (res.ok) setWeeklyProgress(await res.json()); })
+        .catch((e) => console.error('Erro ao carregar progresso semanal:', e));
     } catch (err) {
       console.error('Erro geral ao carregar dados de treinos:', err);
     } finally {
@@ -683,6 +689,160 @@ export default function TreinosPage() {
         </div>
       )}
 
+      {/* ===== PAINEL DE PROGRESSO SEMANAL ===== */}
+      {weeklyProgress && (
+        <div className="space-y-4 pb-2">
+          {/* Barra de Dias da Semana */}
+          <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#818cf8]" />
+                Progresso da Semana
+              </h3>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#16191e] text-[#8a8f98]">
+                {weeklyProgress.summary.completedDays}/{weeklyProgress.summary.plannedDays} treinos
+              </span>
+            </div>
+
+            {/* Weekly Days Bar */}
+            <div className="grid grid-cols-7 gap-1.5">
+              {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map((dayLabel, idx) => {
+                const dayNum = idx + 1 === 7 ? 0 : idx + 1; // 1=Seg..6=Sáb, 0=Dom
+                const tplForDay = weeklyProgress.templateProgress.find((t: any) => t.dayOfWeek === dayNum);
+                const today = new Date().getDay();
+                const isPast = dayNum < today || (today === 0 && dayNum !== 0);
+                const isToday = dayNum === today;
+
+                let bgClass = 'bg-[#16191e] border-[#ffffff08] text-[#575c66]';
+                let statusIcon = '—';
+
+                if (tplForDay?.isCompleted) {
+                  bgClass = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
+                  statusIcon = '✅';
+                } else if (tplForDay && isPast) {
+                  bgClass = 'bg-amber-500/10 border-amber-500/30 text-amber-400';
+                  statusIcon = '⚠️';
+                } else if (tplForDay) {
+                  bgClass = 'bg-[#16191e] border-[#ffffff12] text-[#8a8f98]';
+                  statusIcon = '⏳';
+                }
+
+                return (
+                  <div
+                    key={dayLabel}
+                    className={`p-2 rounded-lg border text-center space-y-0.5 ${bgClass} ${isToday ? 'ring-1 ring-[#818cf8]/50' : ''}`}
+                  >
+                    <div className="text-[10px] font-bold tracking-wider">{dayLabel}</div>
+                    <div className="text-sm">{statusIcon}</div>
+                    {tplForDay && (
+                      <div className="text-[8px] truncate opacity-80">{tplForDay.templateName.split(' - ')[0]}</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full h-1.5 rounded-full bg-[#080a0c] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-700"
+                style={{ width: `${weeklyProgress.summary.plannedDays > 0 ? (weeklyProgress.summary.completedDays / weeklyProgress.summary.plannedDays) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Metric Cards Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Streak */}
+            <div className="p-3.5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-[#8a8f98] uppercase tracking-wider">🔥 Streak</span>
+                {weeklyProgress.streaks.currentStreak > 0 && (
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    Recorde: {weeklyProgress.streaks.longestStreak}d
+                  </span>
+                )}
+              </div>
+              <div className="text-2xl font-bold font-mono text-[#f7f8f8]">{weeklyProgress.streaks.currentStreak} dias</div>
+              <span className="text-[10px] text-[#575c66]">
+                {weeklyProgress.streaks.weeksConsistent > 0 ? `${weeklyProgress.streaks.weeksConsistent} semanas consistentes` : 'Continue treinando!'}
+              </span>
+            </div>
+
+            {/* Volume */}
+            <div className="p-3.5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-[#8a8f98] uppercase tracking-wider">📊 Volume</span>
+                {weeklyProgress.comparison.volumeChange !== 0 && (
+                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                    weeklyProgress.comparison.volumeChange > 0
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      : 'bg-red-500/10 text-red-400 border-red-500/20'
+                  }`}>
+                    {weeklyProgress.comparison.volumeChange > 0 ? '+' : ''}{weeklyProgress.comparison.volumeChange}%
+                  </span>
+                )}
+              </div>
+              <div className="text-2xl font-bold font-mono text-[#f7f8f8]">
+                {weeklyProgress.summary.totalVolumeWeek >= 1000 ? `${(weeklyProgress.summary.totalVolumeWeek / 1000).toFixed(1)}t` : `${weeklyProgress.summary.totalVolumeWeek}kg`}
+              </div>
+              <span className="text-[10px] text-[#575c66]">vs semana anterior</span>
+            </div>
+
+            {/* Duration */}
+            <div className="p-3.5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-1">
+              <span className="text-[10px] font-semibold text-[#8a8f98] uppercase tracking-wider">⏱️ Tempo Total</span>
+              <div className="text-2xl font-bold font-mono text-[#f7f8f8]">
+                {weeklyProgress.summary.totalDurationMin >= 60 ? `${Math.floor(weeklyProgress.summary.totalDurationMin / 60)}h ${weeklyProgress.summary.totalDurationMin % 60}min` : `${weeklyProgress.summary.totalDurationMin}min`}
+              </div>
+              <span className="text-[10px] text-[#575c66]">Média: {weeklyProgress.summary.avgDurationMin}min/sessão</span>
+            </div>
+
+            {/* Calories */}
+            <div className="p-3.5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-[#8a8f98] uppercase tracking-wider">🔋 Calorias</span>
+                {weeklyProgress.comparison.caloriesChange !== 0 && (
+                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                    weeklyProgress.comparison.caloriesChange > 0
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      : 'bg-red-500/10 text-red-400 border-red-500/20'
+                  }`}>
+                    {weeklyProgress.comparison.caloriesChange > 0 ? '+' : ''}{weeklyProgress.comparison.caloriesChange}%
+                  </span>
+                )}
+              </div>
+              <div className="text-2xl font-bold font-mono text-[#f7f8f8]">{weeklyProgress.summary.totalCaloriesWeek} kcal</div>
+              <span className="text-[10px] text-[#575c66]">vs semana anterior</span>
+            </div>
+          </div>
+
+          {/* Muscle Group Coverage Map */}
+          {(weeklyProgress.muscleGroupCoverage.trained.length > 0 || weeklyProgress.muscleGroupCoverage.pending.length > 0) && (
+            <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-3">
+              <h3 className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-[#38bdf8]" />
+                Cobertura Muscular da Semana
+              </h3>
+              <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
+                {weeklyProgress.muscleGroupCoverage.trained.map((mg: string) => (
+                  <div key={mg} className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-center space-y-0.5">
+                    <span className="text-[10px] font-semibold text-emerald-400 block truncate">{mg}</span>
+                    <span className="text-[9px] font-mono text-emerald-300/70">{weeklyProgress.muscleGroupCoverage.setsPerGroup[mg]}s</span>
+                  </div>
+                ))}
+                {weeklyProgress.muscleGroupCoverage.pending.map((mg: string) => (
+                  <div key={mg} className="p-2 rounded-lg bg-red-500/8 border border-red-500/20 text-center space-y-0.5">
+                    <span className="text-[10px] font-semibold text-red-400/80 block truncate">{mg}</span>
+                    <span className="text-[9px] font-mono text-red-300/50">Devendo!</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Seção MEUS TREINOS (TEMPLATES) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -764,14 +924,22 @@ export default function TreinosPage() {
                 )
               );
 
+              // Check if completed this week from weeklyProgress
+              const weeklyTpl = weeklyProgress?.templateProgress?.find((t: any) => t.templateId === tpl.id);
+              const isCompletedThisWeek = !isCurrentActive && weeklyTpl?.isCompleted;
+              const completedDate = weeklyTpl?.completedAt ? new Date(weeklyTpl.completedAt) : null;
+
+              let cardBorderClass = 'border border-[#ffffff0e] hover:border-[#6366f140]';
+              if (isCurrentActive) {
+                cardBorderClass = 'border-2 border-emerald-500/60 animate-border-glow-green';
+              } else if (isCompletedThisWeek) {
+                cardBorderClass = 'border-2 border-amber-500/40 animate-border-glow-amber';
+              }
+
               return (
                 <div
                   key={tpl.id}
-                  className={`p-5 rounded-xl bg-[#0f1115] transition-all duration-300 flex flex-col justify-between group space-y-4 relative ${
-                    isCurrentActive
-                      ? 'border-2 border-emerald-500/90 shadow-[0_0_25px_rgba(16,185,129,0.4)] animate-pulse ring-2 ring-emerald-500/30'
-                      : 'border border-[#ffffff0e] hover:border-[#6366f140]'
-                  }`}
+                  className={`p-5 rounded-xl bg-[#0f1115] transition-all duration-300 flex flex-col justify-between group space-y-4 relative ${cardBorderClass}`}
                 >
                   <div className="space-y-2">
                     {/* Active Workout Pulsing Banner */}
@@ -785,6 +953,27 @@ export default function TreinosPage() {
                           <span>TREINO EM ANDAMENTO</span>
                         </div>
                         <span className="text-[10px] text-emerald-300/80 font-mono">ATIVO</span>
+                      </div>
+                    )}
+
+                    {/* Completed This Week Badge */}
+                    {isCompletedThisWeek && (
+                      <div className="flex items-center justify-between px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-bold tracking-wide">
+                        <div className="flex items-center space-x-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>CONCLUÍDO</span>
+                        </div>
+                        <span className="text-[10px] text-amber-300/70 font-mono">
+                          {completedDate ? completedDate.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '') + ' ' + completedDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Pending Badge */}
+                    {!isCurrentActive && !isCompletedThisWeek && (
+                      <div className="flex items-center px-3 py-1 rounded-lg bg-[#16191e] border border-[#ffffff08] text-[#575c66] text-[11px] font-medium tracking-wide space-x-1.5">
+                        <Clock className="w-3 h-3" />
+                        <span>PENDENTE ESTA SEMANA</span>
                       </div>
                     )}
 
@@ -832,10 +1021,18 @@ export default function TreinosPage() {
                   {isCurrentActive ? (
                     <button
                       onClick={() => router.push('/saude/treinos/sessao')}
-                      className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/50 text-xs font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/30 animate-pulse"
+                      className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/50 text-xs font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/30"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
                       <span>Continuar Treino Ativo</span>
+                    </button>
+                  ) : isCompletedThisWeek ? (
+                    <button
+                      onClick={() => startWorkout(tpl.id)}
+                      className="w-full py-2 rounded-lg bg-[#16191e] hover:bg-amber-600 text-amber-400 hover:text-white border border-amber-500/20 hover:border-amber-500 text-xs font-semibold transition flex items-center justify-center space-x-2"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Treinar Novamente</span>
                     </button>
                   ) : (
                     <button
