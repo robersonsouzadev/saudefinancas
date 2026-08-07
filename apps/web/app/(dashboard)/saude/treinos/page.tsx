@@ -309,6 +309,25 @@ export default function TreinosPage() {
     }
   };
 
+  const handleDeleteTemplate = async (templateId: string, templateName: string) => {
+    if (!confirm(`Tem certeza que deseja excluir o treino "${templateName}"?`)) return;
+
+    try {
+      const res = await authFetch(`/api/workouts/templates/${templateId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setTemplates((prev) => prev.filter((t) => t.id !== templateId));
+      } else {
+        alert('Erro ao excluir treino. Tente novamente.');
+      }
+    } catch (err) {
+      console.error('Erro ao excluir template de treino:', err);
+      alert('Erro ao conectar com o servidor.');
+    }
+  };
+
   const handleSendChat = async () => {
     if (!chatInput.trim() || sendingChat) return;
 
@@ -667,9 +686,18 @@ export default function TreinosPage() {
                         {tpl.name}
                       </h3>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] text-[#8a8f98]">
-                      {tpl.items?.length || 0} Exercícios
-                    </span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] text-[#8a8f98]">
+                        {tpl.items?.length || 0} Exercícios
+                      </span>
+                      <button
+                        onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
+                        className="p-1 rounded-md text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
+                        title="Excluir Treino"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   {tpl.description && <p className="text-xs text-[#8a8f98]">{tpl.description}</p>}
