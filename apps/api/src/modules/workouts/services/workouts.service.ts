@@ -1020,11 +1020,53 @@ export class WorkoutsService implements OnModuleInit {
     const caloriesChange = prevCalories > 0 ? parseFloat((((totalCaloriesWeek - prevCalories) / prevCalories) * 100).toFixed(1)) : 0;
     const daysChange = thisWeekSessions.length - prevWeekSessions.length;
 
+    // --- Daily Activity Breakdown (Actual Real Dates vs Planned) ---
+    const dayLabels = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+    const dailyActivity = [];
+
+    for (let d = 0; d < 7; d++) {
+      const dayStart = new Date(weekStart);
+      dayStart.setDate(weekStart.getDate() + d);
+      dayStart.setHours(0, 0, 0, 0);
+
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const dayOfWeekNum = dayStart.getDay(); // 0=Dom, 1=Seg...
+      const label = dayLabels[dayOfWeekNum];
+
+      const plannedTemplate = templates.find((t) => t.dayOfWeek === dayOfWeekNum);
+
+      const daySessions = thisWeekSessions.filter((s) => {
+        const sTime = new Date(s.startedAt).getTime();
+        return sTime >= dayStart.getTime() && sTime <= dayEnd.getTime();
+      });
+
+      dailyActivity.push({
+        dayOfWeek: dayOfWeekNum,
+        dayLabel: label,
+        date: dayStart.toISOString(),
+        plannedTemplateName: plannedTemplate?.name || null,
+        plannedTemplateId: plannedTemplate?.id || null,
+        sessions: daySessions.map((s) => ({
+          sessionId: s.id,
+          templateId: s.templateId,
+          templateName: s.title || plannedTemplate?.name || 'Treino',
+          startedAt: s.startedAt,
+          finishedAt: s.finishedAt,
+          durationMinutes: s.durationMinutes,
+          totalVolume: s.totalVolume,
+          caloriesBurned: s.caloriesBurned,
+        })),
+      });
+    }
+
     return {
       weekStartDate: weekStart.toISOString(),
       weekEndDate: weekEnd.toISOString(),
 
       templateProgress,
+      dailyActivity,
 
       summary: {
         plannedDays,

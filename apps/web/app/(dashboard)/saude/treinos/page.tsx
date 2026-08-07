@@ -704,39 +704,48 @@ export default function TreinosPage() {
               </span>
             </div>
 
-            {/* Weekly Days Bar */}
+            {/* Weekly Days Bar (Based on REAL execution date) */}
             <div className="grid grid-cols-7 gap-1.5">
-              {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map((dayLabel, idx) => {
-                const dayNum = idx + 1 === 7 ? 0 : idx + 1; // 1=Seg..6=Sáb, 0=Dom
-                const tplForDay = weeklyProgress.templateProgress.find((t: any) => t.dayOfWeek === dayNum);
+              {(weeklyProgress.dailyActivity || []).map((dayItem: any) => {
                 const today = new Date().getDay();
-                const isPast = dayNum < today || (today === 0 && dayNum !== 0);
+                const dayNum = dayItem.dayOfWeek;
                 const isToday = dayNum === today;
+
+                const hasTrained = dayItem.sessions && dayItem.sessions.length > 0;
+                const plannedName = dayItem.plannedTemplateName;
+                const dateObj = new Date(dayItem.date);
+                const nowObj = new Date();
+                nowObj.setHours(0, 0, 0, 0);
+                const isPast = dateObj.getTime() < nowObj.getTime();
 
                 let bgClass = 'bg-[#16191e] border-[#ffffff08] text-[#575c66]';
                 let statusIcon = '—';
+                let subText = plannedName ? plannedName.split(' - ')[0] : '—';
 
-                if (tplForDay?.isCompleted) {
+                if (hasTrained) {
                   bgClass = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
                   statusIcon = '✅';
-                } else if (tplForDay && isPast) {
+                  const mainSession = dayItem.sessions[0];
+                  subText = mainSession.templateName ? mainSession.templateName.split(' - ')[0] : 'Treino';
+                } else if (plannedName && isPast) {
                   bgClass = 'bg-amber-500/10 border-amber-500/30 text-amber-400';
                   statusIcon = '⚠️';
-                } else if (tplForDay) {
+                  subText = plannedName.split(' - ')[0];
+                } else if (plannedName) {
                   bgClass = 'bg-[#16191e] border-[#ffffff12] text-[#8a8f98]';
                   statusIcon = '⏳';
+                  subText = plannedName.split(' - ')[0];
                 }
 
                 return (
                   <div
-                    key={dayLabel}
+                    key={dayItem.dayLabel + dayItem.date}
                     className={`p-2 rounded-lg border text-center space-y-0.5 ${bgClass} ${isToday ? 'ring-1 ring-[#818cf8]/50' : ''}`}
+                    title={hasTrained ? `Treinado: ${dayItem.sessions.map((s: any) => s.templateName).join(', ')}` : (plannedName ? `Planejado: ${plannedName}` : 'Sem treino')}
                   >
-                    <div className="text-[10px] font-bold tracking-wider">{dayLabel}</div>
+                    <div className="text-[10px] font-bold tracking-wider">{dayItem.dayLabel}</div>
                     <div className="text-sm">{statusIcon}</div>
-                    {tplForDay && (
-                      <div className="text-[8px] truncate opacity-80">{tplForDay.templateName.split(' - ')[0]}</div>
-                    )}
+                    <div className="text-[8px] truncate opacity-80">{subText}</div>
                   </div>
                 );
               })}
