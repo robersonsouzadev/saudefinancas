@@ -4,6 +4,8 @@ import { PaymentAccountsService } from './services/payment-accounts.service';
 import { CreditCardsService } from './services/credit-cards.service';
 import { BoletosService } from './services/boletos.service';
 import { OpenFinanceService } from './services/open-finance.service';
+import { BudgetService } from './services/budget.service';
+import { RecurringService } from './services/recurring.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('finance')
@@ -14,7 +16,9 @@ export class FinanceController {
     private readonly paymentAccountsService: PaymentAccountsService,
     private readonly creditCardsService: CreditCardsService,
     private readonly boletosService: BoletosService,
-    private readonly openFinanceService: OpenFinanceService
+    private readonly openFinanceService: OpenFinanceService,
+    private readonly budgetService: BudgetService,
+    private readonly recurringService: RecurringService
   ) {}
 
   @Get('transactions')
@@ -107,6 +111,36 @@ export class FinanceController {
     return this.boletosService.deleteBoleto(req.user.id, id);
   }
 
+  @Get('budgets')
+  async getBudgets(@Req() req: any) {
+    return this.budgetService.getUserBudgets(req.user.id);
+  }
+
+  @Post('budgets')
+  async setBudget(@Req() req: any, @Body() data: any) {
+    return this.budgetService.setBudget(req.user.id, data);
+  }
+
+  @Delete('budgets/:id')
+  async deleteBudget(@Req() req: any, @Param('id') id: string) {
+    return this.budgetService.deleteBudget(req.user.id, id);
+  }
+
+  @Get('recurring')
+  async getRecurringRules(@Req() req: any) {
+    return this.recurringService.getUserRecurringRules(req.user.id);
+  }
+
+  @Post('recurring')
+  async createRecurringRule(@Req() req: any, @Body() data: any) {
+    return this.recurringService.createRecurringRule(req.user.id, data);
+  }
+
+  @Delete('recurring/:id')
+  async deleteRecurringRule(@Req() req: any, @Param('id') id: string) {
+    return this.recurringService.deleteRecurringRule(req.user.id, id);
+  }
+
   @Get('open-finance/status')
   async getOpenFinanceStatus(@Req() req: any) {
     return this.openFinanceService.getStatus(req.user.id);
@@ -119,7 +153,7 @@ export class FinanceController {
 
   @Post('open-finance/webhook')
   async openFinanceWebhook(@Body() payload: any) {
-    // Should ideally be public, but placed here as requested.
     return this.openFinanceService.handleWebhook(payload);
   }
 }
+

@@ -1,63 +1,83 @@
-import { Injectable } from '@nestjs/common';
-import { FinanceService } from './finance.service';
-
-export interface Budget {
-  id: string;
-  userId: string;
-  categoryId: string;
-  amountLimit: number;
-  alertAtPercent: number;
-  period: 'monthly' | 'weekly';
-}
-
-export interface BudgetAlert {
-  categoryId: string;
-  limit: number;
-  currentSpending: number;
-  percentage: number;
-  message: string;
-}
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
 
 @Injectable()
 export class BudgetService {
-  private budgets: Budget[] = [];
+  constructor(private prisma: PrismaService) {}
 
-  constructor(private financeService: FinanceService) {}
+  async setBudget(userId: string, data: { category: string; amount: number; period?: string }) {
+    const existing = await this.prisma.budget.findFirst({
+      where: { userId, category: data.category }
+    });
 
-  async setBudget(data: Partial<Budget>): Promise<Budget> {
-    const existingIdx = this.budgets.findIndex(b => b.userId === data.userId && b.categoryId === data.categoryId);
-    if (existingIdx > -1) {
-      this.budgets[existingIdx] = { ...this.budgets[existingIdx], ...data };
-      return this.budgets[existingIdx];
+    if (existing) {
+      return this.prisma.budget.update({
+        where: { id: existing.id },
+        data: {
+          amount: parseFloat(data.amount as any),
+          period: data.period || 'MONTHLY'
+        }
+      });
     }
-    const newBudget = { id: Math.random().toString(), ...data } as Budget;
-    this.budgets.push(newBudget);
-    return newBudget;
-  }
 
-  async getUserBudgets(userId: string): Promise<Budget[]> {
-    return this.budgets.filter(b => b.userId === userId);
-  }
-
-  async checkBudgetLimits(userId: string): Promise<BudgetAlert[]> {
-    const userBudgets = await this.getUserBudgets(userId);
-    const overview = await this.financeService.getFinancialOverview(userId, 'current_month');
-    const alerts: BudgetAlert[] = [];
-
-    for (const budget of userBudgets) {
-      const spending = overview.categoryBreakdown[budget.categoryId] || 0;
-      const percentage = (spending / budget.amountLimit) * 100;
-      
-      if (percentage >= budget.alertAtPercent) {
-        alerts.push({
-          categoryId: budget.categoryId,
-          limit: budget.amountLimit,
-          currentSpending: spending,
-          percentage,
-          message: `You have reached ${percentage.toFixed(2)}% of your budget for ${budget.categoryId}.`
-        });
+    return this.prisma.budget.create({
+      data: {
+        userId,
+        category: data.category,
+        amount: parseFloat(data.amount as any),
+        period: data.period || 'MONTHLY'
       }
-    }
-    return alerts;
+    });
+  }
+
+  async getUserBudgets(userId: string) {
+    const budgets = await this.prisma.budget.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const monthTxs = await this.prisma.transaction.findMany({
+      where: {
+        userId,
+        type: 'EXPENSE',
+        date: { gte: startOfMonth, lte: endOfMonth }
+      },
+      include: { category: true }
+    });
+
+    // Group spending by category name
+    const spendingMap: Record<string, number> = {};
+    monthTxs.forEach(tx => {
+      const catName = tx.category?.name || tx.description || 'Outros';
+      spendingMap[catName] = (spendingMap[catName] || 0) + tx.amount;
+    });
+
+    return budgets.map(b => {
+      const cat = b.category || 'Geral';
+      const spent = spendingMap[cat] || 0;
+      const percentage = b.amount > 0 ? (spent / b.amount) * 100 : 0;
+
+      return {
+        ...b,
+        spent,
+        percentage: Math.min(100, Math.round(percentage)),
+        isExceeded: spent > b.amount,
+        remaining: Math.max(0, b.amount - spent)
+      };
+    });
+  }
+
+  async deleteBudget(userId: string, id: string) {
+    const budget = await this.prisma.budget.findFirst({
+      where: { id, userId }
+    });
+    if (!budget) throw new NotFoundException('Orçamento não encontrado');
+
+    return this.prisma.budget.delete({ where: { id } });
   }
 }
+

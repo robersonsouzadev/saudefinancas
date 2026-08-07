@@ -179,7 +179,21 @@ export class FinanceService {
     if (filters.type) where.type = filters.type;
     if (filters.categoryId) where.categoryId = filters.categoryId;
     if (filters.accountId) where.paymentAccountId = filters.accountId;
-    if (filters.startDate || filters.endDate) {
+    
+    if (filters.search) {
+      where.OR = [
+        { description: { contains: filters.search, mode: 'insensitive' } },
+        { category: { name: { contains: filters.search, mode: 'insensitive' } } },
+      ];
+    }
+
+    if (filters.month && filters.year) {
+      const m = parseInt(filters.month, 10);
+      const y = parseInt(filters.year, 10);
+      const startDate = new Date(y, m - 1, 1);
+      const endDate = new Date(y, m, 0, 23, 59, 59);
+      where.date = { gte: startDate, lte: endDate };
+    } else if (filters.startDate || filters.endDate) {
       where.date = {};
       if (filters.startDate) where.date.gte = new Date(filters.startDate);
       if (filters.endDate) where.date.lte = new Date(filters.endDate);
@@ -202,6 +216,8 @@ export class FinanceService {
       category: t.category?.name || 'Outros',
       type: t.type,
       paymentMethod: t.paymentMethod,
+      method: t.paymentMethod,
+      bank: t.paymentAccount?.bankName || t.creditCard?.name || t.paymentAccount?.name || '',
       paymentAccount: t.paymentAccount,
       creditCard: t.creditCard,
       amount: t.amount,

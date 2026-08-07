@@ -1,41 +1,53 @@
-import { Injectable } from '@nestjs/common';
-
-export interface RecurringTransaction {
-  id: string;
-  userId: string;
-  accountId: string;
-  amount: number;
-  type: 'income' | 'expense';
-  category: string;
-  description: string;
-  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
-  nextRun: Date;
-}
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
 
 @Injectable()
 export class RecurringService {
-  private recurringTx: RecurringTransaction[] = [];
+  constructor(private prisma: PrismaService) {}
 
-  async createRecurringTransaction(data: Partial<RecurringTransaction>): Promise<RecurringTransaction> {
-    const tx = { id: Math.random().toString(), ...data } as RecurringTransaction;
-    this.recurringTx.push(tx);
-    return tx;
+  async createRecurringRule(userId: string, data: any) {
+    return this.prisma.recurringRule.create({
+      data: {
+        userId,
+        description: data.description,
+        amount: parseFloat(data.amount),
+        type: data.type || 'EXPENSE',
+        paymentMethod: data.paymentMethod || 'PIX',
+        paymentAccountId: data.paymentAccountId || null,
+        categoryId: data.categoryId || null,
+        frequency: data.frequency || 'MONTHLY',
+        dayOfMonth: data.dayOfMonth ? parseInt(data.dayOfMonth) : 1,
+        startDate: data.startDate ? new Date(data.startDate) : new Date(),
+        endDate: data.endDate ? new Date(data.endDate) : null,
+      },
+      include: {
+        paymentAccount: true,
+        category: true,
+      }
+    });
   }
 
-  async getUserRecurringTransactions(userId: string): Promise<RecurringTransaction[]> {
-    return this.recurringTx.filter(t => t.userId === userId);
-  }
-  
-  async updateRecurringTransaction(id: string, data: Partial<RecurringTransaction>): Promise<RecurringTransaction> {
-    const idx = this.recurringTx.findIndex(t => t.id === id);
-    if (idx > -1) {
-      this.recurringTx[idx] = { ...this.recurringTx[idx], ...data };
-      return this.recurringTx[idx];
-    }
-    throw new Error('Recurring transaction not found');
+  async getUserRecurringRules(userId: string) {
+    return this.prisma.recurringRule.findMany({
+      where: { userId, isActive: true },
+      include: {
+        paymentAccount: true,
+        category: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  async deleteRecurringTransaction(id: string): Promise<void> {
-    this.recurringTx = this.recurringTx.filter(t => t.id !== id);
+  async deleteRecurringRule(userId: string, id: string) {
+    const rule = await this.prisma.recurringRule.findFirst({
+      where: { id, userId }
+    });
+    if (!rule) throw new NotFoundException('Regra recorrente não encontrada');
+
+    return this.prisma.recurringRule.update({
+      where: { id },
+      data: { isActive: false },
+    });
   }
 }
+

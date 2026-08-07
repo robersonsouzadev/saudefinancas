@@ -1,9 +1,6 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from './providers/AuthProvider';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Saúde & Finanças',
@@ -17,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body className={inter.className}>
+      <body className="font-sans antialiased bg-[#080a0c] text-[#f7f8f8]">
         <AuthProvider>
           {children}
         </AuthProvider>
@@ -25,3 +22,4 @@ export default function RootLayout({
     </html>
   );
 }
+
