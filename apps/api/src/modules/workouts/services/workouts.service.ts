@@ -8,7 +8,16 @@ export class WorkoutsService {
   // ----------------------------------------------------
   // EXERCÍCIOS
   // ----------------------------------------------------
+  // ----------------------------------------------------
+  // EXERCÍCIOS
+  // ----------------------------------------------------
   async listExercises(userId: string, muscleGroup?: string, search?: string) {
+    // Auto-seed exercises if table is empty
+    const count = await this.prisma.exercise.count();
+    if (count === 0) {
+      await this.autoSeedExercises();
+    }
+
     const whereClause: any = {
       OR: [
         { isCustom: false },
@@ -37,6 +46,42 @@ export class WorkoutsService {
       where: whereClause,
       orderBy: { namePt: 'asc' },
     });
+  }
+
+  private async autoSeedExercises() {
+    const defaultExercises = [
+      { namePt: 'Supino Reto com Barra', nameEn: 'Barbell Bench Press', muscleGroup: 'PEITORAL_MEDIAL', secondaryMuscle: 'Tríceps, Deltoide Anterior', equipment: 'BARBELL', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press/0.jpg' },
+      { namePt: 'Supino Inclinado com Halteres', nameEn: 'Incline Dumbbell Press', muscleGroup: 'PEITORAL_SUPERIOR', secondaryMuscle: 'Deltoide Anterior, Tríceps', equipment: 'DUMBBELL', metValue: 5.5, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Bench_Press/0.jpg' },
+      { namePt: 'Flexão de Braço', nameEn: 'Push-up', muscleGroup: 'PEITORAL_MEDIAL', secondaryMuscle: 'Tríceps, Core', equipment: 'BODYWEIGHT', metValue: 5.0, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Push-up/0.jpg' },
+      { namePt: 'Puxada Frontal Aberta', nameEn: 'Wide Lat Pulldown', muscleGroup: 'DORSAL', secondaryMuscle: 'Bíceps, Deltoide Posterior', equipment: 'CABLE', metValue: 5.0, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg' },
+      { namePt: 'Remada Curvada com Barra', nameEn: 'Bent-Over Barbell Row', muscleGroup: 'DORSAL', secondaryMuscle: 'Trapézio, Bíceps, Lombar', equipment: 'BARBELL', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Row/0.jpg' },
+      { namePt: 'Barra Fixa Pronada', nameEn: 'Pull-up', muscleGroup: 'DORSAL', secondaryMuscle: 'Bíceps, Core', equipment: 'BODYWEIGHT', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pull-up/0.jpg' },
+      { namePt: 'Desenvolvimento Militar com Barra', nameEn: 'Overhead Military Press', muscleGroup: 'OMBRO_ANTERIOR', secondaryMuscle: 'Deltoide Lateral, Tríceps', equipment: 'BARBELL', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Shoulder_Press/0.jpg' },
+      { namePt: 'Elevação Lateral com Halteres', nameEn: 'Dumbbell Lateral Raise', muscleGroup: 'OMBRO_LATERAL', secondaryMuscle: 'Trapézio', equipment: 'DUMBBELL', metValue: 4.5, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lateral_Raise/0.jpg' },
+      { namePt: 'Rosca Direta com Barra W', nameEn: 'EZ-Bar Biceps Curl', muscleGroup: 'BICEPS', secondaryMuscle: 'Antebraço', equipment: 'BARBELL', metValue: 4.5, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/EZ-bar_Curl/0.jpg' },
+      { namePt: 'Rosca Martelo', nameEn: 'Dumbbell Hammer Curl', muscleGroup: 'BICEPS', secondaryMuscle: 'Braquiorradial', equipment: 'DUMBBELL', metValue: 4.5, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Hammer_Curl/0.jpg' },
+      { namePt: 'Tríceps Pulley na Corda', nameEn: 'Rope Pushdown', muscleGroup: 'TRICEPS', secondaryMuscle: 'Antebraço', equipment: 'CABLE', metValue: 4.5, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown/0.jpg' },
+      { namePt: 'Agachamento Livre com Barra', nameEn: 'Barbell Back Squat', muscleGroup: 'QUADRICEPS', secondaryMuscle: 'Glúteos, Isquiotibiais', equipment: 'BARBELL', metValue: 7.0, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/0.jpg' },
+      { namePt: 'Leg Press 45°', nameEn: '45° Leg Press', muscleGroup: 'QUADRICEPS', secondaryMuscle: 'Glúteos', equipment: 'MACHINE', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Press/0.jpg' },
+      { namePt: 'Stiff com Barra', nameEn: 'Barbell Stiff Leg Deadlift', muscleGroup: 'POSTERIOR_COXA', secondaryMuscle: 'Glúteos, Lombar', equipment: 'BARBELL', metValue: 6.0, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Stiff-Legged_Barbell_Deadlift/0.jpg' },
+      { namePt: 'Abdominal Supra no Solo', nameEn: 'Abdominal Crunch', muscleGroup: 'ABDOMEN', secondaryMuscle: 'Nenhum', equipment: 'BODYWEIGHT', metValue: 4.0, gifUrl: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Crunch/0.jpg' },
+    ];
+
+    for (const ex of defaultExercises) {
+      await this.prisma.exercise.create({
+        data: {
+          name: `${ex.namePt} (${ex.nameEn})`,
+          namePt: ex.namePt,
+          nameEn: ex.nameEn,
+          muscleGroup: ex.muscleGroup,
+          secondaryMuscle: ex.secondaryMuscle,
+          equipment: ex.equipment,
+          metValue: ex.metValue,
+          gifUrl: ex.gifUrl,
+          instructions: `Execução correta de ${ex.namePt}. Mantenha a postura e expire na fase concêntrica.`,
+        },
+      });
+    }
   }
 
   async createCustomExercise(userId: string, data: {

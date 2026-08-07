@@ -69,6 +69,7 @@ export default function TreinosPage() {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [allExercises, setAllExercises] = useState<any[]>([]);
 
   // Modals
   const [selectedExerciseModal, setSelectedExerciseModal] = useState<any>(null);
@@ -111,7 +112,7 @@ export default function TreinosPage() {
     try {
       setLoading(true);
 
-      const [statsRes, activeRes, templatesRes, exRes, sessionsRes, insightsRes] = await Promise.all([
+      const [statsRes, activeRes, templatesRes, exRes, sessionsRes, insightsRes, allExRes] = await Promise.all([
         authFetch('/api/workouts/stats'),
         authFetch('/api/workouts/sessions/active'),
         authFetch('/api/workouts/templates'),
@@ -121,6 +122,7 @@ export default function TreinosPage() {
         }).toString()}`),
         authFetch('/api/workouts/sessions?limit=5'),
         authFetch('/api/workouts/ai/insights'),
+        authFetch('/api/workouts/exercises'),
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
@@ -129,6 +131,7 @@ export default function TreinosPage() {
       if (exRes.ok) setExercises(await exRes.json());
       if (sessionsRes.ok) setRecentSessions(await sessionsRes.json());
       if (insightsRes.ok) setCoachInsights(await insightsRes.json());
+      if (allExRes.ok) setAllExercises(await allExRes.json());
     } catch (err) {
       console.error('Erro ao carregar dados de treinos:', err);
     } finally {
@@ -1053,26 +1056,33 @@ export default function TreinosPage() {
                   Selecione os Exercícios do Treino ({selectedExerciseIds.length} selecionados)
                 </label>
                 <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1 border border-[#ffffff0e] rounded-lg p-2 bg-[#16191e]/50">
-                  {exercises.map((ex) => {
-                    const isSelected = selectedExerciseIds.includes(ex.id);
-                    return (
-                      <div
-                        key={ex.id}
-                        onClick={() => toggleSelectExerciseForTemplate(ex.id)}
-                        className={`p-2 rounded-md text-xs cursor-pointer flex items-center justify-between transition ${
-                          isSelected
-                            ? 'bg-[#6366f120] text-[#818cf8] border border-[#6366f140]'
-                            : 'hover:bg-[#16191e] text-[#8a8f98]'
-                        }`}
-                      >
-                        <div>
-                          <span className="font-medium">{ex.namePt}</span>
-                          <span className="text-[10px] text-[#575c66] ml-2">({ex.muscleGroup})</span>
+                  {(allExercises.length > 0 ? allExercises : exercises).length === 0 ? (
+                    <div className="p-4 text-center text-xs text-[#8a8f98] flex items-center justify-center space-x-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-[#818cf8]" />
+                      <span>Carregando catálogo de exercícios...</span>
+                    </div>
+                  ) : (
+                    (allExercises.length > 0 ? allExercises : exercises).map((ex) => {
+                      const isSelected = selectedExerciseIds.includes(ex.id);
+                      return (
+                        <div
+                          key={ex.id}
+                          onClick={() => toggleSelectExerciseForTemplate(ex.id)}
+                          className={`p-2 rounded-md text-xs cursor-pointer flex items-center justify-between transition ${
+                            isSelected
+                              ? 'bg-[#6366f120] text-[#818cf8] border border-[#6366f140]'
+                              : 'hover:bg-[#16191e] text-[#8a8f98]'
+                          }`}
+                        >
+                          <div>
+                            <span className="font-medium">{ex.namePt || ex.name}</span>
+                            <span className="text-[10px] text-[#575c66] ml-2">({ex.muscleGroup})</span>
+                          </div>
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-[#818cf8]" />}
                         </div>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-[#818cf8]" />}
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </div>
