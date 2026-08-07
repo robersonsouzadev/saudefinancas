@@ -31,6 +31,7 @@ import {
   RotateCcw,
   History,
   BarChart2,
+  Eye,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
@@ -82,6 +83,15 @@ export default function TreinosPage() {
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateColor, setNewTemplateColor] = useState('#6366f1');
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
+
+  // View & Edit Template Modal State
+  const [selectedTemplateForView, setSelectedTemplateForView] = useState<any | null>(null);
+  const [editTemplateName, setEditTemplateName] = useState('');
+  const [editTemplateColor, setEditTemplateColor] = useState('#6366f1');
+  const [editTemplateItems, setEditTemplateItems] = useState<any[]>([]);
+  const [isSavingTemplateEdit, setIsSavingTemplateEdit] = useState(false);
+  const [isAddingExerciseToEdit, setIsAddingExerciseToEdit] = useState(false);
+  const [editExerciseSearch, setEditExerciseSearch] = useState('');
 
   // AI Coach State
   const [isAiGeneratorOpen, setIsAiGeneratorOpen] = useState(false);
@@ -184,6 +194,106 @@ export default function TreinosPage() {
         await loadSessionMessages(sessions[0].id);
       }
     }
+  };
+
+  const openViewTemplateModal = (template: any) => {
+    setSelectedTemplateForView(template);
+    setEditTemplateName(template.name || '');
+    setEditTemplateColor(template.color || '#6366f1');
+    setEditTemplateItems(
+      (template.items || []).map((item: any) => ({
+        id: item.id,
+        exerciseId: item.exerciseId || item.exercise?.id,
+        exercise: item.exercise,
+        targetSets: item.targetSets || 3,
+        targetReps: item.targetReps || 10,
+        targetWeight: item.targetWeight || 0,
+        restSeconds: item.restSeconds || 60,
+        notes: item.notes || '',
+      }))
+    );
+    setIsAddingExerciseToEdit(false);
+  };
+
+  const handleOpenTemplateFromChat = (templateName: string) => {
+    setIsChatOpen(false);
+    loadData();
+    const match = templates.find(
+      (t: any) =>
+        t.name.toLowerCase().includes(templateName.toLowerCase()) ||
+        templateName.toLowerCase().includes(t.name.toLowerCase())
+    );
+    if (match) {
+      openViewTemplateModal(match);
+    } else if (templates.length > 0) {
+      openViewTemplateModal(templates[0]);
+    }
+  };
+
+  const handleSaveTemplateEdit = async () => {
+    if (!selectedTemplateForView || !editTemplateName.trim()) return;
+
+    try {
+      setIsSavingTemplateEdit(true);
+      const itemsPayload = editTemplateItems.map((item) => ({
+        exerciseId: item.exerciseId || item.exercise?.id,
+        targetSets: Number(item.targetSets) || 3,
+        targetReps: Number(item.targetReps) || 10,
+        targetWeight: Number(item.targetWeight) || 0,
+        restSeconds: Number(item.restSeconds) || 60,
+        notes: item.notes || null,
+      }));
+
+      const res = await authFetch(`/api/workouts/templates/${selectedTemplateForView.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editTemplateName,
+          color: editTemplateColor,
+          items: itemsPayload,
+        }),
+      });
+
+      if (res.ok) {
+        setSelectedTemplateForView(null);
+        await loadData();
+      }
+    } catch (err) {
+      console.error('Erro ao salvar alterações no treino:', err);
+    } finally {
+      setIsSavingTemplateEdit(false);
+    }
+  };
+
+  const handleAddExerciseToEditList = (exercise: any) => {
+    const exists = editTemplateItems.some(
+      (item) => (item.exerciseId || item.exercise?.id) === exercise.id
+    );
+    if (exists) return;
+
+    setEditTemplateItems((prev) => [
+      ...prev,
+      {
+        exerciseId: exercise.id,
+        exercise,
+        targetSets: 3,
+        targetReps: 10,
+        targetWeight: 0,
+        restSeconds: 60,
+        notes: '',
+      },
+    ]);
+    setIsAddingExerciseToEdit(false);
+  };
+
+  const handleRemoveExerciseFromEditList = (index: number) => {
+    setEditTemplateItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateEditItemField = (index: number, field: string, value: any) => {
+    setEditTemplateItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
   };
 
   // Completed Sessions Modal State
@@ -1152,16 +1262,26 @@ export default function TreinosPage() {
                     )}
 
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: tpl.color || '#6366f1' }} />
-                        <h3 className="font-semibold text-sm text-[#f7f8f8] group-hover:text-[#818cf8] transition">
+                      <div
+                        onClick={() => openViewTemplateModal(tpl)}
+                        className="flex items-center space-x-2 cursor-pointer group-hover:text-[#818cf8]"
+                      >
+                        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: tpl.color || '#6366f1' }} />
+                        <h3 className="font-semibold text-sm text-[#f7f8f8] group-hover:text-[#818cf8] transition truncate max-w-[180px]">
                           {tpl.name}
                         </h3>
                       </div>
-                      <div className="flex items-center space-x-1.5">
+                      <div className="flex items-center space-x-1">
                         <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] text-[#8a8f98]">
-                          {tpl.items?.length || 0} Exercícios
+                          {tpl.items?.length || 0} Ex.
                         </span>
+                        <button
+                          onClick={() => openViewTemplateModal(tpl)}
+                          className="p-1 rounded-md text-[#818cf8] hover:bg-[#6366f120] hover:text-white transition flex items-center space-x-0.5"
+                          title="Visualizar / Editar Treino Completo"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
                           className="p-1 rounded-md text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
@@ -1175,7 +1295,11 @@ export default function TreinosPage() {
                     {tpl.description && <p className="text-xs text-[#8a8f98]">{tpl.description}</p>}
 
                     {/* Exercícios no card */}
-                    <div className="space-y-1 pt-2">
+                    <div
+                      onClick={() => openViewTemplateModal(tpl)}
+                      className="space-y-1 pt-2 cursor-pointer hover:opacity-80 transition"
+                      title="Clique para visualizar todos os exercícios"
+                    >
                       {tpl.items?.slice(0, 4).map((item: any) => (
                         <div key={item.id} className="text-xs text-[#8a8f98] flex items-center justify-between">
                           <span className="truncate max-w-[200px]">
@@ -1187,7 +1311,10 @@ export default function TreinosPage() {
                         </div>
                       ))}
                       {tpl.items?.length > 4 && (
-                        <span className="text-[10px] text-[#575c66]">+{tpl.items.length - 4} outros exercícios...</span>
+                        <span className="text-[10px] text-[#818cf8] font-semibold flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          <span>+{tpl.items.length - 4} outros exercícios (Clique para abrir)...</span>
+                        </span>
                       )}
                     </div>
                   </div>
@@ -1677,12 +1804,17 @@ export default function TreinosPage() {
 
                       <button
                         onClick={() => {
-                          loadData();
-                          setIsChatOpen(false);
+                          if (msg.actionExecuted?.templateName) {
+                            handleOpenTemplateFromChat(msg.actionExecuted.templateName);
+                          } else {
+                            loadData();
+                            setIsChatOpen(false);
+                          }
                         }}
-                        className="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center justify-center space-x-1"
+                        className="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center justify-center space-x-1 shadow-md shadow-emerald-600/30"
                       >
-                        <span>Ver Treino Atualizado na Lista →</span>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Abrir & Visualizar Treino Atualizado →</span>
                       </button>
                     </div>
                   )}
@@ -2137,6 +2269,249 @@ export default function TreinosPage() {
               >
                 Fechar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL VISUALIZAR E EDITAR FICHA DE TREINO COMPLETA */}
+      {selectedTemplateForView && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl p-6 max-w-2xl w-full space-y-5 max-h-[90vh] flex flex-col shadow-2xl relative">
+            <button
+              onClick={() => setSelectedTemplateForView(null)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="space-y-3 border-b border-[#ffffff0e] pb-4">
+              <div className="flex items-center space-x-2">
+                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: editTemplateColor }} />
+                <input
+                  type="text"
+                  value={editTemplateName}
+                  onChange={(e) => setEditTemplateName(e.target.value)}
+                  className="text-base sm:text-lg font-bold text-[#f7f8f8] bg-transparent border-b border-transparent hover:border-[#ffffff20] focus:border-[#6366f1] focus:outline-none px-1 py-0.5 w-full"
+                  placeholder="Nome da ficha de treino..."
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#8a8f98]">
+                <div className="flex items-center space-x-2">
+                  <span>Cor do Card:</span>
+                  {['#6366f1', '#38bdf8', '#4ade80', '#f97316', '#a855f7', '#ec4899'].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setEditTemplateColor(c)}
+                      className={`w-5 h-5 rounded-full transition ${editTemplateColor === c ? 'scale-125 ring-2 ring-white' : 'opacity-60 hover:opacity-100'}`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+
+                <span className="font-mono text-[#818cf8]">
+                  {editTemplateItems.length} Exercícios Prescritos
+                </span>
+              </div>
+            </div>
+
+            {/* Exercise Items List */}
+            <div className="overflow-y-auto flex-1 space-y-3 pr-1 scrollbar-none">
+              {editTemplateItems.length === 0 ? (
+                <div className="text-center py-8 text-xs text-[#8a8f98]">
+                  Nenhum exercício nesta ficha. Clique abaixo para adicionar.
+                </div>
+              ) : (
+                editTemplateItems.map((item, idx) => (
+                  <div
+                    key={item.id || idx}
+                    className="p-3.5 rounded-xl bg-[#16191e] border border-[#ffffff0e] space-y-2 hover:border-[#6366f130] transition"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="w-5 h-5 rounded-full bg-[#6366f120] text-[#818cf8] font-bold font-mono text-[10px] flex items-center justify-center shrink-0">
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <h4 className="font-bold text-xs text-[#f7f8f8] flex items-center gap-2">
+                            <span>{item.exercise?.namePt || item.exercise?.name || 'Exercício'}</span>
+                            {item.exercise?.gifUrl && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedExerciseModal(item.exercise);
+                                  setModalGifError(false);
+                                }}
+                                className="text-[10px] text-[#38bdf8] hover:underline flex items-center gap-0.5"
+                              >
+                                <Eye className="w-3 h-3" />
+                                <span>Ver 3D</span>
+                              </button>
+                            )}
+                          </h4>
+                          <span className="text-[10px] text-[#8a8f98] font-mono">
+                            Grupo: {item.exercise?.muscleGroup || 'GERAL'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExerciseFromEditList(idx)}
+                        className="p-1 rounded text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
+                        title="Remover Exercício"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Set Config Grid */}
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      <div>
+                        <label className="text-[10px] text-[#8a8f98] block">Séries Alvo</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={item.targetSets}
+                          onChange={(e) => handleUpdateEditItemField(idx, 'targetSets', e.target.value)}
+                          className="w-full px-2 py-1 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs font-mono text-center text-white focus:outline-none focus:border-[#6366f1]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-[#8a8f98] block">Reps Alvo</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={50}
+                          value={item.targetReps}
+                          onChange={(e) => handleUpdateEditItemField(idx, 'targetReps', e.target.value)}
+                          className="w-full px-2 py-1 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs font-mono text-center text-white focus:outline-none focus:border-[#6366f1]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-[#8a8f98] block">Descanso (s)</label>
+                        <select
+                          value={item.restSeconds}
+                          onChange={(e) => handleUpdateEditItemField(idx, 'restSeconds', Number(e.target.value))}
+                          className="w-full px-2 py-1 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs font-mono text-center text-white focus:outline-none focus:border-[#6366f1]"
+                        >
+                          <option value={30}>30s</option>
+                          <option value={45}>45s</option>
+                          <option value={60}>60s</option>
+                          <option value={90}>90s</option>
+                          <option value={120}>120s</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {item.notes && (
+                      <p className="text-[10px] text-[#818cf8] bg-[#6366f110] px-2 py-1 rounded border border-[#6366f120] italic">
+                        Obs: {item.notes}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
+
+              {/* Add exercise selector to edit modal */}
+              {isAddingExerciseToEdit ? (
+                <div className="p-3 rounded-xl bg-[#16191e] border border-[#6366f140] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs font-bold text-[#818cf8]">Selecione um Exercício para Adicionar:</h5>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingExerciseToEdit(false)}
+                      className="text-[#8a8f98] hover:text-white text-xs"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="Buscar exercício pelo nome..."
+                    value={editExerciseSearch}
+                    onChange={(e) => setEditExerciseSearch(e.target.value)}
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#6366f1]"
+                  />
+
+                  <div className="max-h-40 overflow-y-auto space-y-1 pr-1">
+                    {(allExercises.length > 0 ? allExercises : exercises)
+                      .filter(
+                        (ex) =>
+                          !editExerciseSearch ||
+                          ex.namePt?.toLowerCase().includes(editExerciseSearch.toLowerCase()) ||
+                          ex.nameEn?.toLowerCase().includes(editExerciseSearch.toLowerCase())
+                      )
+                      .slice(0, 10)
+                      .map((ex) => (
+                        <div
+                          key={ex.id}
+                          onClick={() => handleAddExerciseToEditList(ex)}
+                          className="p-2 rounded-lg bg-[#0f1115] hover:bg-[#6366f120] border border-transparent hover:border-[#6366f140] cursor-pointer flex items-center justify-between text-xs"
+                        >
+                          <span>{ex.namePt}</span>
+                          <Plus className="w-3.5 h-3.5 text-[#818cf8]" />
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingExerciseToEdit(true);
+                    fetchExercisesDirectly();
+                  }}
+                  className="w-full py-2 rounded-xl bg-[#16191e] border border-dashed border-[#ffffff20] hover:border-[#6366f160] text-[#818cf8] hover:bg-[#6366f110] text-xs font-semibold transition flex items-center justify-center space-x-1.5"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Adicionar Exercício à Ficha</span>
+                </button>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[#ffffff0e]">
+              <button
+                type="button"
+                onClick={() => {
+                  const tplId = selectedTemplateForView.id;
+                  setSelectedTemplateForView(null);
+                  startWorkout(tplId);
+                }}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-lg shadow-emerald-600/20"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Iniciar Este Treino Agora</span>
+              </button>
+
+              <div className="flex items-center justify-end space-x-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTemplateForView(null)}
+                  className="px-4 py-2 rounded-xl bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveTemplateEdit}
+                  disabled={isSavingTemplateEdit}
+                  className="px-4 py-2 rounded-xl bg-[#6366f1] hover:bg-[#4f46e5] text-white text-xs font-bold transition flex items-center space-x-1"
+                >
+                  {isSavingTemplateEdit ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  )}
+                  <span>Salvar Alterações</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
