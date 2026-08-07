@@ -174,8 +174,8 @@ export class WorkoutsController {
   }
 
   @Post('ai/chat')
-  async chatWithCoach(@Request() req: any, @Body() body: { message: string }) {
-    return this.workoutAiService.chatWithCoach(req.user.id, body.message);
+  async chatWithCoach(@Request() req: any, @Body() body: { message: string; history?: any[] }) {
+    return this.workoutAiService.chatWithCoach(req.user.id, body);
   }
 
   @Get('ai/insights')

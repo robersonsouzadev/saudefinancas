@@ -323,40 +323,327 @@ ${exerciseListStr}
     return createdTemplates;
   }
 
-  async chatWithCoach(userId: string, userMessage: string) {
+  async chatWithCoach(
+    userId: string,
+    payload: { message: string; history?: Array<{ sender: string; text: string }> } | string,
+  ) {
+    const userMessage = typeof payload === 'string' ? payload : payload.message;
+    const history = typeof payload === 'object' && Array.isArray(payload.history) ? payload.history : [];
+
     const context = await this.getUserContext(userId);
     const openai = await this.getOpenAIClient();
+    const userTemplates = await this.workoutsService.listTemplates(userId);
+    const allDbExercises = context.availableExercises || [];
+
+    const findBestMatch = (targetNamePt: string) => {
+      if (!targetNamePt) return allDbExercises[0] || null;
+      const cleanTarget = targetNamePt.toLowerCase().trim();
+
+      let match = allDbExercises.find(
+        (ex: any) =>
+          ex.namePt.toLowerCase() === cleanTarget ||
+          ex.name.toLowerCase() === cleanTarget ||
+          cleanTarget.includes(ex.namePt.toLowerCase()) ||
+          ex.namePt.toLowerCase().includes(cleanTarget),
+      );
+      if (match) return match;
+
+      const targetWords = cleanTarget
+        .replace(/[^a-z0-9áàâãéèêíïóôõöúçñ\s]/gi, ' ')
+        .split(/\s+/)
+        .filter((w: string) => w.length > 3 && !['com', 'para', 'lado', 'solo', 'barra', 'halter', 'halteres'].includes(w));
+
+      if (targetWords.length > 0) {
+        let bestScore = 0;
+        let bestEx: any = null;
+
+        for (const ex of allDbExercises) {
+          const exNameClean = ex.namePt.toLowerCase();
+          let score = 0;
+          for (const word of targetWords) {
+            if (exNameClean.includes(word)) score += 1;
+          }
+          if (score > bestScore) {
+            bestScore = score;
+            bestEx = ex;
+          }
+        }
+        if (bestEx && bestScore >= 1) return bestEx;
+      }
+
+      return allDbExercises[0] || null;
+    };
 
     if (!openai) {
       return {
-        reply: `Olá! Sou o Coach Iron 💪. Para criar planos personalizados e responder com IA avançada, certifique-se de configurar sua chave da OpenAI nas configurações.`,
+        reply: `Olá! Sou o Coach Iron 💪. Para criar planos personalizados e adaptar treinos em tempo real, certifique-se de configurar sua chave da OpenAI nas configurações.`,
       };
     }
 
-    const systemPrompt = `Seu nome é Coach Iron, um Personal Trainer e Preparador Físico Virtual de elite.
+    const templatesSummary = userTemplates.length > 0
+      ? userTemplates.map((t: any) => `- ID: ${t.id} | Nome: "${t.name}" | Exercícios: [${t.items.map((i: any) => i.exercise?.namePt || i.exercise?.name).join(', ')}]`).join('\n')
+      : 'Nenhum treino criado ainda.';
+
+    const systemPrompt = `Seu nome é Coach Iron, um Personal Trainer e Preparador Físico de elite.
 Você fala em português de forma motivacional, técnica e direta.
-Você tem acesso ao perfil do aluno:
+
+DADOS DO ALUNO:
+- Nome: ${context.name}
 - Peso: ${context.weightKg} kg | Altura: ${context.heightCm} cm
 - Histórico: ${context.recentSessionsCount} treinos recentes concluídos.
 
-Responda à dúvida do aluno de forma clara, usando tópicos e dicas práticas de musculação, cargas e séries.`;
+ROTINAS/TEMPLATES DE TREINO ATUAIS DO ALUNO:
+${templatesSummary}
+
+CAPACIDADE DE AÇÃO EM TEMPO REAL:
+Você possui FERRAMENTAS (Tools) ativas para modificar os treinos do aluno diretamente durante a conversa!
+- Se o aluno pedir para focar mais em um músculo (ex: "focar em bíceps e tríceps", "dar um grau nos ombros"), use 'adapt_workout_focus' ou 'create_custom_template' para adicionar novos exercícios isolados e salvar no perfil dele.
+- Se o aluno relatar dor ou lesão (ex: "dor no ombro", "trocar supino"), use 'swap_exercise' para substituir o exercício por um equivalente seguro.
+- Se o aluno pedir um treino totalmente novo ou específico, use 'create_custom_template'.
+
+Sempre explique detalhadamente a alteração feita e encoraje o aluno com entusiasmo!`;
+
+    const formattedMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: 'system', content: systemPrompt },
+    ];
+
+    for (const h of history.slice(-6)) {
+      formattedMessages.push({
+        role: h.sender === 'user' ? 'user' : 'assistant',
+        content: h.text,
+      });
+    }
+
+    formattedMessages.push({ role: 'user', content: userMessage });
+
+    const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+      {
+        type: 'function',
+        function: {
+          name: 'adapt_workout_focus',
+          description: 'Modifica uma rotina existente do aluno para focar em grupos musculares específicos (ex: Bíceps, Tríceps, Ombros) adicionando novos exercícios isolados.',
+          parameters: {
+            type: 'object',
+            properties: {
+              templateName: { type: 'string', description: 'Nome da rotina a modificar (ex: "Treino B - Costas e Bíceps")' },
+              focusMuscles: { type: 'array', items: { type: 'string' }, description: 'Músculos prioritários' },
+              exercisesToAdd: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    namePt: { type: 'string', description: 'Nome do exercício em português' },
+                    sets: { type: 'number', description: 'Número de séries' },
+                    reps: { type: 'number', description: 'Repetições alvo' },
+                  },
+                  required: ['namePt', 'sets', 'reps'],
+                },
+                description: 'Novos exercícios focados a incluir',
+              },
+              reasoning: { type: 'string', description: 'Explicação da adaptação' },
+            },
+            required: ['exercisesToAdd'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'swap_exercise',
+          description: 'Substitui um exercício por outro em uma rotina do aluno devido a dor, lesão ou preferência.',
+          parameters: {
+            type: 'object',
+            properties: {
+              templateName: { type: 'string', description: 'Nome da rotina' },
+              oldExerciseName: { type: 'string', description: 'Exercício a remover' },
+              newExerciseName: { type: 'string', description: 'Novo exercício substituto' },
+              reasoning: { type: 'string', description: 'Motivo técnico da troca' },
+            },
+            required: ['oldExerciseName', 'newExerciseName'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'create_custom_template',
+          description: 'Cria uma nova rotina/template de treino customizada no perfil do aluno.',
+          parameters: {
+            type: 'object',
+            properties: {
+              templateName: { type: 'string', description: 'Nome da nova rotina' },
+              description: { type: 'string', description: 'Descrição da estratégia do treino' },
+              exercises: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    namePt: { type: 'string' },
+                    targetSets: { type: 'number' },
+                    targetReps: { type: 'number' },
+                    notes: { type: 'string' },
+                  },
+                  required: ['namePt', 'targetSets', 'targetReps'],
+                },
+              },
+            },
+            required: ['templateName', 'exercises'],
+          },
+        },
+      },
+    ];
 
     try {
       const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
+        messages: formattedMessages,
+        tools,
+        tool_choice: 'auto',
         temperature: 0.7,
       });
 
+      const message = response.choices[0]?.message;
+      let actionExecuted: any = null;
+
+      if (message?.tool_calls && message.tool_calls.length > 0) {
+        const toolCall = message.tool_calls[0];
+        const fnName = toolCall.function.name;
+        const args = JSON.parse(toolCall.function.arguments || '{}');
+
+        this.logger.log(`Coach Iron executou toolCall: ${fnName} com args: ${JSON.stringify(args)}`);
+
+        if (fnName === 'adapt_workout_focus' || fnName === 'create_custom_template') {
+          const tplName = args.templateName || 'Treino Personalizado Foco';
+          const exInputList = args.exercisesToAdd || args.exercises || [];
+
+          let targetTemplate = userTemplates.find(
+            (t: any) =>
+              t.name.toLowerCase().includes((args.templateName || '').toLowerCase()) ||
+              (args.templateName || '').toLowerCase().includes(t.name.toLowerCase()),
+          );
+
+          const existingItems = targetTemplate ? targetTemplate.items.map((i: any) => ({
+            exerciseId: i.exerciseId,
+            targetSets: i.targetSets,
+            targetReps: i.targetReps,
+            targetWeight: i.targetWeight,
+            restSeconds: i.restSeconds,
+            notes: i.notes,
+          })) : [];
+
+          const newItems = [];
+          const addedNames: string[] = [];
+
+          for (const exInput of exInputList) {
+            const dbEx = findBestMatch(exInput.namePt);
+            if (dbEx) {
+              newItems.push({
+                exerciseId: dbEx.id,
+                targetSets: exInput.sets || exInput.targetSets || 3,
+                targetReps: exInput.reps || exInput.targetReps || 12,
+                targetWeight: 0,
+                restSeconds: 60,
+                notes: exInput.notes || 'Adaptação do Coach Iron',
+              });
+              addedNames.push(dbEx.namePt);
+            }
+          }
+
+          if (targetTemplate && targetTemplate.id) {
+            const combinedItems = [...existingItems, ...newItems];
+            await this.workoutsService.updateTemplate(targetTemplate.id, userId, {
+              name: targetTemplate.name,
+              items: combinedItems,
+            });
+
+            actionExecuted = {
+              type: 'WORKOUT_UPDATED',
+              templateName: targetTemplate.name,
+              addedExercises: addedNames,
+              reasoning: args.reasoning || 'Foco intensificado conforme solicitado.',
+            };
+          } else {
+            const created = await this.workoutsService.createTemplate(userId, {
+              name: tplName,
+              color: '#6366f1',
+              dayOfWeek: 1,
+              items: newItems,
+            });
+
+            actionExecuted = {
+              type: 'TEMPLATE_CREATED',
+              templateName: created.name,
+              addedExercises: addedNames,
+              reasoning: args.reasoning || 'Nova rotina criada pelo Coach Iron.',
+            };
+          }
+        } else if (fnName === 'swap_exercise') {
+          const oldName = args.oldExerciseName;
+          const newName = args.newExerciseName;
+          const newDbEx = findBestMatch(newName);
+
+          let updatedTplName = '';
+
+          for (const tpl of userTemplates) {
+            const hasOldEx = tpl.items.some((i: any) =>
+              (i.exercise?.namePt || i.exercise?.name || '').toLowerCase().includes(oldName.toLowerCase()),
+            );
+
+            if (hasOldEx && newDbEx) {
+              const updatedItems = tpl.items.map((i: any) => {
+                const isMatch = (i.exercise?.namePt || i.exercise?.name || '').toLowerCase().includes(oldName.toLowerCase());
+                if (isMatch) {
+                  return {
+                    exerciseId: newDbEx.id,
+                    targetSets: i.targetSets,
+                    targetReps: i.targetReps,
+                    targetWeight: i.targetWeight,
+                    restSeconds: i.restSeconds,
+                    notes: `Substituído por: ${args.reasoning || 'Segurança articular'}`,
+                  };
+                }
+                return {
+                  exerciseId: i.exerciseId,
+                  targetSets: i.targetSets,
+                  targetReps: i.targetReps,
+                  targetWeight: i.targetWeight,
+                  restSeconds: i.restSeconds,
+                  notes: i.notes,
+                };
+              });
+
+              await this.workoutsService.updateTemplate(tpl.id, userId, {
+                name: tpl.name,
+                items: updatedItems,
+              });
+
+              updatedTplName = tpl.name;
+              break;
+            }
+          }
+
+          actionExecuted = {
+            type: 'EXERCISE_SWAPPED',
+            templateName: updatedTplName || 'Treino Atualizado',
+            oldExercise: oldName,
+            newExercise: newDbEx?.namePt || newName,
+            reasoning: args.reasoning || 'Substituição realizada para otimizar seus resultados com segurança.',
+          };
+        }
+      }
+
+      const defaultReply = actionExecuted
+        ? `Pronto! Realizei as adaptações diretamente na sua ficha de treino. ${actionExecuted.reasoning || ''}`
+        : message?.content || 'Continue firme nos treinos! Foco na constância.';
+
       return {
-        reply: response.choices[0]?.message?.content || 'Continue firme nos treinos! Foco na constância.',
+        reply: message?.content || defaultReply,
+        actionExecuted,
       };
     } catch (e) {
+      this.logger.error('Erro no chat do Coach Iron:', e);
       return {
-        reply: 'Coach Iron está ajustando os equipamentos! Tente novamente em instantes.',
+        reply: 'Coach Iron está ajustando a carga! Tente enviar a mensagem novamente em instantes.',
       };
     }
   }

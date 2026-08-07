@@ -99,10 +99,10 @@ export default function TreinosPage() {
 
   // Coach Iron Chat Drawer State
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'coach'; text: string }>>([
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'coach'; text: string; actionExecuted?: any }>>([
     {
       sender: 'coach',
-      text: 'Olá! Sou o Coach Iron 💪. Como posso ajudar seu treino hoje? Posso montar um plano novo, tirar dúvidas sobre cargas ou sugerir exercícios.',
+      text: 'Olá! Sou o Coach Iron 💪. Sou seu Personal Trainer Virtual e posso alterar seus treinos ao vivo! Peça para eu focar em algum músculo, substituir um exercício por dor ou reajustar suas séries.',
     },
   ]);
   const [chatInput, setChatInput] = useState('');
@@ -389,10 +389,10 @@ export default function TreinosPage() {
     }
   };
 
-  const handleSendChat = async () => {
-    if (!chatInput.trim() || sendingChat) return;
+  const handleSendChat = async (customMessage?: string) => {
+    const userText = customMessage || chatInput;
+    if (!userText.trim() || sendingChat) return;
 
-    const userText = chatInput;
     setChatInput('');
     setChatMessages((prev) => [...prev, { sender: 'user', text: userText }]);
     setSendingChat(true);
@@ -401,12 +401,22 @@ export default function TreinosPage() {
       const res = await authFetch('/api/workouts/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText }),
+        body: JSON.stringify({
+          message: userText,
+          history: chatMessages.slice(-6).map((m) => ({ sender: m.sender, text: m.text })),
+        }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        setChatMessages((prev) => [...prev, { sender: 'coach', text: data.reply }]);
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'coach', text: data.reply, actionExecuted: data.actionExecuted },
+        ]);
+
+        if (data.actionExecuted) {
+          loadData(); // Auto reload templates on main page!
+        }
       }
     } catch (err) {
       console.error('Erro no chat com Coach Iron:', err);
@@ -1240,13 +1250,45 @@ export default function TreinosPage() {
                 className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${
+                  className={`max-w-[88%] p-3 rounded-2xl text-xs leading-relaxed space-y-2 ${
                     msg.sender === 'user'
                       ? 'bg-[#6366f1] text-white rounded-br-none'
                       : 'bg-[#16191e] text-[#f7f8f8] border border-[#ffffff0e] rounded-bl-none'
                   }`}
                 >
-                  {msg.text}
+                  <div>{msg.text}</div>
+
+                  {/* Action Executed Interactive Card */}
+                  {msg.actionExecuted && (
+                    <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-xs space-y-2 mt-2 text-left">
+                      <div className="flex items-center space-x-1.5 font-bold text-emerald-400">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>{msg.actionExecuted.templateName || 'Treino'} — Atualizado!</span>
+                      </div>
+
+                      {msg.actionExecuted.addedExercises?.length > 0 && (
+                        <p className="text-[11px] text-[#8a8f98]">
+                          Exercícios incluídos: <strong className="text-[#f7f8f8]">{msg.actionExecuted.addedExercises.join(', ')}</strong>
+                        </p>
+                      )}
+
+                      {msg.actionExecuted.oldExercise && (
+                        <p className="text-[11px] text-[#8a8f98]">
+                          Substituição: <span className="line-through text-red-400">{msg.actionExecuted.oldExercise}</span> → <strong className="text-emerald-400">{msg.actionExecuted.newExercise}</strong>
+                        </p>
+                      )}
+
+                      <button
+                        onClick={() => {
+                          loadData();
+                          setIsChatOpen(false);
+                        }}
+                        className="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center justify-center space-x-1"
+                      >
+                        <span>Ver Treino Atualizado na Lista →</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -1255,25 +1297,25 @@ export default function TreinosPage() {
               <div className="flex justify-start">
                 <div className="bg-[#16191e] text-[#8a8f98] p-3 rounded-2xl text-xs flex items-center space-x-2">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-[#818cf8]" />
-                  <span>Coach Iron está digitando...</span>
+                  <span>Coach Iron está analisando e aplicando a adaptação...</span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Form de Envio */}
+          {/* Form de Envio com Chips de Ação */}
           <div className="pt-3 border-t border-[#ffffff0e] space-y-2">
             <div className="flex items-center space-x-2">
               <input
                 type="text"
-                placeholder="Pergunte ao Coach Iron..."
+                placeholder="Pergunte ou peça para o Coach adaptar seu treino..."
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
                 className="flex-1 px-3 py-2 rounded-xl bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#6366f1]"
               />
               <button
-                onClick={handleSendChat}
+                onClick={() => handleSendChat()}
                 disabled={sendingChat || !chatInput.trim()}
                 className="p-2 rounded-xl bg-[#6366f1] text-white disabled:opacity-50 transition"
               >
@@ -1281,18 +1323,24 @@ export default function TreinosPage() {
               </button>
             </div>
 
-            <div className="flex gap-1 overflow-x-auto text-[10px] text-[#8a8f98] pb-1">
+            <div className="flex gap-1.5 overflow-x-auto text-[10px] text-[#8a8f98] pb-1 scrollbar-none">
               <button
-                onClick={() => setChatInput('Quero focar mais em peitoral este mês')}
-                className="px-2 py-0.5 rounded bg-[#16191e] whitespace-nowrap hover:text-white"
+                onClick={() => handleSendChat('Quero dar uma adaptada no meu treino, focar mais em bíceps e tríceps')}
+                className="px-2.5 py-1 rounded-lg bg-[#16191e] border border-[#ffffff10] whitespace-nowrap hover:border-[#6366f140] hover:text-[#818cf8] transition flex items-center space-x-1"
               >
-                Foco Peitoral
+                <span>⚡ Focar em Bíceps e Tríceps</span>
               </button>
               <button
-                onClick={() => setChatInput('Como fazer progressão de carga no supino?')}
-                className="px-2 py-0.5 rounded bg-[#16191e] whitespace-nowrap hover:text-white"
+                onClick={() => handleSendChat('Estou com dor no ombro direito, troque os supinos por halteres')}
+                className="px-2.5 py-1 rounded-lg bg-[#16191e] border border-[#ffffff10] whitespace-nowrap hover:border-[#6366f140] hover:text-[#818cf8] transition flex items-center space-x-1"
               >
-                Progressão Supino
+                <span>🩹 Trocar Supinos (Dor Ombro)</span>
+              </button>
+              <button
+                onClick={() => handleSendChat('Como fazer progressão de carga no supino e agachamento?')}
+                className="px-2.5 py-1 rounded-lg bg-[#16191e] border border-[#ffffff10] whitespace-nowrap hover:border-[#6366f140] hover:text-[#818cf8] transition flex items-center space-x-1"
+              >
+                <span>📈 Progressão de Carga</span>
               </button>
             </div>
           </div>
