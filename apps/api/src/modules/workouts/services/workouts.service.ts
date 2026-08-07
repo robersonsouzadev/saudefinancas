@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ExerciseDBService } from './exercise-db.service';
-import { MUSCLE_GROUP_MAP, EQUIPMENT_TRANSLATION, translateExerciseName } from '../data/exercise-translations';
+import { MUSCLE_GROUP_MAP, EQUIPMENT_TRANSLATION, translateExerciseName, determineMuscleSubGroup } from '../data/exercise-translations';
 
 @Injectable()
 export class WorkoutsService implements OnModuleInit {
@@ -75,9 +75,9 @@ export class WorkoutsService implements OnModuleInit {
   // EXERCÍCIOS
   // ----------------------------------------------------
   async listExercises(userId: string, muscleGroup?: string, search?: string) {
-    // Auto-seed exercises if table is empty
+    // Auto-sync 1,323 3D exercises if table count is low
     const count = await this.prisma.exercise.count();
-    if (count === 0) {
+    if (count < 100) {
       await this.autoSeedExercises();
     }
 
@@ -89,7 +89,31 @@ export class WorkoutsService implements OnModuleInit {
     };
 
     if (muscleGroup && muscleGroup !== 'ALL') {
-      whereClause.muscleGroup = muscleGroup;
+      const groupMap: Record<string, string[]> = {
+        PEITORAL_SUPERIOR: ['PEITORAL_SUPERIOR', 'PEITORAL', 'PECTORALS'],
+        PEITORAL_MEDIAL: ['PEITORAL_MEDIAL', 'PEITORAL', 'PECTORALS'],
+        PEITORAL_INFERIOR: ['PEITORAL_INFERIOR', 'PEITORAL', 'PECTORALS'],
+        PEITORAL: ['PEITORAL', 'PEITORAL_SUPERIOR', 'PEITORAL_MEDIAL', 'PEITORAL_INFERIOR', 'PECTORALS'],
+        DORSAL: ['DORSAL', 'COSTAS', 'LATS', 'UPPER-BACK'],
+        TRAPEZIO: ['TRAPEZIO', 'TRAPS', 'LEVATOR-SCAPULAE'],
+        LOMBAR: ['LOMBAR', 'SPINE'],
+        OMBRO_ANTERIOR: ['OMBRO_ANTERIOR', 'OMBRO', 'DELTS'],
+        OMBRO_LATERAL: ['OMBRO_LATERAL', 'OMBRO', 'DELTS'],
+        OMBRO_POSTERIOR: ['OMBRO_POSTERIOR', 'OMBRO', 'DELTS'],
+        OMBRO: ['OMBRO', 'OMBRO_ANTERIOR', 'OMBRO_LATERAL', 'OMBRO_POSTERIOR', 'DELTS'],
+        BICEPS: ['BICEPS'],
+        TRICEPS: ['TRICEPS'],
+        ANTEBRACO: ['ANTEBRACO', 'FOREARMS'],
+        QUADRICEPS: ['QUADRICEPS', 'QUADS'],
+        POSTERIOR_COXA: ['POSTERIOR_COXA', 'HAMSTRINGS', 'COXA', 'ADDUCTORS'],
+        GLUTEOS: ['GLUTEOS', 'GLUTES', 'ABDUCTORS'],
+        PANTURRILHA: ['PANTURRILHA', 'CALVES'],
+        ABDOMEN: ['ABDOMEN', 'ABS', 'SERRATUS-ANTERIOR'],
+        CARDIO: ['CARDIO'],
+      };
+
+      const matchGroups = groupMap[muscleGroup] || [muscleGroup];
+      whereClause.muscleGroup = { in: matchGroups };
     }
 
     if (search && search.trim() !== '') {
@@ -131,7 +155,8 @@ export class WorkoutsService implements OnModuleInit {
     for (const item of cdnItems) {
       const { namePt, nameEn } = translateExerciseName(item.name);
       const fullName = `${namePt} (${nameEn})`;
-      const muscleGroup = MUSCLE_GROUP_MAP[item.muscle] || 'OUTROS';
+      const baseGroup = MUSCLE_GROUP_MAP[item.muscle] || 'OUTROS';
+      const muscleGroup = determineMuscleSubGroup(baseGroup, item.name);
       const equipment = EQUIPMENT_TRANSLATION[item.equipment?.toLowerCase()] || item.equipment || 'Outro';
       const instructionsText = Array.isArray(item.instructions) && item.instructions.length > 0
         ? item.instructions.join(' ')

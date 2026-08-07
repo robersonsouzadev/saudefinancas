@@ -1,7 +1,7 @@
 export const MUSCLE_GROUP_MAP: Record<string, string> = {
-  pectorals: 'PEITORAL',
+  pectorals: 'PEITORAL_MEDIAL',
   lats: 'DORSAL',
-  delts: 'OMBRO',
+  delts: 'OMBRO_LATERAL',
   biceps: 'BICEPS',
   triceps: 'TRICEPS',
   quads: 'QUADRICEPS',
@@ -13,12 +13,27 @@ export const MUSCLE_GROUP_MAP: Record<string, string> = {
   traps: 'TRAPEZIO',
   'upper-back': 'DORSAL',
   abductors: 'GLUTEOS',
-  adductors: 'COXA',
+  adductors: 'POSTERIOR_COXA',
   cardio: 'CARDIO',
   'levator-scapulae': 'TRAPEZIO',
   'serratus-anterior': 'ABDOMEN',
   spine: 'LOMBAR',
 };
+
+export function determineMuscleSubGroup(baseMuscleGroup: string, exerciseName: string): string {
+  const lower = exerciseName.toLowerCase();
+  if (baseMuscleGroup.includes('PEITORAL')) {
+    if (lower.includes('incline')) return 'PEITORAL_SUPERIOR';
+    if (lower.includes('decline') || lower.includes('dip')) return 'PEITORAL_INFERIOR';
+    return 'PEITORAL_MEDIAL';
+  }
+  if (baseMuscleGroup.includes('OMBRO')) {
+    if (lower.includes('lateral') || lower.includes('side')) return 'OMBRO_LATERAL';
+    if (lower.includes('rear') || lower.includes('reverse') || lower.includes('face pull') || lower.includes('bent over')) return 'OMBRO_POSTERIOR';
+    return 'OMBRO_ANTERIOR';
+  }
+  return baseMuscleGroup;
+}
 
 export const EQUIPMENT_TRANSLATION: Record<string, string> = {
   barbell: 'Barra',
