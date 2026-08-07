@@ -18,6 +18,8 @@ import {
   Sparkles,
   AlertCircle,
   Star,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
@@ -42,6 +44,9 @@ export default function WorkoutSessionPage() {
   const [intensity, setIntensity] = useState('MODERATE');
   const [notes, setNotes] = useState('');
   const [finishedSummary, setFinishedSummary] = useState<any>(null);
+
+  // GIF Preview Toggle
+  const [expandedGifId, setExpandedGifId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchActiveSession();
@@ -324,10 +329,48 @@ export default function WorkoutSessionPage() {
                 </div>
               </div>
 
-              <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] text-[#38bdf8] font-mono">
-                {sessionEx.exercise?.equipment}
-              </span>
+              <div className="flex items-center space-x-2">
+                {/* GIF Preview Toggle Button */}
+                {sessionEx.exercise?.gifUrl && (
+                  <button
+                    onClick={() => setExpandedGifId(expandedGifId === sessionEx.id ? null : sessionEx.id)}
+                    className={`flex items-center space-x-1 px-2 py-1 rounded-lg border text-[10px] font-semibold transition-all ${
+                      expandedGifId === sessionEx.id
+                        ? 'bg-[#818cf820] border-[#818cf850] text-[#818cf8]'
+                        : 'bg-[#16191e] border-[#ffffff12] text-[#8a8f98] hover:text-[#818cf8] hover:border-[#818cf840]'
+                    }`}
+                    title="Ver demonstração do exercício"
+                  >
+                    {expandedGifId === sessionEx.id ? (
+                      <><EyeOff className="w-3 h-3" /><span>Ocultar</span></>
+                    ) : (
+                      <><Eye className="w-3 h-3" /><span>Como fazer</span></>
+                    )}
+                  </button>
+                )}
+
+                <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] text-[#38bdf8] font-mono">
+                  {sessionEx.exercise?.equipment}
+                </span>
+              </div>
             </div>
+
+            {/* Expandable 3D GIF Preview */}
+            {expandedGifId === sessionEx.id && sessionEx.exercise?.gifUrl && (
+              <div className="rounded-xl overflow-hidden border border-[#ffffff12] bg-[#080a0c] flex items-center justify-center p-2 animate-in slide-in-from-top-2 duration-300">
+                <div className="relative w-full max-w-xs aspect-square">
+                  <img
+                    src={sessionEx.exercise.gifUrl}
+                    alt={`Demonstração: ${sessionEx.exercise?.namePt || sessionEx.exercise?.name}`}
+                    className="w-full h-full object-contain rounded-lg"
+                    loading="lazy"
+                  />
+                  <div className="absolute bottom-2 left-2 right-2 px-2 py-1 rounded-md bg-black/70 backdrop-blur-sm">
+                    <span className="text-[10px] text-[#8a8f98] block text-center">Demonstração 3D — {sessionEx.exercise?.namePt || sessionEx.exercise?.name}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Tabela de Séries (3-Tap UX Rule) */}
             <div className="overflow-x-auto">
