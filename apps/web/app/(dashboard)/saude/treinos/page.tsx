@@ -74,6 +74,7 @@ export default function TreinosPage() {
   // Filters & Loading
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [exercisePage, setExercisePage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [allExercises, setAllExercises] = useState<any[]>([]);
 
@@ -1367,7 +1368,10 @@ export default function TreinosPage() {
               type="text"
               placeholder="Buscar exercício (Ex: Supino)..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setExercisePage(1);
+              }}
               className="w-full pl-9 pr-4 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#6366f1]"
             />
           </div>
@@ -1378,7 +1382,10 @@ export default function TreinosPage() {
           {MUSCLE_GROUPS.map((mg) => (
             <button
               key={mg.id}
-              onClick={() => setSelectedMuscleGroup(mg.id)}
+              onClick={() => {
+                setSelectedMuscleGroup(mg.id);
+                setExercisePage(1);
+              }}
               className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition ${
                 selectedMuscleGroup === mg.id
                   ? 'bg-[#6366f1] text-white shadow-md shadow-[#6366f130]'
@@ -1390,9 +1397,21 @@ export default function TreinosPage() {
           ))}
         </div>
 
-        {/* Grid de Exercícios */}
+        {/* Contagem e indicador de página */}
+        {exercises.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-[#8a8f98] px-1">
+            <span>
+              Exibindo <strong className="text-[#f7f8f8]">{Math.min((exercisePage - 1) * 20 + 1, exercises.length)}-{Math.min(exercisePage * 20, exercises.length)}</strong> de <strong className="text-[#f7f8f8]">{exercises.length}</strong> exercícios
+            </span>
+            <span className="font-mono text-[11px] text-[#818cf8]">
+              Página {exercisePage} de {Math.ceil(exercises.length / 20) || 1}
+            </span>
+          </div>
+        )}
+
+        {/* Grid de Exercícios (Limite de 20 por página para alta performance) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {exercises.map((ex) => (
+          {exercises.slice((exercisePage - 1) * 20, exercisePage * 20).map((ex) => (
             <div
               key={ex.id}
               onClick={() => setSelectedExerciseModal(ex)}
@@ -1419,6 +1438,74 @@ export default function TreinosPage() {
             </div>
           ))}
         </div>
+
+        {/* Controles de Paginação (1 - 2 - 3 - 4 ... Próxima - Última) */}
+        {Math.ceil(exercises.length / 20) > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#ffffff0e]">
+            <span className="text-xs text-[#8a8f98]">
+              Página <strong className="text-white">{exercisePage}</strong> de {Math.ceil(exercises.length / 20)}
+            </span>
+
+            <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setExercisePage(1)}
+                disabled={exercisePage === 1}
+                className="px-2.5 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 disabled:hover:text-[#8a8f98] transition font-medium"
+              >
+                Primeira
+              </button>
+              <button
+                type="button"
+                onClick={() => setExercisePage((prev) => Math.max(1, prev - 1))}
+                disabled={exercisePage === 1}
+                className="px-3 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 disabled:hover:text-[#8a8f98] transition font-medium flex items-center space-x-1"
+              >
+                <span>← Anterior</span>
+              </button>
+
+              {/* Dynamic page buttons */}
+              {Array.from({ length: Math.ceil(exercises.length / 20) }, (_, i) => i + 1)
+                .filter((p) => p === 1 || p === Math.ceil(exercises.length / 20) || Math.abs(p - exercisePage) <= 2)
+                .map((p, idx, arr) => {
+                  const showEllipsis = idx > 0 && p - arr[idx - 1] > 1;
+                  return (
+                    <div key={p} className="flex items-center space-x-1.5">
+                      {showEllipsis && <span className="text-xs text-[#575c66] px-1">...</span>}
+                      <button
+                        type="button"
+                        onClick={() => setExercisePage(p)}
+                        className={`w-7 h-7 rounded-lg text-xs font-semibold transition ${
+                          exercisePage === p
+                            ? 'bg-[#6366f1] text-white shadow-md shadow-[#6366f130]'
+                            : 'bg-[#0f1115] border border-[#ffffff10] text-[#8a8f98] hover:text-white hover:border-[#ffffff20]'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    </div>
+                  );
+                })}
+
+              <button
+                type="button"
+                onClick={() => setExercisePage((prev) => Math.min(Math.ceil(exercises.length / 20), prev + 1))}
+                disabled={exercisePage === Math.ceil(exercises.length / 20)}
+                className="px-3 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 disabled:hover:text-[#8a8f98] transition font-medium flex items-center space-x-1"
+              >
+                <span>Próxima →</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setExercisePage(Math.ceil(exercises.length / 20))}
+                disabled={exercisePage === Math.ceil(exercises.length / 20)}
+                className="px-2.5 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 disabled:hover:text-[#8a8f98] transition font-medium"
+              >
+                Última
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* MODAL GERADOR DE PLANO IA (COACH IRON WIZARD) */}
