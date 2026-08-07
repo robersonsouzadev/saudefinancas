@@ -1876,74 +1876,6 @@ export default function TreinosPage() {
         </div>
       )}
 
-      {/* MODAL DETALHES DE EXERCÍCIO COM GIF */}
-      {selectedExerciseModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
-            <button
-              onClick={() => setSelectedExerciseModal(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#6366f120] text-[#818cf8] uppercase">
-                {selectedExerciseModal.muscleGroup}
-              </span>
-              <h3 className="text-lg font-bold text-[#f7f8f8] mt-1">{selectedExerciseModal.namePt}</h3>
-              {selectedExerciseModal.nameEn && (
-                <p className="text-xs text-[#8a8f98] italic">{selectedExerciseModal.nameEn}</p>
-              )}
-            </div>
-
-            <div key={selectedExerciseModal.id} className="w-full h-64 rounded-xl bg-[#16191e] border border-[#ffffff0e] flex items-center justify-center overflow-hidden relative group">
-              <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md border border-[#ffffff15] text-[10px] font-medium text-[#818cf8] flex items-center space-x-1">
-                <Sparkles className="w-3 h-3 text-[#38bdf8]" />
-                <span>Animação 3D — Demonstração em Loop</span>
-              </div>
-
-              {selectedExerciseModal.gifUrl && !modalGifError ? (
-                <img
-                  src={selectedExerciseModal.gifUrl}
-                  alt={selectedExerciseModal.namePt}
-                  className="w-full h-full object-contain p-2"
-                  onError={() => {
-                    setModalGifError(true);
-                  }}
-                />
-              ) : (
-                <div className="text-center p-6 space-y-3">
-                  <Dumbbell className="w-10 h-10 text-[#818cf8] mx-auto animate-pulse" />
-                  <p className="text-xs text-[#8a8f98]">Demonstração 3D Mannequin</p>
-                  <button
-                    type="button"
-                    onClick={forceSyncGifs}
-                    className="px-3 py-1.5 rounded-lg bg-[#6366f1] text-white font-medium hover:bg-[#4f46e5] transition text-xs flex items-center justify-center space-x-1 mx-auto"
-                  >
-                    <RefreshCw className="w-3 h-3 mr-1" />
-                    <span>Sincronizar Animações 3D</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-[#f7f8f8]">Instruções de Execução:</h4>
-              <p className="text-xs text-[#8a8f98] leading-relaxed">
-                {selectedExerciseModal.instructions ||
-                  `Realize a amplitude completa do movimento para ${selectedExerciseModal.namePt}. Expire na fase concêntrica e mantenha o ritmo controlado na fase excêntrica.`}
-              </p>
-            </div>
-
-            <div className="pt-3 border-t border-[#ffffff0e] flex items-center justify-between text-xs text-[#575c66]">
-              <span>Músculos secundários: {selectedExerciseModal.secondaryMuscle || 'Variados'}</span>
-              <span>MET: {selectedExerciseModal.metValue || 5.0}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* MODAL CRIAÇÃO MANUAL */}
       {isCreateTemplateOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -2512,6 +2444,82 @@ export default function TreinosPage() {
                   <span>Salvar Alterações</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DETALHES DE EXERCÍCIO COM GIF (Z-[100] PARA SOBREPOR QUALQUER MODAL) */}
+      {selectedExerciseModal && (
+        <div
+          onClick={() => setSelectedExerciseModal(null)}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#0f1115] border border-[#ffffff18] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative"
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedExerciseModal(null)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white transition"
+              title="Fechar Animação 3D"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#6366f120] text-[#818cf8] uppercase">
+                {selectedExerciseModal.muscleGroup}
+              </span>
+              <h3 className="text-lg font-bold text-[#f7f8f8] mt-1">{selectedExerciseModal.namePt}</h3>
+              {selectedExerciseModal.nameEn && (
+                <p className="text-xs text-[#8a8f98] italic">{selectedExerciseModal.nameEn}</p>
+              )}
+            </div>
+
+            <div key={selectedExerciseModal.id} className="w-full h-64 rounded-xl bg-[#16191e] border border-[#ffffff0e] flex items-center justify-center overflow-hidden relative group">
+              <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md border border-[#ffffff15] text-[10px] font-medium text-[#818cf8] flex items-center space-x-1">
+                <Sparkles className="w-3 h-3 text-[#38bdf8]" />
+                <span>Animação 3D — Demonstração em Loop</span>
+              </div>
+
+              {selectedExerciseModal.gifUrl && !modalGifError ? (
+                <img
+                  src={selectedExerciseModal.gifUrl}
+                  alt={selectedExerciseModal.namePt}
+                  className="w-full h-full object-contain p-2"
+                  onError={() => {
+                    setModalGifError(true);
+                  }}
+                />
+              ) : (
+                <div className="text-center p-6 space-y-3">
+                  <Dumbbell className="w-10 h-10 text-[#818cf8] mx-auto animate-pulse" />
+                  <p className="text-xs text-[#8a8f98]">Demonstração 3D Mannequin</p>
+                  <button
+                    type="button"
+                    onClick={forceSyncGifs}
+                    className="px-3 py-1.5 rounded-lg bg-[#6366f1] text-white font-medium hover:bg-[#4f46e5] transition text-xs flex items-center justify-center space-x-1 mx-auto"
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    <span>Sincronizar Animações 3D</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold text-[#f7f8f8]">Instruções de Execução:</h4>
+              <p className="text-xs text-[#8a8f98] leading-relaxed">
+                {selectedExerciseModal.instructions ||
+                  `Realize a amplitude completa do movimento para ${selectedExerciseModal.namePt}. Expire na fase concêntrica e mantenha o ritmo controlado na fase excêntrica.`}
+              </p>
+            </div>
+
+            <div className="pt-3 border-t border-[#ffffff0e] flex items-center justify-between text-xs text-[#575c66]">
+              <span>Músculos secundários: {selectedExerciseModal.secondaryMuscle || 'Variados'}</span>
+              <span>MET: {selectedExerciseModal.metValue || 5.0}</span>
             </div>
           </div>
         </div>
