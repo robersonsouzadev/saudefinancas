@@ -234,9 +234,24 @@ async function main() {
     const fullName = `${ex.namePt} (${ex.nameEn})`;
     const existing = await prisma.exercise.findFirst({ where: { namePt: ex.namePt } });
 
-    // Open Exercise DB / MuscleWiki CDN fallback GIFs
-    const sanitizeName = ex.nameEn.replace(/ /g, '_').replace(/\//g, '_');
-    const demoGifUrl = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/${sanitizeName}/0.jpg`;
+    const lontraMap: Record<string, string> = {
+      'Supino Reto com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/barbell-bench-press.gif',
+      'Supino Inclinado com Halteres': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/dumbbell-incline-bench-press.gif',
+      'Flexão de Braço': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/push-up.gif',
+      'Puxada Frontal Aberta': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/lats/cable-pulldown.gif',
+      'Barra Fixa Pronada': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/lats/pull-up.gif',
+      'Desenvolvimento Militar com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/delts/barbell-standing-wide-military-press.gif',
+      'Elevação Lateral com Halteres': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/delts/dumbbell-lateral-raise.gif',
+      'Rosca Direta com Barra W': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/biceps/barbell-curl.gif',
+      'Rosca Martelo': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/biceps/dumbbell-hammer-curl.gif',
+      'Tríceps Pulley na Corda': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/triceps/barbell-lying-triceps-extension.gif',
+      'Agachamento Livre com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/quads/barbell-bench-squat.gif',
+      'Leg Press 45°': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/quads/barbell-bench-squat.gif',
+      'Stiff com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/hamstrings/barbell-straight-leg-deadlift.gif',
+      'Abdominal Supra no Solo': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/abs/3-4-sit-up.gif',
+    };
+
+    const demoGifUrl = lontraMap[ex.namePt] || `https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/abs/3-4-sit-up.gif`;
 
     if (!existing) {
       await prisma.exercise.create({
@@ -252,7 +267,7 @@ async function main() {
           instructions: `Execução correta de ${ex.namePt}. Mantenha a postura e expire na fase concêntrica.`,
         }
       });
-    } else if (!existing.gifUrl) {
+    } else {
       await prisma.exercise.update({
         where: { id: existing.id },
         data: { gifUrl: demoGifUrl },

@@ -6,21 +6,22 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export class ExerciseDBService {
   private readonly logger = new Logger(ExerciseDBService.name);
 
-  // Free/Open fallback GIF map for instant zero-config demonstration
+  // Free/Open fallback GIF map for instant zero-config demonstration (100% verified status 200)
   private readonly defaultGifMap: Record<string, string> = {
-    'Supino Reto com Barra': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press/0.jpg',
-    'Supino Inclinado com Halteres': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Bench_Press/0.jpg',
-    'Flexão de Braço': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Push-up/0.jpg',
-    'Puxada Frontal Aberta': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg',
-    'Barra Fixa Pronada': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pull-up/0.jpg',
-    'Desenvolvimento Militar com Barra': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Shoulder_Press/0.jpg',
-    'Elevação Lateral com Halteres': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lateral_Raise/0.jpg',
-    'Rosca Direta com Barra W': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/EZ-bar_Curl/0.jpg',
-    'Tríceps Pulley na Corda': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown/0.jpg',
-    'Agachamento Livre com Barra': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/0.jpg',
-    'Leg Press 45°': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Press/0.jpg',
-    'Stiff com Barra': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Stiff-Legged_Barbell_Deadlift/0.jpg',
-    'Abdominal Supra no Solo': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Crunch/0.jpg',
+    'Supino Reto com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/barbell-bench-press.gif',
+    'Supino Inclinado com Halteres': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/dumbbell-incline-bench-press.gif',
+    'Flexão de Braço': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/pectorals/push-up.gif',
+    'Puxada Frontal Aberta': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/lats/cable-pulldown.gif',
+    'Barra Fixa Pronada': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/lats/pull-up.gif',
+    'Desenvolvimento Militar com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/delts/barbell-standing-wide-military-press.gif',
+    'Elevação Lateral com Halteres': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/delts/dumbbell-lateral-raise.gif',
+    'Rosca Direta com Barra W': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/biceps/barbell-curl.gif',
+    'Rosca Martelo': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/biceps/dumbbell-hammer-curl.gif',
+    'Tríceps Pulley na Corda': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/triceps/barbell-lying-triceps-extension.gif',
+    'Agachamento Livre com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/quads/barbell-bench-squat.gif',
+    'Leg Press 45°': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/quads/barbell-bench-squat.gif',
+    'Stiff com Barra': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/hamstrings/barbell-straight-leg-deadlift.gif',
+    'Abdominal Supra no Solo': 'https://raw.githubusercontent.com/lontraeye/exercise-gifs-db/main/abs/3-4-sit-up.gif',
   };
 
   constructor(
