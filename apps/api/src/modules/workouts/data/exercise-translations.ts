@@ -157,28 +157,54 @@ export const EXERCISE_NAME_PT_MAP: Record<string, string> = {
 };
 
 /**
- * Translates instruction text into Portuguese using exact sentence mapping
+ * Translates instruction text into Portuguese using sentence splitting and exact sentence mapping
  */
 export function translateInstructions(raw: string | string[]): string {
-  const sentences = Array.isArray(raw) ? raw : [raw];
-  const translated = sentences.map((s) => {
-    const trimmed = s.trim();
+  if (!raw) return 'Execução correta do exercício. Mantenha a postura e expire na fase concêntrica.';
+
+  const inputStr = Array.isArray(raw) ? raw.join(' ') : raw;
+  const sentences = inputStr.split(/(?<=\.)\s+/);
+
+  const translatedSentences = sentences.map((s) => {
+    let trimmed = s.trim();
+    if (!trimmed) return '';
+
     if (INSTRUCTION_SENTENCE_MAP[trimmed]) {
       return INSTRUCTION_SENTENCE_MAP[trimmed];
     }
-    // General sentence fallback replaces
-    return trimmed
-      .replace(/\bLoad the bar\b/gi, 'Carregue a barra')
-      .replace(/\badapted to your fitness level\b/gi, 'adaptado ao seu nível de treino')
-      .replace(/\bstarting position\b/gi, 'posição inicial')
-      .replace(/\beccentric phase\b/gi, 'fase excêntrica')
-      .replace(/\bconcentric phase\b/gi, 'fase concêntrica')
-      .replace(/\bcontrolled manner\b/gi, 'forma controlada')
-      .replace(/\bgood form\b/gi, 'boa postura')
-      .replace(/\bexhale on effort, inhale on the way back\b/gi, 'expire na força e inspire no retorno');
+
+    const withDot = trimmed.endsWith('.') ? trimmed : trimmed + '.';
+    const withoutDot = trimmed.endsWith('.') ? trimmed.slice(0, -1) : trimmed;
+
+    if (INSTRUCTION_SENTENCE_MAP[withDot]) return INSTRUCTION_SENTENCE_MAP[withDot];
+    if (INSTRUCTION_SENTENCE_MAP[withoutDot]) return INSTRUCTION_SENTENCE_MAP[withoutDot];
+
+    // Fallback phrase replacements
+    let result = trimmed
+      .replace(/Adopt the starting position with proper body alignment\.?/gi, 'Assuma a posição inicial mantendo o alinhamento corporal correto.')
+      .replace(/Pre-engage the (\w+(?:\s+\w+)?) before initiating the movement\.?/gi, (_, muscle) => {
+        const muscleMap: Record<string, string> = {
+          chest: 'o peitoral', core: 'o abdômen/core', biceps: 'os bíceps', triceps: 'os tríceps',
+          lats: 'as costas/dorsais', shoulders: 'os ombros', quadriceps: 'o quadríceps',
+          hamstrings: 'o posterior de coxa', glutes: 'os glúteos', calves: 'as panturrilhas',
+          forearms: 'os antebraços', traps: 'o trapézio', 'lower back': 'a lombar',
+          abductors: 'os abdutores', adductors: 'os adutores', 'upper back': 'a parte superior das costas'
+        };
+        return `Contraia ${muscleMap[muscle.toLowerCase()] || muscle} antes de iniciar o movimento.`;
+      })
+      .replace(/Perform the movement in a controlled manner, keeping good form\.?/gi, 'Execute o movimento de forma controlada, mantendo a boa postura.')
+      .replace(/Return to the starting position controlling the eccentric phase\.?/gi, 'Retorne à posição inicial controlando a fase excêntrica.')
+      .replace(/Breathe: exhale on effort, inhale on the way back\.?/gi, 'Respiração: expire durante a fase de esforço e inspire no retorno.')
+      .replace(/Load the bar with an appropriate weight and adopt the starting position\.?/gi, 'Carregue a barra com a carga adequada e assuma a posição inicial.')
+      .replace(/Grab a dumbbell in each hand \(or the indicated one\) with an appropriate weight\.?/gi, 'Segure um halter em cada mão com a carga adequada.')
+      .replace(/Set the pulley at the required height and select the weight\.?/gi, 'Ajuste a polia na altura desejada e selecione a carga.')
+      .replace(/Adjust the machine to your size and select the load\.?/gi, 'Ajuste a máquina para a sua altura e selecione a carga.')
+      .replace(/Anchor the resistance band and maintain initial tension\.?/gi, 'Fixe a faixa elástica e mantenha a tensão inicial.');
+
+    return result;
   });
 
-  return translated.join(' ');
+  return translatedSentences.filter(Boolean).join(' ');
 }
 
 /**
