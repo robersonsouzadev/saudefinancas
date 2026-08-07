@@ -1,16 +1,75 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ExerciseDBService } from './exercise-db.service';
 import { MUSCLE_GROUP_MAP, EQUIPMENT_TRANSLATION, translateExerciseName } from '../data/exercise-translations';
 
 @Injectable()
-export class WorkoutsService {
+export class WorkoutsService implements OnModuleInit {
   private readonly logger = new Logger(WorkoutsService.name);
+
+  private readonly direct3DMap: Record<string, string> = {
+    'Agachamento Livre com Barra': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/quads/barbell-bench-squat.gif',
+    'Abdominal Supra no Solo': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/abs/3-4-sit-up.gif',
+    'Supino Reto com Barra': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/pectorals/barbell-bench-press.gif',
+    'Supino Inclinado com Halteres': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/pectorals/dumbbell-incline-bench-press.gif',
+    'Flexão de Braço': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/pectorals/push-up.gif',
+    'Puxada Frontal Aberta': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/lats/band-underhand-pulldown.gif',
+    'Barra Fixa Pronada': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/lats/pull-up.gif',
+    'Desenvolvimento Militar com Barra': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/barbell-standing-wide-military-press.gif',
+    'Elevação Lateral com Halteres': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/delts/dumbbell-lateral-raise.gif',
+    'Rosca Direta com Barra W': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/biceps/barbell-curl.gif',
+    'Rosca Martelo': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/biceps/dumbbell-hammer-curl.gif',
+    'Tríceps Pulley na Corda': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/triceps/barbell-lying-triceps-extension.gif',
+    'Leg Press 45°': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/glutes/sled-45-leg-press.gif',
+    'Stiff com Barra': 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/hamstrings/barbell-straight-leg-deadlift.gif',
+  };
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly exerciseDBService: ExerciseDBService,
   ) {}
+
+  async onModuleInit() {
+    try {
+      this.logger.log('Iniciando migração e sanitização automática de GIFs para 3D CDN...');
+      await this.forceUpdateAllExercisesTo3DGifs();
+    } catch (err) {
+      this.logger.error('Erro na migração de GIFs 3D no módulo init:', err);
+    }
+  }
+
+  public async forceUpdateAllExercisesTo3DGifs() {
+    const exercises = await this.prisma.exercise.findMany();
+    let updated = 0;
+
+    for (const ex of exercises) {
+      let targetGifUrl: string | null = null;
+
+      // 1. Check exact namePt match
+      if (this.direct3DMap[ex.namePt]) {
+        targetGifUrl = this.direct3DMap[ex.namePt];
+      } else if (
+        !ex.gifUrl ||
+        ex.gifUrl.includes('yuhonas') ||
+        ex.gifUrl.includes('raw.githubusercontent.com') ||
+        ex.gifUrl.endsWith('.jpg')
+      ) {
+        // Replace old yuhonas or raw.githubusercontent URLs with jsDelivr 3D CDN
+        targetGifUrl = 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/abs/3-4-sit-up.gif';
+      }
+
+      if (targetGifUrl && ex.gifUrl !== targetGifUrl) {
+        await this.prisma.exercise.update({
+          where: { id: ex.id },
+          data: { gifUrl: targetGifUrl },
+        });
+        updated++;
+      }
+    }
+
+    this.logger.log(`Atualização forçada de GIFs 3D concluída. Exercícios atualizados: ${updated}/${exercises.length}.`);
+    return { total: exercises.length, updated };
+  }
 
   // ----------------------------------------------------
   // EXERCÍCIOS
@@ -46,9 +105,19 @@ export class WorkoutsService {
       ];
     }
 
-    return this.prisma.exercise.findMany({
+    const exercises = await this.prisma.exercise.findMany({
       where: whereClause,
       orderBy: { namePt: 'asc' },
+    });
+
+    return exercises.map((ex) => {
+      let gifUrl = ex.gifUrl;
+      if (this.direct3DMap[ex.namePt]) {
+        gifUrl = this.direct3DMap[ex.namePt];
+      } else if (!gifUrl || gifUrl.includes('yuhonas') || gifUrl.includes('raw.githubusercontent.com') || gifUrl.endsWith('.jpg')) {
+        gifUrl = 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0/abs/3-4-sit-up.gif';
+      }
+      return { ...ex, gifUrl };
     });
   }
 

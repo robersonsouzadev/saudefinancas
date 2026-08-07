@@ -27,6 +27,7 @@ import {
   Target,
   Zap,
   ShieldAlert,
+  RefreshCw,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
@@ -103,10 +104,23 @@ export default function TreinosPage() {
 
   // Coach Insights (Phase 2)
   const [coachInsights, setCoachInsights] = useState<any>(null);
+  const [modalGifError, setModalGifError] = useState(false);
 
   useEffect(() => {
     loadData();
   }, [selectedMuscleGroup, searchQuery]);
+
+  const forceSyncGifs = async () => {
+    try {
+      const res = await authFetch('/api/workouts/exercises/force-update-gifs', { method: 'POST' });
+      if (res.ok) {
+        await loadData();
+        setModalGifError(false);
+      }
+    } catch (e) {
+      console.error('Erro ao forçar atualização de GIFs 3D:', e);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -1027,29 +1041,33 @@ export default function TreinosPage() {
               )}
             </div>
 
-            <div className="w-full h-64 rounded-xl bg-[#16191e] border border-[#ffffff0e] flex items-center justify-center overflow-hidden relative group">
+            <div key={selectedExerciseModal.id} className="w-full h-64 rounded-xl bg-[#16191e] border border-[#ffffff0e] flex items-center justify-center overflow-hidden relative group">
               <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md border border-[#ffffff15] text-[10px] font-medium text-[#818cf8] flex items-center space-x-1">
                 <Sparkles className="w-3 h-3 text-[#38bdf8]" />
                 <span>Animação 3D — Demonstração em Loop</span>
               </div>
 
-              {selectedExerciseModal.gifUrl ? (
+              {selectedExerciseModal.gifUrl && !modalGifError ? (
                 <img
                   src={selectedExerciseModal.gifUrl}
                   alt={selectedExerciseModal.namePt}
                   className="w-full h-full object-contain p-2"
-                  onError={(e) => {
-                    // Fallback on image loading error
-                    (e.target as HTMLElement).style.display = 'none';
+                  onError={() => {
+                    setModalGifError(true);
                   }}
                 />
               ) : (
-                <div className="text-center p-6 space-y-2">
-                  <Dumbbell className="w-12 h-12 text-[#575c66] mx-auto animate-pulse" />
-                  <p className="text-xs text-[#8a8f98]">Demonstração 3D de Execução</p>
-                  <span className="text-[10px] text-[#575c66] block">
-                    Equipamento necessário: {selectedExerciseModal.equipment || 'Livre'}
-                  </span>
+                <div className="text-center p-6 space-y-3">
+                  <Dumbbell className="w-10 h-10 text-[#818cf8] mx-auto animate-pulse" />
+                  <p className="text-xs text-[#8a8f98]">Demonstração 3D Mannequin</p>
+                  <button
+                    type="button"
+                    onClick={forceSyncGifs}
+                    className="px-3 py-1.5 rounded-lg bg-[#6366f1] text-white font-medium hover:bg-[#4f46e5] transition text-xs flex items-center justify-center space-x-1 mx-auto"
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    <span>Sincronizar Animações 3D</span>
+                  </button>
                 </div>
               )}
             </div>

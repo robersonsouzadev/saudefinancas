@@ -51,6 +51,11 @@ export class WorkoutsController {
     return this.workoutsService.syncExercisesFromCDN();
   }
 
+  @Post('exercises/force-update-gifs')
+  async forceUpdate3DGifs() {
+    return this.workoutsService.forceUpdateAllExercisesTo3DGifs();
+  }
+
   // ----------------------------------------------------
   // TEMPLATES
   // ----------------------------------------------------
