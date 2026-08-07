@@ -323,12 +323,157 @@ ${exerciseListStr}
     return createdTemplates;
   }
 
+  async getCoachChatSessions(userId: string) {
+    const sessions = await this.prisma.coachChatSession.findMany({
+      where: { userId },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    return sessions.map((s) => ({
+      id: s.id,
+      title: s.title || 'Conversa com Coach Iron',
+      updatedAt: s.updatedAt,
+      lastMessage: s.messages[0]?.content || 'Nenhuma mensagem',
+    }));
+  }
+
+  async getCoachChatMessages(userId: string, sessionId: string) {
+    const session = await this.prisma.coachChatSession.findFirst({
+      where: { id: sessionId, userId },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+    });
+
+    if (!session) return [];
+
+    return session.messages.map((m) => ({
+      id: m.id,
+      sender: m.role === 'user' ? ('user' as const) : ('coach' as const),
+      text: m.content,
+      actionExecuted: m.actionPayload as any,
+      createdAt: m.createdAt,
+    }));
+  }
+
+  async deleteCoachChatSession(userId: string, sessionId: string) {
+    const session = await this.prisma.coachChatSession.findFirst({
+      where: { id: sessionId, userId },
+    });
+    if (!session) return { success: false };
+
+    await this.prisma.coachChatSession.delete({
+      where: { id: sessionId },
+    });
+
+    return { success: true };
+  }
+
+  async getCoachActionLog(userId: string) {
+    const actions = await this.prisma.coachChatMessage.findMany({
+      where: {
+        session: { userId },
+        actionType: { not: null },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+
+    return actions.map((a) => ({
+      id: a.id,
+      actionType: a.actionType,
+      payload: a.actionPayload,
+      createdAt: a.createdAt,
+    }));
+  }
+
   async chatWithCoach(
     userId: string,
-    payload: { message: string; history?: Array<{ sender: string; text: string }> } | string,
+    payload: { message: string; sessionId?: string; history?: Array<{ sender: string; text: string }> } | string,
   ) {
     const userMessage = typeof payload === 'string' ? payload : payload.message;
-    const history = typeof payload === 'object' && Array.isArray(payload.history) ? payload.history : [];
+    const requestedSessionId = typeof payload === 'object' ? payload.sessionId : undefined;
+    const historyParam = typeof payload === 'object' && Array.isArray(payload.history) ? payload.history : [];
+
+    // 1. Resolve or Create CoachChatSession
+    let session: any = null;
+    if (requestedSessionId) {
+      session = await this.prisma.coachChatSession.findFirst({
+        where: { id: requestedSessionId, userId },
+      });
+    }
+
+    if (!session) {
+      // Find recent session within last 12h or create new
+      const recentSession = await this.prisma.coachChatSession.findFirst({
+        where: { userId },
+        orderBy: { updatedAt: 'desc' },
+      });
+
+      const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+      if (recentSession && recentSession.updatedAt > twelveHoursAgo && !requestedSessionId) {
+        session = recentSession;
+      } else {
+        const titleSnippet = userMessage.slice(0, 30).trim() + (userMessage.length > 30 ? '...' : '');
+        session = await this.prisma.coachChatSession.create({
+          data: {
+            userId,
+            title: titleSnippet || 'Nova Conversa com Coach Iron',
+          },
+        });
+      }
+    }
+
+    // 2. Persist User Message
+    await this.prisma.coachChatMessage.create({
+      data: {
+        sessionId: session.id,
+        role: 'user',
+        content: userMessage,
+      },
+    });
+
+    // 3. Fetch Historical Actions for Context (Recall ability!)
+    const recentActionLogs = await this.prisma.coachChatMessage.findMany({
+      where: {
+        session: { userId },
+        actionType: { not: null },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    });
+
+    let actionAuditSummary = 'Nenhuma alteração registrada recentemente.';
+    if (recentActionLogs.length > 0) {
+      actionAuditSummary = recentActionLogs
+        .map((log) => {
+          const dateStr = log.createdAt.toLocaleDateString('pt-BR');
+          const payload: any = log.actionPayload || {};
+          if (log.actionType === 'WORKOUT_UPDATED' || log.actionType === 'TEMPLATE_CREATED') {
+            const added = Array.isArray(payload.addedExercises) ? payload.addedExercises.join(', ') : 'exercícios';
+            return `- [${dateStr}] ${log.actionType} na ficha "${payload.templateName || 'Treino'}": Adicionados [${added}]. Motivo: ${payload.reasoning || 'Ajuste de volume'}`;
+          } else if (log.actionType === 'EXERCISE_SWAPPED') {
+            return `- [${dateStr}] EXERCISE_SWAPPED na ficha "${payload.templateName || 'Treino'}": Removeu "${payload.oldExercise}" e inseriu "${payload.newExercise}". Motivo: ${payload.reasoning || 'Troca por conforto/dor'}`;
+          }
+          return `- [${dateStr}] ${log.actionType}: ${log.content}`;
+        })
+        .join('\n');
+    }
+
+    // 4. Fetch Session Message History from DB
+    const dbMessages = await this.prisma.coachChatMessage.findMany({
+      where: { sessionId: session.id },
+      orderBy: { createdAt: 'asc' },
+      take: 20,
+    });
 
     const context = await this.getUserContext(userId);
     const openai = await this.getOpenAIClient();
@@ -383,8 +528,17 @@ ${exerciseListStr}
     };
 
     if (!openai) {
+      const fallbackReply = `Olá! Sou o Coach Iron 💪. Para criar planos personalizados e adaptar treinos em tempo real, certifique-se de configurar sua chave da OpenAI nas configurações.`;
+      await this.prisma.coachChatMessage.create({
+        data: {
+          sessionId: session.id,
+          role: 'assistant',
+          content: fallbackReply,
+        },
+      });
       return {
-        reply: `Olá! Sou o Coach Iron 💪. Para criar planos personalizados e adaptar treinos em tempo real, certifique-se de configurar sua chave da OpenAI nas configurações.`,
+        reply: fallbackReply,
+        sessionId: session.id,
       };
     }
 
@@ -403,21 +557,35 @@ DADOS DO ALUNO:
 ROTINAS/TEMPLATES DE TREINO ATUAIS DO ALUNO:
 ${templatesSummary}
 
+HISTÓRICO DE AUDITORIA E ALTERAÇÕES RECENTES (VOCÊ TEM MEMÓRIA DE TUDO O QUE JÁ MUDOU):
+${actionAuditSummary}
+
 REGRAS OBRIGATÓRIAS DE AÇÃO:
 Você possui FERRAMENTAS (Tools) ativas para modificar os treinos do aluno no banco de dados em tempo real!
 - Quando o aluno pedir para focar em algum músculo (ex: "focar em braços", "focar em bíceps e tríceps", "ajustar treino"), você DEVE EXECUTAR A FERRAMENTA 'adapt_workout_focus' ou 'create_custom_template'. NUNCA apenas diga que vai fazer sem chamar a ferramenta!
 - Se o aluno relatar dor ou lesão (ex: "dor no ombro", "trocar supino"), use 'swap_exercise' para substituir o exercício.
-- Se o aluno pedir uma nova rotina completa, use 'create_custom_template'.`;
+- Se o aluno perguntar sobre o histórico (ex: "o que você trocou semana passada?", "quais exercícios adicionamos?"), consulte a lista de AUDITORIA acima e responda com precisão absoluta!`;
 
     const formattedMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt },
     ];
 
-    for (const h of history.slice(-6)) {
-      formattedMessages.push({
-        role: h.sender === 'user' ? 'user' : 'assistant',
-        content: h.text,
-      });
+    if (dbMessages.length > 1) {
+      // Exclude the last user message because we explicitly add userMessage below
+      const priorMsgs = dbMessages.slice(0, -1).slice(-10);
+      for (const m of priorMsgs) {
+        formattedMessages.push({
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: m.content,
+        });
+      }
+    } else if (historyParam.length > 0) {
+      for (const h of historyParam.slice(-6)) {
+        formattedMessages.push({
+          role: h.sender === 'user' ? 'user' : 'assistant',
+          content: h.text,
+        });
+      }
     }
 
     formattedMessages.push({ role: 'user', content: userMessage });
@@ -651,14 +819,44 @@ Você possui FERRAMENTAS (Tools) ativas para modificar os treinos do aluno no ba
         ? `Pronto! Modifiquei sua ficha de treino (${actionExecuted.templateName}). Adicionei: ${actionExecuted.addedExercises?.join(', ') || 'exercícios focados'}.`
         : message?.content || 'Continue firme nos treinos! Foco na constância.';
 
+      const replyText = message?.content || defaultReply;
+
+      // 5. Persist Assistant Reply in DB
+      await this.prisma.coachChatMessage.create({
+        data: {
+          sessionId: session.id,
+          role: 'assistant',
+          content: replyText,
+          actionType: actionExecuted?.type || null,
+          actionPayload: actionExecuted || null,
+        },
+      });
+
+      // Update session timestamp
+      await this.prisma.coachChatSession.update({
+        where: { id: session.id },
+        data: { updatedAt: new Date() },
+      });
+
       return {
-        reply: message?.content || defaultReply,
+        reply: replyText,
         actionExecuted,
+        sessionId: session.id,
       };
     } catch (e) {
       this.logger.error('Erro no chat do Coach Iron:', e);
+      const errReply = 'Coach Iron está ajustando a carga! Tente enviar a mensagem novamente em instantes.';
+      await this.prisma.coachChatMessage.create({
+        data: {
+          sessionId: session.id,
+          role: 'assistant',
+          content: errReply,
+        },
+      });
+
       return {
-        reply: 'Coach Iron está ajustando a carga! Tente enviar a mensagem novamente em instantes.',
+        reply: errReply,
+        sessionId: session.id,
       };
     }
   }

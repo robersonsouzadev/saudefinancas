@@ -101,6 +101,12 @@ export default function TreinosPage() {
 
   // Coach Iron Chat Drawer State
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(null);
+  const [chatSessions, setChatSessions] = useState<any[]>([]);
+  const [showSessionsModal, setShowSessionsModal] = useState(false);
+  const [actionLogs, setActionLogs] = useState<any[]>([]);
+  const [showActionLogModal, setShowActionLogModal] = useState(false);
+  const [loadingChatHistory, setLoadingChatHistory] = useState(false);
   const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'coach'; text: string; actionExecuted?: any }>>([
     {
       sender: 'coach',
@@ -110,9 +116,80 @@ export default function TreinosPage() {
   const [chatInput, setChatInput] = useState('');
   const [sendingChat, setSendingChat] = useState(false);
 
+  const fetchChatSessions = async () => {
+    try {
+      const res = await authFetch('/api/workouts/ai/sessions');
+      if (res.ok) {
+        const data = await res.json();
+        setChatSessions(data);
+        return data;
+      }
+    } catch (e) {
+      console.error('Erro ao buscar sessões do chat:', e);
+    }
+    return [];
+  };
+
+  const loadSessionMessages = async (sessionId: string) => {
+    try {
+      setLoadingChatHistory(true);
+      const res = await authFetch(`/api/workouts/ai/sessions/${sessionId}/messages`);
+      if (res.ok) {
+        const msgs = await res.json();
+        if (msgs.length > 0) {
+          setChatMessages(msgs.map((m: any) => ({
+            sender: m.sender,
+            text: m.text,
+            actionExecuted: m.actionExecuted,
+          })));
+          setActiveChatSessionId(sessionId);
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao carregar mensagens da sessão:', e);
+    } finally {
+      setLoadingChatHistory(false);
+    }
+  };
+
+  const startNewChatSession = () => {
+    setActiveChatSessionId(null);
+    setChatMessages([
+      {
+        sender: 'coach',
+        text: 'Nova conversa iniciada! Como posso te ajudar hoje com seus treinos?',
+      },
+    ]);
+    setShowSessionsModal(false);
+  };
+
+  const fetchActionLogs = async () => {
+    try {
+      const res = await authFetch('/api/workouts/ai/action-log');
+      if (res.ok) {
+        const data = await res.json();
+        setActionLogs(data);
+        setShowActionLogModal(true);
+      }
+    } catch (e) {
+      console.error('Erro ao buscar log de ações:', e);
+    }
+  };
+
+  const openChatDrawer = async () => {
+    setIsChatOpen(true);
+    if (!activeChatSessionId) {
+      const sessions = await fetchChatSessions();
+      if (sessions && sessions.length > 0) {
+        await loadSessionMessages(sessions[0].id);
+      }
+    }
+  };
+
   // Completed Sessions Modal State
   const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
   const [completedSessions, setCompletedSessions] = useState<any[]>([]);
+
   const [loadingCompleted, setLoadingCompleted] = useState(false);
 
   const fetchCompletedSessions = async () => {
@@ -410,12 +487,16 @@ export default function TreinosPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userText,
+          sessionId: activeChatSessionId || undefined,
           history: chatMessages.slice(-6).map((m) => ({ sender: m.sender, text: m.text })),
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
+        if (data.sessionId) {
+          setActiveChatSessionId(data.sessionId);
+        }
         setChatMessages((prev) => [
           ...prev,
           { sender: 'coach', text: data.reply, actionExecuted: data.actionExecuted },
@@ -516,7 +597,7 @@ export default function TreinosPage() {
 
           {/* Botão Chat Coach */}
           <button
-            onClick={() => setIsChatOpen(!isChatOpen)}
+            onClick={() => openChatDrawer()}
             className="px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium hover:bg-[#1f242d] transition flex items-center space-x-2 text-[#818cf8]"
           >
             <MessageSquare className="w-3.5 h-3.5" />
@@ -1524,12 +1605,38 @@ export default function TreinosPage() {
               </div>
             </div>
 
-            <button
-              onClick={() => setIsChatOpen(false)}
-              className="p-1 rounded bg-[#16191e] text-[#8a8f98] hover:text-white"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center space-x-1.5">
+              <button
+                onClick={() => fetchActionLogs()}
+                title="Histórico de Auditoria de Modificações"
+                className="px-2 py-1 rounded bg-[#16191e] border border-[#ffffff12] text-[10px] text-[#818cf8] hover:bg-[#1f242d] transition flex items-center space-x-1"
+              >
+                <span>📋 Auditoria</span>
+              </button>
+              <button
+                onClick={() => {
+                  fetchChatSessions();
+                  setShowSessionsModal(true);
+                }}
+                title="Lista de Conversas Anteriores"
+                className="px-2 py-1 rounded bg-[#16191e] border border-[#ffffff12] text-[10px] text-[#8a8f98] hover:text-white hover:bg-[#1f242d] transition"
+              >
+                <span>📜 Sessões</span>
+              </button>
+              <button
+                onClick={() => startNewChatSession()}
+                title="Iniciar Nova Conversa"
+                className="px-2 py-1 rounded bg-[#6366f120] border border-[#6366f140] text-[10px] text-[#818cf8] hover:bg-[#6366f140] transition"
+              >
+                <span>+ Nova</span>
+              </button>
+              <button
+                onClick={() => setIsChatOpen(false)}
+                className="p-1 rounded bg-[#16191e] text-[#8a8f98] hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Lista de Mensagens */}
@@ -1901,6 +2008,140 @@ export default function TreinosPage() {
           </div>
         </div>
       )}
+
+      {/* MODAL SESSÕES DE CHAT DO COACH IRON */}
+      {showSessionsModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl p-6 max-w-lg w-full space-y-4 max-h-[80vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+              <div className="flex items-center space-x-2">
+                <MessageSquare className="w-5 h-5 text-[#818cf8]" />
+                <h3 className="text-sm font-bold text-[#f7f8f8]">Histórico de Conversas com Coach Iron</h3>
+              </div>
+              <button onClick={() => setShowSessionsModal(false)} className="text-[#8a8f98] hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 space-y-2 pr-1 scrollbar-none">
+              {chatSessions.length === 0 ? (
+                <p className="text-xs text-[#8a8f98] text-center py-8">Nenhuma conversa gravada ainda.</p>
+              ) : (
+                chatSessions.map((s) => (
+                  <div
+                    key={s.id}
+                    onClick={() => {
+                      loadSessionMessages(s.id);
+                      setShowSessionsModal(false);
+                    }}
+                    className={`p-3 rounded-xl border transition cursor-pointer flex justify-between items-center ${
+                      activeChatSessionId === s.id
+                        ? 'bg-[#6366f115] border-[#6366f160]'
+                        : 'bg-[#16191e] border-[#ffffff0e] hover:border-[#ffffff20]'
+                    }`}
+                  >
+                    <div className="space-y-0.5 max-w-[85%]">
+                      <h4 className="text-xs font-bold text-[#f7f8f8] truncate">{s.title}</h4>
+                      <p className="text-[11px] text-[#8a8f98] truncate">{s.lastMessage}</p>
+                      <span className="text-[9px] text-[#6366f1] font-mono">
+                        {new Date(s.updatedAt).toLocaleDateString('pt-BR')} às {new Date(s.updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    {activeChatSessionId === s.id && (
+                      <span className="text-[10px] bg-[#6366f1] text-white px-2 py-0.5 rounded-full font-semibold">Ativa</span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-[#ffffff0e] flex justify-between items-center">
+              <button
+                onClick={() => startNewChatSession()}
+                className="px-3 py-1.5 rounded-lg bg-[#6366f1] text-white text-xs font-semibold hover:bg-[#4f46e5] transition"
+              >
+                + Iniciar Nova Conversa
+              </button>
+              <button
+                onClick={() => setShowSessionsModal(false)}
+                className="px-3 py-1.5 rounded-lg bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL AUDITORIA DE AÇÕES DO COACH IRON */}
+      {showActionLogModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl p-6 max-w-xl w-full space-y-4 max-h-[80vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+              <div className="flex items-center space-x-2">
+                <CheckCircle2 className="w-5 h-5 text-[#4ade80]" />
+                <h3 className="text-sm font-bold text-[#f7f8f8]">Log de Auditoria — Alterações do Coach</h3>
+              </div>
+              <button onClick={() => setShowActionLogModal(false)} className="text-[#8a8f98] hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 space-y-3 pr-1 scrollbar-none">
+              {actionLogs.length === 0 ? (
+                <p className="text-xs text-[#8a8f98] text-center py-8">Nenhuma alteração registrada ainda.</p>
+              ) : (
+                actionLogs.map((log) => {
+                  const p: any = log.payload || {};
+                  const dateStr = new Date(log.createdAt).toLocaleDateString('pt-BR');
+                  const timeStr = new Date(log.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                  return (
+                    <div key={log.id} className="p-3 rounded-xl bg-[#16191e] border border-[#ffffff0e] space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-emerald-400 font-mono text-[11px]">
+                          {log.actionType === 'WORKOUT_UPDATED' ? '⚡ TREINO ADAPTADO' : log.actionType === 'EXERCISE_SWAPPED' ? '🩹 EXERCÍCIO SUBSTITUÍDO' : '📋 NOVA ROTINA'}
+                        </span>
+                        <span className="text-[10px] text-[#8a8f98]">{dateStr} às {timeStr}</span>
+                      </div>
+
+                      <h4 className="font-semibold text-[#f7f8f8]">{p.templateName || 'Ficha de Treino'}</h4>
+
+                      {p.addedExercises?.length > 0 && (
+                        <p className="text-[#8a8f98] text-[11px]">
+                          Exercícios Adicionados: <strong className="text-white">{p.addedExercises.join(', ')}</strong>
+                        </p>
+                      )}
+
+                      {p.oldExercise && (
+                        <p className="text-[#8a8f98] text-[11px]">
+                          Removido: <span className="line-through text-red-400">{p.oldExercise}</span> → Inserido: <strong className="text-emerald-400">{p.newExercise}</strong>
+                        </p>
+                      )}
+
+                      {p.reasoning && (
+                        <p className="text-[10px] italic text-[#818cf8] bg-[#6366f110] p-2 rounded-lg border border-[#6366f120]">
+                          Motivo técnico: "{p.reasoning}"
+                        </p>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-[#ffffff0e] flex justify-end">
+              <button
+                onClick={() => setShowActionLogModal(false)}
+                className="px-4 py-1.5 rounded-lg bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

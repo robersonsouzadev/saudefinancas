@@ -184,8 +184,28 @@ export class WorkoutsController {
   }
 
   @Post('ai/chat')
-  async chatWithCoach(@Request() req: any, @Body() body: { message: string; history?: any[] }) {
+  async chatWithCoach(@Request() req: any, @Body() body: { message: string; sessionId?: string; history?: any[] }) {
     return this.workoutAiService.chatWithCoach(req.user.id, body);
+  }
+
+  @Get('ai/sessions')
+  async getCoachChatSessions(@Request() req: any) {
+    return this.workoutAiService.getCoachChatSessions(req.user.id);
+  }
+
+  @Get('ai/sessions/:id/messages')
+  async getCoachChatMessages(@Request() req: any, @Param('id') id: string) {
+    return this.workoutAiService.getCoachChatMessages(req.user.id, id);
+  }
+
+  @Delete('ai/sessions/:id')
+  async deleteCoachChatSession(@Request() req: any, @Param('id') id: string) {
+    return this.workoutAiService.deleteCoachChatSession(req.user.id, id);
+  }
+
+  @Get('ai/action-log')
+  async getCoachActionLog(@Request() req: any) {
+    return this.workoutAiService.getCoachActionLog(req.user.id);
   }
 
   @Get('ai/insights')
@@ -213,3 +233,4 @@ export class WorkoutsController {
     return this.workoutAiService.getWeeklyExecutiveReport(req.user.id);
   }
 }
+

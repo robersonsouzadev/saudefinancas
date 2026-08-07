@@ -53,6 +53,7 @@ model User {
   customExercises        Exercise[]              @relation("CustomExercises")
   workoutTemplates       WorkoutTemplate[]
   workoutSessions        WorkoutSession[]
+  coachChatSessions      CoachChatSession[]
 }
 
 model FamilyGroup {
@@ -904,3 +905,29 @@ model ExerciseSet {
 
   @@index([sessionExerciseId])
 }
+
+model CoachChatSession {
+  id        String             @id @default(uuid())
+  userId    String
+  title     String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  CoachChatMessage[]
+
+  @@index([userId, createdAt])
+}
+
+model CoachChatMessage {
+  id            String           @id @default(uuid())
+  sessionId     String
+  role          String           // "user" | "assistant" | "system_action"
+  content       String
+  actionType    String?          // "WORKOUT_UPDATED" | "EXERCISE_SWAPPED" | "TEMPLATE_CREATED" | null
+  actionPayload Json?            // { templateName, addedExercises[], oldExercise, newExercise, reasoning }
+  createdAt     DateTime         @default(now())
+  session       CoachChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
