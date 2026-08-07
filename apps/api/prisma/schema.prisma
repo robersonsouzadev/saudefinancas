@@ -11,36 +11,36 @@ datasource db {
 }
 
 model User {
-  id                    String                 @id @default(uuid())
-  email                 String                 @unique
-  name                  String?
-  passwordHash          String?
-  googleId              String?                @unique
-  authProvider          String                 @default("LOCAL") // LOCAL, GOOGLE
-  phone                 String?
-  whatsappPhone         String?                @unique
-  avatarUrl             String?
-  role                  String                 @default("MEMBER") // ADMIN, MEMBER, VIEWER
-  isActive              Boolean                @default(true)
-  birthDate             DateTime?
-  biologicalSex         BiologicalSex?
-  heightCm              Float?
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  conversations         Conversation[]
-  healthLogs            HealthLog[]
-  bodyMeasurements      BodyMeasurement[]
-  mealLogs              MealLog[]
-  healthGoals           HealthGoal[]
-  financialAccounts     FinancialAccount[]
-  transactions          Transaction[]
-  budgets               Budget[]
-  recurringTransactions RecurringTransaction[]
-  insightLogs           InsightLog[]
-  dailySummaries        DailySummary[]
-  familyMemberships     FamilyMember[]
-  sentInvites           FamilyInvite[]         @relation("InviteSender")
-  passwordResetCodes    PasswordResetCode[]
+  id                     String                  @id @default(uuid())
+  email                  String                  @unique
+  name                   String?
+  passwordHash           String?
+  googleId               String?                 @unique
+  authProvider           String                  @default("LOCAL") // LOCAL, GOOGLE
+  phone                  String?
+  whatsappPhone          String?                 @unique
+  avatarUrl              String?
+  role                   String                  @default("MEMBER") // ADMIN, MEMBER, VIEWER
+  isActive               Boolean                 @default(true)
+  birthDate              DateTime?
+  biologicalSex          BiologicalSex?
+  heightCm               Float?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  conversations          Conversation[]
+  healthLogs             HealthLog[]
+  bodyMeasurements       BodyMeasurement[]
+  mealLogs               MealLog[]
+  healthGoals            HealthGoal[]
+  financialAccounts      FinancialAccount[]
+  transactions           Transaction[]
+  budgets                Budget[]
+  recurringTransactions  RecurringTransaction[]
+  insightLogs            InsightLog[]
+  dailySummaries         DailySummary[]
+  familyMemberships      FamilyMember[]
+  sentInvites            FamilyInvite[]          @relation("InviteSender")
+  passwordResetCodes     PasswordResetCode[]
   investmentAssets       InvestmentAsset[]
   medications            Medication[]
   medicationLogs         MedicationIntakeLog[]
@@ -50,6 +50,9 @@ model User {
   installmentGroups      InstallmentGroup[]
   recurringRules         RecurringRule[]
   openFinanceConnections OpenFinanceConnection[]
+  customExercises        Exercise[]              @relation("CustomExercises")
+  workoutTemplates       WorkoutTemplate[]
+  workoutSessions        WorkoutSession[]
 }
 
 model FamilyGroup {
@@ -65,13 +68,13 @@ model FamilyGroup {
 }
 
 model FamilyMember {
-  id        String      @id @default(uuid())
-  userId    String
-  groupId   String
-  role      String      @default("MEMBER") // ADMIN, MEMBER, VIEWER
-  joinedAt  DateTime    @default(now())
-  user      User        @relation(fields: [userId], references: [id])
-  group     FamilyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  id       String      @id @default(uuid())
+  userId   String
+  groupId  String
+  role     String      @default("MEMBER") // ADMIN, MEMBER, VIEWER
+  joinedAt DateTime    @default(now())
+  user     User        @relation(fields: [userId], references: [id])
+  group    FamilyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
 }
@@ -188,12 +191,12 @@ model KnowledgeDocument {
 }
 
 model KnowledgeChunk {
-  id         String                                @id @default(uuid())
+  id         String                       @id @default(uuid())
   documentId String
   content    String
-  chunkIndex Int                                   @default(0)
+  chunkIndex Int                          @default(0)
   embedding  Unsupported("vector(1536)")?
-  document   KnowledgeDocument                     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  document   KnowledgeDocument            @relation(fields: [documentId], references: [id], onDelete: Cascade)
 }
 
 enum BiologicalSex {
@@ -212,39 +215,39 @@ model HealthLog {
 }
 
 model BodyMeasurement {
-  id             String   @id @default(uuid())
-  userId         String
-  measuredAt     DateTime @default(now())
+  id         String   @id @default(uuid())
+  userId     String
+  measuredAt DateTime @default(now())
 
   // Composição corporal principal
-  weightKg       Float?   // Peso em kg
-  bodyFatPercent Float?   // % Gordura corporal
+  weightKg       Float? // Peso em kg
+  bodyFatPercent Float? // % Gordura corporal
 
   // Circunferências (cm)
-  waistCm        Float?   // Cintura
-  hipCm          Float?   // Quadril
-  chestCm        Float?   // Peito/Tórax
-  neckCm         Float?   // Pescoço
-  shoulderCm     Float?   // Ombros
-  abdomenCm      Float?   // Abdômen
+  waistCm    Float? // Cintura
+  hipCm      Float? // Quadril
+  chestCm    Float? // Peito/Tórax
+  neckCm     Float? // Pescoço
+  shoulderCm Float? // Ombros
+  abdomenCm  Float? // Abdômen
 
   // Membros superiores (cm)
-  leftBicepCm    Float?   // Bíceps esquerdo
-  rightBicepCm   Float?   // Bíceps direito
-  leftForearmCm  Float?   // Antebraço esquerdo
-  rightForearmCm Float?   // Antebraço direito
+  leftBicepCm    Float? // Bíceps esquerdo
+  rightBicepCm   Float? // Bíceps direito
+  leftForearmCm  Float? // Antebraço esquerdo
+  rightForearmCm Float? // Antebraço direito
 
   // Membros inferiores (cm)
-  leftThighCm    Float?   // Coxa esquerda
-  rightThighCm   Float?   // Coxa direita
-  leftCalfCm     Float?   // Panturrilha esquerda
-  rightCalfCm    Float?   // Panturrilha direita
+  leftThighCm  Float? // Coxa esquerda
+  rightThighCm Float? // Coxa direita
+  leftCalfCm   Float? // Panturrilha esquerda
+  rightCalfCm  Float? // Panturrilha direita
 
-  notes          String?  // Observações livres
+  notes String? // Observações livres
 
-  user           User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
-  createdAt      DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId, measuredAt])
 }
@@ -302,7 +305,7 @@ model TransactionCategory {
 }
 
 model Transaction {
-  id                 String               @id @default(uuid())
+  id                 String          @id @default(uuid())
   userId             String
   accountId          String?
   paymentAccountId   String?
@@ -310,27 +313,27 @@ model Transaction {
   categoryId         String?
   recurringId        String?
   installmentGroupId String?
-  type               TransactionType      @default(EXPENSE)
-  paymentMethod      PaymentMethod        @default(PIX)
+  type               TransactionType @default(EXPENSE)
+  paymentMethod      PaymentMethod   @default(PIX)
   amount             Float
-  date               DateTime             @default(now())
+  date               DateTime        @default(now())
   description        String?
   notes              String?
   tags               String[]
-  isRecurring        Boolean              @default(false)
+  isRecurring        Boolean         @default(false)
   installmentNumber  Int?
   attachmentUrl      String?
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 
-  user               User                 @relation(fields: [userId], references: [id])
-  account            FinancialAccount?    @relation(fields: [accountId], references: [id])
-  paymentAccount     PaymentAccount?      @relation(fields: [paymentAccountId], references: [id])
-  creditCard         CreditCard?          @relation(fields: [creditCardId], references: [id])
-  category           TransactionCategory? @relation(fields: [categoryId], references: [id])
-  recurringRule      RecurringRule?       @relation(fields: [recurringId], references: [id])
-  installmentGroup   InstallmentGroup?    @relation(fields: [installmentGroupId], references: [id])
-  boleto             BoletoPayment?
+  user             User                 @relation(fields: [userId], references: [id])
+  account          FinancialAccount?    @relation(fields: [accountId], references: [id])
+  paymentAccount   PaymentAccount?      @relation(fields: [paymentAccountId], references: [id])
+  creditCard       CreditCard?          @relation(fields: [creditCardId], references: [id])
+  category         TransactionCategory? @relation(fields: [categoryId], references: [id])
+  recurringRule    RecurringRule?       @relation(fields: [recurringId], references: [id])
+  installmentGroup InstallmentGroup?    @relation(fields: [installmentGroupId], references: [id])
+  boleto           BoletoPayment?
 }
 
 model Budget {
@@ -376,7 +379,7 @@ model InvestmentAsset {
   broker        String                  @default("XP Investimentos")
   ticker        String
   name          String
-  type          String                  // FII, ACAO, RENDA_FIXA, TESOURO, CRIPTO
+  type          String // FII, ACAO, RENDA_FIXA, TESOURO, CRIPTO
   quantity      Float                   @default(0)
   totalInvested Float                   @default(0)
   currentPrice  Float?
@@ -390,7 +393,7 @@ model InvestmentAsset {
 model InvestmentTransaction {
   id          String          @id @default(uuid())
   assetId     String
-  type        String          // BUY, SELL, DIVIDEND
+  type        String // BUY, SELL, DIVIDEND
   quantity    Float
   unitPrice   Float
   totalAmount Float
@@ -403,47 +406,47 @@ model InvestmentTransaction {
 // ═══════════════════════════════════════════
 
 model Medication {
-  id              String                @id @default(uuid())
-  userId          String
-  user            User                  @relation(fields: [userId], references: [id])
-  name            String
-  type            MedicationType        @default(MEDICAMENTO)
-  category        MedicationCategory    @default(CONTINUO)
-  priority        MedicationPriority    @default(IMPORTANTE)
-  dosage          String
-  unit            String
-  instructions    String?
-  currentStock    Int                   @default(0)
-  stockAlertAt    Int                   @default(5)
-  costPerUnit     Float?
-  pharmacy        String?
-  startDate       DateTime              @default(now())
-  endDate         DateTime?
-  isActive        Boolean               @default(true)
-  color           String                @default("#5e6ad2")
-  notes           String?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-  schedules       MedicationSchedule[]
-  intakeLogs      MedicationIntakeLog[]
+  id           String                @id @default(uuid())
+  userId       String
+  user         User                  @relation(fields: [userId], references: [id])
+  name         String
+  type         MedicationType        @default(MEDICAMENTO)
+  category     MedicationCategory    @default(CONTINUO)
+  priority     MedicationPriority    @default(IMPORTANTE)
+  dosage       String
+  unit         String
+  instructions String?
+  currentStock Int                   @default(0)
+  stockAlertAt Int                   @default(5)
+  costPerUnit  Float?
+  pharmacy     String?
+  startDate    DateTime              @default(now())
+  endDate      DateTime?
+  isActive     Boolean               @default(true)
+  color        String                @default("#5e6ad2")
+  notes        String?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  schedules    MedicationSchedule[]
+  intakeLogs   MedicationIntakeLog[]
 }
 
 model MedicationSchedule {
-  id               String             @id @default(uuid())
+  id               String            @id @default(uuid())
   medicationId     String
-  medication       Medication         @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  medication       Medication        @relation(fields: [medicationId], references: [id], onDelete: Cascade)
   time             String
-  windowMinutes    Int                @default(30)
-  period           SchedulePeriod     @default(MANHA)
-  frequency        ScheduleFrequency  @default(DIARIO)
+  windowMinutes    Int               @default(30)
+  period           SchedulePeriod    @default(MANHA)
+  frequency        ScheduleFrequency @default(DIARIO)
   intervalHours    Int?
   weekDays         String?
-  notifyWhatsapp   Boolean            @default(true)
-  notifyPush       Boolean            @default(true)
-  escalateToFamily Boolean            @default(false)
-  escalateAfterMin Int                @default(45)
-  isActive         Boolean            @default(true)
-  createdAt        DateTime           @default(now())
+  notifyWhatsapp   Boolean           @default(true)
+  notifyPush       Boolean           @default(true)
+  escalateToFamily Boolean           @default(false)
+  escalateAfterMin Int               @default(45)
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
 }
 
 model MedicationIntakeLog {
@@ -507,19 +510,19 @@ enum IntakeStatus {
 // ═══════════════════════════════════════════
 
 model LabExam {
-  id           String          @id @default(uuid())
+  id           String         @id @default(uuid())
   userId       String
-  user         User            @relation(fields: [userId], references: [id])
+  user         User           @relation(fields: [userId], references: [id])
   title        String
   laboratory   String?
-  examDate     DateTime        @default(now())
-  sourceType   ExamSourceType  @default(PHOTO)
+  examDate     DateTime       @default(now())
+  sourceType   ExamSourceType @default(PHOTO)
   originalFile String?
-  aiProcessed  Boolean         @default(false)
+  aiProcessed  Boolean        @default(false)
   aiInsight    String?
   phenoAge     Float?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   results      LabResult[]
 }
 
@@ -643,41 +646,41 @@ enum RecurrenceFrequency {
 }
 
 model PaymentAccount {
-  id                  String          @id @default(uuid())
+  id                  String      @id @default(uuid())
   userId              String
   name                String
   bankName            String?
   bankColor           String?
-  accountType         AccountType     @default(CHECKING)
-  balance             Float           @default(0.0)
-  isDefault           Boolean         @default(false)
-  isActive            Boolean         @default(true)
+  accountType         AccountType @default(CHECKING)
+  balance             Float       @default(0.0)
+  isDefault           Boolean     @default(false)
+  isActive            Boolean     @default(true)
   openFinanceProvider String?
   openFinanceItemId   String?
   lastSyncedAt        DateTime?
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 
-  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions        Transaction[]
-  creditCards         CreditCard[]
-  boletos             BoletoPayment[]
-  recurringRules      RecurringRule[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+  creditCards    CreditCard[]
+  boletos        BoletoPayment[]
+  recurringRules RecurringRule[]
 }
 
 model CreditCard {
-  id                String             @id @default(uuid())
-  paymentAccountId  String
-  name              String
-  lastFourDigits    String?
-  brand             String?
-  cardColor         String?
-  creditLimit       Float              @default(0.0)
-  closingDay        Int
-  dueDay            Int
-  isActive          Boolean            @default(true)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id               String   @id @default(uuid())
+  paymentAccountId String
+  name             String
+  lastFourDigits   String?
+  brand            String?
+  cardColor        String?
+  creditLimit      Float    @default(0.0)
+  closingDay       Int
+  dueDay           Int
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   paymentAccount    PaymentAccount     @relation(fields: [paymentAccountId], references: [id], onDelete: Cascade)
   transactions      Transaction[]
@@ -700,13 +703,13 @@ model BoletoPayment {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  paymentAccount   PaymentAccount? @relation(fields: [paymentAccountId], references: [id])
-  transaction      Transaction?    @relation(fields: [transactionId], references: [id])
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentAccount PaymentAccount? @relation(fields: [paymentAccountId], references: [id])
+  transaction    Transaction?    @relation(fields: [transactionId], references: [id])
 }
 
 model InstallmentGroup {
-  id                String               @id @default(uuid())
+  id                String   @id @default(uuid())
   userId            String
   creditCardId      String?
   categoryId        String?
@@ -715,13 +718,13 @@ model InstallmentGroup {
   totalInstallments Int
   installmentAmount Float
   startDate         DateTime
-  createdAt         DateTime             @default(now())
+  createdAt         DateTime @default(now())
 
-  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  creditCard        CreditCard?          @relation(fields: [creditCardId], references: [id])
-  category          TransactionCategory? @relation(fields: [categoryId], references: [id])
-  installments      Installment[]
-  transactions      Transaction[]
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creditCard   CreditCard?          @relation(fields: [creditCardId], references: [id])
+  category     TransactionCategory? @relation(fields: [categoryId], references: [id])
+  installments Installment[]
+  transactions Transaction[]
 }
 
 model Installment {
@@ -734,7 +737,7 @@ model Installment {
   paidAt             DateTime?
   transactionId      String?
 
-  installmentGroup   InstallmentGroup  @relation(fields: [installmentGroupId], references: [id], onDelete: Cascade)
+  installmentGroup InstallmentGroup @relation(fields: [installmentGroupId], references: [id], onDelete: Cascade)
 }
 
 model RecurringRule {
@@ -755,10 +758,10 @@ model RecurringRule {
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
-  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  paymentAccount   PaymentAccount?     @relation(fields: [paymentAccountId], references: [id])
-  category         TransactionCategory? @relation(fields: [categoryId], references: [id])
-  transactions     Transaction[]
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentAccount PaymentAccount?      @relation(fields: [paymentAccountId], references: [id])
+  category       TransactionCategory? @relation(fields: [categoryId], references: [id])
+  transactions   Transaction[]
 }
 
 model OpenFinanceConnection {
@@ -773,7 +776,131 @@ model OpenFinanceConnection {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// ═══════════════════════════════════════════
+// MÓDULO: TREINOS FÍSICOS (MUSCULAÇÃO & HEALTH)
+// ═══════════════════════════════════════════
 
+model Exercise {
+  id              String  @id @default(uuid())
+  name            String // Ex: "Supino Reto (Barbell Bench Press)"
+  namePt          String // Ex: "Supino Reto"
+  nameEn          String? // Ex: "Barbell Bench Press"
+  muscleGroup     String // Ex: "PEITORAL_MEDIAL", "QUADRICEPS", etc.
+  secondaryMuscle String? // Ex: "Tríceps, Ombro Anterior"
+  equipment       String? // "BARBELL", "DUMBBELL", "CABLE", "MACHINE", "BODYWEIGHT", "SMITH"
+  gifUrl          String? // URL do GIF animado de demonstração
+  imageUrl        String? // URL da imagem estática
+  instructions    String? // Guia passo a passo de execução
+  metValue        Float   @default(5.0) // Valor MET para cálculo de calorias
+  isCustom        Boolean @default(false)
+  userId          String?
+  user            User?   @relation("CustomExercises", fields: [userId], references: [id], onDelete: Cascade)
+
+  templateItems WorkoutTemplateItem[]
+  sessionItems  WorkoutSessionExercise[]
+
+  createdAt DateTime @default(now())
+
+  @@index([muscleGroup])
+  @@index([userId])
+}
+
+model WorkoutTemplate {
+  id          String  @id @default(uuid())
+  userId      String
+  name        String // Ex: "Treino A - Peitoral e Tríceps"
+  description String?
+  dayOfWeek   Int? // 0=Dom, 1=Seg, 2=Ter, 3=Qua, 4=Qui, 5=Sex, 6=Sáb
+  color       String? @default("#6366f1")
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items    WorkoutTemplateItem[]
+  sessions WorkoutSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model WorkoutTemplateItem {
+  id           String  @id @default(uuid())
+  templateId   String
+  exerciseId   String
+  order        Int     @default(0)
+  targetSets   Int     @default(3)
+  targetReps   Int     @default(12)
+  targetWeight Float?
+  restSeconds  Int     @default(60)
+  notes        String?
+
+  template WorkoutTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  exercise Exercise        @relation(fields: [exerciseId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([templateId])
+}
+
+model WorkoutSession {
+  id              String    @id @default(uuid())
+  userId          String
+  templateId      String?
+  title           String?
+  startedAt       DateTime  @default(now())
+  finishedAt      DateTime?
+  durationMinutes Int?
+  totalVolume     Float? // Volume total em kg (peso x reps)
+  caloriesBurned  Float? // Calculado via MET + Peso do usuário
+  intensity       String    @default("MODERATE") // "LIGHT", "MODERATE", "VIGOROUS"
+  rating          Int? // 1-5 estrelas pós treino
+  notes           String?
+
+  user      User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template  WorkoutTemplate?         @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  exercises WorkoutSessionExercise[]
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([startedAt])
+}
+
+model WorkoutSessionExercise {
+  id         String @id @default(uuid())
+  sessionId  String
+  exerciseId String
+  order      Int    @default(0)
+
+  session  WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exercise Exercise       @relation(fields: [exerciseId], references: [id])
+  sets     ExerciseSet[]
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+}
+
+model ExerciseSet {
+  id                String  @id @default(uuid())
+  sessionExerciseId String
+  setNumber         Int
+  reps              Int
+  weight            Float
+  isWarmup          Boolean @default(false)
+  isDropset         Boolean @default(false)
+  rpe               Int? // 1-10 Esforço Percebido
+  isCompleted       Boolean @default(true)
+  notes             String?
+
+  sessionExercise WorkoutSessionExercise @relation(fields: [sessionExerciseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionExerciseId])
+}

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Bot, BookOpen, Cpu, HeartPulse, 
   Apple, Wallet, TrendingUp, Sparkles, Users, UserCheck, MessageSquare, 
-  Settings, LogOut, ChevronDown, Search, Command, Menu, X, Pill, TestTube
+  Settings, LogOut, ChevronDown, Search, Command, Menu, X, Pill, TestTube, Dumbbell
 } from 'lucide-react';
 import MultimodalFAB from './components/MultimodalFAB';
 import { useAuth } from '../providers/AuthProvider';
@@ -66,6 +66,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <HeartPulse className={`w-4 h-4 transition ${getIconColor('/saude', 'text-[#575c66]', 'text-[#f87171]')}`} />
             <span>Saúde & Hábitos</span>
+          </Link>
+
+          <Link 
+            href="/saude/treinos" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/saude/treinos') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Dumbbell className={`w-4 h-4 transition ${getIconColor('/saude/treinos', 'text-[#575c66]', 'text-[#6366f1]')}`} />
+            <span>Treinos Físicos</span>
           </Link>
 
           <Link 
