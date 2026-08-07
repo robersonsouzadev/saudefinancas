@@ -165,6 +165,11 @@ export class WorkoutsController {
     return this.workoutsService.getWeeklyProgress(req.user.id);
   }
 
+  @Get('analytics')
+  async getAnalytics(@Request() req: any, @Query('range') range?: string) {
+    return this.workoutsService.getAnalytics(req.user.id, range ? parseInt(range, 10) : 30);
+  }
+
   // ----------------------------------------------------
   // IA PERSONAL TRAINER (COACH IRON)
   // ----------------------------------------------------

@@ -1099,4 +1099,283 @@ export class WorkoutsService implements OnModuleInit {
       },
     };
   }
+
+  // ----------------------------------------------------
+  // ANALYTICS FITNESS DASHBOARD COMPLETO
+  // ----------------------------------------------------
+  async getAnalytics(userId: string, rangeDays: number = 30) {
+    const now = new Date();
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - rangeDays);
+    startDate.setHours(0, 0, 0, 0);
+
+    const prevStartDate = new Date(startDate);
+    prevStartDate.setDate(prevStartDate.getDate() - rangeDays);
+
+    // Sessions in target range
+    const currentSessions = await this.prisma.workoutSession.findMany({
+      where: {
+        userId,
+        finishedAt: { not: null },
+        startedAt: { gte: startDate, lte: now },
+      },
+      include: {
+        exercises: {
+          include: { exercise: true, sets: true },
+        },
+      },
+      orderBy: { startedAt: 'asc' },
+    });
+
+    // Sessions in previous comparison range
+    const prevSessions = await this.prisma.workoutSession.findMany({
+      where: {
+        userId,
+        finishedAt: { not: null },
+        startedAt: { gte: prevStartDate, lte: startDate },
+      },
+    });
+
+    // 1. KPI Summaries & Comparisons
+    const totalWorkouts = currentSessions.length;
+    const totalVolume = currentSessions.reduce((acc, s) => acc + (s.totalVolume || 0), 0);
+    const totalCalories = currentSessions.reduce((acc, s) => acc + (s.caloriesBurned || 0), 0);
+    const totalDurationMin = currentSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
+    const avgDurationMin = totalWorkouts > 0 ? Math.round(totalDurationMin / totalWorkouts) : 0;
+
+    const prevWorkouts = prevSessions.length;
+    const prevVolume = prevSessions.reduce((acc, s) => acc + (s.totalVolume || 0), 0);
+    const prevCalories = prevSessions.reduce((acc, s) => acc + (s.caloriesBurned || 0), 0);
+
+    const workoutsChange = prevWorkouts > 0 ? parseFloat((((totalWorkouts - prevWorkouts) / prevWorkouts) * 100).toFixed(1)) : 0;
+    const volumeChange = prevVolume > 0 ? parseFloat((((totalVolume - prevVolume) / prevVolume) * 100).toFixed(1)) : 0;
+    const caloriesChange = prevCalories > 0 ? parseFloat((((totalCalories - prevCalories) / prevCalories) * 100).toFixed(1)) : 0;
+
+    // 2. Weekly Volume Bar Chart
+    const weeklyVolumeMap: Record<string, { weekLabel: string; totalVolume: number; workoutsCount: number }> = {};
+    for (const s of currentSessions) {
+      const sDate = new Date(s.startedAt);
+      const dayOfWeek = sDate.getDay();
+      const diffToMon = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      const monDate = new Date(sDate);
+      monDate.setDate(sDate.getDate() - diffToMon);
+      const weekKey = `${monDate.getDate().toString().padStart(2, '0')}/${(monDate.getMonth() + 1).toString().padStart(2, '0')}`;
+
+      if (!weeklyVolumeMap[weekKey]) {
+        weeklyVolumeMap[weekKey] = { weekLabel: `Sem. ${weekKey}`, totalVolume: 0, workoutsCount: 0 };
+      }
+      weeklyVolumeMap[weekKey].totalVolume += Math.round(s.totalVolume || 0);
+      weeklyVolumeMap[weekKey].workoutsCount += 1;
+    }
+    const weeklyVolume = Object.values(weeklyVolumeMap);
+
+    // 3. Exercise 1RM Progression (Top exercises by frequency)
+    const exerciseUsageMap: Record<string, { id: string; namePt: string; count: number }> = {};
+    const exerciseHistoryMap: Record<string, Array<{ date: string; estimated1RM: number; weight: number; reps: number }>> = {};
+
+    for (const s of currentSessions) {
+      const dateStr = new Date(s.startedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
+      for (const exItem of s.exercises) {
+        if (!exItem.exercise) continue;
+        const exId = exItem.exercise.id;
+        const exName = exItem.exercise.namePt || exItem.exercise.name;
+
+        if (!exerciseUsageMap[exId]) {
+          exerciseUsageMap[exId] = { id: exId, namePt: exName, count: 0 };
+          exerciseHistoryMap[exId] = [];
+        }
+        exerciseUsageMap[exId].count += 1;
+
+        let best1RM = 0;
+        let bestWeight = 0;
+        let bestReps = 0;
+
+        for (const set of exItem.sets) {
+          const w = set.weight || 0;
+          const r = set.reps || 0;
+          if (w > 0 && r > 0) {
+            const epley = w * (1 + r / 30);
+            if (epley > best1RM) {
+              best1RM = epley;
+              bestWeight = w;
+              bestReps = r;
+            }
+          }
+        }
+
+        if (best1RM > 0) {
+          exerciseHistoryMap[exId].push({
+            date: dateStr,
+            estimated1RM: Math.round(best1RM * 10) / 10,
+            weight: bestWeight,
+            reps: bestReps,
+          });
+        }
+      }
+    }
+
+    const topExercises = Object.values(exerciseUsageMap)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+
+    const exerciseProgress = topExercises.map((ex) => ({
+      exerciseId: ex.id,
+      namePt: ex.namePt,
+      count: ex.count,
+      history: exerciseHistoryMap[ex.id] || [],
+    }));
+
+    // 4. Muscle Radar Chart (Grouped into 6 primary body categories)
+    const muscleCategoryMap: Record<string, string> = {
+      PEITORAL_SUPERIOR: 'Peito', PEITORAL_MEDIAL: 'Peito', PEITORAL_INFERIOR: 'Peito', PEITO: 'Peito',
+      DORSAL: 'Costas', COSTAS: 'Costas', TRAPEZIO: 'Costas',
+      OMBRO_ANTERIOR: 'Ombros', OMBRO_LATERAL: 'Ombros', OMBRO_POSTERIOR: 'Ombros', OMBROS: 'Ombros',
+      BICEPS: 'Braços', TRICEPS: 'Braços', ANTEBRACO: 'Braços', BRACOS: 'Braços',
+      QUADRICEPS: 'Pernas', POSTERIOR_COXA: 'Pernas', GLUTEOS: 'Pernas', PANTURRILHA: 'Pernas', PERNAS: 'Pernas',
+      ABDOMEN: 'Core', CORE: 'Core',
+    };
+
+    const radarStats: Record<string, { muscleCategory: string; sets: number; volume: number }> = {
+      Peito: { muscleCategory: 'Peito', sets: 0, volume: 0 },
+      Costas: { muscleCategory: 'Costas', sets: 0, volume: 0 },
+      Ombros: { muscleCategory: 'Ombros', sets: 0, volume: 0 },
+      Braços: { muscleCategory: 'Braços', sets: 0, volume: 0 },
+      Pernas: { muscleCategory: 'Pernas', sets: 0, volume: 0 },
+      Core: { muscleCategory: 'Core', sets: 0, volume: 0 },
+    };
+
+    for (const s of currentSessions) {
+      for (const exItem of s.exercises) {
+        if (!exItem.exercise) continue;
+        const mg = exItem.exercise.muscleGroup || 'OUTROS';
+        const category = muscleCategoryMap[mg] || 'Outros';
+
+        if (radarStats[category]) {
+          const completedSets = exItem.sets.filter((st) => st.isCompleted).length || exItem.sets.length;
+          radarStats[category].sets += completedSets;
+
+          for (const set of exItem.sets) {
+            radarStats[category].volume += (set.weight || 0) * (set.reps || 0);
+          }
+        }
+      }
+    }
+
+    const muscleRadar = Object.values(radarStats);
+
+    // 5. Daily Heatmap (Frequency)
+    const dailyMap: Record<string, { date: string; count: number; title?: string }> = {};
+
+    for (let d = 0; d < rangeDays; d++) {
+      const dDate = new Date(startDate);
+      dDate.setDate(startDate.getDate() + d);
+      const isoStr = dDate.toISOString().split('T')[0];
+      dailyMap[isoStr] = { date: isoStr, count: 0 };
+    }
+
+    for (const s of currentSessions) {
+      const isoStr = new Date(s.startedAt).toISOString().split('T')[0];
+      if (dailyMap[isoStr]) {
+        dailyMap[isoStr].count += 1;
+        dailyMap[isoStr].title = s.title || 'Treino';
+      }
+    }
+
+    const dailyHeatmap = Object.values(dailyMap);
+
+    // 6. Personal Records (PRs)
+    const allHistoricalSessions = await this.prisma.workoutSession.findMany({
+      where: { userId, finishedAt: { not: null } },
+      include: {
+        exercises: {
+          include: { exercise: true, sets: true },
+        },
+      },
+      orderBy: { startedAt: 'asc' },
+    });
+
+    const prMap: Record<string, { exerciseName: string; weight: number; reps: number; estimated1RM: number; date: string }> = {};
+
+    for (const s of allHistoricalSessions) {
+      const dStr = new Date(s.startedAt).toLocaleDateString('pt-BR');
+      for (const exItem of s.exercises) {
+        if (!exItem.exercise) continue;
+        const exName = exItem.exercise.namePt || exItem.exercise.name;
+
+        for (const set of exItem.sets) {
+          const w = set.weight || 0;
+          const r = set.reps || 0;
+          if (w > 0 && r > 0) {
+            const e1rm = Math.round(w * (1 + r / 30) * 10) / 10;
+            if (!prMap[exName] || e1rm > prMap[exName].estimated1RM) {
+              prMap[exName] = {
+                exerciseName: exName,
+                weight: w,
+                reps: r,
+                estimated1RM: e1rm,
+                date: dStr,
+              };
+            }
+          }
+        }
+      }
+    }
+
+    const personalRecords = Object.values(prMap)
+      .sort((a, b) => b.estimated1RM - a.estimated1RM)
+      .slice(0, 8);
+
+    // 7. Session Trend (Calories & Duration Area Chart)
+    const sessionTrend = currentSessions.map((s) => ({
+      date: new Date(s.startedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      title: s.title || 'Treino',
+      caloriesBurned: Math.round(s.caloriesBurned || 0),
+      durationMinutes: s.durationMinutes || 0,
+      totalVolume: Math.round(s.totalVolume || 0),
+    }));
+
+    // 8. Athlete Score (0-100 Gauge)
+    const weeksInRange = Math.max(1, Math.round(rangeDays / 7));
+    const targetWorkouts = weeksInRange * 4;
+    const consistencyScore = Math.min(100, Math.round((totalWorkouts / targetWorkouts) * 100));
+
+    const volumeScore = prevVolume > 0 ? Math.min(100, Math.max(20, Math.round(50 + volumeChange))) : 70;
+    const frequencyScore = Math.min(100, Math.round((totalWorkouts / Math.max(1, rangeDays / 7 * 3)) * 100));
+    const prScore = Math.min(100, Math.round(60 + personalRecords.length * 5));
+
+    const athleteScore = Math.min(100, Math.round(
+      consistencyScore * 0.35 +
+      volumeScore * 0.25 +
+      frequencyScore * 0.20 +
+      prScore * 0.20
+    ));
+
+    return {
+      rangeDays,
+      kpis: {
+        totalWorkouts,
+        totalVolume: Math.round(totalVolume),
+        totalCalories: Math.round(totalCalories),
+        totalDurationMin,
+        avgDurationMin,
+        workoutsChange,
+        volumeChange,
+        caloriesChange,
+      },
+      weeklyVolume,
+      exerciseProgress,
+      muscleRadar,
+      dailyHeatmap,
+      personalRecords,
+      sessionTrend,
+      athleteScore: {
+        score: athleteScore,
+        consistencyScore,
+        volumeScore,
+        frequencyScore,
+        prScore,
+      },
+    };
+  }
 }

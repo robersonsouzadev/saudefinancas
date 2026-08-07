@@ -30,6 +30,7 @@ import {
   RefreshCw,
   RotateCcw,
   History,
+  BarChart2,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
@@ -936,6 +937,14 @@ export default function TreinosPage() {
           </div>
 
           <div className="flex items-center space-x-2">
+            <button
+              onClick={() => router.push('/saude/treinos/analytics')}
+              className="px-3 py-1.5 rounded-lg bg-[#38bdf820] border border-[#38bdf840] text-xs font-semibold text-[#38bdf8] hover:bg-[#38bdf830] transition flex items-center space-x-1.5 shadow-sm"
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              <span>Analytics & Gráficos</span>
+            </button>
+
             <button
               onClick={() => {
                 setIsCompletedModalOpen(true);
