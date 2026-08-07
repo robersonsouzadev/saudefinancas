@@ -109,33 +109,62 @@ export default function TreinosPage() {
   }, [selectedMuscleGroup, searchQuery]);
 
   const loadData = async () => {
+    setLoading(true);
+
     try {
-      setLoading(true);
+      // 1. Fetch Exercises (Filtered & All)
+      authFetch(`/api/workouts/exercises?${new URLSearchParams({
+        ...(selectedMuscleGroup !== 'ALL' && { muscleGroup: selectedMuscleGroup }),
+        ...(searchQuery && { search: searchQuery }),
+      }).toString()}`)
+        .then(async (res) => { if (res.ok) setExercises(await res.json()); })
+        .catch((e) => console.error('Erro ao carregar exercicios filtrados:', e));
 
-      const [statsRes, activeRes, templatesRes, exRes, sessionsRes, insightsRes, allExRes] = await Promise.all([
-        authFetch('/api/workouts/stats'),
-        authFetch('/api/workouts/sessions/active'),
-        authFetch('/api/workouts/templates'),
-        authFetch(`/api/workouts/exercises?${new URLSearchParams({
-          ...(selectedMuscleGroup !== 'ALL' && { muscleGroup: selectedMuscleGroup }),
-          ...(searchQuery && { search: searchQuery }),
-        }).toString()}`),
-        authFetch('/api/workouts/sessions?limit=5'),
-        authFetch('/api/workouts/ai/insights'),
-        authFetch('/api/workouts/exercises'),
-      ]);
+      authFetch('/api/workouts/exercises')
+        .then(async (res) => { if (res.ok) setAllExercises(await res.json()); })
+        .catch((e) => console.error('Erro ao carregar todos os exercicios:', e));
 
-      if (statsRes.ok) setStats(await statsRes.json());
-      if (activeRes.ok) setActiveSession(await activeRes.json());
-      if (templatesRes.ok) setTemplates(await templatesRes.json());
-      if (exRes.ok) setExercises(await exRes.json());
-      if (sessionsRes.ok) setRecentSessions(await sessionsRes.json());
-      if (insightsRes.ok) setCoachInsights(await insightsRes.json());
-      if (allExRes.ok) setAllExercises(await allExRes.json());
+      // 2. Fetch Stats
+      authFetch('/api/workouts/stats')
+        .then(async (res) => { if (res.ok) setStats(await res.json()); })
+        .catch((e) => console.error('Erro ao carregar stats:', e));
+
+      // 3. Fetch Active Session
+      authFetch('/api/workouts/sessions/active')
+        .then(async (res) => { if (res.ok) setActiveSession(await res.json()); })
+        .catch((e) => console.error('Erro ao carregar sessao ativa:', e));
+
+      // 4. Fetch Templates
+      authFetch('/api/workouts/templates')
+        .then(async (res) => { if (res.ok) setTemplates(await res.json()); })
+        .catch((e) => console.error('Erro ao carregar templates:', e));
+
+      // 5. Fetch Recent Sessions
+      authFetch('/api/workouts/sessions?limit=5')
+        .then(async (res) => { if (res.ok) setRecentSessions(await res.json()); })
+        .catch((e) => console.error('Erro ao carregar sessoes recentes:', e));
+
+      // 6. Fetch Coach Insights
+      authFetch('/api/workouts/ai/insights')
+        .then(async (res) => { if (res.ok) setCoachInsights(await res.json()); })
+        .catch((e) => console.error('Erro ao carregar insights:', e));
     } catch (err) {
-      console.error('Erro ao carregar dados de treinos:', err);
+      console.error('Erro geral ao carregar dados de treinos:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchExercisesDirectly = async () => {
+    try {
+      const res = await authFetch('/api/workouts/exercises');
+      if (res.ok) {
+        const data = await res.json();
+        setAllExercises(data);
+        setExercises(data);
+      }
+    } catch (e) {
+      console.error('Erro ao forçar busca de exercícios:', e);
     }
   };
 
@@ -512,7 +541,10 @@ export default function TreinosPage() {
             </button>
 
             <button
-              onClick={() => setIsCreateTemplateOpen(true)}
+              onClick={() => {
+                setIsCreateTemplateOpen(true);
+                fetchExercisesDirectly();
+              }}
               className="px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium text-[#8a8f98] hover:text-white hover:bg-[#1f242d] transition flex items-center space-x-1.5"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -537,7 +569,10 @@ export default function TreinosPage() {
                 <span>Gerar Plano Completo via IA</span>
               </button>
               <button
-                onClick={() => setIsCreateTemplateOpen(true)}
+                onClick={() => {
+                  setIsCreateTemplateOpen(true);
+                  fetchExercisesDirectly();
+                }}
                 className="px-4 py-2 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white text-xs font-medium transition"
               >
                 Criar Manualmente
@@ -1057,9 +1092,15 @@ export default function TreinosPage() {
                 </label>
                 <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1 border border-[#ffffff0e] rounded-lg p-2 bg-[#16191e]/50">
                   {(allExercises.length > 0 ? allExercises : exercises).length === 0 ? (
-                    <div className="p-4 text-center text-xs text-[#8a8f98] flex items-center justify-center space-x-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-[#818cf8]" />
-                      <span>Carregando catálogo de exercícios...</span>
+                    <div className="p-6 text-center text-xs text-[#8a8f98] space-y-3">
+                      <p>Nenhum exercício disponível na lista.</p>
+                      <button
+                        type="button"
+                        onClick={fetchExercisesDirectly}
+                        className="px-3 py-1.5 rounded-lg bg-[#6366f1] text-white font-medium hover:bg-[#4f46e5] transition text-xs"
+                      >
+                        ⚡ Carregar Exercícios Padrão
+                      </button>
                     </div>
                   ) : (
                     (allExercises.length > 0 ? allExercises : exercises).map((ex) => {
