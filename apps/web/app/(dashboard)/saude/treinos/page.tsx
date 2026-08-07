@@ -18,6 +18,15 @@ import {
   CheckCircle2,
   Calendar,
   Layers,
+  Bot,
+  MessageSquare,
+  Send,
+  Loader2,
+  Edit3,
+  Trash2,
+  Target,
+  Zap,
+  ShieldAlert,
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
@@ -68,6 +77,29 @@ export default function TreinosPage() {
   const [newTemplateColor, setNewTemplateColor] = useState('#6366f1');
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
 
+  // AI Coach State
+  const [isAiGeneratorOpen, setIsAiGeneratorOpen] = useState(false);
+  const [aiStep, setAiStep] = useState<1 | 2 | 3 | 4>(1); // 1=Goal, 2=Config, 3=Generating, 4=Review/Edit
+  const [aiGoal, setAiGoal] = useState<'HYPERTROPHY' | 'STRENGTH' | 'CUT' | 'ATHLETIC'>('HYPERTROPHY');
+  const [aiFrequency, setAiFrequency] = useState(5);
+  const [aiExperience, setAiExperience] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('INTERMEDIATE');
+  const [aiFocusMuscles, setAiFocusMuscles] = useState<string[]>([]);
+  const [aiInjuries, setAiInjuries] = useState('');
+  const [aiNotes, setAiNotes] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedPlan, setGeneratedPlan] = useState<any>(null);
+
+  // Coach Iron Chat Drawer State
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'coach'; text: string }>>([
+    {
+      sender: 'coach',
+      text: 'Olá! Sou o Coach Iron 💪. Como posso ajudar seu treino hoje? Posso montar um plano novo, tirar dúvidas sobre cargas ou sugerir exercícios.',
+    },
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [sendingChat, setSendingChat] = useState(false);
+
   useEffect(() => {
     loadData();
   }, [selectedMuscleGroup, searchQuery]);
@@ -76,31 +108,21 @@ export default function TreinosPage() {
     try {
       setLoading(true);
 
-      // 1. Fetch Stats
-      const statsRes = await authFetch('/api/workouts/stats');
+      const [statsRes, activeRes, templatesRes, exRes, sessionsRes] = await Promise.all([
+        authFetch('/api/workouts/stats'),
+        authFetch('/api/workouts/sessions/active'),
+        authFetch('/api/workouts/templates'),
+        authFetch(`/api/workouts/exercises?${new URLSearchParams({
+          ...(selectedMuscleGroup !== 'ALL' && { muscleGroup: selectedMuscleGroup }),
+          ...(searchQuery && { search: searchQuery }),
+        }).toString()}`),
+        authFetch('/api/workouts/sessions?limit=5'),
+      ]);
+
       if (statsRes.ok) setStats(await statsRes.json());
-
-      // 2. Fetch Active Session
-      const activeRes = await authFetch('/api/workouts/sessions/active');
-      if (activeRes.ok) {
-        const sessionData = await activeRes.json();
-        setActiveSession(sessionData);
-      }
-
-      // 3. Fetch Templates
-      const templatesRes = await authFetch('/api/workouts/templates');
+      if (activeRes.ok) setActiveSession(await activeRes.json());
       if (templatesRes.ok) setTemplates(await templatesRes.json());
-
-      // 4. Fetch Exercises
-      const queryParams = new URLSearchParams();
-      if (selectedMuscleGroup !== 'ALL') queryParams.append('muscleGroup', selectedMuscleGroup);
-      if (searchQuery) queryParams.append('search', searchQuery);
-
-      const exRes = await authFetch(`/api/workouts/exercises?${queryParams.toString()}`);
       if (exRes.ok) setExercises(await exRes.json());
-
-      // 5. Fetch Recent Sessions
-      const sessionsRes = await authFetch('/api/workouts/sessions?limit=5');
       if (sessionsRes.ok) setRecentSessions(await sessionsRes.json());
     } catch (err) {
       console.error('Erro ao carregar dados de treinos:', err);
@@ -122,6 +144,92 @@ export default function TreinosPage() {
       }
     } catch (err) {
       console.error('Erro ao iniciar treino:', err);
+    }
+  };
+
+  // AI Plan Generation Handlers
+  const handleGenerateAiPlan = async () => {
+    setAiStep(3);
+    setIsGenerating(true);
+
+    try {
+      const res = await authFetch('/api/workouts/ai/generate-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          goal: aiGoal,
+          weeklyFrequency: aiFrequency,
+          experienceLevel: aiExperience,
+          focusMuscles: aiFocusMuscles,
+          injuries: aiInjuries,
+          additionalNotes: aiNotes,
+        }),
+      });
+
+      if (res.ok) {
+        const planData = await res.json();
+        setGeneratedPlan(planData);
+        setAiStep(4);
+      }
+    } catch (err) {
+      console.error('Erro ao gerar plano via IA:', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleSaveGeneratedPlan = async () => {
+    if (!generatedPlan) return;
+
+    try {
+      const res = await authFetch('/api/workouts/ai/save-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: generatedPlan }),
+      });
+
+      if (res.ok) {
+        setIsAiGeneratorOpen(false);
+        setGeneratedPlan(null);
+        setAiStep(1);
+        loadData();
+      }
+    } catch (err) {
+      console.error('Erro ao salvar plano gerado:', err);
+    }
+  };
+
+  const handleSendChat = async () => {
+    if (!chatInput.trim() || sendingChat) return;
+
+    const userText = chatInput;
+    setChatInput('');
+    setChatMessages((prev) => [...prev, { sender: 'user', text: userText }]);
+    setSendingChat(true);
+
+    try {
+      const res = await authFetch('/api/workouts/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userText }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setChatMessages((prev) => [...prev, { sender: 'coach', text: data.reply }]);
+      }
+    } catch (err) {
+      console.error('Erro no chat com Coach Iron:', err);
+    } finally {
+      setSendingChat(false);
+    }
+  };
+
+  const toggleFocusMuscle = (id: string) => {
+    if (aiFocusMuscles.includes(id)) {
+      setAiFocusMuscles(aiFocusMuscles.filter((m) => m !== id));
+    } else {
+      setAiFocusMuscles([...aiFocusMuscles, id]);
     }
   };
 
@@ -166,7 +274,7 @@ export default function TreinosPage() {
   };
 
   return (
-    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-16 relative">
       {/* Header Linear */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div className="flex items-center space-x-3">
@@ -174,20 +282,46 @@ export default function TreinosPage() {
             <Dumbbell className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#f7f8f8] tracking-tight">Treinos Físicos & Musculação</h1>
+            <h1 className="text-xl font-bold text-[#f7f8f8] tracking-tight flex items-center gap-2">
+              Treinos Físicos & Musculação
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#6366f120] text-[#818cf8] border border-[#6366f140]">
+                Coach Iron IA
+              </span>
+            </h1>
             <p className="text-xs text-[#8a8f98]">
-              Gerencie seus treinos semanais, acompanhe cargas, séries, duração e calorias gastas.
+              Gerencie seus treinos semanais, acompanhe cargas, séries e use a inteligência do Coach Iron.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Botão IA Coach Iron */}
+          <button
+            onClick={() => {
+              setIsAiGeneratorOpen(true);
+              setAiStep(1);
+            }}
+            className="px-3.5 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] hover:from-[#4f46e5] hover:to-[#9333ea] text-white text-xs font-semibold shadow-lg shadow-[#6366f130] transition flex items-center space-x-2"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-current animate-spin-slow" />
+            <span>Coach Iron — Gerar Plano IA</span>
+          </button>
+
+          {/* Botão Chat Coach */}
+          <button
+            onClick={() => setIsChatOpen(!isChatOpen)}
+            className="px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium hover:bg-[#1f242d] transition flex items-center space-x-2 text-[#818cf8]"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Chat Coach Iron</span>
+          </button>
+
           <Link
             href="/saude/treinos/historico"
             className="px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium hover:bg-[#1f242d] transition flex items-center space-x-2 text-[#8a8f98] hover:text-[#f7f8f8]"
           >
             <TrendingUp className="w-3.5 h-3.5" />
-            <span>Histórico & Analytics</span>
+            <span className="hidden sm:inline">Histórico</span>
           </Link>
 
           {activeSession ? (
@@ -201,7 +335,7 @@ export default function TreinosPage() {
           ) : (
             <button
               onClick={() => startWorkout()}
-              className="px-4 py-2 rounded-lg bg-[#6366f1] hover:bg-[#4f46e5] text-white text-xs font-semibold shadow-lg shadow-[#6366f130] transition flex items-center space-x-2"
+              className="px-4 py-2 rounded-lg bg-[#16191e] hover:bg-[#1f242d] border border-[#ffffff14] text-white text-xs font-semibold transition flex items-center space-x-2"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Iniciar Treino Livre</span>
@@ -218,7 +352,7 @@ export default function TreinosPage() {
             <Calendar className="w-4 h-4 text-[#818cf8]" />
           </div>
           <div className="text-2xl font-bold text-[#f7f8f8]">{stats.weeklyWorkouts || 0}</div>
-          <span className="text-[10px] text-[#575c66] mt-1">Meta: 4 a 5 treinos/semana</span>
+          <span className="text-[10px] text-[#575c66] mt-1">Meta Coach Iron: 4-5 treinos</span>
         </div>
 
         <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
@@ -258,28 +392,53 @@ export default function TreinosPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold text-[#f7f8f8]">Meus Treinos Semanais (Templates)</h2>
-            <p className="text-xs text-[#8a8f98]">Selecione um treino pronto para iniciar ou crie novas rotinas.</p>
+            <p className="text-xs text-[#8a8f98]">Selecione um treino pronto para iniciar ou peça para a IA criar.</p>
           </div>
 
-          <button
-            onClick={() => setIsCreateTemplateOpen(true)}
-            className="px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium text-[#818cf8] hover:bg-[#1f242d] transition flex items-center space-x-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Criar Novo Treino</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                setIsAiGeneratorOpen(true);
+                setAiStep(1);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-[#6366f120] text-[#818cf8] hover:bg-[#6366f130] text-xs font-medium transition flex items-center space-x-1.5 border border-[#6366f140]"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Gerar via IA</span>
+            </button>
+
+            <button
+              onClick={() => setIsCreateTemplateOpen(true)}
+              className="px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium text-[#8a8f98] hover:text-white hover:bg-[#1f242d] transition flex items-center space-x-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Manual</span>
+            </button>
+          </div>
         </div>
 
         {templates.length === 0 ? (
-          <div className="p-8 rounded-xl bg-[#0f1115] border border-[#ffffff0e] text-center space-y-3">
+          <div className="p-8 rounded-xl bg-[#0f1115] border border-[#ffffff0e] text-center space-y-4">
             <Dumbbell className="w-8 h-8 text-[#575c66] mx-auto" />
             <p className="text-xs text-[#8a8f98]">Você ainda não possui rotinas de treino criadas.</p>
-            <button
-              onClick={() => setIsCreateTemplateOpen(true)}
-              className="px-4 py-2 rounded-lg bg-[#6366f1] text-white text-xs font-semibold hover:bg-[#4f46e5] transition"
-            >
-              Criar Primeiro Treino
-            </button>
+            <div className="flex items-center justify-center space-x-3">
+              <button
+                onClick={() => {
+                  setIsAiGeneratorOpen(true);
+                  setAiStep(1);
+                }}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white text-xs font-semibold hover:opacity-90 transition flex items-center space-x-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Gerar Plano Completo via IA</span>
+              </button>
+              <button
+                onClick={() => setIsCreateTemplateOpen(true)}
+                className="px-4 py-2 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white text-xs font-medium transition"
+              >
+                Criar Manualmente
+              </button>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -344,7 +503,6 @@ export default function TreinosPage() {
             </p>
           </div>
 
-          {/* Input de Busca */}
           <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#575c66]" />
             <input
@@ -405,7 +563,311 @@ export default function TreinosPage() {
         </div>
       </div>
 
-      {/* MODAL DE DETALHES DE EXERCÍCIO COM GIF */}
+      {/* MODAL GERADOR DE PLANO IA (COACH IRON WIZARD) */}
+      {isAiGeneratorOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsAiGeneratorOpen(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center space-x-3 border-b border-[#ffffff0e] pb-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] flex items-center justify-center text-white font-bold">
+                <Sparkles className="w-4 h-4 fill-current" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#f7f8f8]">Coach Iron — Gerador Inteligente de Treino</h3>
+                <p className="text-xs text-[#8a8f98]">Passo {aiStep} de 4 — Monte seu plano com Inteligência Artificial</p>
+              </div>
+            </div>
+
+            {/* Step 1: Escolher Objetivo */}
+            {aiStep === 1 && (
+              <div className="space-y-4">
+                <h4 className="text-xs font-semibold text-[#8a8f98]">Qual é o seu objetivo principal este mês?</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { id: 'HYPERTROPHY', title: 'Hipertrofia 💪', desc: 'Ganho de massa muscular com volume e tensão ideal.' },
+                    { id: 'STRENGTH', title: 'Força Máxima 🏋️', desc: 'Foco em cargas pesadas e compostos principais.' },
+                    { id: 'CUT', title: 'Definição / Cut 🔥', desc: 'Manutenção de massa muscular com alta densidade.' },
+                    { id: 'ATHLETIC', title: 'Condicionamento ⚡', desc: 'Resistência, velocidade e saúde articular.' },
+                  ].map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => setAiGoal(item.id as any)}
+                      className={`p-4 rounded-xl border cursor-pointer transition space-y-1 ${
+                        aiGoal === item.id
+                          ? 'bg-[#6366f120] border-[#6366f1] text-[#f7f8f8]'
+                          : 'bg-[#16191e] border-[#ffffff0e] text-[#8a8f98] hover:bg-[#1f242d]'
+                      }`}
+                    >
+                      <h5 className="font-bold text-sm text-[#f7f8f8]">{item.title}</h5>
+                      <p className="text-xs text-[#8a8f98]">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end pt-3">
+                  <button
+                    onClick={() => setAiStep(2)}
+                    className="px-4 py-2 rounded-lg bg-[#6366f1] hover:bg-[#4f46e5] text-xs font-semibold text-white transition"
+                  >
+                    Próximo Passo: Configurações
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Frequência e Detalhes */}
+            {aiStep === 2 && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-[#8a8f98] block mb-1">Frequência Semanal ({aiFrequency} dias por semana)</label>
+                  <div className="flex gap-2">
+                    {[3, 4, 5, 6].map((freq) => (
+                      <button
+                        key={freq}
+                        onClick={() => setAiFrequency(freq)}
+                        className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${
+                          aiFrequency === freq
+                            ? 'bg-[#6366f1] text-white'
+                            : 'bg-[#16191e] text-[#8a8f98] hover:bg-[#1f242d]'
+                        }`}
+                      >
+                        {freq} Dias
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-[#8a8f98] block mb-1">Nível de Experiência</label>
+                  <select
+                    value={aiExperience}
+                    onChange={(e) => setAiExperience(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#6366f1]"
+                  >
+                    <option value="BEGINNER">Iniciante (Menos de 6 meses de treino)</option>
+                    <option value="INTERMEDIATE">Intermediário (6 meses a 2 anos)</option>
+                    <option value="ADVANCED">Avançado (Mais de 2 anos)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-[#8a8f98] block mb-1">Músculos com Foco Prioritário (Opcional)</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['PEITORAL', 'DORSAL', 'OMBROS', 'BICEPS', 'TRICEPS', 'QUADRICEPS', 'POSTERIOR_COXA', 'GLUTEOS'].map((m) => {
+                      const isSel = aiFocusMuscles.includes(m);
+                      return (
+                        <button
+                          key={m}
+                          onClick={() => toggleFocusMuscle(m)}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition ${
+                            isSel
+                              ? 'bg-[#6366f120] border border-[#6366f1] text-[#818cf8]'
+                              : 'bg-[#16191e] text-[#8a8f98] border border-[#ffffff0a]'
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-[#8a8f98] block mb-1">Lesões ou Restrições (Opcional)</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Dor no ombro direito, evitar supino com barra livre"
+                    value={aiInjuries}
+                    onChange={(e) => setAiInjuries(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#6366f1]"
+                  />
+                </div>
+
+                <div className="flex justify-between pt-3">
+                  <button
+                    onClick={() => setAiStep(1)}
+                    className="px-4 py-2 rounded-lg bg-[#16191e] text-xs text-[#8a8f98]"
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    onClick={handleGenerateAiPlan}
+                    className="px-5 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-xs font-semibold text-white shadow-lg transition flex items-center space-x-2"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 fill-current" />
+                    <span>Gerar Plano Inteligente</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Loading e Animação */}
+            {aiStep === 3 && (
+              <div className="py-12 text-center space-y-4">
+                <Loader2 className="w-10 h-10 text-[#818cf8] animate-spin mx-auto" />
+                <div className="space-y-1">
+                  <h4 className="font-bold text-sm text-[#f7f8f8]">Coach Iron está montando seu treino...</h4>
+                  <p className="text-xs text-[#8a8f98]">
+                    Analisando seu perfil biológico, volume landmarks (MEV/MAV) e selecionando exercícios ideais.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Revisão e Edição do Plano Gerado */}
+            {aiStep === 4 && generatedPlan && (
+              <div className="space-y-4">
+                <div className="p-3 bg-[#6366f115] border border-[#6366f130] rounded-xl text-xs space-y-1">
+                  <h4 className="font-bold text-[#818cf8]">{generatedPlan.planName}</h4>
+                  <p className="text-[#8a8f98]">{generatedPlan.description}</p>
+                </div>
+
+                <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                  {generatedPlan.workouts?.map((w: any, wIdx: number) => (
+                    <div key={wIdx} className="p-3.5 bg-[#16191e] border border-[#ffffff0e] rounded-xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-[#f7f8f8]">{w.name}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#0f1115] text-[#8a8f98]">
+                          {w.exercises?.length || 0} Exercícios
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        {w.exercises?.map((ex: any, exIdx: number) => (
+                          <div key={exIdx} className="text-xs text-[#8a8f98] flex items-center justify-between py-1 border-t border-[#ffffff08]">
+                            <span>• {ex.exerciseNamePt}</span>
+                            <div className="flex items-center space-x-3 text-[11px]">
+                              <span>{ex.targetSets}x{ex.targetReps}</span>
+                              <span className="text-[#38bdf8] font-mono">{ex.targetWeight || 0}kg</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-between pt-3 border-t border-[#ffffff0e]">
+                  <button
+                    onClick={() => setAiStep(2)}
+                    className="px-4 py-2 rounded-lg bg-[#16191e] text-xs text-[#8a8f98]"
+                  >
+                    Ajustar Configurações
+                  </button>
+
+                  <button
+                    onClick={handleSaveGeneratedPlan}
+                    className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-lg transition flex items-center space-x-2"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Salvar Plano no Meu Perfil</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* DRAWER LATERAL DE CHAT DO COACH IRON */}
+      {isChatOpen && (
+        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-[#0f1115] border-l border-[#ffffff14] shadow-2xl flex flex-col justify-between p-4 animate-in slide-in-from-right">
+          <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-7 h-7 rounded-lg bg-[#6366f120] text-[#818cf8] flex items-center justify-center font-bold text-xs">
+                💪
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-[#f7f8f8]">Coach Iron</h3>
+                <span className="text-[10px] text-[#4ade80] flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80]" />
+                  Especialista em Musculação Online
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsChatOpen(false)}
+              className="p-1 rounded bg-[#16191e] text-[#8a8f98] hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Lista de Mensagens */}
+          <div className="flex-1 overflow-y-auto py-4 space-y-3 px-1">
+            {chatMessages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${
+                    msg.sender === 'user'
+                      ? 'bg-[#6366f1] text-white rounded-br-none'
+                      : 'bg-[#16191e] text-[#f7f8f8] border border-[#ffffff0e] rounded-bl-none'
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+
+            {sendingChat && (
+              <div className="flex justify-start">
+                <div className="bg-[#16191e] text-[#8a8f98] p-3 rounded-2xl text-xs flex items-center space-x-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#818cf8]" />
+                  <span>Coach Iron está digitando...</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Form de Envio */}
+          <div className="pt-3 border-t border-[#ffffff0e] space-y-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                placeholder="Pergunte ao Coach Iron..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
+                className="flex-1 px-3 py-2 rounded-xl bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#6366f1]"
+              />
+              <button
+                onClick={handleSendChat}
+                disabled={sendingChat || !chatInput.trim()}
+                className="p-2 rounded-xl bg-[#6366f1] text-white disabled:opacity-50 transition"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex gap-1 overflow-x-auto text-[10px] text-[#8a8f98] pb-1">
+              <button
+                onClick={() => setChatInput('Quero focar mais em peitoral este mês')}
+                className="px-2 py-0.5 rounded bg-[#16191e] whitespace-nowrap hover:text-white"
+              >
+                Foco Peitoral
+              </button>
+              <button
+                onClick={() => setChatInput('Como fazer progressão de carga no supino?')}
+                className="px-2 py-0.5 rounded bg-[#16191e] whitespace-nowrap hover:text-white"
+              >
+                Progressão Supino
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DETALHES DE EXERCÍCIO COM GIF */}
       {selectedExerciseModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
@@ -426,7 +888,6 @@ export default function TreinosPage() {
               )}
             </div>
 
-            {/* Simulação GIF/Imagem */}
             <div className="w-full h-56 rounded-xl bg-[#16191e] border border-[#ffffff0e] flex items-center justify-center overflow-hidden relative">
               {selectedExerciseModal.gifUrl ? (
                 <img
@@ -461,7 +922,7 @@ export default function TreinosPage() {
         </div>
       )}
 
-      {/* MODAL DE CRIAÇÃO DE TEMPLATE */}
+      {/* MODAL CRIAÇÃO MANUAL */}
       {isCreateTemplateOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">

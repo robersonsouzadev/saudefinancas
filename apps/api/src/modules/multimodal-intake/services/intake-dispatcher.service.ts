@@ -152,6 +152,18 @@ export class IntakeDispatcherService {
         }
       }
 
+      // 6. WORKOUT
+      if (intent === 'WORKOUT') {
+        const workoutLog = await this.prisma.workoutSession.findFirst({
+          where: { userId, finishedAt: null },
+        });
+        registeredItems.push({
+          type: 'WORKOUT',
+          id: workoutLog?.id || 'workout',
+          description: 'Consulta ao Coach Iron — Treinos Físicos',
+        });
+      }
+
       return {
         intent: classifiedData.primary_intent || 'GENERAL',
         registeredItems,

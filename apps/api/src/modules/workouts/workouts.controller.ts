@@ -11,12 +11,16 @@ import {
   Request,
 } from '@nestjs/common';
 import { WorkoutsService } from './services/workouts.service';
+import { WorkoutAIService, GeneratePlanDto } from './services/workout-ai.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('workouts')
 @UseGuards(JwtAuthGuard)
 export class WorkoutsController {
-  constructor(private readonly workoutsService: WorkoutsService) {}
+  constructor(
+    private readonly workoutsService: WorkoutsService,
+    private readonly workoutAiService: WorkoutAIService,
+  ) {}
 
   // ----------------------------------------------------
   // EXERCÍCIOS
@@ -127,5 +131,23 @@ export class WorkoutsController {
   @Get('stats')
   async getStats(@Request() req: any) {
     return this.workoutsService.getStats(req.user.id);
+  }
+
+  // ----------------------------------------------------
+  // IA PERSONAL TRAINER (COACH IRON)
+  // ----------------------------------------------------
+  @Post('ai/generate-plan')
+  async generatePlan(@Request() req: any, @Body() body: GeneratePlanDto) {
+    return this.workoutAiService.generatePlan(req.user.id, body);
+  }
+
+  @Post('ai/save-plan')
+  async saveGeneratedPlan(@Request() req: any, @Body() body: { plan: any }) {
+    return this.workoutAiService.saveGeneratedPlan(req.user.id, body.plan);
+  }
+
+  @Post('ai/chat')
+  async chatWithCoach(@Request() req: any, @Body() body: { message: string }) {
+    return this.workoutAiService.chatWithCoach(req.user.id, body.message);
   }
 }

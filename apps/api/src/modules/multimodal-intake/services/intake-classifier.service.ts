@@ -48,7 +48,7 @@ export class IntakeClassifierService {
 Sua tarefa é analisar a mensagem do usuário e extrair dados estruturados ou responder amigavelmente.
 Retorne um objeto JSON estrito com esta estrutura:
 {
-  "primary_intent": "FINANCE" | "NUTRITION" | "HEALTH" | "MEDICATION" | "LAB_EXAM" | "HYBRID" | "GENERAL",
+  "primary_intent": "FINANCE" | "NUTRITION" | "HEALTH" | "MEDICATION" | "LAB_EXAM" | "WORKOUT" | "HYBRID" | "GENERAL",
   "confidence": número de 0.0 a 1.0,
   "nutrition_data": { "meal_type": string, "items": [{"name": string, "weight_g": number, "calories": number, "protein_g": number, "carbs_g": number, "fat_g": number}], "total_calories": number } | null,
   "finance_data": { "transactions": [{"amount": number, "description": string, "category": string}] } | null,
