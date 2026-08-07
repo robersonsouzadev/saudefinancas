@@ -745,62 +745,100 @@ export default function TreinosPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {templates.map((tpl) => (
-              <div
-                key={tpl.id}
-                className="p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] hover:border-[#6366f140] transition flex flex-col justify-between group space-y-4"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: tpl.color || '#6366f1' }} />
-                      <h3 className="font-semibold text-sm text-[#f7f8f8] group-hover:text-[#818cf8] transition">
-                        {tpl.name}
-                      </h3>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] text-[#8a8f98]">
-                        {tpl.items?.length || 0} Exercícios
-                      </span>
-                      <button
-                        onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
-                        className="p-1 rounded-md text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
-                        title="Excluir Treino"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
+            {templates.map((tpl) => {
+              const isCurrentActive = Boolean(
+                activeSession && (
+                  activeSession.templateId === tpl.id ||
+                  (activeSession.title && tpl.name && activeSession.title.toLowerCase().trim() === tpl.name.toLowerCase().trim()) ||
+                  (activeSession.title && tpl.name && activeSession.title.toLowerCase().includes(tpl.name.toLowerCase()))
+                )
+              );
 
-                  {tpl.description && <p className="text-xs text-[#8a8f98]">{tpl.description}</p>}
-
-                  {/* Exercícios no card */}
-                  <div className="space-y-1 pt-2">
-                    {tpl.items?.slice(0, 4).map((item: any) => (
-                      <div key={item.id} className="text-xs text-[#8a8f98] flex items-center justify-between">
-                        <span className="truncate max-w-[200px]">
-                          • {item.exercise?.namePt || item.exercise?.name}
-                        </span>
-                        <span className="text-[10px] text-[#575c66]">
-                          {item.targetSets}x{item.targetReps}
-                        </span>
-                      </div>
-                    ))}
-                    {tpl.items?.length > 4 && (
-                      <span className="text-[10px] text-[#575c66]">+{tpl.items.length - 4} outros exercícios...</span>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => startWorkout(tpl.id)}
-                  className="w-full py-2 rounded-lg bg-[#16191e] hover:bg-[#6366f1] text-[#818cf8] hover:text-white border border-[#ffffff12] hover:border-[#6366f1] text-xs font-semibold transition flex items-center justify-center space-x-2"
+              return (
+                <div
+                  key={tpl.id}
+                  className={`p-5 rounded-xl bg-[#0f1115] transition-all duration-300 flex flex-col justify-between group space-y-4 relative ${
+                    isCurrentActive
+                      ? 'border-2 border-emerald-500/90 shadow-[0_0_25px_rgba(16,185,129,0.4)] animate-pulse ring-2 ring-emerald-500/30'
+                      : 'border border-[#ffffff0e] hover:border-[#6366f140]'
+                  }`}
                 >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Iniciar Este Treino</span>
-                </button>
-              </div>
-            ))}
+                  <div className="space-y-2">
+                    {/* Active Workout Pulsing Banner */}
+                    {isCurrentActive && (
+                      <div className="flex items-center justify-between px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-[11px] font-bold tracking-wide">
+                        <div className="flex items-center space-x-1.5">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                          </span>
+                          <span>TREINO EM ANDAMENTO</span>
+                        </div>
+                        <span className="text-[10px] text-emerald-300/80 font-mono">ATIVO</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: tpl.color || '#6366f1' }} />
+                        <h3 className="font-semibold text-sm text-[#f7f8f8] group-hover:text-[#818cf8] transition">
+                          {tpl.name}
+                        </h3>
+                      </div>
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] text-[#8a8f98]">
+                          {tpl.items?.length || 0} Exercícios
+                        </span>
+                        <button
+                          onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
+                          className="p-1 rounded-md text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
+                          title="Excluir Treino"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {tpl.description && <p className="text-xs text-[#8a8f98]">{tpl.description}</p>}
+
+                    {/* Exercícios no card */}
+                    <div className="space-y-1 pt-2">
+                      {tpl.items?.slice(0, 4).map((item: any) => (
+                        <div key={item.id} className="text-xs text-[#8a8f98] flex items-center justify-between">
+                          <span className="truncate max-w-[200px]">
+                            • {item.exercise?.namePt || item.exercise?.name}
+                          </span>
+                          <span className="text-[10px] text-[#575c66]">
+                            {item.targetSets}x{item.targetReps}
+                          </span>
+                        </div>
+                      ))}
+                      {tpl.items?.length > 4 && (
+                        <span className="text-[10px] text-[#575c66]">+{tpl.items.length - 4} outros exercícios...</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {isCurrentActive ? (
+                    <button
+                      onClick={() => router.push('/saude/treinos/sessao')}
+                      className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/50 text-xs font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/30 animate-pulse"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>Continuar Treino Ativo</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => startWorkout(tpl.id)}
+                      className="w-full py-2 rounded-lg bg-[#16191e] hover:bg-[#6366f1] text-[#818cf8] hover:text-white border border-[#ffffff12] hover:border-[#6366f1] text-xs font-semibold transition flex items-center justify-center space-x-2"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>Iniciar Este Treino</span>
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
