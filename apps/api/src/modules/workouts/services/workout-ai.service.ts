@@ -335,16 +335,24 @@ ${exerciseListStr}
     const userTemplates = await this.workoutsService.listTemplates(userId);
     const allDbExercises = context.availableExercises || [];
 
-    const findBestMatch = (targetNamePt: string) => {
-      if (!targetNamePt) return allDbExercises[0] || null;
+    const findBestMatch = (targetNameInput: any) => {
+      if (!targetNameInput) return allDbExercises[0] || null;
+      let targetNamePt = '';
+      if (typeof targetNameInput === 'string') {
+        targetNamePt = targetNameInput;
+      } else if (typeof targetNameInput === 'object') {
+        targetNamePt = targetNameInput.namePt || targetNameInput.name || targetNameInput.exerciseName || targetNameInput.exercise || '';
+      }
+      if (!targetNamePt || typeof targetNamePt !== 'string') return allDbExercises[0] || null;
+
       const cleanTarget = targetNamePt.toLowerCase().trim();
 
       let match = allDbExercises.find(
         (ex: any) =>
-          ex.namePt.toLowerCase() === cleanTarget ||
-          ex.name.toLowerCase() === cleanTarget ||
-          cleanTarget.includes(ex.namePt.toLowerCase()) ||
-          ex.namePt.toLowerCase().includes(cleanTarget),
+          (ex.namePt && ex.namePt.toLowerCase() === cleanTarget) ||
+          (ex.name && ex.name.toLowerCase() === cleanTarget) ||
+          (ex.namePt && cleanTarget.includes(ex.namePt.toLowerCase())) ||
+          (ex.namePt && ex.namePt.toLowerCase().includes(cleanTarget)),
       );
       if (match) return match;
 
@@ -358,7 +366,7 @@ ${exerciseListStr}
         let bestEx: any = null;
 
         for (const ex of allDbExercises) {
-          const exNameClean = ex.namePt.toLowerCase();
+          const exNameClean = (ex.namePt || ex.nameEn || '').toLowerCase();
           let score = 0;
           for (const word of targetWords) {
             if (exNameClean.includes(word)) score += 1;
@@ -395,13 +403,11 @@ DADOS DO ALUNO:
 ROTINAS/TEMPLATES DE TREINO ATUAIS DO ALUNO:
 ${templatesSummary}
 
-CAPACIDADE DE AÇÃO EM TEMPO REAL:
-Você possui FERRAMENTAS (Tools) ativas para modificar os treinos do aluno diretamente durante a conversa!
-- Se o aluno pedir para focar mais em um músculo (ex: "focar em bíceps e tríceps", "dar um grau nos ombros"), use 'adapt_workout_focus' ou 'create_custom_template' para adicionar novos exercícios isolados e salvar no perfil dele.
-- Se o aluno relatar dor ou lesão (ex: "dor no ombro", "trocar supino"), use 'swap_exercise' para substituir o exercício por um equivalente seguro.
-- Se o aluno pedir um treino totalmente novo ou específico, use 'create_custom_template'.
-
-Sempre explique detalhadamente a alteração feita e encoraje o aluno com entusiasmo!`;
+REGRAS OBRIGATÓRIAS DE AÇÃO:
+Você possui FERRAMENTAS (Tools) ativas para modificar os treinos do aluno no banco de dados em tempo real!
+- Quando o aluno pedir para focar em algum músculo (ex: "focar em braços", "focar em bíceps e tríceps", "ajustar treino"), você DEVE EXECUTAR A FERRAMENTA 'adapt_workout_focus' ou 'create_custom_template'. NUNCA apenas diga que vai fazer sem chamar a ferramenta!
+- Se o aluno relatar dor ou lesão (ex: "dor no ombro", "trocar supino"), use 'swap_exercise' para substituir o exercício.
+- Se o aluno pedir uma nova rotina completa, use 'create_custom_template'.`;
 
     const formattedMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt },
@@ -425,7 +431,7 @@ Sempre explique detalhadamente a alteração feita e encoraje o aluno com entusi
           parameters: {
             type: 'object',
             properties: {
-              templateName: { type: 'string', description: 'Nome da rotina a modificar (ex: "Treino B - Costas e Bíceps")' },
+              templateName: { type: 'string', description: 'Nome da rotina a modificar' },
               focusMuscles: { type: 'array', items: { type: 'string' }, description: 'Músculos prioritários' },
               exercisesToAdd: {
                 type: 'array',
@@ -508,7 +514,12 @@ Sempre explique detalhadamente a alteração feita e encoraje o aluno com entusi
       if (message?.tool_calls && message.tool_calls.length > 0) {
         const toolCall = message.tool_calls[0];
         const fnName = toolCall.function.name;
-        const args = JSON.parse(toolCall.function.arguments || '{}');
+        let args: any = {};
+        try {
+          args = JSON.parse(toolCall.function.arguments || '{}');
+        } catch (err) {
+          this.logger.error('Erro ao parsear argumentos da tool:', err);
+        }
 
         this.logger.log(`Coach Iron executou toolCall: ${fnName} com args: ${JSON.stringify(args)}`);
 
@@ -520,7 +531,7 @@ Sempre explique detalhadamente a alteração feita e encoraje o aluno com entusi
             (t: any) =>
               t.name.toLowerCase().includes((args.templateName || '').toLowerCase()) ||
               (args.templateName || '').toLowerCase().includes(t.name.toLowerCase()),
-          );
+          ) || userTemplates[0];
 
           const existingItems = targetTemplate ? targetTemplate.items.map((i: any) => ({
             exerciseId: i.exerciseId,
@@ -535,15 +546,19 @@ Sempre explique detalhadamente a alteração feita e encoraje o aluno com entusi
           const addedNames: string[] = [];
 
           for (const exInput of exInputList) {
-            const dbEx = findBestMatch(exInput.namePt);
+            const rawExName = typeof exInput === 'string'
+              ? exInput
+              : (exInput?.namePt || exInput?.name || exInput?.exerciseName || exInput?.exercise || '');
+
+            const dbEx = findBestMatch(rawExName);
             if (dbEx) {
               newItems.push({
                 exerciseId: dbEx.id,
-                targetSets: exInput.sets || exInput.targetSets || 3,
-                targetReps: exInput.reps || exInput.targetReps || 12,
+                targetSets: typeof exInput === 'object' ? (exInput.sets || exInput.targetSets || 3) : 3,
+                targetReps: typeof exInput === 'object' ? (exInput.reps || exInput.targetReps || 10) : 10,
                 targetWeight: 0,
                 restSeconds: 60,
-                notes: exInput.notes || 'Adaptação do Coach Iron',
+                notes: typeof exInput === 'object' ? (exInput.notes || 'Adaptação do Coach Iron') : 'Adaptação do Coach Iron',
               });
               addedNames.push(dbEx.namePt);
             }
@@ -560,7 +575,7 @@ Sempre explique detalhadamente a alteração feita e encoraje o aluno com entusi
               type: 'WORKOUT_UPDATED',
               templateName: targetTemplate.name,
               addedExercises: addedNames,
-              reasoning: args.reasoning || 'Foco intensificado conforme solicitado.',
+              reasoning: args.reasoning || 'Foco em braços e exercícios isolados intensificado com sucesso.',
             };
           } else {
             const created = await this.workoutsService.createTemplate(userId, {
@@ -578,8 +593,8 @@ Sempre explique detalhadamente a alteração feita e encoraje o aluno com entusi
             };
           }
         } else if (fnName === 'swap_exercise') {
-          const oldName = args.oldExerciseName;
-          const newName = args.newExerciseName;
+          const oldName = args.oldExerciseName || '';
+          const newName = args.newExerciseName || '';
           const newDbEx = findBestMatch(newName);
 
           let updatedTplName = '';
@@ -633,7 +648,7 @@ Sempre explique detalhadamente a alteração feita e encoraje o aluno com entusi
       }
 
       const defaultReply = actionExecuted
-        ? `Pronto! Realizei as adaptações diretamente na sua ficha de treino. ${actionExecuted.reasoning || ''}`
+        ? `Pronto! Modifiquei sua ficha de treino (${actionExecuted.templateName}). Adicionei: ${actionExecuted.addedExercises?.join(', ') || 'exercícios focados'}.`
         : message?.content || 'Continue firme nos treinos! Foco na constância.';
 
       return {
