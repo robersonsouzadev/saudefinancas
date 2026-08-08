@@ -18,78 +18,95 @@ export class LabExamsService {
   ) {}
 
   async createExamFromOCR(userId: string, imageBase64: string, mimeType: string, customTitle?: string) {
-    const ocrData = await this.ocrService.parseExamImage(imageBase64, mimeType);
-    const title = customTitle || (ocrData.laboratory ? `Exame ${ocrData.laboratory}` : 'Exame Laboratorial');
+    try {
+      const ocrData = await this.ocrService.parseExamImage(imageBase64, mimeType);
+      const title = customTitle || (ocrData.laboratory ? `Exame ${ocrData.laboratory}` : 'Exame Laboratorial');
 
-    // Map extracted items (support both items and results array properties)
-    const itemsList = ocrData.items || ocrData.results || [];
-    const rawItems = itemsList.map((item: any) => {
-      const norm = this.normalizer.normalize(item.name || 'Biomarcador');
-      return {
-        biomarkerKey: norm.key,
-        biomarkerName: norm.name,
-        category: norm.category,
-        value: Number(item.value) || 0,
-        unit: item.unit || 'mg/dL',
-        referenceMin: item.reference_min !== undefined ? Number(item.reference_min) : undefined,
-        referenceMax: item.reference_max !== undefined ? Number(item.reference_max) : undefined,
-      };
-    });
+      // Map extracted items (support both items and results array properties)
+      const itemsList = ocrData.items || ocrData.results || [];
+      if (itemsList.length === 0) {
+        return { exam: null, patterns: [], message: 'Nenhum biomarcador foi extraído da imagem. Tente uma foto mais nítida.' };
+      }
 
-    // Fetch previous results for delta calculation
-    const previousExam = await this.prisma.labExam.findFirst({
-      where: { userId },
-      orderBy: { examDate: 'desc' },
-      include: { results: true },
-    });
+      const rawItems = itemsList.map((item: any) => {
+        const norm = this.normalizer.normalize(item.name || 'Biomarcador');
+        return {
+          biomarkerKey: norm.key,
+          biomarkerName: norm.name,
+          category: norm.category,
+          value: Number(item.value) || 0,
+          unit: item.unit || 'mg/dL',
+          referenceMin: item.reference_min !== undefined ? Number(item.reference_min) : undefined,
+          referenceMax: item.reference_max !== undefined ? Number(item.reference_max) : undefined,
+        };
+      });
 
-    const previousMap = new Map<string, number>();
-    if (previousExam) {
-      previousExam.results.forEach((r) => previousMap.set(r.biomarkerKey, r.value));
-    }
+      // Fetch previous results for delta calculation
+      let previousMap = new Map<string, number>();
+      try {
+        const previousExam = await this.prisma.labExam.findFirst({
+          where: { userId },
+          orderBy: { examDate: 'desc' },
+          include: { results: true },
+        });
+        if (previousExam) {
+          previousExam.results.forEach((r) => previousMap.set(r.biomarkerKey, r.value));
+        }
+      } catch {
+        // No previous exams, continue without delta
+      }
 
-    // Analyze status, delta, and patterns
-    const { analyzedResults, patterns } = this.analyzer.analyzeResults(rawItems, previousMap);
+      // Analyze status, delta, and patterns
+      const { analyzedResults, patterns } = this.analyzer.analyzeResults(rawItems, previousMap);
 
-    // Calculate PhenoAge
-    const bioMap: Record<string, number> = {};
-    analyzedResults.forEach((r) => (bioMap[r.biomarkerKey] = r.value));
-    const phenoAge = this.phenoAgeService.calculatePhenoAge(35, bioMap);
+      // Calculate PhenoAge
+      const bioMap: Record<string, number> = {};
+      analyzedResults.forEach((r) => (bioMap[r.biomarkerKey] = r.value));
+      const phenoAge = this.phenoAgeService.calculatePhenoAge(35, bioMap);
 
-    // Generate Vita IA Insight
-    const aiInsight = await this.insightService.generateInsight(title, analyzedResults, patterns, phenoAge);
+      // Generate Vita IA Insight
+      let aiInsight: string;
+      try {
+        aiInsight = await this.insightService.generateInsight(title, analyzedResults, patterns, phenoAge);
+      } catch {
+        aiInsight = 'Análise de IA indisponível no momento. Consulte os biomarcadores extraídos.';
+      }
 
-    // Save to DB
-    const exam = await this.prisma.labExam.create({
-      data: {
-        userId,
-        title,
-        laboratory: ocrData.laboratory || 'Laboratório',
-        examDate: (ocrData.exam_date && !isNaN(new Date(ocrData.exam_date).getTime())) ? new Date(ocrData.exam_date) : new Date(),
-        aiProcessed: true,
-        aiInsight,
-        phenoAge,
-        results: {
-          create: analyzedResults.map((r) => ({
-            biomarkerKey: r.biomarkerKey,
-            biomarkerName: r.biomarkerName,
-            category: r.category,
-            value: r.value,
-            unit: r.unit,
-            referenceMin: r.referenceMin,
-            referenceMax: r.referenceMax,
-            optimalMin: r.optimalMin,
-            optimalMax: r.optimalMax,
-            status: r.status as any,
-            delta: r.delta,
-            previousValue: r.previousValue,
-          })),
+      // Save to DB
+      const exam = await this.prisma.labExam.create({
+        data: {
+          userId,
+          title,
+          laboratory: ocrData.laboratory || 'Laboratório',
+          examDate: (ocrData.exam_date && !isNaN(new Date(ocrData.exam_date).getTime())) ? new Date(ocrData.exam_date) : new Date(),
+          aiProcessed: true,
+          aiInsight,
+          phenoAge,
+          results: {
+            create: analyzedResults.map((r) => ({
+              biomarkerKey: r.biomarkerKey,
+              biomarkerName: r.biomarkerName,
+              category: r.category,
+              value: r.value,
+              unit: r.unit,
+              referenceMin: r.referenceMin ?? null,
+              referenceMax: r.referenceMax ?? null,
+              optimalMin: r.optimalMin ?? null,
+              optimalMax: r.optimalMax ?? null,
+              status: r.status || 'NORMAL',
+              delta: r.delta ?? null,
+              previousValue: r.previousValue ?? null,
+            })),
+          },
         },
-      },
-      include: { results: true },
-    });
+        include: { results: true },
+      });
 
-    return { exam, patterns };
+      return { exam, patterns };
+    } catch (error: any) {
+      console.error('Erro em createExamFromOCR:', error?.message || error);
+      throw new Error(`Falha ao processar exame: ${error?.message || 'Erro interno do servidor'}`);
+    }
   }
 
   async getUserExams(userId: string) {

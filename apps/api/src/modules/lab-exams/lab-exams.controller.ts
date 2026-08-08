@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, UseGuards, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LabExamsService } from './services/lab-exams.service';
 
@@ -12,8 +12,23 @@ export class LabExamsController {
     @Req() req: any,
     @Body() body: { image: string; mimeType: string; title?: string },
   ) {
-    const userId = req.user?.id || req.user?.userId;
-    return this.labExamsService.createExamFromOCR(userId, body.image, body.mimeType, body.title);
+    try {
+      const userId = req.user?.id || req.user?.userId;
+      if (!userId) {
+        throw new HttpException('Usuário não autenticado', HttpStatus.UNAUTHORIZED);
+      }
+      if (!body.image) {
+        throw new HttpException('Imagem não fornecida', HttpStatus.BAD_REQUEST);
+      }
+      return await this.labExamsService.createExamFromOCR(userId, body.image, body.mimeType, body.title);
+    } catch (error: any) {
+      if (error instanceof HttpException) throw error;
+      console.error('Erro no upload de exame:', error?.message || error);
+      throw new HttpException(
+        error?.message || 'Erro interno ao processar o exame',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get()
