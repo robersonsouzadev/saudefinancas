@@ -271,6 +271,29 @@ async function main() {
   }
 
   console.log(`Finalizado seed de ${totalSeeded} exercícios 3D!`);
+
+  console.log('Seeding BodyIndicatorReference clinical standards...');
+  const refCount = await prisma.bodyIndicatorReference.count();
+  if (refCount === 0) {
+    await prisma.bodyIndicatorReference.createMany({
+      data: [
+        { indicator: 'BODY_FAT_PERCENT', sex: 'MASCULINO', ageMin: 18, ageMax: 39, optimalMin: 8.0, optimalMax: 19.9, attentionMin: 20.0, attentionMax: 24.9, criticalMin: 0.0, criticalMax: 7.9, source: 'ACSM / OMS' },
+        { indicator: 'BODY_FAT_PERCENT', sex: 'MASCULINO', ageMin: 40, ageMax: 59, optimalMin: 11.0, optimalMax: 21.9, attentionMin: 22.0, attentionMax: 27.9, criticalMin: 0.0, criticalMax: 10.9, source: 'ACSM / OMS' },
+        { indicator: 'BODY_FAT_PERCENT', sex: 'MASCULINO', ageMin: 60, ageMax: 120, optimalMin: 13.0, optimalMax: 24.9, attentionMin: 25.0, attentionMax: 29.9, criticalMin: 0.0, criticalMax: 12.9, source: 'ACSM / OMS' },
+        { indicator: 'BODY_FAT_PERCENT', sex: 'FEMININO', ageMin: 18, ageMax: 39, optimalMin: 15.0, optimalMax: 27.9, attentionMin: 28.0, attentionMax: 32.9, criticalMin: 0.0, criticalMax: 14.9, source: 'ACSM / OMS' },
+        { indicator: 'BODY_FAT_PERCENT', sex: 'FEMININO', ageMin: 40, ageMax: 59, optimalMin: 18.0, optimalMax: 30.9, attentionMin: 31.0, attentionMax: 35.9, criticalMin: 0.0, criticalMax: 17.9, source: 'ACSM / OMS' },
+        { indicator: 'BODY_FAT_PERCENT', sex: 'FEMININO', ageMin: 60, ageMax: 120, optimalMin: 20.0, optimalMax: 32.9, attentionMin: 33.0, attentionMax: 37.9, criticalMin: 0.0, criticalMax: 19.9, source: 'ACSM / OMS' },
+        { indicator: 'BMI', sex: 'MASCULINO', ageMin: 18, ageMax: 120, optimalMin: 18.5, optimalMax: 24.9, attentionMin: 25.0, attentionMax: 29.9, criticalMin: 0.0, criticalMax: 18.4, source: 'OMS' },
+        { indicator: 'BMI', sex: 'FEMININO', ageMin: 18, ageMax: 120, optimalMin: 18.5, optimalMax: 24.9, attentionMin: 25.0, attentionMax: 29.9, criticalMin: 0.0, criticalMax: 18.4, source: 'OMS' },
+        { indicator: 'WAIST_HEIGHT_RATIO', sex: 'MASCULINO', ageMin: 1, ageMax: 120, optimalMin: 0.40, optimalMax: 0.49, attentionMin: 0.50, attentionMax: 0.59, criticalMin: 0.0, criticalMax: 0.39, source: 'Ashwell et al.' },
+        { indicator: 'WAIST_HEIGHT_RATIO', sex: 'FEMININO', ageMin: 1, ageMax: 120, optimalMin: 0.40, optimalMax: 0.49, attentionMin: 0.50, attentionMax: 0.59, criticalMin: 0.0, criticalMax: 0.39, source: 'Ashwell et al.' },
+        { indicator: 'PHASE_ANGLE', sex: 'MASCULINO', ageMin: 18, ageMax: 120, optimalMin: 6.5, optimalMax: 9.5, attentionMin: 5.5, attentionMax: 6.4, criticalMin: 0.0, criticalMax: 5.4, source: 'Norman et al. (2012)' },
+        { indicator: 'PHASE_ANGLE', sex: 'FEMININO', ageMin: 18, ageMax: 120, optimalMin: 5.5, optimalMax: 8.5, attentionMin: 4.5, attentionMax: 5.4, criticalMin: 0.0, criticalMax: 4.4, source: 'Norman et al. (2012)' },
+      ],
+    });
+    console.log('Clinical indicator references seeded successfully!');
+  }
+
   console.log('Seeding completed successfully!');
 }
 

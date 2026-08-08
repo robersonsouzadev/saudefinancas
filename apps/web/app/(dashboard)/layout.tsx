@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Bot, BookOpen, Cpu, HeartPulse, 
   Apple, Wallet, TrendingUp, Sparkles, Users, UserCheck, MessageSquare, 
-  Settings, LogOut, ChevronDown, Search, Command, Menu, X, Pill, TestTube, Dumbbell
+  Settings, LogOut, ChevronDown, Search, Command, Menu, X, Pill, TestTube, Dumbbell, Ruler
 } from 'lucide-react';
 import MultimodalFAB from './components/MultimodalFAB';
 import { useAuth } from '../providers/AuthProvider';
@@ -118,6 +118,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <TestTube className={`w-4 h-4 transition ${getIconColor('/exames', 'text-[#575c66]', 'text-[#c084fc]')}`} />
             <span>Exames Lab</span>
+          </Link>
+
+          <Link 
+            href="/avaliacao-corporal" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
+              isActive('/avaliacao-corporal') 
+                ? 'bg-[#16191e] text-[#f7f8f8]' 
+                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+            }`}
+          >
+            <Ruler className={`w-4 h-4 transition ${getIconColor('/avaliacao-corporal', 'text-[#575c66]', 'text-[#3b82f6]')}`} />
+            <span>Avaliação Corporal</span>
           </Link>
         </div>
       </div>

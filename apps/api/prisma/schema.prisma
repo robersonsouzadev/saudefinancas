@@ -30,6 +30,8 @@ model User {
   conversations          Conversation[]
   healthLogs             HealthLog[]
   bodyMeasurements       BodyMeasurement[]
+  bodyAssessments        BodyAssessment[]
+  bodyAssessmentGoals    BodyAssessmentGoal[]
   mealLogs               MealLog[]
   healthGoals            HealthGoal[]
   financialAccounts      FinancialAccount[]
@@ -930,4 +932,121 @@ model CoachChatMessage {
 
   @@index([sessionId, createdAt])
 }
+
+// ═══════════════════════════════════════════
+// MÓDULO: AVALIAÇÃO CORPORAL & BIOIMPEDÂNCIA
+// ═══════════════════════════════════════════
+
+enum AssessmentSourceType {
+  MANUAL
+  IMPORTED
+  OCR
+}
+
+model BodyAssessment {
+  id                    String               @id @default(uuid())
+  userId                String
+  user                  User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Metadados
+  assessmentDate        DateTime             @default(now())
+  assessorName          String?
+  equipmentName         String?
+  notes                 String?
+  sourceType            AssessmentSourceType @default(MANUAL)
+
+  // Dados Físicos
+  weightKg              Float
+  heightCm              Float
+  age                   Int
+  sex                   BiologicalSex
+  waistCm               Float?
+
+  // Composição Corporal - Gordura
+  fatMassKg             Float?
+  bodyFatPercent        Float?
+
+  // Composição Corporal - Massa Magra e Muscular
+  leanMassKg            Float?
+  leanMassPercent       Float?
+  skeletalMuscleMassKg  Float?
+  skeletalMusclePercent Float?
+  muscleFatRatio        Float?
+
+  // Hidratação
+  totalBodyWaterL       Float?
+  totalBodyWaterPercent Float?
+  leanMassWaterPercent  Float?
+  hydrationIndex        Float?
+  intracellularWaterL   Float?
+  intracellularWaterPercent Float?
+  extracellularWaterL   Float?
+  extracellularWaterPercent Float?
+
+  // Metabolismo
+  basalMetabolicRate    Float?
+
+  // Análise Celular
+  phaseAngle            Float?
+  cellularAge           Float?
+
+  // Indicadores Calculados
+  bmi                   Float?
+  waistHeightRatio      Float?
+
+  // Deltas (variação vs avaliação anterior)
+  previousAssessmentId  String?
+  deltaWeight           Float?
+  deltaFatPercent       Float?
+  deltaFatMass          Float?
+  deltaLeanMass         Float?
+  deltaMuscleMass       Float?
+  deltaWaist            Float?
+  deltaPhaseAngle       Float?
+  deltaIntracellularWater Float?
+
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  @@index([userId, assessmentDate])
+  @@index([userId, createdAt])
+}
+
+model BodyAssessmentGoal {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  indicator      String   // Ex: "WEIGHT", "BODY_FAT_PERCENT", "WAIST_CM", "SKELETAL_MUSCLE_MASS"
+  targetValue    Float
+  currentValue   Float?
+  unit           String   // "kg", "%", "cm"
+  deadlineMonths Int?
+  deadline       DateTime?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId, isActive])
+}
+
+model BodyIndicatorReference {
+  id           String        @id @default(uuid())
+  indicator    String        // Ex: "BODY_FAT_PERCENT", "BMI", "WAIST_HEIGHT_RATIO", "PHASE_ANGLE"
+  sex          BiologicalSex
+  ageMin       Int
+  ageMax       Int
+  optimalMin   Float?
+  optimalMax   Float?
+  attentionMin Float?
+  attentionMax Float?
+  criticalMin  Float?
+  criticalMax  Float?
+  source       String?       // Ex: "OMS", "ACSM", "Ashwell et al."
+  notes        String?
+
+  createdAt    DateTime      @default(now())
+
+  @@index([indicator, sex])
+}
+
 

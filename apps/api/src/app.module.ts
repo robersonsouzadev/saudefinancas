@@ -20,6 +20,7 @@ import { MultimodalIntakeModule } from './modules/multimodal-intake/multimodal-i
 import { LabExamsModule } from './modules/lab-exams/lab-exams.module';
 import { AgentsModule } from './modules/agents/agents.module';
 import { WorkoutsModule } from './modules/workouts/workouts.module';
+import { BodyAssessmentsModule } from './modules/body-assessments/body-assessments.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { WorkoutsModule } from './modules/workouts/workouts.module';
     LabExamsModule,
     AgentsModule,
     WorkoutsModule,
+    BodyAssessmentsModule,
   ],
 })
 export class AppModule {}
