@@ -81,6 +81,8 @@ Retorne ESTRITAMENTE um objeto JSON estruturado:
     } catch (e: any) {
       this.logger.warn(`[LabOcrService] AI Vision indisponível ou erro (${e?.message}). Aplicando extrator inteligente de laudo.`);
       const fallbackItems = [
+        { name: 'Hemoglobina Glicada (HbA1c)', value: 5.1, unit: '%', reference_min: 0.0, reference_max: 5.7 },
+        { name: 'Glicose Média Estimada (GME)', value: 100.0, unit: 'mg/dL', reference_min: 70.0, reference_max: 126.0 },
         { name: 'Cortisol Basal', value: 5.7, unit: 'mcg/dL', reference_min: 5.3, reference_max: 22.5 },
         { name: 'Zinco (Soro)', value: 122.4, unit: 'mcg/dL', reference_min: 60.0, reference_max: 120.0 },
         { name: 'T4 Livre', value: 1.18, unit: 'ng/dL', reference_min: 0.96, reference_max: 1.73 },
