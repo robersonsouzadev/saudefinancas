@@ -50,7 +50,10 @@ export class BiomarkerNormalizerService {
     'INDICE DE CASTELLI II': { key: 'CASTELLI_II', name: 'Índice de Castelli II', category: 'LIPIDIOS' },
 
     // ── TIREOIDE ──
-    'TSH': { key: 'TSH', name: 'TSH', category: 'TIREOIDE' },
+    'TSH': { key: 'TSH', name: 'TSH Ultra Sensível', category: 'TIREOIDE' },
+    'TSH ULTRA SENSIVEL': { key: 'TSH', name: 'TSH Ultra Sensível', category: 'TIREOIDE' },
+    'TSH ULTRA SENSÍVEL': { key: 'TSH', name: 'TSH Ultra Sensível', category: 'TIREOIDE' },
+    'TSH ULTRASENSIVEL': { key: 'TSH', name: 'TSH Ultra Sensível', category: 'TIREOIDE' },
     'FREE_T3': { key: 'FREE_T3', name: 'T3 Livre', category: 'TIREOIDE' },
     'T3 LIVRE': { key: 'FREE_T3', name: 'T3 Livre', category: 'TIREOIDE' },
     'FREE_T4': { key: 'FREE_T4', name: 'T4 Livre', category: 'TIREOIDE' },
@@ -79,6 +82,8 @@ export class BiomarkerNormalizerService {
     // ── VITAMINAS_MINERAIS ──
     'VITAMIN_D': { key: 'VITAMIN_D', name: 'Vitamina D (25-OH)', category: 'VITAMINAS_MINERAIS' },
     'VITAMINA D': { key: 'VITAMIN_D', name: 'Vitamina D (25-OH)', category: 'VITAMINAS_MINERAIS' },
+    '25-HIDROXIVITAMINA D': { key: 'VITAMIN_D', name: 'Vitamina D (25-OH)', category: 'VITAMINAS_MINERAIS' },
+    '25 HIDROXIVITAMINA D': { key: 'VITAMIN_D', name: 'Vitamina D (25-OH)', category: 'VITAMINAS_MINERAIS' },
     'VITAMIN_B12': { key: 'VITAMIN_B12', name: 'Vitamina B12', category: 'VITAMINAS_MINERAIS' },
     'VITAMINA B12': { key: 'VITAMIN_B12', name: 'Vitamina B12', category: 'VITAMINAS_MINERAIS' },
     'FERRITIN': { key: 'FERRITIN', name: 'Ferritina', category: 'VITAMINAS_MINERAIS' },

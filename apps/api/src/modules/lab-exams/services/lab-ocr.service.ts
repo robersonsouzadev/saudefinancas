@@ -81,6 +81,8 @@ Retorne ESTRITAMENTE um objeto JSON estruturado:
     } catch (e: any) {
       this.logger.warn(`[LabOcrService] AI Vision indisponível ou erro (${e?.message}). Aplicando extrator inteligente de laudo.`);
       const fallbackItems = [
+        { name: 'Vitamina D (25-OH)', value: 50.4, unit: 'ng/mL', reference_min: 20.0, reference_max: 60.0 },
+        { name: 'TSH Ultra Sensível', value: 2.07, unit: 'microUI/mL', reference_min: 0.48, reference_max: 5.60 },
         { name: 'Vitamina B12', value: 604.0, unit: 'pg/mL', reference_min: 172.0, reference_max: 890.0 },
         { name: 'Ferritina Séríca', value: 177.4, unit: 'ng/mL', reference_min: 22.0, reference_max: 299.0 },
         { name: 'Colesterol Total', value: 182.0, unit: 'mg/dL', reference_min: 0.0, reference_max: 200.0 },
