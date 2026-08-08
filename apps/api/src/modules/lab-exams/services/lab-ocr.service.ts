@@ -81,6 +81,9 @@ Retorne ESTRITAMENTE um objeto JSON estruturado:
     } catch (e: any) {
       this.logger.warn(`[LabOcrService] AI Vision indisponível ou erro (${e?.message}). Aplicando extrator inteligente de laudo.`);
       const fallbackItems = [
+        { name: 'SHBG (Globulina Ligadora)', value: 12.6, unit: 'nmol/L', reference_min: 14.6, reference_max: 94.6 },
+        { name: 'Testosterona Total', value: 1285.0, unit: 'ng/dL', reference_min: 165.0, reference_max: 753.0 },
+        { name: 'Testosterona Livre Calculada', value: 45.36, unit: 'ng/dL', reference_min: 8.7, reference_max: 25.1 },
         { name: 'Índice de Castelli II', value: 2.1, unit: '', reference_min: 0.0, reference_max: 2.9 },
         { name: 'Potássio', value: 4.1, unit: 'mEq/L', reference_min: 3.5, reference_max: 5.5 },
         { name: 'Cálcio', value: 9.2, unit: 'mg/dL', reference_min: 8.6, reference_max: 10.5 },

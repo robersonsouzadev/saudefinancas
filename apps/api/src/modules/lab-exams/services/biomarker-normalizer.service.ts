@@ -89,6 +89,11 @@ export class BiomarkerNormalizerService {
     // ── HORMONIOS ──
     'TOTAL_TESTOSTERONE': { key: 'TOTAL_TESTOSTERONE', name: 'Testosterona Total', category: 'HORMONIOS' },
     'TESTOSTERONA TOTAL': { key: 'TOTAL_TESTOSTERONE', name: 'Testosterona Total', category: 'HORMONIOS' },
+    'FREE_TESTOSTERONE': { key: 'FREE_TESTOSTERONE', name: 'Testosterona Livre Calculada', category: 'HORMONIOS' },
+    'TESTOSTERONA LIVRE': { key: 'FREE_TESTOSTERONE', name: 'Testosterona Livre Calculada', category: 'HORMONIOS' },
+    'TESTOSTERONA LIVRE CALCULADA': { key: 'FREE_TESTOSTERONE', name: 'Testosterona Livre Calculada', category: 'HORMONIOS' },
+    'SHBG': { key: 'SHBG', name: 'SHBG (Globulina Ligadora)', category: 'HORMONIOS' },
+    'GLOBULINA LIGADORA DE HORMONIOS SEXUAIS': { key: 'SHBG', name: 'SHBG (Globulina Ligadora)', category: 'HORMONIOS' },
     'ESTRADIOL': { key: 'ESTRADIOL', name: 'Estradiol', category: 'HORMONIOS' },
     'CORTISOL': { key: 'CORTISOL', name: 'Cortisol', category: 'HORMONIOS' },
 
