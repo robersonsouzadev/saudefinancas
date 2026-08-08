@@ -126,16 +126,67 @@ export default function LabExamsPage() {
     });
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.75): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => resolve(e.target?.result as string);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadFile(file);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFilePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      if (file.type.startsWith('image/')) {
+        const compressedDataUrl = await compressImage(file);
+        setFilePreview(compressedDataUrl);
+      } else {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setFilePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch {
+      const reader = new FileReader();
+      reader.onload = () => setFilePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const processUpload = async () => {
@@ -156,13 +207,19 @@ export default function LabExamsPage() {
         setExamTitle('');
         await fetchDashboardSummary();
       } else {
-        const errData = await res.text();
-        console.error('Erro ao processar exame:', res.status, errData);
-        alert('Não foi possível processar o laudo via IA Vision. Tente novamente.');
+        let errorMsg = 'Erro no servidor';
+        try {
+          const errJson = await res.json();
+          errorMsg = Array.isArray(errJson.message) ? errJson.message.join(', ') : (errJson.message || errJson.error);
+        } catch {
+          errorMsg = await res.text();
+        }
+        console.error('Erro ao processar exame:', res.status, errorMsg);
+        alert(`Não foi possível processar o laudo (Erro ${res.status}: ${errorMsg || 'Falha no servidor'}). Tente novamente.`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao enviar laudo de exame:', err);
-      alert('Erro de conexão ao enviar o laudo de exame.');
+      alert(`Erro de conexão ao enviar o laudo: ${err.message || 'Verifique sua internet'}`);
     } finally {
       setIsProcessing(false);
     }
