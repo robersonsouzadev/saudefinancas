@@ -102,14 +102,14 @@ export default function LabExamsPage() {
     setIsLoading(true);
     try {
       const res = await authFetch('/api/lab-exams/dashboard');
-      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+      if (res.ok) {
         const data = await res.json();
-        setSummary(data);
+        if (data) setSummary(data);
       } else {
-        setEmptySummary();
+        console.warn('Dashboard summary respondeu com status não-OK:', res.status);
       }
-    } catch {
-      setEmptySummary();
+    } catch (err) {
+      console.error('Erro de conexão em fetchDashboardSummary:', err);
     } finally {
       setIsLoading(false);
     }
@@ -118,14 +118,12 @@ export default function LabExamsPage() {
   const fetchBiomarkerHistory = async (key: string) => {
     try {
       const res = await authFetch(`/api/lab-exams/history/${key}`);
-      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+      if (res.ok) {
         const data = await res.json();
-        setHistoryData(data);
-      } else {
-        setHistoryData([]);
+        if (Array.isArray(data)) setHistoryData(data);
       }
-    } catch {
-      setHistoryData([]);
+    } catch (err) {
+      console.error('Erro ao buscar histórico do biomarcador:', err);
     }
   };
 
