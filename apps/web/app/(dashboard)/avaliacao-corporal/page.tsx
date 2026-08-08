@@ -41,18 +41,25 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from 'recharts';
+import { useAuth } from '../../providers/AuthProvider';
 import { authFetch } from '@/lib/api';
 import { INDICATOR_CONFIGS, getTrendBadge } from './body-constants';
 
 // ─── ANEL DE BODY SCORE ─────────────────────────────────────────
-function BodyScoreRing({ score = 70 }: { score: number }) {
+function BodyScoreRing({ score }: { score?: number }) {
+  const displayScore = score !== undefined && score !== null ? score : 0;
   const radius = 52;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
+  const strokeDashoffset = score !== undefined && score !== null 
+    ? circumference - (displayScore / 100) * circumference 
+    : circumference;
 
   let scoreColor = '#4ade80'; // verde
   let label = 'Excelente';
-  if (score < 60) {
+  if (score === undefined || score === null) {
+    scoreColor = '#8a8f98';
+    label = 'Aguardando';
+  } else if (score < 60) {
     scoreColor = '#f87171';
     label = 'Atenção';
   } else if (score < 75) {
@@ -90,7 +97,9 @@ function BodyScoreRing({ score = 70 }: { score: number }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-extrabold tracking-tight text-[#f7f8f8]">{score}</span>
+          <span className="text-3xl font-extrabold tracking-tight text-[#f7f8f8]">
+            {score !== undefined && score !== null ? score : '--'}
+          </span>
           <span className="text-[10px] uppercase tracking-wider font-semibold text-[#8a8f98]">
             Body Score
           </span>
@@ -118,10 +127,10 @@ function BioGaugeArc({
   max,
   label,
   unit = '',
-  statusText = 'Normal',
+  statusText = 'Sem dados',
   color = '#4ade80',
 }: {
-  value: number;
+  value?: number | null;
   min: number;
   max: number;
   label: string;
@@ -129,8 +138,11 @@ function BioGaugeArc({
   statusText?: string;
   color?: string;
 }) {
-  const percent = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
+  const hasValue = value !== undefined && value !== null;
+  const numValue = hasValue ? value : min;
+  const percent = hasValue ? Math.max(0, Math.min(100, ((numValue - min) / (max - min)) * 100)) : 0;
   const angle = -180 + (percent / 100) * 180;
+  const gaugeColor = hasValue ? color : '#575c66';
 
   return (
     <div className="linear-card p-4 flex flex-col items-center justify-between text-center relative overflow-hidden">
@@ -149,7 +161,7 @@ function BioGaugeArc({
           <path
             d="M 10 50 A 40 40 0 0 1 90 50"
             fill="none"
-            stroke={color}
+            stroke={gaugeColor}
             strokeWidth="10"
             strokeDasharray="126"
             strokeDashoffset={126 - (percent / 100) * 126}
@@ -170,87 +182,13 @@ function BioGaugeArc({
 
       <div className="mt-1">
         <div className="text-xl font-bold text-[#f7f8f8]">
-          {value} <span className="text-xs font-normal text-[#8a8f98]">{unit}</span>
+          {hasValue ? value : '--'} <span className="text-xs font-normal text-[#8a8f98]">{hasValue ? unit : ''}</span>
         </div>
         <span
           className="text-[11px] font-medium px-2 py-0.5 rounded-full inline-block mt-1"
-          style={{ color, backgroundColor: `${color}15` }}
+          style={{ color: gaugeColor, backgroundColor: `${gaugeColor}15` }}
         >
-          {statusText}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ─── CARD IDADE CELULAR VS CRONOLÓGICA ──────────────────────────
-function CellularAgeCard({
-  cronologicalAge,
-  cellularAge,
-  phaseAngle,
-}: {
-  cronologicalAge?: number;
-  cellularAge?: number;
-  phaseAngle?: number;
-}) {
-  if (!cronologicalAge || !cellularAge) return null;
-
-  const diff = cellularAge - cronologicalAge;
-  const isYounger = diff < 0;
-
-  return (
-    <div className="linear-card p-5 relative overflow-hidden bg-gradient-to-br from-[#0f1115] via-[#16191e] to-[#0f1115] border border-[#ffffff15]">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-lg bg-[#3b82f615] border border-[#3b82f630] flex items-center justify-center text-[#3b82f6]">
-            <HeartPulse className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-[#f7f8f8]">Análise de Idade Celular</h4>
-            <p className="text-[11px] text-[#8a8f98]">Bioimpedância & Integridade de Membrana</p>
-          </div>
-        </div>
-        {phaseAngle && (
-          <div className="text-right">
-            <span className="text-[10px] text-[#8a8f98] block">Ângulo de Fase</span>
-            <span className="text-sm font-bold text-[#3b82f6]">{phaseAngle}°</span>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 my-2">
-        <div className="p-3 rounded-lg bg-[#080a0c] border border-[#ffffff0a] text-center">
-          <span className="text-[11px] text-[#8a8f98] block">Idade Cronológica</span>
-          <span className="text-2xl font-bold text-[#8a8f98]">{cronologicalAge}</span>
-          <span className="text-[10px] text-[#575c66] block">anos de vida</span>
-        </div>
-
-        <div className="p-3 rounded-lg bg-[#3b82f610] border border-[#3b82f630] text-center relative">
-          <span className="text-[11px] text-[#60a5fa] block font-medium">Idade Celular</span>
-          <span className="text-2xl font-extrabold text-[#f7f8f8]">{cellularAge}</span>
-          <span className="text-[10px] text-[#60a5fa] block font-medium">estimada BIA</span>
-        </div>
-      </div>
-
-      <div className="mt-3 pt-3 border-t border-[#ffffff0e] flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          {isYounger ? (
-            <CheckCircle2 className="w-4 h-4 text-[#4ade80]" />
-          ) : (
-            <AlertTriangle className="w-4 h-4 text-[#fbbf24]" />
-          )}
-          <span className="text-xs text-[#f7f8f8]">
-            {isYounger
-              ? `Sua biologia está ${Math.abs(diff)} anos mais jovem!`
-              : `Sua idade celular está ${diff} anos acima.`}
-          </span>
-        </div>
-        <span
-          className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-            isYounger ? 'text-[#4ade80] bg-[#4ade8015]' : 'text-[#fbbf24] bg-[#fbbf2415]'
-          }`}
-        >
-          {isYounger ? `${diff} anos` : `+${diff} anos`}
+          {hasValue ? statusText : 'Aguardando medição'}
         </span>
       </div>
     </div>
@@ -259,6 +197,7 @@ function CellularAgeCard({
 
 // ─── DASHBOARD PRINCIPAL DE AVALIAÇÃO CORPORAL ──────────────────
 export default function BodyAssessmentDashboard() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'charts' | 'compare' | 'history' | 'goals'
   >('dashboard');
@@ -278,34 +217,37 @@ export default function BodyAssessmentDashboard() {
   const [compareId2, setCompareId2] = useState<string>('');
   const [compareData, setCompareData] = useState<any>(null);
 
-  // Estado do formulário Nova Avaliação
-  const [formData, setFormData] = useState<any>({
+  // Função para obter o formulário limpo para nova avaliação
+  const getEmptyFormData = () => ({
     assessmentDate: new Date().toISOString().split('T')[0],
-    assessorName: 'Leonardo Zonzini Lattanzio',
-    equipmentName: 'InBody 570 / Terra Science',
+    assessorName: '',
+    equipmentName: '',
     notes: '',
-    weightKg: 80.8,
-    heightCm: 175,
-    age: 46,
+    weightKg: '',
+    heightCm: user?.heightCm || '',
+    age: '',
     sex: 'MASCULINO',
-    waistCm: 94.5,
-    bodyFatPercent: 21.7,
-    fatMassKg: 17.5,
-    leanMassKg: 63.3,
-    skeletalMuscleMassKg: 32.7,
-    totalBodyWaterL: 46.1,
-    totalBodyWaterPercent: 57.1,
-    leanMassWaterPercent: 72.9,
-    hydrationIndex: 3.9,
-    intracellularWaterL: 27.3,
-    intracellularWaterPercent: 59.2,
-    extracellularWaterL: 18.8,
-    extracellularWaterPercent: 40.8,
-    basalMetabolicRate: 1704,
-    phaseAngle: 8.9,
-    cellularAge: 40,
+    waistCm: '',
+    bodyFatPercent: '',
+    fatMassKg: '',
+    leanMassKg: '',
+    skeletalMuscleMassKg: '',
+    totalBodyWaterL: '',
+    totalBodyWaterPercent: '',
+    leanMassWaterPercent: '',
+    hydrationIndex: '',
+    intracellularWaterL: '',
+    intracellularWaterPercent: '',
+    extracellularWaterL: '',
+    extracellularWaterPercent: '',
+    basalMetabolicRate: '',
+    phaseAngle: '',
+    cellularAge: '',
     updateUserProfileHeight: false,
   });
+
+  // Estado do formulário Nova Avaliação
+  const [formData, setFormData] = useState<any>(getEmptyFormData());
 
   // Estado do formulário Nova Meta
   const [goalFormData, setGoalFormData] = useState({
@@ -438,7 +380,10 @@ export default function BodyAssessmentDashboard() {
 
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => setIsNewModalOpen(true)}
+            onClick={() => {
+              setFormData(getEmptyFormData());
+              setIsNewModalOpen(true);
+            }}
             className="flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-[#3b82f6] hover:bg-[#2563eb] text-white text-xs font-semibold shadow-lg shadow-[#3b82f620] transition"
           >
             <Plus className="w-4 h-4" />
@@ -1021,9 +966,46 @@ export default function BodyAssessmentDashboard() {
                 <Ruler className="w-5 h-5 text-[#3b82f6]" />
                 <h3 className="text-base font-bold text-[#f7f8f8]">Cadastrar Nova Bioimpedância</h3>
               </div>
-              <button onClick={() => setIsNewModalOpen(false)} className="text-[#8a8f98] hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData({
+                      assessmentDate: new Date().toISOString().split('T')[0],
+                      assessorName: 'Leonardo Zonzini Lattanzio',
+                      equipmentName: 'InBody 570 / Terra Science',
+                      notes: 'Avaliação de bioimpedância de teste',
+                      weightKg: 80.8,
+                      heightCm: 175,
+                      age: 46,
+                      sex: 'MASCULINO',
+                      waistCm: 94.5,
+                      bodyFatPercent: 21.7,
+                      fatMassKg: 17.5,
+                      leanMassKg: 63.3,
+                      skeletalMuscleMassKg: 32.7,
+                      totalBodyWaterL: 46.1,
+                      totalBodyWaterPercent: 57.1,
+                      leanMassWaterPercent: 72.9,
+                      hydrationIndex: 3.9,
+                      intracellularWaterL: 27.3,
+                      intracellularWaterPercent: 59.2,
+                      extracellularWaterL: 18.8,
+                      extracellularWaterPercent: 40.8,
+                      basalMetabolicRate: 1704,
+                      phaseAngle: 8.9,
+                      cellularAge: 40,
+                      updateUserProfileHeight: false,
+                    })
+                  }
+                  className="px-2.5 py-1 rounded bg-[#3b82f615] text-[#3b82f6] hover:bg-[#3b82f625] border border-[#3b82f630] text-[11px] font-medium transition"
+                >
+                  ⚡ Preencher Exemplo
+                </button>
+                <button onClick={() => setIsNewModalOpen(false)} className="text-[#8a8f98] hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleCreateAssessment} className="space-y-4 text-xs">
@@ -1035,7 +1017,7 @@ export default function BodyAssessmentDashboard() {
                     <label className="text-[#8a8f98] block mb-1">Data</label>
                     <input
                       type="date"
-                      value={formData.assessmentDate}
+                      value={formData.assessmentDate || ''}
                       onChange={(e) => setFormData({ ...formData, assessmentDate: e.target.value })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] w-full"
                     />
@@ -1044,7 +1026,8 @@ export default function BodyAssessmentDashboard() {
                     <label className="text-[#8a8f98] block mb-1">Avaliador / Profissional</label>
                     <input
                       type="text"
-                      value={formData.assessorName}
+                      placeholder="Ex: Dr. Leonardo Zonzini"
+                      value={formData.assessorName || ''}
                       onChange={(e) => setFormData({ ...formData, assessorName: e.target.value })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] w-full"
                     />
@@ -1053,7 +1036,8 @@ export default function BodyAssessmentDashboard() {
                     <label className="text-[#8a8f98] block mb-1">Equipamento BIA</label>
                     <input
                       type="text"
-                      value={formData.equipmentName}
+                      placeholder="Ex: InBody 570"
+                      value={formData.equipmentName || ''}
                       onChange={(e) => setFormData({ ...formData, equipmentName: e.target.value })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] w-full"
                     />
@@ -1070,8 +1054,9 @@ export default function BodyAssessmentDashboard() {
                     <input
                       type="number"
                       step="0.1"
-                      value={formData.weightKg}
-                      onChange={(e) => setFormData({ ...formData, weightKg: parseFloat(e.target.value) })}
+                      placeholder="Ex: 80.8"
+                      value={formData.weightKg ?? ''}
+                      onChange={(e) => setFormData({ ...formData, weightKg: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] w-full font-bold text-sm"
                     />
                   </div>
@@ -1080,8 +1065,9 @@ export default function BodyAssessmentDashboard() {
                     <input
                       type="number"
                       step="0.5"
-                      value={formData.heightCm}
-                      onChange={(e) => setFormData({ ...formData, heightCm: parseFloat(e.target.value) })}
+                      placeholder="Ex: 175"
+                      value={formData.heightCm ?? ''}
+                      onChange={(e) => setFormData({ ...formData, heightCm: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] w-full font-bold text-sm"
                     />
                   </div>
@@ -1089,8 +1075,9 @@ export default function BodyAssessmentDashboard() {
                     <label className="text-[#8a8f98] block mb-1">Idade (anos)</label>
                     <input
                       type="number"
-                      value={formData.age}
-                      onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value, 10) })}
+                      placeholder="Ex: 46"
+                      value={formData.age ?? ''}
+                      onChange={(e) => setFormData({ ...formData, age: e.target.value === '' ? '' : parseInt(e.target.value, 10) })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] w-full"
                     />
                   </div>
@@ -1099,8 +1086,9 @@ export default function BodyAssessmentDashboard() {
                     <input
                       type="number"
                       step="0.5"
-                      value={formData.waistCm}
-                      onChange={(e) => setFormData({ ...formData, waistCm: parseFloat(e.target.value) })}
+                      placeholder="Ex: 94.5"
+                      value={formData.waistCm ?? ''}
+                      onChange={(e) => setFormData({ ...formData, waistCm: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] w-full"
                     />
                   </div>
@@ -1110,7 +1098,7 @@ export default function BodyAssessmentDashboard() {
                   <input
                     type="checkbox"
                     id="updateUserProfileHeight"
-                    checked={formData.updateUserProfileHeight}
+                    checked={formData.updateUserProfileHeight || false}
                     onChange={(e) => setFormData({ ...formData, updateUserProfileHeight: e.target.checked })}
                     className="rounded border-[#ffffff30] bg-[#16191e]"
                   />
@@ -1129,8 +1117,9 @@ export default function BodyAssessmentDashboard() {
                     <input
                       type="number"
                       step="0.1"
-                      value={formData.bodyFatPercent}
-                      onChange={(e) => setFormData({ ...formData, bodyFatPercent: parseFloat(e.target.value) })}
+                      placeholder="Ex: 21.7"
+                      value={formData.bodyFatPercent ?? ''}
+                      onChange={(e) => setFormData({ ...formData, bodyFatPercent: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f472b6] font-bold w-full"
                     />
                   </div>
@@ -1139,8 +1128,9 @@ export default function BodyAssessmentDashboard() {
                     <input
                       type="number"
                       step="0.1"
-                      value={formData.skeletalMuscleMassKg}
-                      onChange={(e) => setFormData({ ...formData, skeletalMuscleMassKg: parseFloat(e.target.value) })}
+                      placeholder="Ex: 32.7"
+                      value={formData.skeletalMuscleMassKg ?? ''}
+                      onChange={(e) => setFormData({ ...formData, skeletalMuscleMassKg: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#4ade80] font-bold w-full"
                     />
                   </div>
@@ -1149,8 +1139,9 @@ export default function BodyAssessmentDashboard() {
                     <input
                       type="number"
                       step="0.1"
-                      value={formData.phaseAngle}
-                      onChange={(e) => setFormData({ ...formData, phaseAngle: parseFloat(e.target.value) })}
+                      placeholder="Ex: 8.9"
+                      value={formData.phaseAngle ?? ''}
+                      onChange={(e) => setFormData({ ...formData, phaseAngle: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#3b82f6] font-bold w-full"
                     />
                   </div>
@@ -1158,8 +1149,9 @@ export default function BodyAssessmentDashboard() {
                     <label className="text-[#8a8f98] block mb-1">Idade Celular</label>
                     <input
                       type="number"
-                      value={formData.cellularAge}
-                      onChange={(e) => setFormData({ ...formData, cellularAge: parseInt(e.target.value, 10) })}
+                      placeholder="Ex: 40"
+                      value={formData.cellularAge ?? ''}
+                      onChange={(e) => setFormData({ ...formData, cellularAge: e.target.value === '' ? '' : parseInt(e.target.value, 10) })}
                       className="bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] w-full"
                     />
                   </div>
