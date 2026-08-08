@@ -15,8 +15,13 @@ export class LabOcrService {
   async parseExamImage(imageBase64: string, mimeType: string): Promise<any> {
     this.logger.log(`[LabOcrService] Iniciando parse. Base64 length: ${imageBase64?.length || 0}, MimeType: ${mimeType}`);
 
-    const prompt = `Extraia TODOS os biomarcadores e resultados do laudo de exame de sangue/urina fornecido na imagem.
-Inclua todos os marcadores do Eritrograma (Hemácias, Hemoglobina, Hematócrito, VCM, HCM, CHCM, RDW), Leucograma (Leucócitos, Bastonetes, Segmentados, Eosinófilos, Basófilos, Linfócitos, Monócitos) e Plaquetas.
+    const prompt = `Extraia ABSOLUTAMENTE TODOS os biomarcadores e resultados do laudo de exame de sangue/urina fornecido na imagem, SEM OMITIR NENHUM ITEM (mesmo aqueles com valor 0,0 ou zerados).
+
+Certifique-se de extrair obrigatoriamente todos os 20 itens do Hemograma Completo:
+- Eritrograma (7 itens): Hemácias, Hemoglobina, Hematócrito, V.C.M. (Volume Corpuscular Médio), H.C.M. (Hemoglobina Corpuscular Média), C.H.C.M. (Concentração de Hemoglobina Corpuscular Média), R.D.W.
+- Leucograma (12 itens): Leucócitos, Blastos, Promielócitos, Mielócitos, Metamielócitos, Bastonetes, Segmentados, Eosinófilos, Basófilos, Linfócitos, Linfócitos reativos, Monócitos.
+- Plaquetas (1 item): Plaquetas.
+
 Retorne estritamente em formato JSON estruturado:
     {
       "laboratory": "Nome do laboratório",
@@ -81,11 +86,16 @@ Retorne estritamente em formato JSON estruturado:
         { name: 'C.H.C.M.', value: 33.10, unit: 'g/dL', reference_min: 32.0, reference_max: 36.0 },
         { name: 'R.D.W.', value: 12.30, unit: '%', reference_min: 11.6, reference_max: 14.8 },
         { name: 'Leucócitos', value: 8290, unit: '/mm³', reference_min: 5000, reference_max: 10000 },
+        { name: 'Blastos', value: 0.0, unit: '%', reference_min: 0.0, reference_max: 0.0 },
+        { name: 'Promielócitos', value: 0.0, unit: '%', reference_min: 0.0, reference_max: 0.0 },
+        { name: 'Mielócitos', value: 0.0, unit: '%', reference_min: 0.0, reference_max: 0.0 },
+        { name: 'Metamielócitos', value: 0.0, unit: '%', reference_min: 0.0, reference_max: 0.0 },
         { name: 'Bastonetes', value: 0.0, unit: '%', reference_min: 0.0, reference_max: 6.0 },
         { name: 'Segmentados', value: 68.0, unit: '%', reference_min: 45.0, reference_max: 65.0 },
         { name: 'Eosinófilos', value: 2.0, unit: '%', reference_min: 2.0, reference_max: 4.0 },
         { name: 'Basófilos', value: 0.0, unit: '%', reference_min: 0.0, reference_max: 2.0 },
         { name: 'Linfócitos', value: 23.0, unit: '%', reference_min: 25.0, reference_max: 45.0 },
+        { name: 'Linfócitos Reativos', value: 0.0, unit: '%', reference_min: 0.0, reference_max: 0.0 },
         { name: 'Monócitos', value: 7.0, unit: '%', reference_min: 2.0, reference_max: 8.0 },
         { name: 'Plaquetas', value: 284000, unit: '/mm³', reference_min: 142000, reference_max: 400000 },
       ];
