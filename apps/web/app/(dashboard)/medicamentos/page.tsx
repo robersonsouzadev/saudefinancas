@@ -39,9 +39,37 @@ const adherenceTrendData = [
   { day: 'Dom', score: 100 },
 ];
 
+const mapDbMedicationToUi = (med: any): MedicationItem => {
+  const schedule = med.schedules?.[0] || {};
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayLog = med.intakeLogs?.find((l: any) => {
+    const logDate = new Date(l.loggedAt || l.createdAt).toISOString().split('T')[0];
+    return logDate === todayStr;
+  });
+
+  return {
+    id: med.id,
+    name: med.name,
+    type: med.type || 'MEDICAMENTO',
+    dosage: med.dosage || '',
+    unit: med.unit || 'comprimido',
+    time: schedule.time || '08:00',
+    period: schedule.period || 'MANHA',
+    instructions: med.instructions || 'Tomar conforme orientação',
+    currentStock: med.currentStock ?? 30,
+    stockAlertAt: med.stockAlertAt ?? 5,
+    costPerUnit: Number(med.costPerUnit) || 0,
+    status: todayLog ? (todayLog.status as any) : 'PENDENTE',
+    notifyWhatsapp: schedule.notifyWhatsapp ?? true,
+    escalateToFamily: schedule.escalateToFamily ?? false,
+    color: med.color || (med.type === 'MEDICAMENTO' ? '#f87171' : med.type === 'VITAMINA' ? '#facc15' : '#4ade80'),
+  };
+};
+
 export default function MedicamentosPage() {
   const [medications, setMedications] = useState<MedicationItem[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isWhatsappDemoOpen, setIsWhatsappDemoOpen] = useState(false);
   const [selectedMedForDemo, setSelectedMedForDemo] = useState<MedicationItem | null>(null);
 
@@ -52,14 +80,14 @@ export default function MedicamentosPage() {
   const fetchMedications = async () => {
     try {
       const res = await authFetch('/api/medications');
-      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+      if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setMedications(data);
+        if (Array.isArray(data)) {
+          setMedications(data.map(mapDbMedicationToUi));
         }
       }
     } catch (err) {
-      console.log('Sem medicamentos cadastrados no banco');
+      console.log('Sem medicamentos cadastrados no banco ou erro de rede');
     }
   };
 
@@ -78,7 +106,8 @@ export default function MedicamentosPage() {
     escalateToFamily: true,
   });
 
-  const handleMarkAsTaken = (id: string) => {
+  const handleMarkAsTaken = async (id: string) => {
+    // Optimistic UI update
     setMedications((prev) =>
       prev.map((med) => {
         if (med.id === id) {
@@ -91,45 +120,94 @@ export default function MedicamentosPage() {
         return med;
       })
     );
+
+    try {
+      const res = await authFetch(`/api/medications/${id}/intake`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'TOMADO' }),
+      });
+      if (res.ok) {
+        fetchMedications();
+      }
+    } catch (err) {
+      console.error('Erro ao marcar medicamento como tomado:', err);
+    }
   };
 
-  const handleAddMedication = (e: React.FormEvent) => {
+  const handleDeleteMedication = async (id: string) => {
+    if (!confirm('Deseja realmente remover este medicamento do cadastro?')) return;
+
+    setMedications((prev) => prev.filter((x) => x.id !== id));
+
+    try {
+      const res = await authFetch(`/api/medications/${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        fetchMedications();
+      }
+    } catch (err) {
+      console.error('Erro ao remover medicamento:', err);
+    }
+  };
+
+  const handleAddMedication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.dosage) return;
 
-    const newMed: MedicationItem = {
-      id: Date.now().toString(),
-      name: formData.name,
-      type: formData.type,
-      dosage: formData.dosage,
-      unit: formData.unit,
-      time: formData.time,
-      period: formData.period,
-      instructions: formData.instructions || 'Tomar conforme orientação',
-      currentStock: Number(formData.currentStock) || 30,
-      stockAlertAt: 5,
-      costPerUnit: Number(formData.costPerUnit) || 1.0,
-      status: 'PENDENTE',
-      notifyWhatsapp: formData.notifyWhatsapp,
-      escalateToFamily: formData.escalateToFamily,
-      color: formData.type === 'MEDICAMENTO' ? '#f87171' : formData.type === 'VITAMINA' ? '#facc15' : '#4ade80',
-    };
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        name: formData.name,
+        type: formData.type,
+        dosage: formData.dosage,
+        unit: formData.unit,
+        instructions: formData.instructions || 'Tomar conforme orientação',
+        currentStock: Number(formData.currentStock) || 30,
+        costPerUnit: Number(formData.costPerUnit) || 0,
+        color: formData.type === 'MEDICAMENTO' ? '#f87171' : formData.type === 'VITAMINA' ? '#facc15' : '#4ade80',
+        schedules: [
+          {
+            time: formData.time,
+            period: formData.period,
+            notifyWhatsapp: formData.notifyWhatsapp,
+            escalateToFamily: formData.escalateToFamily,
+          },
+        ],
+      };
 
-    setMedications((prev) => [...prev, newMed]);
-    setIsAddModalOpen(false);
-    setFormData({
-      name: '',
-      type: 'MEDICAMENTO',
-      dosage: '',
-      unit: 'comprimido',
-      time: '08:00',
-      period: 'MANHA',
-      instructions: '',
-      currentStock: 30,
-      costPerUnit: 1.0,
-      notifyWhatsapp: true,
-      escalateToFamily: true,
-    });
+      const res = await authFetch('/api/medications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        await fetchMedications();
+        setIsAddModalOpen(false);
+        setFormData({
+          name: '',
+          type: 'MEDICAMENTO',
+          dosage: '',
+          unit: 'comprimido',
+          time: '08:00',
+          period: 'MANHA',
+          instructions: '',
+          currentStock: 30,
+          costPerUnit: 1.0,
+          notifyWhatsapp: true,
+          escalateToFamily: true,
+        });
+      } else {
+        alert('Não foi possível cadastrar o medicamento no banco de dados.');
+      }
+    } catch (err) {
+      console.error('Erro ao cadastrar medicamento:', err);
+      alert('Erro de conexão ao salvar medicamento.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Metrics Calculations
@@ -514,7 +592,7 @@ export default function MedicamentosPage() {
                         <MessageSquare className="w-3.5 h-3.5" />
                       </button>
                       <button 
-                        onClick={() => setMedications((prev) => prev.filter((x) => x.id !== m.id))}
+                        onClick={() => handleDeleteMedication(m.id)}
                         className="p-1 hover:bg-[#1d2127] rounded text-[#8a8f98] hover:text-[#f87171]" 
                         title="Remover"
                       >
@@ -673,9 +751,10 @@ export default function MedicamentosPage() {
                 </button>
                 <button 
                   type="submit" 
-                  className="px-4 py-1.5 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-xs font-medium"
+                  disabled={isSubmitting}
+                  className="px-4 py-1.5 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-xs font-medium flex items-center space-x-1 disabled:opacity-50"
                 >
-                  Salvar Medicamento
+                  <span>{isSubmitting ? 'Salvando...' : 'Salvar Medicamento'}</span>
                 </button>
               </div>
             </form>
