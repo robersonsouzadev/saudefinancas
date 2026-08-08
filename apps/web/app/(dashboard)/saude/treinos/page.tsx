@@ -693,17 +693,17 @@ export default function TreinosPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto">
           {/* Botão IA Coach Iron */}
           <button
             onClick={() => {
               setIsAiGeneratorOpen(true);
               setAiStep(1);
             }}
-            className="px-3.5 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] hover:from-[#4f46e5] hover:to-[#9333ea] text-white text-xs font-semibold shadow-lg shadow-[#6366f130] transition flex items-center space-x-2"
+            className="flex-1 sm:flex-none px-3.5 py-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#a855f7] hover:from-[#4f46e5] hover:to-[#9333ea] text-white text-xs font-semibold shadow-lg shadow-[#6366f130] transition flex items-center justify-center space-x-2 min-w-[170px]"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-current animate-spin-slow" />
-            <span>Coach Iron — Gerar Plano IA</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-current animate-spin-slow shrink-0" />
+            <span className="truncate">Coach Iron — Gerar Plano IA</span>
           </button>
 
           {/* Botão Chat Coach */}
@@ -711,32 +711,32 @@ export default function TreinosPage() {
             onClick={() => openChatDrawer()}
             className="px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium hover:bg-[#1f242d] transition flex items-center space-x-2 text-[#818cf8]"
           >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Chat Coach Iron</span>
+            <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+            <span className="inline">Chat Coach</span>
           </button>
 
           <Link
             href="/saude/treinos/historico"
             className="px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium hover:bg-[#1f242d] transition flex items-center space-x-2 text-[#8a8f98] hover:text-[#f7f8f8]"
           >
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Histórico</span>
+            <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+            <span className="inline">Histórico</span>
           </Link>
 
           {activeSession ? (
             <Link
               href="/saude/treinos/sessao"
-              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/20 transition flex items-center space-x-2 animate-pulse"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/20 transition flex items-center justify-center space-x-2 animate-pulse"
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
+              <Play className="w-3.5 h-3.5 fill-current shrink-0" />
               <span>Sessão em Andamento</span>
             </Link>
           ) : (
             <button
               onClick={() => startWorkout()}
-              className="px-4 py-2 rounded-lg bg-[#16191e] hover:bg-[#1f242d] border border-[#ffffff14] text-white text-xs font-semibold transition flex items-center space-x-2"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#16191e] hover:bg-[#1f242d] border border-[#ffffff14] text-white text-xs font-semibold transition flex items-center justify-center space-x-2"
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
+              <Play className="w-3.5 h-3.5 fill-current shrink-0" />
               <span>Iniciar Treino Livre</span>
             </button>
           )}
@@ -744,45 +744,45 @@ export default function TreinosPage() {
       </div>
 
       {/* Cards de Resumo Semanal */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#8a8f98] mb-2">
-            <span className="text-xs font-medium">Treinos Esta Semana</span>
-            <Calendar className="w-4 h-4 text-[#818cf8]" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#8a8f98] mb-1.5">
+            <span className="text-[11px] sm:text-xs font-medium truncate">Treinos Semana</span>
+            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#818cf8] shrink-0" />
           </div>
-          <div className="text-2xl font-bold text-[#f7f8f8]">{stats.weeklyWorkouts || 0}</div>
-          <span className="text-[10px] text-[#575c66] mt-1">Meta Coach Iron: 4-5 treinos</span>
+          <div className="text-xl sm:text-2xl font-bold text-[#f7f8f8]">{stats.weeklyWorkouts || 0}</div>
+          <span className="text-[9px] sm:text-[10px] text-[#575c66] mt-1 truncate">Meta: 4-5 treinos</span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#8a8f98] mb-2">
-            <span className="text-xs font-medium">Volume Total Carga</span>
-            <Layers className="w-4 h-4 text-[#38bdf8]" />
+        <div className="p-3 sm:p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#8a8f98] mb-1.5">
+            <span className="text-[11px] sm:text-xs font-medium truncate">Volume Carga</span>
+            <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#38bdf8] shrink-0" />
           </div>
-          <div className="text-2xl font-bold text-[#f7f8f8]">
-            {((stats.totalVolume || 0) / 1000).toFixed(1)} <span className="text-xs text-[#8a8f98]">toneladas</span>
+          <div className="text-xl sm:text-2xl font-bold text-[#f7f8f8]">
+            {((stats.totalVolume || 0) / 1000).toFixed(1)} <span className="text-xs text-[#8a8f98] font-normal">ton</span>
           </div>
-          <span className="text-[10px] text-[#575c66] mt-1">Soma de (peso × reps)</span>
+          <span className="text-[9px] sm:text-[10px] text-[#575c66] mt-1 truncate">Peso × Reps</span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#8a8f98] mb-2">
-            <span className="text-xs font-medium">Calorias Queimadas</span>
-            <Flame className="w-4 h-4 text-[#f97316]" />
+        <div className="p-3 sm:p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#8a8f98] mb-1.5">
+            <span className="text-[11px] sm:text-xs font-medium truncate">Calorias Queimadas</span>
+            <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f97316] shrink-0" />
           </div>
-          <div className="text-2xl font-bold text-[#f7f8f8]">
-            {stats.totalCalories || 0} <span className="text-xs text-[#8a8f98]">kcal</span>
+          <div className="text-xl sm:text-2xl font-bold text-[#f7f8f8]">
+            {stats.totalCalories || 0} <span className="text-xs text-[#8a8f98] font-normal">kcal</span>
           </div>
-          <span className="text-[10px] text-[#575c66] mt-1">Estimado via algoritmo MET</span>
+          <span className="text-[9px] sm:text-[10px] text-[#575c66] mt-1 truncate">Algoritmo MET</span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#8a8f98] mb-2">
-            <span className="text-xs font-medium">Total de Sessões</span>
-            <CheckCircle2 className="w-4 h-4 text-[#4ade80]" />
+        <div className="p-3 sm:p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#8a8f98] mb-1.5">
+            <span className="text-[11px] sm:text-xs font-medium truncate">Total Sessões</span>
+            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#4ade80] shrink-0" />
           </div>
-          <div className="text-2xl font-bold text-[#f7f8f8]">{stats.totalWorkouts || 0}</div>
-          <span className="text-[10px] text-[#575c66] mt-1">Treinos concluídos</span>
+          <div className="text-xl sm:text-2xl font-bold text-[#f7f8f8]">{stats.totalWorkouts || 0}</div>
+          <span className="text-[9px] sm:text-[10px] text-[#575c66] mt-1 truncate">Treinos concluídos</span>
         </div>
       </div>
 
@@ -898,7 +898,7 @@ export default function TreinosPage() {
             </div>
 
             {/* Weekly Days Bar (Based on REAL execution date) */}
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
               {(weeklyProgress.dailyActivity || []).map((dayItem: any) => {
                 const today = new Date().getDay();
                 const dayNum = dayItem.dayOfWeek;
@@ -933,12 +933,12 @@ export default function TreinosPage() {
                 return (
                   <div
                     key={dayItem.dayLabel + dayItem.date}
-                    className={`p-2 rounded-lg border text-center space-y-0.5 ${bgClass} ${isToday ? 'ring-1 ring-[#818cf8]/50' : ''}`}
+                    className={`px-0.5 py-1.5 sm:p-2 rounded-lg border text-center space-y-0.5 ${bgClass} ${isToday ? 'ring-1 ring-[#818cf8]/50' : ''}`}
                     title={hasTrained ? `Treinado: ${dayItem.sessions.map((s: any) => s.templateName).join(', ')}` : (plannedName ? `Planejado: ${plannedName}` : 'Sem treino')}
                   >
-                    <div className="text-[10px] font-bold tracking-wider">{dayItem.dayLabel}</div>
-                    <div className="text-sm">{statusIcon}</div>
-                    <div className="text-[8px] truncate opacity-80">{subText}</div>
+                    <div className="text-[9px] sm:text-[10px] font-bold tracking-tight uppercase truncate">{dayItem.dayLabel}</div>
+                    <div className="text-xs sm:text-sm">{statusIcon}</div>
+                    <div className="text-[7px] sm:text-[8px] truncate opacity-80">{subText}</div>
                   </div>
                 );
               })}
@@ -1122,19 +1122,19 @@ export default function TreinosPage() {
 
       {/* Seção MEUS TREINOS (TEMPLATES) */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-[#f7f8f8]">Meus Treinos Semanais (Templates)</h2>
             <p className="text-xs text-[#8a8f98]">Selecione um treino pronto para iniciar ou peça para a IA criar.</p>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => router.push('/saude/treinos/analytics')}
-              className="px-3 py-1.5 rounded-lg bg-[#38bdf820] border border-[#38bdf840] text-xs font-semibold text-[#38bdf8] hover:bg-[#38bdf830] transition flex items-center space-x-1.5 shadow-sm"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#38bdf820] border border-[#38bdf840] text-[11px] sm:text-xs font-semibold text-[#38bdf8] hover:bg-[#38bdf830] transition flex items-center space-x-1 sm:space-x-1.5 shadow-sm"
             >
-              <BarChart2 className="w-3.5 h-3.5" />
-              <span>Analytics & Gráficos</span>
+              <BarChart2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Analytics</span>
             </button>
 
             <button
@@ -1142,10 +1142,10 @@ export default function TreinosPage() {
                 setIsCompletedModalOpen(true);
                 fetchCompletedSessions();
               }}
-              className="px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium text-[#818cf8] hover:bg-[#1f242d] transition flex items-center space-x-1.5"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[11px] sm:text-xs font-medium text-[#818cf8] hover:bg-[#1f242d] transition flex items-center space-x-1 sm:space-x-1.5"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Treinos Concluídos</span>
+              <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+              <span>Concluídos</span>
             </button>
 
             <button
@@ -1153,10 +1153,10 @@ export default function TreinosPage() {
                 setIsAiGeneratorOpen(true);
                 setAiStep(1);
               }}
-              className="px-3 py-1.5 rounded-lg bg-[#6366f120] text-[#818cf8] hover:bg-[#6366f130] text-xs font-medium transition flex items-center space-x-1.5 border border-[#6366f140]"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#6366f120] text-[#818cf8] hover:bg-[#6366f130] text-[11px] sm:text-xs font-medium transition flex items-center space-x-1 sm:space-x-1.5 border border-[#6366f140]"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Gerar via IA</span>
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              <span>Via IA</span>
             </button>
 
             <button
@@ -1164,9 +1164,9 @@ export default function TreinosPage() {
                 setIsCreateTemplateOpen(true);
                 fetchExercisesDirectly();
               }}
-              className="px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium text-[#8a8f98] hover:text-white hover:bg-[#1f242d] transition flex items-center space-x-1.5"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[11px] sm:text-xs font-medium text-[#8a8f98] hover:text-white hover:bg-[#1f242d] transition flex items-center space-x-1 sm:space-x-1.5"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5 shrink-0" />
               <span>Manual</span>
             </button>
           </div>
@@ -1377,8 +1377,8 @@ export default function TreinosPage() {
           </div>
         </div>
 
-        {/* Filtros por Músculo em Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {/* Filtros por Músculo em Pills (Com Touch Scroll Suave) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-none max-w-full touch-pan-x">
           {MUSCLE_GROUPS.map((mg) => (
             <button
               key={mg.id}
@@ -1386,7 +1386,7 @@ export default function TreinosPage() {
                 setSelectedMuscleGroup(mg.id);
                 setExercisePage(1);
               }}
-              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition ${
+              className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-medium whitespace-nowrap transition ${
                 selectedMuscleGroup === mg.id
                   ? 'bg-[#6366f1] text-white shadow-md shadow-[#6366f130]'
                   : 'bg-[#0f1115] text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8] border border-[#ffffff0e]'
@@ -1439,14 +1439,38 @@ export default function TreinosPage() {
           ))}
         </div>
 
-        {/* Controles de Paginação (1 - 2 - 3 - 4 ... Próxima - Última) */}
+        {/* Controles de Paginação Responsivos */}
         {Math.ceil(exercises.length / 20) > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#ffffff0e]">
             <span className="text-xs text-[#8a8f98]">
               Página <strong className="text-white">{exercisePage}</strong> de {Math.ceil(exercises.length / 20)}
             </span>
 
-            <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {/* Mobile Compact Pagination (< 640px) */}
+            <div className="flex sm:hidden items-center justify-between w-full gap-2">
+              <button
+                type="button"
+                onClick={() => setExercisePage((prev) => Math.max(1, prev - 1))}
+                disabled={exercisePage === 1}
+                className="flex-1 py-2 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 transition font-medium text-center"
+              >
+                ← Anterior
+              </button>
+              <span className="text-xs font-mono text-[#818cf8] px-2 whitespace-nowrap">
+                {exercisePage} / {Math.ceil(exercises.length / 20)}
+              </span>
+              <button
+                type="button"
+                onClick={() => setExercisePage((prev) => Math.min(Math.ceil(exercises.length / 20), prev + 1))}
+                disabled={exercisePage === Math.ceil(exercises.length / 20)}
+                className="flex-1 py-2 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 transition font-medium text-center"
+              >
+                Próxima →
+              </button>
+            </div>
+
+            {/* Desktop Full Pagination (>= 640px) */}
+            <div className="hidden sm:flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-none">
               <button
                 type="button"
                 onClick={() => setExercisePage(1)}

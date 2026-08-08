@@ -296,49 +296,49 @@ export default function WorkoutSessionPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-24 text-[#f7f8f8]">
       {/* Top Header Sticky Bar */}
-      <div className="sticky top-0 z-30 bg-[#080a0c]/90 backdrop-blur-md py-3 border-b border-[#ffffff0e] flex items-center justify-between">
+      <div className="sticky top-0 z-30 bg-[#080a0c]/90 backdrop-blur-md py-2.5 sm:py-3 border-b border-[#ffffff0e] flex flex-wrap items-center justify-between gap-2">
         <button
           onClick={() => router.push('/saude/treinos')}
-          className="flex items-center space-x-1.5 text-xs text-[#8a8f98] hover:text-white"
+          className="flex items-center space-x-1 text-xs text-[#8a8f98] hover:text-white"
         >
           <ChevronLeft className="w-4 h-4" />
           <span>Voltar</span>
         </button>
 
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#16191e] border border-[#ffffff12] text-xs font-mono text-[#38bdf8]">
-            <Clock className="w-3.5 h-3.5" />
+        <div className="flex items-center space-x-1.5 sm:space-x-3">
+          <div className="flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#16191e] border border-[#ffffff12] text-xs font-mono text-[#38bdf8]">
+            <Clock className="w-3.5 h-3.5 shrink-0" />
             <span>{formatSeconds(elapsedSeconds)}</span>
           </div>
 
           <button
             type="button"
             onClick={() => setIsCancelModalOpen(true)}
-            className="px-3 py-1.5 rounded-lg bg-[#ef444415] hover:bg-[#ef444425] text-[#ef4444] border border-[#ef444440] text-xs font-semibold transition flex items-center space-x-1"
+            className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#ef444415] hover:bg-[#ef444425] text-[#ef4444] border border-[#ef444440] text-xs font-semibold transition flex items-center space-x-1"
           >
-            <XCircle className="w-3.5 h-3.5" />
-            <span>Cancelar Treino</span>
+            <XCircle className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden xs:inline">Cancelar</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsFinishModalOpen(true)}
-            className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition"
+            className="px-3 sm:px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition"
           >
-            Finalizar Treino
+            Finalizar
           </button>
         </div>
       </div>
 
       {/* Floating Rest Timer Bar (if active) */}
       {restTimerActive && restTimerSeconds !== null && restTimerSeconds > 0 && (
-        <div className="fixed bottom-6 right-6 z-40 p-4 rounded-xl bg-[#0f1115] border border-[#6366f160] shadow-2xl flex items-center space-x-4 animate-bounce">
-          <div className="w-10 h-10 rounded-full bg-[#6366f120] text-[#818cf8] flex items-center justify-center font-mono font-bold text-sm">
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 p-3 sm:p-4 rounded-xl bg-[#0f1115] border border-[#6366f160] shadow-2xl flex items-center space-x-3 sm:space-x-4 animate-bounce">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#6366f120] text-[#818cf8] flex items-center justify-center font-mono font-bold text-xs sm:text-sm shrink-0">
             {restTimerSeconds}s
           </div>
           <div>
-            <span className="text-xs font-semibold block">Descanso em Andamento</span>
-            <span className="text-[10px] text-[#8a8f98]">Recupere o fôlego antes da próxima série</span>
+            <span className="text-xs font-semibold block">Descanso</span>
+            <span className="text-[10px] text-[#8a8f98] hidden sm:block">Recupere o fôlego para a próxima série</span>
           </div>
           <button
             onClick={() => setRestTimerActive(false)}
