@@ -112,7 +112,7 @@ export class LabExamsService {
   async getUserExams(userId: string) {
     return this.prisma.labExam.findMany({
       where: { userId },
-      orderBy: { examDate: 'desc' },
+      orderBy: { createdAt: 'desc' },
       include: { results: true },
     });
   }

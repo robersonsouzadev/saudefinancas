@@ -352,10 +352,21 @@ export default function LabExamsPage() {
 
   const latestExam = summary?.recentExams?.[0];
 
-  // Group results by category
+  // Consolidate results by category across all user exams (most recent value per biomarkerKey)
   const groupedResults: Record<string, LabResultItem[]> = {};
-  if (latestExam?.results) {
-    latestExam.results.forEach((item) => {
+  if (summary?.recentExams && summary.recentExams.length > 0) {
+    const biomarkerMap = new Map<string, LabResultItem>();
+
+    // Iterate from oldest to newest so newer results overwrite older for the same biomarker
+    [...summary.recentExams].reverse().forEach((exam) => {
+      if (exam.results) {
+        exam.results.forEach((item) => {
+          biomarkerMap.set(item.biomarkerKey, item);
+        });
+      }
+    });
+
+    biomarkerMap.forEach((item) => {
       const cat = item.category || 'OUTROS';
       if (!groupedResults[cat]) groupedResults[cat] = [];
       groupedResults[cat].push(item);
