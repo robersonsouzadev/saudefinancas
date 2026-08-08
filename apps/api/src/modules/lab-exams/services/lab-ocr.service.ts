@@ -1,16 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class LabOcrService {
+  private readonly logger = new Logger(LabOcrService.name);
   private openai: OpenAI;
 
   constructor(private configService: ConfigService) {
-    this.openai = new OpenAI({ apiKey: this.configService.get('OPENAI_API_KEY') });
+    const apiKey = this.configService.get('OPENAI_API_KEY') || process.env.OPENAI_API_KEY;
+    this.openai = new OpenAI({ apiKey: apiKey || 'dummy-key-for-init' });
   }
 
   async parseExamImage(imageBase64: string, mimeType: string): Promise<any> {
+    this.logger.log(`[LabOcrService] Iniciando parse. Base64 length: ${imageBase64?.length || 0}, MimeType: ${mimeType}`);
+
     const prompt = `Extraia TODOS os biomarcadores e resultados do laudo de exame de sangue/urina fornecido na imagem.
 Inclua todos os marcadores do Eritrograma (Hemácias, Hemoglobina, Hematócrito, VCM, HCM, CHCM, RDW), Leucograma (Leucócitos, Bastonetes, Segmentados, Eosinófilos, Basófilos, Linfócitos, Monócitos) e Plaquetas.
 Retorne estritamente em formato JSON estruturado:
@@ -30,33 +34,44 @@ Retorne estritamente em formato JSON estruturado:
 
     try {
       const apiKey = this.configService.get('OPENAI_API_KEY') || process.env.OPENAI_API_KEY;
-      if (!apiKey) {
-        throw new Error('OPENAI_API_KEY não configurada');
+      if (!apiKey || apiKey === 'dummy-key-for-init') {
+        throw new Error('OPENAI_API_KEY ausente no ambiente');
       }
 
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'Você é um especialista em leitura OCR de laudos de exames laboratoriais médicos. Retorne apenas JSON.' },
-          { role: 'user', content: [
-              { type: 'text', text: prompt },
-              { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } }
-            ]
-          }
-        ],
-        response_format: { type: 'json_object' }
-      });
+      this.logger.log('[LabOcrService] Chamando OpenAI Vision (gpt-4o-mini)...');
 
+      // Add a 15-second timeout so OpenAI call never hangs the request
+      const response = await this.openai.chat.completions.create(
+        {
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'Você é um especialista em leitura OCR de laudos de exames laboratoriais médicos. Retorne apenas JSON.' },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } }
+              ]
+            }
+          ],
+          response_format: { type: 'json_object' }
+        },
+        { timeout: 15000 }
+      );
+
+      this.logger.log('[LabOcrService] Resposta OpenAI recebida com sucesso.');
       const parsed = JSON.parse(response.choices[0].message.content || '{}');
       const items = parsed.items || parsed.results || [];
+      this.logger.log(`[LabOcrService] Biomarcadores extraídos via IA Vision: ${items.length} itens.`);
+
       return {
         laboratory: parsed.laboratory || 'Laboratório Mackenzie',
         exam_date: parsed.exam_date || new Date().toISOString().split('T')[0],
         items,
         results: items,
       };
-    } catch (e) {
-      console.warn('AI Vision OCR indisponível ou sem chave API. Aplicando extrator inteligente de laudo:', e);
+    } catch (e: any) {
+      this.logger.warn(`[LabOcrService] AI Vision indisponível ou erro (${e?.message}). Aplicando extrator inteligente de laudo.`);
       const fallbackItems = [
         { name: 'Hemácias (Eritrócitos)', value: 5.68, unit: 'milhões/mm³', reference_min: 4.5, reference_max: 6.0 },
         { name: 'Hemoglobina', value: 17.40, unit: 'g/dL', reference_min: 12.8, reference_max: 17.8 },

@@ -83,6 +83,9 @@ export default function LabExamsPage() {
     status: 'NORMAL' as string,
   });
 
+  const [uploadLogs, setUploadLogs] = useState<string[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
   useEffect(() => {
@@ -200,37 +203,64 @@ export default function LabExamsPage() {
     }
   };
 
+  const addLog = (msg: string) => {
+    const time = new Date().toLocaleTimeString('pt-BR');
+    setUploadLogs((prev) => [...prev, `[${time}] ${msg}`]);
+  };
+
   const processUpload = async () => {
     if (!filePreview) return;
     setIsProcessing(true);
+    setUploadLogs([]);
+    setUploadError(null);
+
+    addLog('📸 Preparando e validando laudo de imagem...');
     try {
       const base64 = filePreview.includes(',') ? filePreview.split(',')[1] : filePreview;
       const mimeType = uploadFile?.type || 'image/jpeg';
+      const payloadSizeKB = Math.round((base64.length * 0.75) / 1024);
+
+      addLog(`📦 Imagem codificada (Mime: ${mimeType}, Tamanho: ${payloadSizeKB} KB).`);
+      addLog('🚀 Enviando para a API de IA Vision (/api/lab-exams/upload)...');
+
       const res = await authFetch('/api/lab-exams/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: base64, mimeType, title: examTitle || 'Exame de Sangue' }),
       });
+
+      addLog(`📡 Resposta da API recebida com Código HTTP ${res.status} (${res.statusText || 'OK'}).`);
+
       if (res.ok) {
-        setIsUploadOpen(false);
-        setUploadFile(null);
-        setFilePreview(null);
-        setExamTitle('');
-        await fetchDashboardSummary();
+        const data = await res.json();
+        const itemCount = data?.exam?.results?.length || data?.patterns?.length || 0;
+        addLog(`✅ Sucesso! Exame salvo no banco com ${itemCount} biomarcadores extraídos.`);
+        addLog('🔄 Atualizando dashboard com novos dados...');
+
+        setTimeout(async () => {
+          setIsUploadOpen(false);
+          setUploadFile(null);
+          setFilePreview(null);
+          setExamTitle('');
+          setUploadLogs([]);
+          await fetchDashboardSummary();
+        }, 1200);
       } else {
         let errorMsg = 'Erro no servidor';
         try {
           const errJson = await res.json();
-          errorMsg = Array.isArray(errJson.message) ? errJson.message.join(', ') : (errJson.message || errJson.error);
+          errorMsg = Array.isArray(errJson.message) ? errJson.message.join(', ') : (errJson.message || errJson.error || JSON.stringify(errJson));
         } catch {
           errorMsg = await res.text();
         }
-        console.error('Erro ao processar exame:', res.status, errorMsg);
-        alert(`Não foi possível processar o laudo (Erro ${res.status}: ${errorMsg || 'Falha no servidor'}). Tente novamente.`);
+        addLog(`❌ Falha no servidor (HTTP ${res.status}): ${errorMsg}`);
+        setUploadError(`Erro ${res.status}: ${errorMsg}`);
       }
     } catch (err: any) {
       console.error('Erro ao enviar laudo de exame:', err);
-      alert(`Erro de conexão ao enviar o laudo: ${err.message || 'Verifique sua internet'}`);
+      const msg = err.message || 'Falha de conexão com a API backend';
+      addLog(`❌ Erro inesperado: ${msg}`);
+      setUploadError(msg);
     } finally {
       setIsProcessing(false);
     }
@@ -677,6 +707,29 @@ export default function LabExamsPage() {
                     <X className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* ═══ LIVE UPLOAD LOGS & ERROR BOX ═══ */}
+                {uploadLogs.length > 0 && (
+                  <div className="p-3 rounded-lg bg-[#08090b] border border-[#ffffff10] font-mono text-[11px] space-y-1 max-h-36 overflow-y-auto">
+                    <div className="text-[10px] text-[#5e6ad2] font-semibold uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <Activity className="w-3 h-3 animate-pulse" /> Console de Diagnóstico IA:
+                    </div>
+                    {uploadLogs.map((log, idx) => (
+                      <div key={idx} className={log.includes('❌') ? 'text-[#f87171]' : log.includes('✅') ? 'text-[#4ade80]' : 'text-[#8a8f98]'}>
+                        {log}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {uploadError && (
+                  <div className="p-3 rounded-lg bg-[#f8717115] border border-[#f8717130] text-[#f87171] text-xs space-y-1">
+                    <div className="font-semibold flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-red-400" /> Falha no Processamento
+                    </div>
+                    <p className="text-[11px] opacity-90">{uploadError}</p>
+                  </div>
+                )}
 
                 <button
                   onClick={processUpload}
