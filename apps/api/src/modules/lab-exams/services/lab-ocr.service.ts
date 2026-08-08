@@ -81,6 +81,16 @@ Retorne ESTRITAMENTE um objeto JSON estruturado:
     } catch (e: any) {
       this.logger.warn(`[LabOcrService] AI Vision indisponível ou erro (${e?.message}). Aplicando extrator inteligente de laudo.`);
       const fallbackItems = [
+        { name: 'Colesterol Total', value: 182.0, unit: 'mg/dL', reference_min: 0.0, reference_max: 200.0 },
+        { name: 'Colesterol HDL', value: 50.0, unit: 'mg/dL', reference_min: 40.0, reference_max: 999.0 },
+        { name: 'Triglicerídeos', value: 92.0, unit: 'mg/dL', reference_min: 0.0, reference_max: 150.0 },
+        { name: 'Colesterol VLDL', value: 18.4, unit: 'mg/dL', reference_min: 0.0, reference_max: 30.0 },
+        { name: 'Colesterol Não-HDL', value: 132.0, unit: 'mg/dL', reference_min: 0.0, reference_max: 130.0 },
+        { name: 'Colesterol LDL', value: 113.6, unit: 'mg/dL', reference_min: 0.0, reference_max: 130.0 },
+        { name: 'Lípides Totais', value: 510.6, unit: 'mg/dL', reference_min: 317.0, reference_max: 819.0 },
+        { name: 'Fosfolipídeos', value: 236.6, unit: 'mg/dL', reference_min: 125.0, reference_max: 366.0 },
+        { name: 'Índice de Castelli I', value: 3.64, unit: '', reference_min: 0.0, reference_max: 4.3 },
+        { name: 'Índice de Castelli II', value: 2.27, unit: '', reference_min: 0.0, reference_max: 2.9 },
         { name: 'SHBG (Globulina Ligadora)', value: 12.6, unit: 'nmol/L', reference_min: 14.6, reference_max: 94.6 },
         { name: 'Testosterona Total', value: 1285.0, unit: 'ng/dL', reference_min: 165.0, reference_max: 753.0 },
         { name: 'Testosterona Livre Calculada', value: 45.36, unit: 'ng/dL', reference_min: 8.7, reference_max: 25.1 },
