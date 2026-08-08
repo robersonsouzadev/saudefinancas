@@ -83,6 +83,8 @@ export class BiomarkerNormalizerService {
     'VITAMINA B12': { key: 'VITAMIN_B12', name: 'Vitamina B12', category: 'VITAMINAS_MINERAIS' },
     'FERRITIN': { key: 'FERRITIN', name: 'Ferritina', category: 'VITAMINAS_MINERAIS' },
     'FERRITINA': { key: 'FERRITIN', name: 'Ferritina', category: 'VITAMINAS_MINERAIS' },
+    'FERRITINA SERICA': { key: 'FERRITIN', name: 'Ferritina', category: 'VITAMINAS_MINERAIS' },
+    'FERRITINA SÉRICA': { key: 'FERRITIN', name: 'Ferritina', category: 'VITAMINAS_MINERAIS' },
     'IRON': { key: 'IRON', name: 'Ferro Sérico', category: 'VITAMINAS_MINERAIS' },
     'FERRO': { key: 'IRON', name: 'Ferro Sérico', category: 'VITAMINAS_MINERAIS' },
     'MAGNESIUM': { key: 'MAGNESIUM', name: 'Magnésio', category: 'VITAMINAS_MINERAIS' },
