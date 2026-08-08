@@ -120,24 +120,34 @@ export class BiomarkerNormalizerService {
   };
 
   normalize(name: string): { key: string; name: string; category: string } {
-    // Normalize string: uppercase, remove accents, and strip punctuation/dots/hyphens
     const cleanRaw = name.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-    const cleanNoPunct = cleanRaw.replace(/[^A-Z0-9\s]/g, '').trim();
+    // Compact representation without any non-alphanumeric chars (e.g., "V.C.M." -> "VCM", "AST (TGO)" -> "ASTTGO")
+    const cleanCompact = cleanRaw.replace(/[^A-Z0-9]/g, '');
+    // Word representation with spaces (e.g., "AST (TGO)" -> "AST TGO")
+    const cleanWords = cleanRaw.replace(/[^A-Z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
 
+    // ── Pass 1: Exact Match on Compact String (Highest Priority) ──
     for (const [pattern, entry] of Object.entries(this.dictionary)) {
-      const patternClean = pattern.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9\s]/g, '').trim();
-
-      if (
-        cleanRaw.includes(patternClean) || 
-        cleanNoPunct.includes(patternClean) ||
-        patternClean === cleanNoPunct
-      ) {
+      const patternCompact = pattern.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]/g, '');
+      if (cleanCompact === patternCompact) {
         return entry;
       }
     }
 
+    // ── Pass 2: Whole Word Boundary Match (Prevents "Bastonetes" matching "AST") ──
+    for (const [pattern, entry] of Object.entries(this.dictionary)) {
+      const patternWords = pattern.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (patternWords.length >= 2) {
+        const regex = new RegExp(`\\b${patternWords}\\b`, 'i');
+        if (regex.test(cleanWords)) {
+          return entry;
+        }
+      }
+    }
+
+    // ── Fallback ──
     return {
-      key: cleanNoPunct.replace(/\s+/g, '_').substring(0, 30),
+      key: cleanCompact.substring(0, 30) || 'BIOMARKER',
       name: name,
       category: 'OUTROS',
     };
