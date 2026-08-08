@@ -95,11 +95,13 @@ export class BiomarkerNormalizerService {
     'HEMOGLOBINA': { key: 'HEMOGLOBIN', name: 'Hemoglobina', category: 'HEMOGRAMA' },
     'HEMATOCRIT': { key: 'HEMATOCRIT', name: 'Hematócrito', category: 'HEMOGRAMA' },
     'HEMATOCRITO': { key: 'HEMATOCRIT', name: 'Hematócrito', category: 'HEMOGRAMA' },
-    'MCV': { key: 'MCV', name: 'Volume Corpuscular Médio (VCM)', category: 'HEMOGRAMA' },
-    'VCM': { key: 'MCV', name: 'Volume Corpuscular Médio (VCM)', category: 'HEMOGRAMA' },
-    'HCM': { key: 'MCH', name: 'Hemoglobina Corpuscular Média (HCM)', category: 'HEMOGRAMA' },
-    'CHCM': { key: 'MCHC', name: 'Concentração de Hemoglobina Corpuscular Média (CHCM)', category: 'HEMOGRAMA' },
-    'RDW': { key: 'RDW', name: 'RDW (Red Cell Distribution Width)', category: 'HEMOGRAMA' },
+    'MCV': { key: 'MCV', name: 'Volume Corpuscular Médio (V.C.M.)', category: 'HEMOGRAMA' },
+    'VCM': { key: 'MCV', name: 'Volume Corpuscular Médio (V.C.M.)', category: 'HEMOGRAMA' },
+    'MCH': { key: 'MCH', name: 'Hemoglobina Corpuscular Média (H.C.M.)', category: 'HEMOGRAMA' },
+    'HCM': { key: 'MCH', name: 'Hemoglobina Corpuscular Média (H.C.M.)', category: 'HEMOGRAMA' },
+    'MCHC': { key: 'MCHC', name: 'Concentração de Hemoglobina Corpuscular Média (C.H.C.M.)', category: 'HEMOGRAMA' },
+    'CHCM': { key: 'MCHC', name: 'Concentração de Hemoglobina Corpuscular Média (C.H.C.M.)', category: 'HEMOGRAMA' },
+    'RDW': { key: 'RDW', name: 'RDW (R.D.W.)', category: 'HEMOGRAMA' },
     'WBC': { key: 'WBC', name: 'Leucócitos', category: 'HEMOGRAMA' },
     'LEUCOCITOS': { key: 'WBC', name: 'Leucócitos', category: 'HEMOGRAMA' },
     'BASTONETES': { key: 'BAND_NEUTROPHILS', name: 'Bastonetes', category: 'HEMOGRAMA' },
@@ -107,27 +109,35 @@ export class BiomarkerNormalizerService {
     'EOSINOFILOS': { key: 'EOSINOPHILS', name: 'Eosinófilos', category: 'HEMOGRAMA' },
     'BASOFILOS': { key: 'BASOPHILS', name: 'Basófilos', category: 'HEMOGRAMA' },
     'MONOCITOS': { key: 'MONOCYTES', name: 'Monócitos', category: 'HEMOGRAMA' },
+    'LINFOCITOS': { key: 'LYMPHOCYTES', name: 'Linfócitos', category: 'HEMOGRAMA' },
+    'LINFOCITOS REATIVOS': { key: 'REACTIVE_LYMPHOCYTES', name: 'Linfócitos Reativos', category: 'HEMOGRAMA' },
     'BLASTOS': { key: 'BLASTS', name: 'Blastos', category: 'HEMOGRAMA' },
     'PROMIELOCITOS': { key: 'PROMYELOCYTES', name: 'Promielócitos', category: 'HEMOGRAMA' },
     'MIELOCITOS': { key: 'MYELOCYTES', name: 'Mielócitos', category: 'HEMOGRAMA' },
     'METAMIELOCITOS': { key: 'METAMYELOCYTES', name: 'Metamielócitos', category: 'HEMOGRAMA' },
     'PLATELETS': { key: 'PLATELETS', name: 'Plaquetas', category: 'HEMOGRAMA' },
     'PLAQUETAS': { key: 'PLATELETS', name: 'Plaquetas', category: 'HEMOGRAMA' },
-    'LYMPHOCYTE_PCT': { key: 'LYMPHOCYTE_PCT', name: 'Linfócitos (%)', category: 'HEMOGRAMA' },
-    'LINFOCITOS': { key: 'LYMPHOCYTE_PCT', name: 'Linfócitos (%)', category: 'HEMOGRAMA' },
   };
 
   normalize(name: string): { key: string; name: string; category: string } {
-    const clean = name.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    // Normalize string: uppercase, remove accents, and strip punctuation/dots/hyphens
+    const cleanRaw = name.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    const cleanNoPunct = cleanRaw.replace(/[^A-Z0-9\s]/g, '').trim();
 
     for (const [pattern, entry] of Object.entries(this.dictionary)) {
-      if (clean.includes(pattern)) {
+      const patternClean = pattern.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9\s]/g, '').trim();
+
+      if (
+        cleanRaw.includes(patternClean) || 
+        cleanNoPunct.includes(patternClean) ||
+        patternClean === cleanNoPunct
+      ) {
         return entry;
       }
     }
 
     return {
-      key: clean.replace(/\s+/g, '_').substring(0, 30),
+      key: cleanNoPunct.replace(/\s+/g, '_').substring(0, 30),
       name: name,
       category: 'OUTROS',
     };
