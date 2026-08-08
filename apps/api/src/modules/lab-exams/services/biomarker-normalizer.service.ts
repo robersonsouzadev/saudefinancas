@@ -102,6 +102,8 @@ export class BiomarkerNormalizerService {
     'POTASSIO': { key: 'POTASSIUM', name: 'Potássio', category: 'VITAMINAS_MINERAIS' },
     'ZINC': { key: 'ZINC', name: 'Zinco', category: 'VITAMINAS_MINERAIS' },
     'ZINCO': { key: 'ZINC', name: 'Zinco', category: 'VITAMINAS_MINERAIS' },
+    'ZINCO (SORO)': { key: 'ZINC', name: 'Zinco', category: 'VITAMINAS_MINERAIS' },
+    'ZINCO SORO': { key: 'ZINC', name: 'Zinco', category: 'VITAMINAS_MINERAIS' },
 
     // ── HORMONIOS ──
     'TOTAL_TESTOSTERONE': { key: 'TOTAL_TESTOSTERONE', name: 'Testosterona Total', category: 'HORMONIOS' },
@@ -113,7 +115,8 @@ export class BiomarkerNormalizerService {
     'SHBG': { key: 'SHBG', name: 'SHBG (Globulina Ligadora)', category: 'HORMONIOS' },
     'GLOBULINA LIGADORA DE HORMONIOS SEXUAIS': { key: 'SHBG', name: 'SHBG (Globulina Ligadora)', category: 'HORMONIOS' },
     'ESTRADIOL': { key: 'ESTRADIOL', name: 'Estradiol', category: 'HORMONIOS' },
-    'CORTISOL': { key: 'CORTISOL', name: 'Cortisol', category: 'HORMONIOS' },
+    'CORTISOL': { key: 'CORTISOL', name: 'Cortisol Basal', category: 'HORMONIOS' },
+    'CORTISOL BASAL': { key: 'CORTISOL', name: 'Cortisol Basal', category: 'HORMONIOS' },
 
     // ── INFLAMACAO ──
     'HS_CRP': { key: 'HS_CRP', name: 'Proteína C-Reativa (PCR)', category: 'INFLAMACAO' },
