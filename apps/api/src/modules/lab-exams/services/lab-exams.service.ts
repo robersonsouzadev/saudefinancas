@@ -28,16 +28,29 @@ export class LabExamsService {
         return { exam: null, patterns: [], message: 'Nenhum biomarcador foi extraído da imagem. Tente uma foto mais nítida.' };
       }
 
+      const parseNumericValue = (val: any): number => {
+        if (typeof val === 'number') return isNaN(val) ? 0 : val;
+        if (!val) return 0;
+        let str = String(val).trim();
+        if (/^\d{1,3}(\.\d{3})+$/.test(str)) {
+          str = str.replace(/\./g, '');
+        }
+        str = str.replace(',', '.');
+        const cleaned = str.replace(/[^0-9.-]/g, '');
+        const parsed = parseFloat(cleaned);
+        return isNaN(parsed) ? 0 : parsed;
+      };
+
       const rawItems = itemsList.map((item: any) => {
         const norm = this.normalizer.normalize(item.name || 'Biomarcador');
         return {
           biomarkerKey: norm.key,
           biomarkerName: norm.name,
           category: norm.category,
-          value: Number(item.value) || 0,
+          value: parseNumericValue(item.value),
           unit: item.unit || 'mg/dL',
-          referenceMin: item.reference_min !== undefined ? Number(item.reference_min) : undefined,
-          referenceMax: item.reference_max !== undefined ? Number(item.reference_max) : undefined,
+          referenceMin: item.reference_min !== undefined && item.reference_min !== null ? parseNumericValue(item.reference_min) : undefined,
+          referenceMax: item.reference_max !== undefined && item.reference_max !== null ? parseNumericValue(item.reference_max) : undefined,
         };
       });
 
