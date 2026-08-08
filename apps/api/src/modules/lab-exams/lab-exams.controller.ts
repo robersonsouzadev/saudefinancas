@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards, Req, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Put, Body, Param, UseGuards, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LabExamsService } from './services/lab-exams.service';
 
@@ -47,6 +47,47 @@ export class LabExamsController {
   async getBiomarkerHistory(@Req() req: any, @Param('key') key: string) {
     const userId = req.user?.id || req.user?.userId;
     return this.labExamsService.getBiomarkerHistory(userId, key);
+  }
+
+  @Put('results/:resultId')
+  async updateResult(
+    @Param('resultId') resultId: string,
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    try {
+      const userId = req.user?.id || req.user?.userId;
+      if (!userId) {
+        throw new HttpException('Usuário não autenticado', HttpStatus.UNAUTHORIZED);
+      }
+      return await this.labExamsService.updateResult(resultId, userId, body);
+    } catch (error: any) {
+      if (error instanceof HttpException) throw error;
+      throw new HttpException(
+        error?.message || 'Erro ao atualizar resultado',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Delete('results/:resultId')
+  async deleteResult(
+    @Param('resultId') resultId: string,
+    @Req() req: any,
+  ) {
+    try {
+      const userId = req.user?.id || req.user?.userId;
+      if (!userId) {
+        throw new HttpException('Usuário não autenticado', HttpStatus.UNAUTHORIZED);
+      }
+      return await this.labExamsService.deleteResult(resultId, userId);
+    } catch (error: any) {
+      if (error instanceof HttpException) throw error;
+      throw new HttpException(
+        error?.message || 'Erro ao excluir resultado',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get(':id')

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
   FileText, Upload, Sparkles, AlertTriangle, CheckCircle2, TrendingUp, TrendingDown, 
-  Activity, ShieldAlert, Heart, Calendar, Plus, RefreshCw, Eye, Trash2, X, ChevronDown, ChevronUp, Info
+  Activity, ShieldAlert, Heart, Calendar, Plus, RefreshCw, Eye, Trash2, X, ChevronDown, ChevronUp, Info, Pencil
 } from 'lucide-react';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine 
@@ -71,6 +71,17 @@ export default function LabExamsPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [examTitle, setExamTitle] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [editingResult, setEditingResult] = useState<LabResultItem | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    biomarkerName: '',
+    value: 0,
+    unit: '',
+    referenceMin: 0,
+    referenceMax: 0,
+    status: 'NORMAL' as string,
+  });
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -222,6 +233,55 @@ export default function LabExamsPage() {
       alert(`Erro de conexão ao enviar o laudo: ${err.message || 'Verifique sua internet'}`);
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleEditResult = (result: LabResultItem) => {
+    setEditingResult(result);
+    setEditForm({
+      biomarkerName: result.biomarkerName,
+      value: result.value,
+      unit: result.unit,
+      referenceMin: result.referenceMin ?? 0,
+      referenceMax: result.referenceMax ?? 0,
+      status: result.status,
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingResult) return;
+    try {
+      const res = await authFetch(`/api/lab-exams/results/${editingResult.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      });
+      if (res.ok) {
+        setIsEditModalOpen(false);
+        setEditingResult(null);
+        await fetchDashboardSummary();
+      } else {
+        alert('Erro ao salvar alterações do biomarcador.');
+      }
+    } catch {
+      alert('Erro de conexão ao salvar biomarcador.');
+    }
+  };
+
+  const handleDeleteResult = async (resultId: string, biomarkerName: string) => {
+    if (!confirm(`Deseja remover o biomarcador "${biomarkerName}" deste exame?`)) return;
+    try {
+      const res = await authFetch(`/api/lab-exams/results/${resultId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await fetchDashboardSummary();
+      } else {
+        alert('Erro ao excluir biomarcador.');
+      }
+    } catch {
+      alert('Erro de conexão ao excluir biomarcador.');
     }
   };
 
@@ -546,6 +606,24 @@ export default function LabExamsPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1 ml-3">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleEditResult(item); }}
+                          className="p-1.5 rounded hover:bg-[#1d2127] text-[#575c66] hover:text-[#5e6ad2] transition"
+                          title="Editar biomarcador"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteResult(item.id, item.biomarkerName); }}
+                          className="p-1.5 rounded hover:bg-[#1d2127] text-[#575c66] hover:text-[#f87171] transition"
+                          title="Excluir biomarcador"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -619,6 +697,103 @@ export default function LabExamsPage() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ EDIT BIOMARKER MODAL ═══ */}
+      {isEditModalOpen && editingResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#0f1115] border border-[#ffffff12] rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#ffffff08]">
+              <h3 className="text-sm font-semibold text-[#f7f8f8]">Editar Biomarcador</h3>
+              <button onClick={() => { setIsEditModalOpen(false); setEditingResult(null); }} className="text-[#8a8f98] hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Nome do Biomarcador</label>
+                <input
+                  type="text"
+                  value={editForm.biomarkerName}
+                  onChange={(e) => setEditForm({ ...editForm, biomarkerName: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Valor</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={editForm.value}
+                    onChange={(e) => setEditForm({ ...editForm, value: parseFloat(e.target.value) || 0 })}
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Unidade</label>
+                  <input
+                    type="text"
+                    value={editForm.unit}
+                    onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })}
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Ref. Mínima</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={editForm.referenceMin}
+                    onChange={(e) => setEditForm({ ...editForm, referenceMin: parseFloat(e.target.value) || 0 })}
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Ref. Máxima</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={editForm.referenceMax}
+                    onChange={(e) => setEditForm({ ...editForm, referenceMax: parseFloat(e.target.value) || 0 })}
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Status</label>
+                <select
+                  value={editForm.status}
+                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                >
+                  <option value="NORMAL">🔵 Normal</option>
+                  <option value="OTIMO">🟢 Ótimo</option>
+                  <option value="ALTO">🟡 Levemente Alto</option>
+                  <option value="CRITICO_ALTO">🔴 Crítico Alto</option>
+                  <option value="BAIXO">🟡 Levemente Baixo</option>
+                  <option value="CRITICO_BAIXO">🔴 Crítico Baixo</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-[#ffffff08]">
+              <button
+                onClick={() => { setIsEditModalOpen(false); setEditingResult(null); }}
+                className="px-4 py-1.5 rounded-lg text-xs text-[#8a8f98] hover:text-white hover:bg-[#16191e] transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="px-4 py-1.5 rounded-lg bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-xs font-medium transition"
+              >
+                Salvar Alterações
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -182,4 +182,31 @@ export class LabExamsService {
   async deleteExam(id: string) {
     return this.prisma.labExam.delete({ where: { id } });
   }
+  async updateResult(resultId: string, userId: string, data: { value?: number; unit?: string; biomarkerName?: string; category?: string; referenceMin?: number; referenceMax?: number; status?: string }) {
+    const result = await this.prisma.labResult.findUnique({
+      where: { id: resultId },
+      include: { exam: true },
+    });
+    if (!result || result.exam.userId !== userId) {
+      throw new Error('Acesso negado ou resultado não encontrado');
+    }
+    return this.prisma.labResult.update({
+      where: { id: resultId },
+      data: data as any,
+    });
+  }
+
+  async deleteResult(resultId: string, userId: string) {
+    const result = await this.prisma.labResult.findUnique({
+      where: { id: resultId },
+      include: { exam: true },
+    });
+    if (!result || result.exam.userId !== userId) {
+      throw new Error('Acesso negado ou resultado não encontrado');
+    }
+    await this.prisma.labResult.delete({
+      where: { id: resultId },
+    });
+    return { deleted: true };
+  }
 }
