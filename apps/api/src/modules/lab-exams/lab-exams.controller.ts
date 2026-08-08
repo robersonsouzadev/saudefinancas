@@ -98,6 +98,18 @@ export class LabExamsController {
     }
   }
 
+  @Get('health-score')
+  async getHealthScore(@Req() req: any) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.labExamsService.getHealthScore(userId);
+  }
+
+  @Get('ai-summary')  
+  async getAISummary(@Req() req: any) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.labExamsService.getAISummary(userId);
+  }
+
   @Get(':id')
   async getExamById(@Param('id') id: string) {
     return this.labExamsService.getExamById(id);

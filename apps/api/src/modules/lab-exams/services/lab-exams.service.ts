@@ -225,4 +225,104 @@ export class LabExamsService {
     });
     return { deleted: true };
   }
+
+  async getHealthScore(userId: string) {
+    const exams = await this.getUserExams(userId);
+    const examsWithResults = exams.filter(e => e.results && e.results.length > 0);
+    
+    if (examsWithResults.length === 0) {
+      return null;
+    }
+
+    const latestExam = examsWithResults[0];
+    const previousExam = examsWithResults.length > 1 ? examsWithResults[1] : null;
+
+    let globalScore = 0;
+    let normalOtimoCount = 0;
+    const categoryScores: Record<string, { score: number; total: number; optimal: number; attention: number }> = {};
+    const attentionItems: any[] = [];
+    const improvements: any[] = [];
+
+    latestExam.results.forEach((r) => {
+      const cat = r.category || 'Geral';
+      if (!categoryScores[cat]) {
+        categoryScores[cat] = { score: 0, total: 0, optimal: 0, attention: 0 };
+      }
+      categoryScores[cat].total++;
+
+      const isGood = r.status === 'NORMAL' || r.status === 'OTIMO';
+      const isAttention = r.status === 'ALTO' || r.status === 'CRITICO_ALTO' || r.status === 'BAIXO' || r.status === 'CRITICO_BAIXO';
+
+      if (isGood) {
+        normalOtimoCount++;
+        categoryScores[cat].optimal++;
+      }
+      
+      if (isAttention) {
+        categoryScores[cat].attention++;
+        if (attentionItems.length < 5) {
+          attentionItems.push({
+            biomarkerName: r.biomarkerName,
+            value: r.value,
+            unit: r.unit,
+            status: r.status,
+            category: cat,
+          });
+        }
+      }
+
+      if (isGood && r.delta && r.delta > 0 && improvements.length < 5) {
+        improvements.push({
+          biomarkerName: r.biomarkerName,
+          value: r.value,
+          unit: r.unit,
+          status: r.status,
+          category: cat,
+          delta: r.delta
+        });
+      }
+    });
+
+    globalScore = latestExam.results.length > 0 ? Math.round((normalOtimoCount / latestExam.results.length) * 100) : 0;
+
+    Object.keys(categoryScores).forEach(cat => {
+      const stats = categoryScores[cat];
+      stats.score = stats.total > 0 ? Math.round((stats.optimal / stats.total) * 100) : 0;
+    });
+
+    let trend = '';
+    if (previousExam) {
+      let prevNormalOtimoCount = 0;
+      previousExam.results.forEach((r) => {
+        if (r.status === 'NORMAL' || r.status === 'OTIMO') prevNormalOtimoCount++;
+      });
+      const prevGlobalScore = previousExam.results.length > 0 ? Math.round((prevNormalOtimoCount / previousExam.results.length) * 100) : 0;
+      const diff = globalScore - prevGlobalScore;
+      trend = diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : '0';
+    }
+
+    const nextCheckupDate = new Date(latestExam.examDate);
+    nextCheckupDate.setMonth(nextCheckupDate.getMonth() + 6);
+
+    return {
+      globalScore,
+      trend,
+      categoryScores,
+      topAttentionItems: attentionItems,
+      topImprovements: improvements,
+      nextCheckupDate: nextCheckupDate.toISOString(),
+    };
+  }
+
+  async getAISummary(userId: string) {
+    const exams = await this.getUserExams(userId);
+    const examsWithResults = exams.filter(e => e.results && e.results.length > 0);
+    
+    if (examsWithResults.length === 0) {
+      return null;
+    }
+
+    const latestExam = examsWithResults[0];
+    return this.insightService.generateLeigaSummary(latestExam);
+  }
 }
