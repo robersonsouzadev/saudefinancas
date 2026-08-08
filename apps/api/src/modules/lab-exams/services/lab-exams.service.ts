@@ -65,7 +65,7 @@ export class LabExamsService {
         userId,
         title,
         laboratory: ocrData.laboratory || 'Laboratório',
-        examDate: ocrData.exam_date ? new Date(ocrData.exam_date) : new Date(),
+        examDate: (ocrData.exam_date && !isNaN(new Date(ocrData.exam_date).getTime())) ? new Date(ocrData.exam_date) : new Date(),
         aiProcessed: true,
         aiInsight,
         phenoAge,
