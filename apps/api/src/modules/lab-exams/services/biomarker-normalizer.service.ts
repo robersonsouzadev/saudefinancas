@@ -73,6 +73,12 @@ export class BiomarkerNormalizerService {
     'FERRO': { key: 'IRON', name: 'Ferro Sérico', category: 'VITAMINAS_MINERAIS' },
     'MAGNESIUM': { key: 'MAGNESIUM', name: 'Magnésio', category: 'VITAMINAS_MINERAIS' },
     'MAGNESIO': { key: 'MAGNESIUM', name: 'Magnésio', category: 'VITAMINAS_MINERAIS' },
+    'CALCIUM': { key: 'CALCIUM', name: 'Cálcio', category: 'VITAMINAS_MINERAIS' },
+    'CALCIO': { key: 'CALCIUM', name: 'Cálcio', category: 'VITAMINAS_MINERAIS' },
+    'SODIUM': { key: 'SODIUM', name: 'Sódio', category: 'VITAMINAS_MINERAIS' },
+    'SODIO': { key: 'SODIUM', name: 'Sódio', category: 'VITAMINAS_MINERAIS' },
+    'POTASSIUM': { key: 'POTASSIUM', name: 'Potássio', category: 'VITAMINAS_MINERAIS' },
+    'POTASSIO': { key: 'POTASSIUM', name: 'Potássio', category: 'VITAMINAS_MINERAIS' },
     'ZINC': { key: 'ZINC', name: 'Zinco', category: 'VITAMINAS_MINERAIS' },
     'ZINCO': { key: 'ZINC', name: 'Zinco', category: 'VITAMINAS_MINERAIS' },
 

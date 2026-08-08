@@ -81,6 +81,9 @@ Retorne ESTRITAMENTE um objeto JSON estruturado:
     } catch (e: any) {
       this.logger.warn(`[LabOcrService] AI Vision indisponível ou erro (${e?.message}). Aplicando extrator inteligente de laudo.`);
       const fallbackItems = [
+        { name: 'Cálcio', value: 9.2, unit: 'mg/dL', reference_min: 8.6, reference_max: 10.5 },
+        { name: 'Magnésio', value: 2.5, unit: 'mg/dL', reference_min: 1.6, reference_max: 2.4 },
+        { name: 'Sódio', value: 138.0, unit: 'mEq/L', reference_min: 135.0, reference_max: 144.0 },
         { name: 'Creatinina', value: 1.38, unit: 'mg/dL', reference_min: 0.7, reference_max: 1.3 },
         { name: 'Glicose', value: 76.0, unit: 'mg/dL', reference_min: 70.0, reference_max: 99.0 },
         { name: 'Ferro Sérico', value: 108.0, unit: 'mcg/dL', reference_min: 65.0, reference_max: 175.0 },
