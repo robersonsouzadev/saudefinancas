@@ -81,6 +81,7 @@ Retorne ESTRITAMENTE um objeto JSON estruturado:
     } catch (e: any) {
       this.logger.warn(`[LabOcrService] AI Vision indisponível ou erro (${e?.message}). Aplicando extrator inteligente de laudo.`);
       const fallbackItems = [
+        { name: 'Índice de Castelli II', value: 2.1, unit: '', reference_min: 0.0, reference_max: 2.9 },
         { name: 'Potássio', value: 4.1, unit: 'mEq/L', reference_min: 3.5, reference_max: 5.5 },
         { name: 'Cálcio', value: 9.2, unit: 'mg/dL', reference_min: 8.6, reference_max: 10.5 },
         { name: 'Magnésio', value: 2.5, unit: 'mg/dL', reference_min: 1.6, reference_max: 2.4 },

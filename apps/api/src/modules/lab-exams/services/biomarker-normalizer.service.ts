@@ -34,6 +34,10 @@ export class BiomarkerNormalizerService {
     'TRIGLICERIDEOS': { key: 'TRIGLYCERIDES', name: 'Triglicerídeos', category: 'LIPIDIOS' },
     'TRIGLICERIDEO': { key: 'TRIGLYCERIDES', name: 'Triglicerídeos', category: 'LIPIDIOS' },
     'APOB': { key: 'APOB', name: 'Apolipoproteína B', category: 'LIPIDIOS' },
+    'CASTELLI I': { key: 'CASTELLI_I', name: 'Índice de Castelli I', category: 'LIPIDIOS' },
+    'INDICE DE CASTELLI I': { key: 'CASTELLI_I', name: 'Índice de Castelli I', category: 'LIPIDIOS' },
+    'CASTELLI II': { key: 'CASTELLI_II', name: 'Índice de Castelli II', category: 'LIPIDIOS' },
+    'INDICE DE CASTELLI II': { key: 'CASTELLI_II', name: 'Índice de Castelli II', category: 'LIPIDIOS' },
 
     // ── TIREOIDE ──
     'TSH': { key: 'TSH', name: 'TSH', category: 'TIREOIDE' },
