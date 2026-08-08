@@ -19,16 +19,17 @@ export class LabExamsService {
 
   async createExamFromOCR(userId: string, imageBase64: string, mimeType: string, customTitle?: string) {
     const ocrData = await this.ocrService.parseExamImage(imageBase64, mimeType);
-    const title = customTitle || ocrData.laboratory ? `Exame ${ocrData.laboratory}` : 'Exame Laboratorial';
+    const title = customTitle || (ocrData.laboratory ? `Exame ${ocrData.laboratory}` : 'Exame Laboratorial');
 
-    // Map extracted items
-    const rawItems = (ocrData.results || []).map((item: any) => {
-      const norm = this.normalizer.normalize(item.name);
+    // Map extracted items (support both items and results array properties)
+    const itemsList = ocrData.items || ocrData.results || [];
+    const rawItems = itemsList.map((item: any) => {
+      const norm = this.normalizer.normalize(item.name || 'Biomarcador');
       return {
         biomarkerKey: norm.key,
         biomarkerName: norm.name,
         category: norm.category,
-        value: Number(item.value),
+        value: Number(item.value) || 0,
         unit: item.unit || 'mg/dL',
         referenceMin: item.reference_min !== undefined ? Number(item.reference_min) : undefined,
         referenceMax: item.reference_max !== undefined ? Number(item.reference_max) : undefined,

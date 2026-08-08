@@ -142,22 +142,27 @@ export default function LabExamsPage() {
     if (!filePreview) return;
     setIsProcessing(true);
     try {
-      const base64 = filePreview.split(',')[1];
+      const base64 = filePreview.includes(',') ? filePreview.split(',')[1] : filePreview;
       const mimeType = uploadFile?.type || 'image/jpeg';
-      const res = await fetch(`${API_BASE}/lab-exams/upload`, {
+      const res = await authFetch('/api/lab-exams/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64, mimeType, title: examTitle }),
-        credentials: 'include',
+        body: JSON.stringify({ image: base64, mimeType, title: examTitle || 'Exame de Sangue' }),
       });
       if (res.ok) {
         setIsUploadOpen(false);
         setUploadFile(null);
         setFilePreview(null);
-        fetchDashboardSummary();
+        setExamTitle('');
+        await fetchDashboardSummary();
+      } else {
+        const errData = await res.text();
+        console.error('Erro ao processar exame:', res.status, errData);
+        alert('Não foi possível processar o laudo via IA Vision. Tente novamente.');
       }
-    } catch {
-      // Ignore
+    } catch (err) {
+      console.error('Erro ao enviar laudo de exame:', err);
+      alert('Erro de conexão ao enviar o laudo de exame.');
     } finally {
       setIsProcessing(false);
     }
