@@ -106,6 +106,7 @@ export class BiomarkerNormalizerService {
     // ── HORMONIOS ──
     'TOTAL_TESTOSTERONE': { key: 'TOTAL_TESTOSTERONE', name: 'Testosterona Total', category: 'HORMONIOS' },
     'TESTOSTERONA TOTAL': { key: 'TOTAL_TESTOSTERONE', name: 'Testosterona Total', category: 'HORMONIOS' },
+    'TESTOSTERONA': { key: 'TOTAL_TESTOSTERONE', name: 'Testosterona Total', category: 'HORMONIOS' },
     'FREE_TESTOSTERONE': { key: 'FREE_TESTOSTERONE', name: 'Testosterona Livre Calculada', category: 'HORMONIOS' },
     'TESTOSTERONA LIVRE': { key: 'FREE_TESTOSTERONE', name: 'Testosterona Livre Calculada', category: 'HORMONIOS' },
     'TESTOSTERONA LIVRE CALCULADA': { key: 'FREE_TESTOSTERONE', name: 'Testosterona Livre Calculada', category: 'HORMONIOS' },
