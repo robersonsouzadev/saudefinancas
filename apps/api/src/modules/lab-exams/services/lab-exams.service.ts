@@ -204,8 +204,11 @@ export class LabExamsService {
     if (!result || result.exam.userId !== userId) {
       throw new Error('Acesso negado ou resultado não encontrado');
     }
-    await this.prisma.labResult.delete({
-      where: { id: resultId },
+    await this.prisma.labResult.deleteMany({
+      where: {
+        biomarkerKey: result.biomarkerKey,
+        exam: { userId },
+      },
     });
     return { deleted: true };
   }

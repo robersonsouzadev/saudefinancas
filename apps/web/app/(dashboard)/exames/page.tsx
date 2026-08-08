@@ -299,8 +299,23 @@ export default function LabExamsPage() {
     }
   };
 
-  const handleDeleteResult = async (resultId: string, biomarkerName: string) => {
-    if (!confirm(`Deseja remover o biomarcador "${biomarkerName}" deste exame?`)) return;
+  const handleDeleteResult = async (resultId: string, biomarkerKey: string, biomarkerName: string) => {
+    if (!confirm(`Deseja remover o biomarcador "${biomarkerName}" do seu histórico de exames?`)) return;
+
+    // Optimistic UI update: remove biomarkerKey immediately from local summary state so row vanishes instantly
+    setSummary((prevSummary: any) => {
+      if (!prevSummary || !prevSummary.recentExams) return prevSummary;
+      const updatedExams = prevSummary.recentExams.map((exam: any) => ({
+        ...exam,
+        results: (exam.results || []).filter((r: any) => r.biomarkerKey !== biomarkerKey && r.id !== resultId),
+      }));
+      return {
+        ...prevSummary,
+        recentExams: updatedExams,
+        totalBiomarkers: Math.max(0, (prevSummary.totalBiomarkers || 1) - 1),
+      };
+    });
+
     try {
       const res = await authFetch(`/api/lab-exams/results/${resultId}`, {
         method: 'DELETE',
@@ -309,9 +324,11 @@ export default function LabExamsPage() {
         await fetchDashboardSummary();
       } else {
         alert('Erro ao excluir biomarcador.');
+        await fetchDashboardSummary();
       }
     } catch {
       alert('Erro de conexão ao excluir biomarcador.');
+      await fetchDashboardSummary();
     }
   };
 
@@ -658,7 +675,7 @@ export default function LabExamsPage() {
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleDeleteResult(item.id, item.biomarkerName); }}
+                          onClick={(e) => { e.stopPropagation(); handleDeleteResult(item.id, item.biomarkerKey, item.biomarkerName); }}
                           className="p-1.5 rounded hover:bg-[#1d2127] text-[#575c66] hover:text-[#f87171] transition"
                           title="Excluir biomarcador"
                         >
