@@ -667,11 +667,23 @@ export default function LabExamsPage() {
     return Math.round((optimal / total) * 100);
   }, [healthScore, summary]);
 
+  const RADAR_SHORT_LABELS: Record<string, string> = {
+    METABOLICO: 'Metabólico',
+    LIPIDIOS: 'Lipídios',
+    HEMOGRAMA: 'Hemograma',
+    TIREOIDE: 'Tireoide',
+    HEPATICO: 'Hepático',
+    RENAL: 'Renal',
+    VITAMINAS_MINERAIS: 'Vitaminas',
+    HORMONIOS: 'Hormônios',
+    INFLAMACAO: 'Inflamação',
+  };
+
   // Build radar chart data from category scores
   const radarData = useMemo(() => {
     if (healthScore?.categoryScores) {
       return Object.entries(healthScore.categoryScores).map(([key, val]) => ({
-        category: categoryLabels[key]?.label?.split(' ')[0] || key,
+        category: RADAR_SHORT_LABELS[key] || categoryLabels[key]?.label || key,
         score: val.score,
         fullMark: 100,
       }));
@@ -681,7 +693,7 @@ export default function LabExamsPage() {
       const total = items.length || 1;
       const optimal = items.filter(i => i.status === 'NORMAL' || i.status === 'OTIMO').length;
       return {
-        category: categoryLabels[cat]?.label?.split(' ')[0] || cat,
+        category: RADAR_SHORT_LABELS[cat] || categoryLabels[cat]?.label || cat,
         score: Math.round((optimal / total) * 100),
         fullMark: 100,
       };
@@ -771,13 +783,29 @@ export default function LabExamsPage() {
           </div>
           <div className="mt-2 flex items-baseline gap-1">
             <span className="text-2xl font-bold text-[#f7f8f8] font-mono">
-              {summary?.phenoAge ? `${summary.phenoAge}` : '31.4'}
+              {summary?.phenoAge ? `${summary.phenoAge}` : '--'}
             </span>
             <span className="text-[10px] text-[#8a8f98]">anos</span>
           </div>
-          <span className="text-[10px] font-semibold text-[#4ade80] bg-[#4ade8015] px-1.5 py-0.5 rounded inline-block mt-1">
-            -3.6 anos jovem
-          </span>
+          {summary?.phenoAge && summary?.chronologicalAge ? (
+            (() => {
+              const diff = summary.chronologicalAge - summary.phenoAge;
+              const isYounger = diff > 0;
+              return (
+                <span
+                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded inline-block mt-1 ${
+                    isYounger ? 'text-[#4ade80] bg-[#4ade8015]' : 'text-[#fbbf24] bg-[#fbbf2415]'
+                  }`}
+                >
+                  {isYounger ? `-${diff.toFixed(1)} anos mais jovem` : `+${Math.abs(diff).toFixed(1)} anos acima`}
+                </span>
+              );
+            })()
+          ) : (
+            <span className="text-[10px] text-[#8a8f98] bg-[#ffffff0a] px-1.5 py-0.5 rounded inline-block mt-1">
+              Aguardando exames
+            </span>
+          )}
         </div>
 
         {/* Total Biomarkers */}
@@ -933,36 +961,48 @@ export default function LabExamsPage() {
         </div>
       </div>
 
-      {/* ═══ METABOLIC PATTERNS & RADAR CHART ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Metabolic Pattern Alerts */}
+      {/* Grid: Recent Patterns & Radar Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Metabolic Patterns */}
         <div className="lg:col-span-1 space-y-3">
           <h2 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-1.5">
             <ShieldAlert className="w-4 h-4 text-[#fbbf24]" />
             <span>Padrões Metabólicos Identificados</span>
           </h2>
 
-          {summary?.recentPatterns?.map((pattern, idx) => (
-            <div
-              key={idx}
-              className={`p-3.5 rounded-xl border space-y-1.5 ${
-                pattern.severity === 'CRITICAL'
-                  ? 'bg-[#f871710d] border-[#f8717130]'
-                  : pattern.severity === 'WARNING'
-                  ? 'bg-[#fbbf240d] border-[#fbbf2430]'
-                  : 'bg-[#5e6ad20d] border-[#5e6ad230]'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#f7f8f8]">{pattern.title}</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded text-[#fbbf24] bg-[#fbbf2415]">
-                  AI Detect
-                </span>
+          {summary?.recentPatterns?.map((pattern, idx) => {
+            const isCritical = pattern.severity === 'CRITICAL';
+            const isWarning = pattern.severity === 'WARNING';
+
+            return (
+              <div
+                key={idx}
+                className={`p-3.5 rounded-xl border space-y-1.5 ${
+                  isCritical
+                    ? 'bg-[#f871710d] border-[#f8717130]'
+                    : isWarning
+                    ? 'bg-[#fbbf240d] border-[#fbbf2430]'
+                    : 'bg-[#5e6ad20d] border-[#5e6ad230]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[#f7f8f8]">{pattern.title}</span>
+                  <span
+                    className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                      isCritical
+                        ? 'text-[#f87171] bg-[#f8717115]'
+                        : isWarning
+                        ? 'text-[#fbbf24] bg-[#fbbf2415]'
+                        : 'text-[#60a5fa] bg-[#60a5fa15]'
+                    }`}
+                  >
+                    {isCritical ? '🔴 Crítico' : isWarning ? '🟡 Atenção' : '🔵 Info'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#8a8f98] leading-relaxed">{pattern.description}</p>
               </div>
-              <p className="text-[11px] text-[#8a8f98] leading-relaxed">{pattern.description}</p>
-            </div>
-          ))}
+            );
+          })}
 
           {(!summary?.recentPatterns || summary.recentPatterns.length === 0) && (
             <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff12] text-center">

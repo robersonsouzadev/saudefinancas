@@ -180,9 +180,17 @@ export class LabExamsService {
       latestExam.results.map((r) => ({ ...r, category: r.category as any })),
     );
 
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { birthDate: true },
+    });
+    const userAge = user?.birthDate
+      ? Math.floor((Date.now() - new Date(user.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+      : null;
+
     return {
-      phenoAge: latestExam.phenoAge || 31.4,
-      chronologicalAge: 35,
+      phenoAge: latestExam.phenoAge || null,
+      chronologicalAge: userAge,
       totalExams: exams.length,
       totalBiomarkers,
       attentionCount,
