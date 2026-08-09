@@ -133,7 +133,7 @@ function BodyScoreRing({ score }: { score?: number }) {
   );
 }
 
-// ─── GAUGE ARC SEMICIRCULAR ─────────────────────────────────────
+// ─── GAUGE ARC SEMICIRCULAR (TERA SCIENCE / AMAMBAY STYLE) ──────
 function BioGaugeArc({
   value,
   min,
@@ -142,6 +142,9 @@ function BioGaugeArc({
   unit = '',
   statusText = 'Sem dados',
   color = '#4ade80',
+  idealMin,
+  idealMax,
+  targetText,
 }: {
   value?: number | null;
   min: number;
@@ -150,59 +153,104 @@ function BioGaugeArc({
   unit?: string;
   statusText?: string;
   color?: string;
+  idealMin?: number;
+  idealMax?: number;
+  targetText?: string;
 }) {
   const hasValue = value !== undefined && value !== null;
   const numValue = hasValue ? value : min;
   const percent = hasValue ? Math.max(0, Math.min(100, ((numValue - min) / (max - min)) * 100)) : 0;
-  const angle = -180 + (percent / 100) * 180;
+  
+  // Eixo corrigido: -90° (esquerda - 9h) -> 0° (cima - 12h) -> +90° (direita - 3h)
+  const angle = -90 + (percent / 100) * 180;
   const gaugeColor = hasValue ? color : '#575c66';
 
   return (
-    <div className="linear-card p-4 flex flex-col items-center justify-between text-center relative overflow-hidden">
-      <span className="text-xs font-medium text-[#8a8f98] mb-1">{label}</span>
+    <div className="linear-card p-4 flex flex-col items-center justify-between text-center relative overflow-hidden group hover:border-[#5e6ad240] transition">
+      {/* Top Label */}
+      <span className="text-xs font-semibold text-[#8a8f98] mb-1">{label}</span>
 
-      <div className="relative w-40 h-20 overflow-hidden my-2 flex justify-center">
-        {/* Arc Background */}
-        <svg className="w-40 h-40" viewBox="0 0 100 100">
+      {/* Semicircular Gauge Container */}
+      <div className="relative w-44 h-24 overflow-hidden my-1 flex justify-center items-end">
+        {/* Arc Background with Multi-zone Gradient */}
+        <svg className="w-44 h-44 -mb-2" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id={`gauge-grad-${label.replace(/[^a-zA-Z0-9]/g, '')}`} x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#f87171" />
+              <stop offset="25%" stopColor="#fbbf24" />
+              <stop offset="55%" stopColor="#4ade80" />
+              <stop offset="85%" stopColor="#38bdf8" />
+            </linearGradient>
+          </defs>
+          
+          {/* Base Track */}
           <path
             d="M 10 50 A 40 40 0 0 1 90 50"
             fill="none"
             stroke="#ffffff12"
-            strokeWidth="10"
+            strokeWidth="8"
             strokeLinecap="round"
           />
+          {/* Colored Reference Arc */}
           <path
             d="M 10 50 A 40 40 0 0 1 90 50"
             fill="none"
-            stroke={gaugeColor}
-            strokeWidth="10"
+            stroke={`url(#gauge-grad-${label.replace(/[^a-zA-Z0-9]/g, '')})`}
+            strokeWidth="8"
             strokeDasharray="126"
-            strokeDashoffset={126 - (percent / 100) * 126}
+            strokeDashoffset={hasValue ? 126 - (percent / 100) * 126 : 126}
             strokeLinecap="round"
             className="transition-all duration-1000 ease-out"
           />
         </svg>
 
-        {/* Pointer Needle */}
+        {/* Pointer Needle (Agulha Dourada com Seta) */}
         <div
-          className="absolute bottom-0 w-1 h-12 bg-white rounded-full origin-bottom transition-transform duration-1000"
+          className="absolute bottom-1 origin-bottom flex flex-col items-center transition-transform duration-1000 ease-out z-10"
           style={{
+            height: '62px',
             transform: `rotate(${angle}deg)`,
-            boxShadow: '0 0 6px rgba(255,255,255,0.8)',
           }}
-        />
+        >
+          {/* Seta Amarela na Ponta */}
+          <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-[#f59e0b] filter drop-shadow-[0_0_6px_#f59e0b]" />
+          {/* Haste da Agulha */}
+          <div className="w-0.5 h-12 bg-gradient-to-t from-amber-400 to-amber-200 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+          {/* Ponto Central Pivot */}
+          <div className="w-3 h-3 rounded-full bg-amber-400 border-2 border-[#0f1115] -mt-1 shadow-md" />
+        </div>
+
+        {/* Numeric Scale Ticks (Régua Graduada Tera Science Style) */}
+        <div className="absolute bottom-0 inset-x-2 flex justify-between text-[9px] font-mono text-[#8a8f98] px-1 pointer-events-none">
+          <span>{min}</span>
+          {idealMin !== undefined && idealMax !== undefined && (
+            <span className="text-[#4ade80] font-bold">🟢 {idealMin}–{idealMax}</span>
+          )}
+          <span>{max}</span>
+        </div>
       </div>
 
-      <div className="mt-1">
-        <div className="text-xl font-bold text-[#f7f8f8]">
-          {hasValue ? value : '--'} <span className="text-xs font-normal text-[#8a8f98]">{hasValue ? unit : ''}</span>
+      {/* Numeric Value & Status Badge */}
+      <div className="mt-2 space-y-1">
+        <div className="text-2xl font-bold text-[#f7f8f8] font-mono">
+          {hasValue ? value : '--'}{' '}
+          <span className="text-xs font-normal text-[#8a8f98]">{hasValue ? unit : ''}</span>
         </div>
-        <span
-          className="text-[11px] font-medium px-2 py-0.5 rounded-full inline-block mt-1"
-          style={{ color: gaugeColor, backgroundColor: `${gaugeColor}15` }}
-        >
-          {hasValue ? statusText : 'Aguardando medição'}
-        </span>
+
+        <div className="flex flex-col items-center gap-1">
+          <span
+            className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full inline-block"
+            style={{ color: gaugeColor, backgroundColor: `${gaugeColor}15`, border: `1px solid ${gaugeColor}30` }}
+          >
+            {hasValue ? statusText : 'Aguardando medição'}
+          </span>
+
+          {targetText && (
+            <span className="text-[10px] text-[#8a8f98] font-medium block">
+              🎯 <strong className="text-[#c4c7cd]">{targetText}</strong>
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -870,6 +918,9 @@ export default function BodyAssessmentDashboard() {
               value={latest?.hydrationIndex}
               min={1.9}
               max={6.2}
+              idealMin={3.5}
+              idealMax={5.1}
+              targetText="Meta Ideal: 3,5 a 5,1"
               statusText="Euhidratado (Saudável)"
               color="#4ade80"
             />
@@ -878,6 +929,9 @@ export default function BodyAssessmentDashboard() {
               value={latest?.phaseAngle}
               min={4.0}
               max={10.2}
+              idealMin={7.5}
+              idealMax={8.5}
+              targetText="Meta Ideal: 7,5 a 8,5°"
               statusText="Excelente Integridade"
               color="#3b82f6"
             />
@@ -886,6 +940,9 @@ export default function BodyAssessmentDashboard() {
               value={latest?.muscleFatRatio}
               min={0.3}
               max={4.5}
+              idealMin={1.7}
+              idealMax={3.5}
+              targetText="Meta Ideal: 1,7 a 3,5 kg/kg"
               unit="kg/kg"
               statusText="Atlético / Protegido"
               color="#4ade80"
@@ -895,6 +952,9 @@ export default function BodyAssessmentDashboard() {
               value={latest?.waistHeightRatio}
               min={0.3}
               max={0.8}
+              idealMin={0.3}
+              idealMax={0.49}
+              targetText="Meta Ideal: < 0,50 (Baixo Risco)"
               statusText={latest?.waistHeightRatio ? (latest.waistHeightRatio >= 0.50 ? 'Risco Aumentado (Meta: <0,50)' : 'Saudável (< 0,50)') : 'Aguardando'}
               color={latest?.waistHeightRatio && latest.waistHeightRatio >= 0.50 ? '#fbbf24' : '#4ade80'}
             />
