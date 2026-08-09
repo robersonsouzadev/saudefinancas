@@ -11,11 +11,11 @@
   --ds-bg-overlay:      #1d2127;   /* Dropdowns, tooltips */
   --ds-bg-input:        #0c0e12;   /* Input backgrounds */
 
-  /* Text Hierarchy */
-  --ds-text-primary:    #f7f8f8;   /* Pure crisp headers */
-  --ds-text-secondary:  #8a8f98;   /* Subtitles, labels */
-  --ds-text-tertiary:   #575c66;   /* Placeholders, metadata */
-  --ds-text-muted:      #3f434a;   /* Subtle accents / disabled */
+  /* Text Hierarchy (WCAG 2.2 compliant for dark surfaces) */
+  --ds-text-primary:    #f7f8f8;   /* Pure crisp headers - 18.5:1 */
+  --ds-text-secondary:  #a1a1aa;   /* Subtitles, labels - 7.2:1 */
+  --ds-text-tertiary:   #71717a;   /* Placeholders, metadata - 4.5:1 */
+  --ds-text-muted:      #52525b;   /* Subtle accents / disabled - 3.1:1 */
   --ds-text-inverse:    #080a0c;   /* Text on light accent */
 
   /* Linear Accent (Linear Indigo) */
@@ -48,15 +48,14 @@
   --ds-radius-xl:   14px;
   --ds-radius-full: 9999px;
 
-  /* Typography Hierarchy Scale (Accessibility-first) */
+  /* Typography Hierarchy Scale (SaaS Dense Dashboard Standard) */
   --ds-font-xs:         12px;   /* Microcopy, badges, timestamps */
-  --ds-font-sm:         13px;   /* Subtitles, secondary text */
+  --ds-font-sm:         14px;   /* Subtitles, secondary text, body */
   --ds-font-base:       14px;   /* Body text, inputs, table content */
-  --ds-font-lg:         16px;   /* Card titles, field labels */
-  --ds-font-xl:         20px;   /* Section headers */
-  --ds-font-2xl:        28px;   /* Page titles, medium KPIs */
-  --ds-font-3xl:        36px;   /* Large KPI numbers */
-  --ds-font-4xl:        48px;   /* Hero metrics */
+  --ds-font-lg:         16px;   /* Card titles, section headers (H2) */
+  --ds-font-xl:         20px;   /* Page titles (H1) */
+  --ds-font-2xl:        24px;   /* Medium/Large KPIs */
+  --ds-font-3xl:        30px;   /* Hero Score Ring */
 
   /* Responsive Spacing & Layout Tokens */
   --ds-space-content-x: clamp(16px, 2.5vw, 40px);

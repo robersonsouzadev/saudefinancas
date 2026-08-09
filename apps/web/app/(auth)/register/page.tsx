@@ -66,8 +66,8 @@ export default function RegisterPage() {
           <div className="w-10 h-10 rounded-md bg-[#5e6ad2] mx-auto flex items-center justify-center font-bold text-lg text-white shadow-sm">
             SF
           </div>
-          <h1 className="text-lg font-semibold text-[#f7f8f8] tracking-tight">Criar Conta</h1>
-          <p className="text-xs text-[#8a8f98]">Preencha os dados abaixo para se cadastrar</p>
+          <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">Criar Conta</h1>
+          <p className="text-xs sm:text-sm text-[#a1a1aa]">Preencha os dados abaixo para se cadastrar</p>
         </div>
 
         {error && (
@@ -78,7 +78,7 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-[#8a8f98] tracking-wider uppercase block">
+            <label className="text-xs font-semibold text-[#a1a1aa] tracking-wider uppercase block">
               NOME COMPLETO
             </label>
             <input
@@ -87,12 +87,12 @@ export default function RegisterPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Seu nome"
-              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] transition"
+              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#71717a] focus:outline-none focus:border-[#5e6ad2] transition"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-[#8a8f98] tracking-wider uppercase block">
+            <label className="text-xs font-semibold text-[#a1a1aa] tracking-wider uppercase block">
               EMAIL
             </label>
             <input
@@ -101,12 +101,12 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
-              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] transition"
+              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#71717a] focus:outline-none focus:border-[#5e6ad2] transition"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-[#8a8f98] tracking-wider uppercase block">
+            <label className="text-xs font-semibold text-[#a1a1aa] tracking-wider uppercase block">
               SENHA
             </label>
             <input
@@ -115,7 +115,7 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] transition"
+              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#71717a] focus:outline-none focus:border-[#5e6ad2] transition"
             />
           </div>
 
@@ -128,7 +128,7 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <div className="text-center text-xs text-[#8a8f98]">
+        <div className="text-center text-xs text-[#a1a1aa]">
           Já tem uma conta?{' '}
           <Link href="/login" className="text-[#5e6ad2] hover:underline font-medium">
             Fazer Login

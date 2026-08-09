@@ -19,8 +19,8 @@ export default function InsightsPage() {
           <Sparkles className="w-5 h-5" />
         </div>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight">Insights & Correlações Biológicas × Financeiras</h1>
-          <p className="text-sm text-[#8a8f98] mt-0.5">Identificação automática de padrões entre sono, estresse, dieta e comportamento de consumo</p>
+          <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">Insights & Correlações Biológicas × Financeiras</h1>
+          <p className="text-sm text-[#a1a1aa] mt-0.5">Identificação automática de padrões entre sono, estresse, dieta e comportamento de consumo</p>
         </div>
       </div>
 
@@ -43,13 +43,13 @@ export default function InsightsPage() {
             <div className="flex items-center space-x-1">
               <button 
                 onClick={() => handleFeedback('1', 'up')}
-                className={`p-1.5 rounded transition ${feedbacks['1'] === 'up' ? 'text-[#4ade80] bg-[#16191e]' : 'text-[#575c66] hover:text-[#f7f8f8]'}`}
+                className={`p-1.5 rounded transition ${feedbacks['1'] === 'up' ? 'text-[#4ade80] bg-[#16191e]' : 'text-[#71717a] hover:text-[#f7f8f8]'}`}
               >
                 <ThumbsUp className="w-4 h-4" />
               </button>
               <button 
                 onClick={() => handleFeedback('1', 'down')}
-                className={`p-1.5 rounded transition ${feedbacks['1'] === 'down' ? 'text-[#f87171] bg-[#16191e]' : 'text-[#575c66] hover:text-[#f7f8f8]'}`}
+                className={`p-1.5 rounded transition ${feedbacks['1'] === 'down' ? 'text-[#f87171] bg-[#16191e]' : 'text-[#71717a] hover:text-[#f7f8f8]'}`}
               >
                 <ThumbsDown className="w-4 h-4" />
               </button>
@@ -61,11 +61,11 @@ export default function InsightsPage() {
         <div className="linear-card p-5 space-y-3">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#facc1515] text-[#facc15] border border-[#facc1530] text-[10px] font-mono font-semibold rounded">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#facc1515] text-[#facc15] border border-[#facc1530] text-xs font-mono font-semibold rounded">
                 <AlertTriangle className="w-3 h-3" /> Atenção
               </span>
               <h3 className="text-sm font-semibold text-[#f7f8f8]">Impacto do Sono Privado na Ingestão Calórica</h3>
-              <p className="text-xs text-[#8a8f98]">
+              <p className="text-xs text-[#a1a1aa]">
                 Sua ingestão calórica excede a meta diária em 22% nos dias subsequentes a noites com menos de 6 horas de sono reparador.
               </p>
             </div>
@@ -73,13 +73,13 @@ export default function InsightsPage() {
             <div className="flex items-center space-x-1">
               <button 
                 onClick={() => handleFeedback('2', 'up')}
-                className={`p-1.5 rounded transition ${feedbacks['2'] === 'up' ? 'text-[#4ade80] bg-[#16191e]' : 'text-[#575c66] hover:text-[#f7f8f8]'}`}
+                className={`p-1.5 rounded transition ${feedbacks['2'] === 'up' ? 'text-[#4ade80] bg-[#16191e]' : 'text-[#71717a] hover:text-[#f7f8f8]'}`}
               >
                 <ThumbsUp className="w-4 h-4" />
               </button>
               <button 
                 onClick={() => handleFeedback('2', 'down')}
-                className={`p-1.5 rounded transition ${feedbacks['2'] === 'down' ? 'text-[#f87171] bg-[#16191e]' : 'text-[#575c66] hover:text-[#f7f8f8]'}`}
+                className={`p-1.5 rounded transition ${feedbacks['2'] === 'down' ? 'text-[#f87171] bg-[#16191e]' : 'text-[#71717a] hover:text-[#f7f8f8]'}`}
               >
                 <ThumbsDown className="w-4 h-4" />
               </button>

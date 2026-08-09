@@ -223,14 +223,14 @@ export default function MedicamentosPage() {
       {/* 1. Header & Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2.5">
             <Pill className="w-6 h-6 text-[#f472b6]" />
             <span>Controle de Medicamentos & Vitaminas</span>
-            <span className="text-[10px] font-mono text-[#f472b6] bg-[#f472b615] px-2 py-0.5 rounded border border-[#f472b630]">
+            <span className="text-xs font-mono text-[#f472b6] bg-[#f472b615] px-2 py-0.5 rounded border border-[#f472b630]">
               WhatsApp Active
             </span>
           </h1>
-          <p className="text-xs text-[#8a8f98] mt-0.5">
+          <p className="text-xs text-[#a1a1aa] mt-0.5">
             Gestão inteligente de posologia, alertas de estoque, custo mensal e lembretes via WhatsApp com escalonamento familiar
           </p>
         </div>
@@ -272,7 +272,7 @@ export default function MedicamentosPage() {
           </div>
 
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#4ade80]">{adherencePercent}%</span>
+            <span className="text-2xl font-bold font-mono text-[#4ade80]">{adherencePercent}%</span>
             <span className="text-[#a1a1aa] text-xs sm:text-sm font-medium">dos horários</span>
           </div>
 
@@ -280,39 +280,39 @@ export default function MedicamentosPage() {
             <div className="bg-[#4ade80] h-full rounded-full transition-all duration-500" style={{ width: `${adherencePercent}%` }}></div>
           </div>
 
-          <span className="text-[11px] text-[#8a8f98] block">Nenhuma dose esquecida esta semana</span>
+          <span className="text-xs text-[#a1a1aa] block">Nenhuma dose esquecida esta semana</span>
         </div>
 
         {/* KPI 2: Doses de Hoje */}
         <div className="linear-card p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-[#60a5fa]" /> Doses de Hoje
             </span>
-            <span className="text-[10px] font-mono text-[#60a5fa] bg-[#60a5fa15] px-2 py-0.5 rounded border border-[#60a5fa30]">
+            <span className="text-xs font-mono text-[#60a5fa] bg-[#60a5fa15] px-2 py-0.5 rounded border border-[#60a5fa30]">
               {takenDosesToday}/{totalDosesToday} Concluídas
             </span>
           </div>
 
           <div className="flex items-baseline space-x-2">
             <span className="text-3xl font-bold font-mono text-[#f7f8f8]">{takenDosesToday}</span>
-            <span className="text-[#8a8f98] text-xs">/ {totalDosesToday} tomadas</span>
+            <span className="text-[#a1a1aa] text-xs">/ {totalDosesToday} tomadas</span>
           </div>
 
           <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
             <div className="bg-[#60a5fa] h-full rounded-full transition-all duration-500" style={{ width: `${(takenDosesToday / totalDosesToday) * 100}%` }}></div>
           </div>
 
-          <span className="text-[11px] text-[#8a8f98] block">Próxima: Magnésio às 21:30</span>
+          <span className="text-xs text-[#a1a1aa] block">Próxima: Magnésio às 21:30</span>
         </div>
 
         {/* KPI 3: Estoque Baixo */}
         <div className="linear-card p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-[#facc15]" /> Alerta de Estoque
             </span>
-            <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+            <span className={`text-xs font-mono px-2 py-0.5 rounded border ${
               lowStockItems.length > 0 
                 ? 'text-[#facc15] bg-[#facc1515] border-[#facc1530]' 
                 : 'text-[#4ade80] bg-[#4ade8015] border-[#4ade8030]'
@@ -325,12 +325,12 @@ export default function MedicamentosPage() {
             <div className="text-2xl font-bold font-mono text-[#f7f8f8]">
               {lowStockItems.length > 0 ? lowStockItems[0].name : 'Estoque OK'}
             </div>
-            <span className="text-[11px] text-[#facc15] block mt-0.5">
+            <span className="text-xs text-[#facc15] block mt-0.5">
               {lowStockItems.length > 0 ? `Restam apenas ${lowStockItems[0].currentStock} cápsulas` : 'Todos itens acima do mínimo'}
             </span>
           </div>
 
-          <div className="pt-1 border-t border-[#ffffff08] flex justify-between items-center text-[11px] font-mono text-[#8a8f98]">
+          <div className="pt-1 border-t border-[#ffffff08] flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
             <span>Farmácia recomendada: <strong className="text-[#f7f8f8]">Drogasil</strong></span>
           </div>
         </div>
@@ -338,10 +338,10 @@ export default function MedicamentosPage() {
         {/* KPI 4: Custo Mensal Estimado */}
         <div className="linear-card p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <DollarSign className="w-3.5 h-3.5 text-[#22c55e]" /> Custo Mensal em Saúde
             </span>
-            <span className="text-[10px] font-mono text-[#22c55e] bg-[#22c55e15] px-2 py-0.5 rounded border border-[#22c55e30]">
+            <span className="text-xs font-mono text-[#22c55e] bg-[#22c55e15] px-2 py-0.5 rounded border border-[#22c55e30]">
               Orçamento
             </span>
           </div>
@@ -350,10 +350,10 @@ export default function MedicamentosPage() {
             <div className="text-3xl font-bold font-mono text-[#22c55e]">
               R$ {totalMonthlySpend.toFixed(2)}
             </div>
-            <span className="text-[11px] text-[#8a8f98] block mt-0.5">Custo médio por dose: R$ {(totalMonthlySpend / 120).toFixed(2)}</span>
+            <span className="text-xs text-[#a1a1aa] block mt-0.5">Custo médio por dose: R$ {(totalMonthlySpend / 120).toFixed(2)}</span>
           </div>
 
-          <div className="pt-1 border-t border-[#ffffff08] flex justify-between items-center text-[11px] font-mono text-[#8a8f98]">
+          <div className="pt-1 border-t border-[#ffffff08] flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
             <span>Lançado em Finanças: <strong className="text-[#4ade80]">✓ Sincronizado</strong></span>
           </div>
         </div>
@@ -367,7 +367,7 @@ export default function MedicamentosPage() {
             <Calendar className="w-4 h-4 text-[#5e6ad2]" />
             <span>Pillbox Visual de Hoje (Cronograma de Doses)</span>
           </h2>
-          <span className="text-[11px] font-mono text-[#8a8f98]">
+          <span className="text-xs font-mono text-[#a1a1aa]">
             {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </span>
         </div>
@@ -380,7 +380,7 @@ export default function MedicamentosPage() {
               <span className="flex items-center gap-1.5 text-[#facc15]">
                 <Sun className="w-4 h-4" /> MANHÃ
               </span>
-              <span className="text-[10px] font-mono text-[#8a8f98]">06:00 - 12:00</span>
+              <span className="text-xs font-mono text-[#a1a1aa]">06:00 - 12:00</span>
             </div>
 
             <div className="space-y-2.5">
@@ -389,9 +389,9 @@ export default function MedicamentosPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="font-semibold text-xs text-[#f7f8f8]">{m.name}</div>
-                      <div className="text-[11px] text-[#8a8f98] font-mono">{m.dosage} • {m.time}</div>
+                      <div className="text-xs text-[#a1a1aa] font-mono">{m.dosage} • {m.time}</div>
                     </div>
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                    <span className={`text-xs font-mono px-2 py-0.5 rounded ${
                       m.status === 'TOMADO' 
                         ? 'text-[#4ade80] bg-[#4ade8015] border border-[#4ade8030]' 
                         : 'text-[#facc15] bg-[#facc1515] border border-[#facc1530]'
@@ -400,12 +400,12 @@ export default function MedicamentosPage() {
                     </span>
                   </div>
 
-                  <p className="text-[10px] text-[#8a8f98]">{m.instructions}</p>
+                  <p className="text-xs text-[#a1a1aa]">{m.instructions}</p>
 
                   {m.status !== 'TOMADO' && (
                     <button 
                       onClick={() => handleMarkAsTaken(m.id)}
-                      className="w-full py-1 rounded bg-[#4ade8020] hover:bg-[#4ade8030] text-[#4ade80] text-[11px] font-medium flex items-center justify-center space-x-1 transition"
+                      className="w-full py-1 rounded bg-[#4ade8020] hover:bg-[#4ade8030] text-[#4ade80] text-xs font-medium flex items-center justify-center space-x-1 transition"
                     >
                       <Check className="w-3 h-3" />
                       <span>Marcar como Tomado</span>
@@ -422,7 +422,7 @@ export default function MedicamentosPage() {
               <span className="flex items-center gap-1.5 text-[#4ade80]">
                 <Sunset className="w-4 h-4" /> TARDE
               </span>
-              <span className="text-[10px] font-mono text-[#8a8f98]">12:00 - 18:00</span>
+              <span className="text-xs font-mono text-[#a1a1aa]">12:00 - 18:00</span>
             </div>
 
             <div className="space-y-2.5">
@@ -431,18 +431,18 @@ export default function MedicamentosPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="font-semibold text-xs text-[#f7f8f8]">{m.name}</div>
-                      <div className="text-[11px] text-[#8a8f98] font-mono">{m.dosage} • {m.time}</div>
+                      <div className="text-xs text-[#a1a1aa] font-mono">{m.dosage} • {m.time}</div>
                     </div>
-                    <span className="text-[10px] font-mono text-[#60a5fa] bg-[#60a5fa15] px-2 py-0.5 rounded border border-[#60a5fa30]">
+                    <span className="text-xs font-mono text-[#60a5fa] bg-[#60a5fa15] px-2 py-0.5 rounded border border-[#60a5fa30]">
                       Próxima
                     </span>
                   </div>
 
-                  <p className="text-[10px] text-[#8a8f98]">{m.instructions}</p>
+                  <p className="text-xs text-[#a1a1aa]">{m.instructions}</p>
 
                   <button 
                     onClick={() => handleMarkAsTaken(m.id)}
-                    className="w-full py-1 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-[11px] font-medium flex items-center justify-center space-x-1 transition"
+                    className="w-full py-1 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-xs font-medium flex items-center justify-center space-x-1 transition"
                   >
                     <Check className="w-3 h-3" />
                     <span>Marcar como Tomado</span>
@@ -458,7 +458,7 @@ export default function MedicamentosPage() {
               <span className="flex items-center gap-1.5 text-[#60a5fa]">
                 <Moon className="w-4 h-4" /> NOITE
               </span>
-              <span className="text-[10px] font-mono text-[#8a8f98]">18:00 - 00:00</span>
+              <span className="text-xs font-mono text-[#a1a1aa]">18:00 - 00:00</span>
             </div>
 
             <div className="space-y-2.5">
@@ -467,14 +467,14 @@ export default function MedicamentosPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="font-semibold text-xs text-[#f7f8f8]">{m.name}</div>
-                      <div className="text-[11px] text-[#8a8f98] font-mono">{m.dosage} • {m.time}</div>
+                      <div className="text-xs text-[#a1a1aa] font-mono">{m.dosage} • {m.time}</div>
                     </div>
-                    <span className="text-[10px] font-mono text-[#8a8f98] bg-[#16191e] px-2 py-0.5 rounded border border-[#ffffff10]">
+                    <span className="text-xs font-mono text-[#a1a1aa] bg-[#16191e] px-2 py-0.5 rounded border border-[#ffffff10]">
                       Aguardando
                     </span>
                   </div>
 
-                  <p className="text-[10px] text-[#8a8f98]">{m.instructions}</p>
+                  <p className="text-xs text-[#a1a1aa]">{m.instructions}</p>
                 </div>
               ))}
             </div>
@@ -489,12 +489,12 @@ export default function MedicamentosPage() {
             </div>
 
             <div className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md text-center space-y-2">
-              <p className="text-[11px] text-[#8a8f98]">
+              <p className="text-xs text-[#a1a1aa]">
                 Nenhum medicamento SOS ou analgésico cadastrado no momento.
               </p>
               <button 
                 onClick={() => setIsAddModalOpen(true)}
-                className="text-[11px] text-[#5e6ad2] hover:underline"
+                className="text-xs text-[#5e6ad2] hover:underline"
               >
                 + Cadastrar item SOS
               </button>
@@ -511,14 +511,14 @@ export default function MedicamentosPage() {
         <div className="linear-card p-5 space-y-4">
           <div className="border-b border-[#ffffff0e] pb-3">
             <h3 className="text-sm font-semibold text-[#f7f8f8]">Histórico de Aderência (7 dias)</h3>
-            <p className="text-[11px] text-[#8a8f98]">% de doses tomadas no horário estipulado</p>
+            <p className="text-xs text-[#a1a1aa]">% de doses tomadas no horário estipulado</p>
           </div>
 
           <div className="h-44 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={adherenceTrendData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <XAxis dataKey="day" stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} domain={[60, 100]} />
+                <XAxis dataKey="day" stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} domain={[60, 100]} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#16191e', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '12px' }} 
                   itemStyle={{ color: '#4ade80' }}
@@ -528,7 +528,7 @@ export default function MedicamentosPage() {
             </ResponsiveContainer>
           </div>
 
-          <div className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md text-[11px] text-[#8a8f98] flex items-center justify-between">
+          <div className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md text-xs text-[#a1a1aa] flex items-center justify-between">
             <span>Aderência Semanal: <strong className="text-[#4ade80] font-mono">95.7%</strong></span>
             <span className="text-[#4ade80] font-mono"> Meta &gt; 90%</span>
           </div>
@@ -539,15 +539,15 @@ export default function MedicamentosPage() {
           <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
             <div>
               <h3 className="text-sm font-semibold text-[#f7f8f8]">Lista de Medicamentos & Vitaminas Ativos</h3>
-              <p className="text-[11px] text-[#8a8f98]">Detalhamento de posologia, estoque e custo por dose</p>
+              <p className="text-xs text-[#a1a1aa]">Detalhamento de posologia, estoque e custo por dose</p>
             </div>
-            <span className="text-[11px] font-mono text-[#8a8f98]">{medications.length} Itens Cadastrados</span>
+            <span className="text-xs font-mono text-[#a1a1aa]">{medications.length} Itens Cadastrados</span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
               <thead>
-                <tr className="border-b border-[#ffffff0e] text-[#8a8f98]">
+                <tr className="border-b border-[#ffffff0e] text-[#a1a1aa]">
                   <th className="pb-2 font-medium">NOME</th>
                   <th className="pb-2 font-medium">DOSAGEM</th>
                   <th className="pb-2 font-medium">HORÁRIO</th>
@@ -568,13 +568,13 @@ export default function MedicamentosPage() {
                         </span>
                       )}
                     </td>
-                    <td className="py-2.5 text-[#8a8f98]">{m.dosage}</td>
+                    <td className="py-2.5 text-[#a1a1aa]">{m.dosage}</td>
                     <td className="py-2.5 text-[#f7f8f8]">{m.time}</td>
                     <td className="py-2.5">
-                      <span className={`px-2 py-0.5 rounded text-[10px] ${
+                      <span className={`px-2 py-0.5 rounded text-xs ${
                         m.currentStock <= m.stockAlertAt 
                           ? 'text-[#facc15] bg-[#facc1515] border border-[#facc1530]' 
-                          : 'text-[#8a8f98]'
+                          : 'text-[#a1a1aa]'
                       }`}>
                         {m.currentStock} {m.unit}s
                       </span>
@@ -586,14 +586,14 @@ export default function MedicamentosPage() {
                           setSelectedMedForDemo(m);
                           setIsWhatsappDemoOpen(true);
                         }}
-                        className="p-1 hover:bg-[#1d2127] rounded text-[#8a8f98] hover:text-[#25D366]" 
+                        className="p-1 hover:bg-[#1d2127] rounded text-[#a1a1aa] hover:text-[#25D366]" 
                         title="Simular Lembrete WhatsApp"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
                       </button>
                       <button 
                         onClick={() => handleDeleteMedication(m.id)}
-                        className="p-1 hover:bg-[#1d2127] rounded text-[#8a8f98] hover:text-[#f87171]" 
+                        className="p-1 hover:bg-[#1d2127] rounded text-[#a1a1aa] hover:text-[#f87171]" 
                         title="Remover"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -616,14 +616,14 @@ export default function MedicamentosPage() {
               <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#5e6ad2]" /> Cadastrar Novo Medicamento / Vitamina
               </h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center">
+              <button onClick={() => setIsAddModalOpen(false)} className="text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleAddMedication} className="space-y-3 text-xs">
               <div>
-                <label className="text-[#8a8f98] block mb-1 font-medium">Nome do Medicamento ou Vitamina</label>
+                <label className="text-[#a1a1aa] block mb-1 font-medium">Nome do Medicamento ou Vitamina</label>
                 <input 
                   type="text" 
                   required
@@ -636,7 +636,7 @@ export default function MedicamentosPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[#8a8f98] block mb-1 font-medium">Tipo</label>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Tipo</label>
                   <select 
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
@@ -649,7 +649,7 @@ export default function MedicamentosPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[#8a8f98] block mb-1 font-medium">Período</label>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Período</label>
                   <select 
                     value={formData.period}
                     onChange={(e) => setFormData({ ...formData, period: e.target.value as any })}
@@ -665,7 +665,7 @@ export default function MedicamentosPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[#8a8f98] block mb-1 font-medium">Dosagem</label>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Dosagem</label>
                   <input 
                     type="text" 
                     required
@@ -676,7 +676,7 @@ export default function MedicamentosPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[#8a8f98] block mb-1 font-medium">Horário da Dose</label>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Horário da Dose</label>
                   <input 
                     type="time" 
                     value={formData.time}
@@ -688,7 +688,7 @@ export default function MedicamentosPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[#8a8f98] block mb-1 font-medium">Estoque Inicial</label>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Estoque Inicial</label>
                   <input 
                     type="number" 
                     value={formData.currentStock}
@@ -697,7 +697,7 @@ export default function MedicamentosPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[#8a8f98] block mb-1 font-medium">Custo por Dose (R$)</label>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Custo por Dose (R$)</label>
                   <input 
                     type="number" 
                     step="0.01"
@@ -709,7 +709,7 @@ export default function MedicamentosPage() {
               </div>
 
               <div>
-                <label className="text-[#8a8f98] block mb-1 font-medium">Instruções de Uso</label>
+                <label className="text-[#a1a1aa] block mb-1 font-medium">Instruções de Uso</label>
                 <input 
                   type="text" 
                   placeholder="Ex: Tomar em jejum, Não tomar com leite"
@@ -745,7 +745,7 @@ export default function MedicamentosPage() {
                 <button 
                   type="button" 
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-3 py-1.5 rounded bg-[#16191e] hover:bg-[#1d2127] text-[#8a8f98] text-xs font-medium"
+                  className="px-3 py-1.5 rounded bg-[#16191e] hover:bg-[#1d2127] text-[#a1a1aa] text-xs font-medium"
                 >
                   Cancelar
                 </button>
@@ -775,7 +775,7 @@ export default function MedicamentosPage() {
                 </div>
                 <div>
                   <div className="text-xs font-semibold text-[#e9edef]">Saúde & Finanças Vita IA</div>
-                  <div className="text-[10px] text-[#00a884]">Bot Oficial Verificado</div>
+                  <div className="text-xs text-[#00a884]">Bot Oficial Verificado</div>
                 </div>
               </div>
               <button onClick={() => setIsWhatsappDemoOpen(false)} className="text-[#8696a0] hover:text-[#e9edef]">
@@ -792,13 +792,13 @@ export default function MedicamentosPage() {
                 <div className="text-[#e9edef]">
                   Olá! Chegou a hora de tomar seu medicamento:
                 </div>
-                <div className="bg-[#111b21] p-2 rounded text-[11px] font-mono space-y-0.5">
+                <div className="bg-[#111b21] p-2 rounded text-xs font-mono space-y-0.5">
                   <div><strong>💊 {selectedMedForDemo.name}</strong></div>
                   <div className="text-[#8696a0]">Dose: {selectedMedForDemo.dosage}</div>
                   <div className="text-[#8696a0]">Horário: {selectedMedForDemo.time}</div>
                   <div className="text-[#00a884]">📝 {selectedMedForDemo.instructions}</div>
                 </div>
-                <div className="text-[10px] text-[#8696a0] text-right">08:00 ✓✓</div>
+                <div className="text-xs text-[#8696a0] text-right">08:00 ✓✓</div>
               </div>
 
               {/* Interactive WhatsApp Reply Buttons */}
@@ -827,7 +827,7 @@ export default function MedicamentosPage() {
               </div>
             </div>
 
-            <div className="p-2 bg-[#111b21] text-center text-[10px] text-[#8696a0] border-t border-[#ffffff0a]">
+            <div className="p-2 bg-[#111b21] text-center text-xs text-[#8696a0] border-t border-[#ffffff0a]">
               🔒 Comunicação direta via Uazapi WhatsApp API
             </div>
           </div>

@@ -46,12 +46,12 @@ function AuthCallbackContent() {
         {error ? (
           <div className="space-y-2">
             <p className="text-sm font-medium text-red-400">{error}</p>
-            <p className="text-xs text-[#8a8f98]">Redirecionando para a página de login...</p>
+            <p className="text-xs text-[#a1a1aa]">Redirecionando para a página de login...</p>
           </div>
         ) : (
           <div className="space-y-2">
             <h2 className="text-base font-semibold text-[#f7f8f8]">Autenticando...</h2>
-            <p className="text-xs text-[#8a8f98]">Conectando com sua conta Google, aguarde um instante.</p>
+            <p className="text-xs text-[#a1a1aa]">Conectando com sua conta Google, aguarde um instante.</p>
             <div className="w-6 h-6 border-2 border-[#5e6ad2] border-t-transparent rounded-full animate-spin mx-auto mt-4" />
           </div>
         )}

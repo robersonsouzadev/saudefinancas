@@ -239,7 +239,7 @@ export default function MultimodalFAB() {
                   <p className="text-xs text-[#cbd5e1] font-medium">Fale, fotografe ou escreva. A IA faz o resto.</p>
                 </div>
               </div>
-              <button onClick={handleClose} className="text-[#8a8f98] hover:text-[#f7f8f8] transition">
+              <button onClick={handleClose} className="text-[#a1a1aa] hover:text-[#f7f8f8] transition">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -304,12 +304,12 @@ export default function MultimodalFAB() {
                   {isRecording && (
                     <div className="space-y-1">
                       <p className="text-sm font-mono text-[#f87171] animate-pulse">● GRAVANDO</p>
-                      <p className="text-xs font-mono text-[#8a8f98]">{formatTime(recordingTime)}</p>
+                      <p className="text-xs font-mono text-[#a1a1aa]">{formatTime(recordingTime)}</p>
                     </div>
                   )}
 
                   {!isRecording && (
-                    <p className="text-[10px] text-[#575c66]">Segure para gravar • Solte para enviar</p>
+                    <p className="text-xs text-[#71717a]">Segure para gravar • Solte para enviar</p>
                   )}
                 </div>
               )}
@@ -318,7 +318,7 @@ export default function MultimodalFAB() {
                 <div className="space-y-3">
                   {!imagePreview ? (
                     <div className="space-y-3">
-                      <p className="text-xs text-[#8a8f98]">
+                      <p className="text-xs text-[#a1a1aa]">
                         Tire uma foto do prato, cupom fiscal ou comprovante de pagamento.
                       </p>
 
@@ -343,7 +343,7 @@ export default function MultimodalFAB() {
                       <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageSelect} />
                       <input ref={fileInputRef} type="file" accept="image/*,.pdf,.doc,.docx,.txt" className="hidden" onChange={handleImageSelect} />
 
-                      <div className="p-2 bg-[#16191e] border border-[#ffffff0a] rounded text-[10px] text-[#575c66] text-center">
+                      <div className="p-2 bg-[#16191e] border border-[#ffffff0a] rounded text-xs text-[#71717a] text-center">
                         Aceita: JPG, PNG, PDF, DOC, TXT
                       </div>
                     </div>
@@ -364,7 +364,7 @@ export default function MultimodalFAB() {
                         placeholder="Contexto (opcional): ex: almoço, compras do mercado"
                         value={imageContext}
                         onChange={(e) => setImageContext(e.target.value)}
-                        className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-xs text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2]"
+                        className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-xs text-[#f7f8f8] placeholder:text-[#71717a] focus:outline-none focus:border-[#5e6ad2]"
                       />
 
                       <button
@@ -381,7 +381,7 @@ export default function MultimodalFAB() {
 
               {status === 'idle' && activeTab === 'text' && (
                 <div className="space-y-3">
-                  <p className="text-xs text-[#8a8f98]">
+                  <p className="text-xs text-[#a1a1aa]">
                     Digite o que quiser registrar — a IA classifica automaticamente.
                   </p>
 
@@ -390,11 +390,11 @@ export default function MultimodalFAB() {
                     onChange={(e) => setTextInput(e.target.value)}
                     placeholder="Ex: Comprei pão R$4, carne R$30 e uma coca-cola 350ml"
                     rows={3}
-                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-xs text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] resize-none"
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-xs text-[#f7f8f8] placeholder:text-[#71717a] focus:outline-none focus:border-[#5e6ad2] resize-none"
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); processText(); } }}
                   />
 
-                  <div className="space-y-1 text-[10px] text-[#575c66] font-mono">
+                  <div className="space-y-1 text-xs text-[#71717a] font-mono">
                     <p>💰 &quot;Gastei 50 reais no supermercado&quot;</p>
                     <p>🍽️ &quot;Comi arroz, feijão e bife no almoço&quot;</p>
                     <p>🔀 &quot;Almocei fora, paguei 25 reais, comi salada com frango&quot;</p>
@@ -419,7 +419,7 @@ export default function MultimodalFAB() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-[#f7f8f8]">Vita IA processando...</p>
-                    <p className="text-[11px] text-[#8a8f98] mt-1">
+                    <p className="text-xs text-[#a1a1aa] mt-1">
                       Classificando intenção e extraindo dados automaticamente
                     </p>
                   </div>
@@ -443,7 +443,7 @@ export default function MultimodalFAB() {
                       <CheckCircle2 className="w-7 h-7 text-[#4ade80]" />
                     </div>
                     <p className="text-sm font-semibold text-[#4ade80]">Registrado com Sucesso!</p>
-                    <span className="inline-block text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
+                    <span className="inline-block text-xs font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
                       {getIntentLabel(result.intent)}
                     </span>
                   </div>
@@ -453,7 +453,7 @@ export default function MultimodalFAB() {
                     {result.registeredItems.map((item, i) => (
                       <div key={i} className="flex items-center justify-between text-xs">
                         <span className="text-[#f7f8f8]">{item.description}</span>
-                        <span className="text-[10px] font-mono text-[#8a8f98] bg-[#0f1115] px-2 py-0.5 rounded">
+                        <span className="text-xs font-mono text-[#a1a1aa] bg-[#0f1115] px-2 py-0.5 rounded">
                           {item.type}
                         </span>
                       </div>
@@ -462,7 +462,7 @@ export default function MultimodalFAB() {
 
                   {/* Vita Insight */}
                   {result.vitaInsight && (
-                    <div className="p-3 bg-[#5e6ad210] border border-[#5e6ad220] rounded-md text-[11px] text-[#8a8f98]">
+                    <div className="p-3 bg-[#5e6ad210] border border-[#5e6ad220] rounded-md text-xs text-[#a1a1aa]">
                       <span className="text-[#5e6ad2] font-semibold">🧠 Vita IA: </span>
                       {result.vitaInsight}
                     </div>
@@ -493,7 +493,7 @@ export default function MultimodalFAB() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-[#f87171]">Erro ao Processar</p>
-                    <p className="text-[11px] text-[#8a8f98] mt-1">{errorMsg || 'Tente novamente.'}</p>
+                    <p className="text-xs text-[#a1a1aa] mt-1">{errorMsg || 'Tente novamente.'}</p>
                   </div>
                   <button
                     onClick={resetState}
@@ -507,7 +507,7 @@ export default function MultimodalFAB() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-2 border-t border-[#ffffff0a] text-center text-[10px] text-[#575c66]">
+            <div className="px-5 py-2 border-t border-[#ffffff0a] text-center text-xs text-[#71717a]">
               🧠 Motor GPT-4o-mini Vision • 🎙️ Whisper STT • 📱 Também disponível via WhatsApp
             </div>
           </div>

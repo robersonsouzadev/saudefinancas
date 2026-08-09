@@ -79,7 +79,7 @@ export default function WorkoutAnalyticsPage() {
         <div className="space-y-1">
           <button
             onClick={() => router.push('/saude/treinos')}
-            className="flex items-center space-x-1.5 text-xs text-[#8a8f98] hover:text-white transition mb-2"
+            className="flex items-center space-x-1.5 text-xs text-[#a1a1aa] hover:text-white transition mb-2"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Voltar para Meus Treinos</span>
@@ -88,7 +88,7 @@ export default function WorkoutAnalyticsPage() {
             <BarChart2 className="w-6 h-6 text-[#818cf8]" />
             Analytics & Desempenho Fitness
           </h1>
-          <p className="text-xs text-[#8a8f98]">
+          <p className="text-xs text-[#a1a1aa]">
             Métricas de força, volume, frequência e score de performance inspirados nos melhores softwares.
           </p>
         </div>
@@ -107,7 +107,7 @@ export default function WorkoutAnalyticsPage() {
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 rangeDays === item.days
                   ? 'bg-[#818cf8] text-white shadow-md'
-                  : 'text-[#8a8f98] hover:text-white hover:bg-[#16191e]'
+                  : 'text-[#a1a1aa] hover:text-white hover:bg-[#16191e]'
               }`}
             >
               {item.label}
@@ -120,13 +120,13 @@ export default function WorkoutAnalyticsPage() {
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center space-y-3">
             <Dumbbell className="w-10 h-10 text-[#818cf8] animate-bounce mx-auto" />
-            <p className="text-xs text-[#8a8f98]">Compilando relatórios e estatísticas...</p>
+            <p className="text-xs text-[#a1a1aa]">Compilando relatórios e estatísticas...</p>
           </div>
         </div>
       ) : !analytics ? (
         <div className="text-center py-12 space-y-3">
-          <Activity className="w-10 h-10 text-[#8a8f98] mx-auto" />
-          <p className="text-sm text-[#8a8f98]">Nenhum dado analítico encontrado para este período.</p>
+          <Activity className="w-10 h-10 text-[#a1a1aa] mx-auto" />
+          <p className="text-sm text-[#a1a1aa]">Nenhum dado analítico encontrado para este período.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -149,7 +149,7 @@ export default function WorkoutAnalyticsPage() {
                   </span>
                 )}
               </div>
-              <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8]">
+              <div className="text-lg sm:text-xl font-semibold font-mono text-[#f7f8f8]">
                 {analytics.kpis.totalWorkouts} <span className="text-xs font-normal text-[#a1a1aa]">sessões</span>
               </div>
               <span className="text-xs text-[#a1a1aa] font-medium block">nos últimos {analytics.rangeDays} dias</span>
@@ -172,7 +172,7 @@ export default function WorkoutAnalyticsPage() {
                   </span>
                 )}
               </div>
-              <div className="text-2xl sm:text-3xl font-bold font-mono text-[#818cf8]">
+              <div className="text-lg sm:text-xl font-semibold font-mono text-[#818cf8]">
                 {(analytics.kpis.totalVolume / 1000).toFixed(1)}t
               </div>
               <span className="text-xs text-[#a1a1aa] font-medium block">Carga total ({analytics.kpis.totalVolume.toLocaleString('pt-BR')} kg)</span>
@@ -195,7 +195,7 @@ export default function WorkoutAnalyticsPage() {
                   </span>
                 )}
               </div>
-              <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f97316]">
+              <div className="text-lg sm:text-xl font-semibold font-mono text-[#f97316]">
                 {analytics.kpis.totalCalories.toLocaleString('pt-BR')} <span className="text-xs font-normal text-[#a1a1aa]">kcal</span>
               </div>
               <span className="text-xs text-[#a1a1aa] font-medium block">Estimativa MET metabolic fitness</span>
@@ -206,7 +206,7 @@ export default function WorkoutAnalyticsPage() {
               <div className="flex items-center justify-between text-[#cbd5e1]">
                 <span className="text-xs sm:text-sm font-bold uppercase tracking-wider">⏱️ Duração em Treino</span>
               </div>
-              <div className="text-2xl sm:text-3xl font-bold font-mono text-[#38bdf8]">
+              <div className="text-lg sm:text-xl font-semibold font-mono text-[#38bdf8]">
                 {Math.floor(analytics.kpis.totalDurationMin / 60)}h {analytics.kpis.totalDurationMin % 60}m
               </div>
               <span className="text-xs text-[#a1a1aa] font-medium block">Média de {analytics.kpis.avgDurationMin} min por sessão</span>
@@ -222,7 +222,7 @@ export default function WorkoutAnalyticsPage() {
                   <Award className="w-4 h-4 text-amber-400" />
                   Score de Atleta (0-100)
                 </h3>
-                <span className="text-[10px] font-mono text-[#8a8f98]">Freeletics / Garmin Index</span>
+                <span className="text-xs font-mono text-[#a1a1aa]">Freeletics / Garmin Index</span>
               </div>
 
               {/* Gauge Display */}
@@ -232,23 +232,23 @@ export default function WorkoutAnalyticsPage() {
                     <span className="text-3xl font-extrabold font-mono text-[#f7f8f8]">
                       {analytics.athleteScore.score}
                     </span>
-                    <span className="text-[10px] text-[#8a8f98] block uppercase font-mono">Pontos</span>
+                    <span className="text-xs text-[#a1a1aa] block uppercase font-mono">Pontos</span>
                   </div>
                 </div>
               </div>
 
               {/* Sub-barras de Fatores */}
               <div className="space-y-2 text-xs">
-                <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-[#8a8f98]">Consistência Semanal</span>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[#a1a1aa]">Consistência Semanal</span>
                   <span className="font-mono text-[#818cf8] font-bold">{analytics.athleteScore.consistencyScore}%</span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-[#16191e] overflow-hidden">
                   <div className="h-full rounded-full bg-[#818cf8]" style={{ width: `${analytics.athleteScore.consistencyScore}%` }} />
                 </div>
 
-                <div className="flex justify-between items-center text-[11px] pt-1">
-                  <span className="text-[#8a8f98]">Progressão de Volume</span>
+                <div className="flex justify-between items-center text-xs pt-1">
+                  <span className="text-[#a1a1aa]">Progressão de Volume</span>
                   <span className="font-mono text-emerald-400 font-bold">{analytics.athleteScore.volumeScore}%</span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-[#16191e] overflow-hidden">
@@ -264,7 +264,7 @@ export default function WorkoutAnalyticsPage() {
                   <Calendar className="w-4 h-4 text-emerald-400" />
                   Frequência Diária (Heatmap GitHub)
                 </h3>
-                <span className="text-[10px] font-mono text-[#8a8f98]">Últimos {analytics.rangeDays} dias</span>
+                <span className="text-xs font-mono text-[#a1a1aa]">Últimos {analytics.rangeDays} dias</span>
               </div>
 
               {/* Grid de Dias */}
@@ -280,7 +280,7 @@ export default function WorkoutAnalyticsPage() {
                   return (
                     <div
                       key={item.date}
-                      className={`w-7 h-7 rounded-md border flex items-center justify-center text-[9px] font-mono transition-all hover:scale-110 cursor-pointer ${colorClass}`}
+                      className={`w-7 h-7 rounded-md border flex items-center justify-center text-xs font-mono transition-all hover:scale-110 cursor-pointer ${colorClass}`}
                       title={`${item.date}: ${item.count > 0 ? `${item.count} treino(s) (${item.title})` : 'Nenhum treino'}`}
                     >
                       {dayNum}
@@ -290,7 +290,7 @@ export default function WorkoutAnalyticsPage() {
               </div>
 
               {/* Legenda */}
-              <div className="flex items-center justify-between text-[10px] text-[#575c66] pt-2 border-t border-[#ffffff08]">
+              <div className="flex items-center justify-between text-xs text-[#71717a] pt-2 border-t border-[#ffffff08]">
                 <span>Menos treinos</span>
                 <div className="flex items-center space-x-1.5">
                   <span className="w-3 h-3 rounded bg-[#16191e] border border-[#ffffff12]" />
@@ -311,11 +311,11 @@ export default function WorkoutAnalyticsPage() {
                   <BarChart2 className="w-4 h-4 text-[#818cf8]" />
                   Volume Total Semanal (kg)
                 </h3>
-                <span className="text-[10px] font-mono text-[#8a8f98]">Hevy Volume Trend</span>
+                <span className="text-xs font-mono text-[#a1a1aa]">Hevy Volume Trend</span>
               </div>
 
               {analytics.weeklyVolume.length === 0 ? (
-                <div className="h-48 flex items-center justify-center text-xs text-[#575c66]">
+                <div className="h-48 flex items-center justify-center text-xs text-[#71717a]">
                   Sem histórico suficiente de volume.
                 </div>
               ) : (
@@ -323,8 +323,8 @@ export default function WorkoutAnalyticsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={analytics.weeklyVolume}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
-                      <XAxis dataKey="weekLabel" stroke="#575c66" fontSize={10} tickLine={false} />
-                      <YAxis stroke="#575c66" fontSize={10} tickLine={false} axisLine={false} />
+                      <XAxis dataKey="weekLabel" stroke="#71717a" fontSize={10} tickLine={false} />
+                      <YAxis stroke="#71717a" fontSize={10} tickLine={false} axisLine={false} />
                       <Tooltip
                         contentStyle={{ backgroundColor: '#0f1115', borderColor: '#ffffff1a', borderRadius: '8px', fontSize: '11px' }}
                         formatter={(val: any) => [`${Number(val).toLocaleString('pt-BR')} kg`, 'Volume Total']}
@@ -343,15 +343,15 @@ export default function WorkoutAnalyticsPage() {
                   <Target className="w-4 h-4 text-[#38bdf8]" />
                   Distribuição Muscular (Radar Body Map)
                 </h3>
-                <span className="text-[10px] font-mono text-[#8a8f98]">JEFIT / RP Hypertrophy</span>
+                <span className="text-xs font-mono text-[#a1a1aa]">JEFIT / RP Hypertrophy</span>
               </div>
 
               <div className="h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={analytics.muscleRadar}>
                     <PolarGrid stroke="#ffffff12" />
-                    <PolarAngleAxis dataKey="muscleCategory" stroke="#8a8f98" fontSize={10} />
-                    <PolarRadiusAxis angle={30} domain={[0, 'auto']} stroke="#575c66" fontSize={8} />
+                    <PolarAngleAxis dataKey="muscleCategory" stroke="#a1a1aa" fontSize={10} />
+                    <PolarRadiusAxis angle={30} domain={[0, 'auto']} stroke="#71717a" fontSize={8} />
                     <Radar name="Séries Executadas" dataKey="sets" stroke="#38bdf8" fill="#38bdf8" fillOpacity={0.35} />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#0f1115', borderColor: '#ffffff1a', borderRadius: '8px', fontSize: '11px' }}
@@ -371,7 +371,7 @@ export default function WorkoutAnalyticsPage() {
                   <TrendingUp className="w-4 h-4 text-emerald-400" />
                   Evolução de Força (1RM Estimado — Epley Formula)
                 </h3>
-                <p className="text-[11px] text-[#8a8f98]">Progresso de carga máxima estimada para cada exercício ao longo do tempo.</p>
+                <p className="text-xs text-[#a1a1aa]">Progresso de carga máxima estimada para cada exercício ao longo do tempo.</p>
               </div>
 
               {/* Selector de Exercícios Top */}
@@ -381,10 +381,10 @@ export default function WorkoutAnalyticsPage() {
                     <button
                       key={ex.exerciseId}
                       onClick={() => setSelectedExerciseId(ex.exerciseId)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition whitespace-nowrap ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
                         selectedExerciseId === ex.exerciseId
                           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                          : 'bg-[#16191e] text-[#8a8f98] border border-[#ffffff08] hover:text-white'
+                          : 'bg-[#16191e] text-[#a1a1aa] border border-[#ffffff08] hover:text-white'
                       }`}
                     >
                       {ex.namePt}
@@ -399,8 +399,8 @@ export default function WorkoutAnalyticsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={selectedExercise.history}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
-                    <XAxis dataKey="date" stroke="#575c66" fontSize={10} tickLine={false} />
-                    <YAxis stroke="#575c66" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+                    <XAxis dataKey="date" stroke="#71717a" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#71717a" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#0f1115', borderColor: '#ffffff1a', borderRadius: '8px', fontSize: '11px' }}
                       formatter={(val: any, name: any, item: any) => [
@@ -420,7 +420,7 @@ export default function WorkoutAnalyticsPage() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="h-40 flex items-center justify-center text-xs text-[#575c66]">
+              <div className="h-40 flex items-center justify-center text-xs text-[#71717a]">
                 Selecione um exercício com histórico de cargas para visualizar a curva de progressão 1RM.
               </div>
             )}
@@ -435,7 +435,7 @@ export default function WorkoutAnalyticsPage() {
                   <Flame className="w-4 h-4 text-amber-500" />
                   Gasto Calórico & Tempo por Sessão
                 </h3>
-                <span className="text-[10px] font-mono text-[#8a8f98]">Garmin / Strava Trend</span>
+                <span className="text-xs font-mono text-[#a1a1aa]">Garmin / Strava Trend</span>
               </div>
 
               <div className="h-56 w-full">
@@ -448,8 +448,8 @@ export default function WorkoutAnalyticsPage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
-                    <XAxis dataKey="date" stroke="#575c66" fontSize={10} tickLine={false} />
-                    <YAxis stroke="#575c66" fontSize={10} tickLine={false} axisLine={false} />
+                    <XAxis dataKey="date" stroke="#71717a" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#71717a" fontSize={10} tickLine={false} axisLine={false} />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#0f1115', borderColor: '#ffffff1a', borderRadius: '8px', fontSize: '11px' }}
                     />
@@ -466,11 +466,11 @@ export default function WorkoutAnalyticsPage() {
                   <Trophy className="w-4 h-4 text-amber-400" />
                   Galeria de Recordes Pessoais (PRs)
                 </h3>
-                <span className="text-[10px] font-mono text-[#8a8f98]">Personal Bests</span>
+                <span className="text-xs font-mono text-[#a1a1aa]">Personal Bests</span>
               </div>
 
               {analytics.personalRecords.length === 0 ? (
-                <div className="h-48 flex items-center justify-center text-xs text-[#575c66]">
+                <div className="h-48 flex items-center justify-center text-xs text-[#71717a]">
                   Complete treinos para registrar seus recordes de carga.
                 </div>
               ) : (
@@ -481,18 +481,18 @@ export default function WorkoutAnalyticsPage() {
                       className="p-2.5 rounded-xl bg-[#16191e] border border-[#ffffff0a] flex items-center justify-between text-xs hover:border-[#818cf850] transition"
                     >
                       <div className="flex items-center space-x-2.5">
-                        <div className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-[11px] font-bold">
+                        <div className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xs font-bold">
                           #{idx + 1}
                         </div>
                         <div>
                           <span className="font-semibold block text-[#f7f8f8]">{pr.exerciseName}</span>
-                          <span className="text-[10px] text-[#8a8f98]">{pr.date}</span>
+                          <span className="text-xs text-[#a1a1aa]">{pr.date}</span>
                         </div>
                       </div>
 
                       <div className="text-right">
                         <span className="font-bold font-mono text-emerald-400 block">{pr.weight}kg × {pr.reps}</span>
-                        <span className="text-[9px] font-mono text-[#8a8f98]">1RM: {pr.estimated1RM}kg</span>
+                        <span className="text-xs font-mono text-[#a1a1aa]">1RM: {pr.estimated1RM}kg</span>
                       </div>
                     </div>
                   ))}

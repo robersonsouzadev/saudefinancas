@@ -248,7 +248,7 @@ export default function WorkoutSessionPage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-3">
           <Dumbbell className="w-10 h-10 text-[#818cf8] animate-bounce mx-auto" />
-          <p className="text-xs text-[#8a8f98]">Carregando sessão de treino...</p>
+          <p className="text-xs text-[#a1a1aa]">Carregando sessão de treino...</p>
         </div>
       </div>
     );
@@ -263,22 +263,22 @@ export default function WorkoutSessionPage() {
 
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">Treino Concluído! 🎉</h1>
-          <p className="text-xs text-[#8a8f98]">Ótimo trabalho! Suas estatísticas foram registradas no histórico.</p>
+          <p className="text-xs text-[#a1a1aa]">Ótimo trabalho! Suas estatísticas foram registradas no histórico.</p>
         </div>
 
         <div className="grid grid-cols-3 gap-3 p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e]">
           <div className="p-3 bg-[#16191e] rounded-lg">
-            <span className="text-[10px] text-[#8a8f98] block">Duração</span>
+            <span className="text-xs text-[#a1a1aa] block">Duração</span>
             <span className="text-lg font-bold text-[#38bdf8]">{finishedSummary.durationMinutes || 0} min</span>
           </div>
 
           <div className="p-3 bg-[#16191e] rounded-lg">
-            <span className="text-[10px] text-[#8a8f98] block">Volume Carga</span>
+            <span className="text-xs text-[#a1a1aa] block">Volume Carga</span>
             <span className="text-lg font-bold text-[#818cf8]">{finishedSummary.totalVolume || 0} kg</span>
           </div>
 
           <div className="p-3 bg-[#16191e] rounded-lg">
-            <span className="text-[10px] text-[#8a8f98] block">Calorias Gastas</span>
+            <span className="text-xs text-[#a1a1aa] block">Calorias Gastas</span>
             <span className="text-lg font-bold text-[#f97316]">{finishedSummary.caloriesBurned || 0} kcal</span>
           </div>
         </div>
@@ -299,7 +299,7 @@ export default function WorkoutSessionPage() {
       <div className="sticky top-0 z-30 bg-[#080a0c]/90 backdrop-blur-md py-2.5 sm:py-3 border-b border-[#ffffff0e] flex flex-wrap items-center justify-between gap-2">
         <button
           onClick={() => router.push('/saude/treinos')}
-          className="flex items-center space-x-1 text-xs text-[#8a8f98] hover:text-white"
+          className="flex items-center space-x-1 text-xs text-[#a1a1aa] hover:text-white"
         >
           <ChevronLeft className="w-4 h-4" />
           <span>Voltar</span>
@@ -338,11 +338,11 @@ export default function WorkoutSessionPage() {
           </div>
           <div>
             <span className="text-xs font-semibold block">Descanso</span>
-            <span className="text-[10px] text-[#8a8f98] hidden sm:block">Recupere o fôlego para a próxima série</span>
+            <span className="text-xs text-[#a1a1aa] hidden sm:block">Recupere o fôlego para a próxima série</span>
           </div>
           <button
             onClick={() => setRestTimerActive(false)}
-            className="p-1 rounded text-[#8a8f98] hover:text-white"
+            className="p-1 rounded text-[#a1a1aa] hover:text-white"
           >
             <X className="w-4 h-4" />
           </button>
@@ -351,7 +351,7 @@ export default function WorkoutSessionPage() {
 
       {/* Título do Treino */}
       <div className="space-y-1">
-        <span className="text-[10px] font-mono uppercase text-[#818cf8] tracking-wider">SESSÃO DE TREINO ATIVA</span>
+        <span className="text-xs font-mono uppercase text-[#818cf8] tracking-wider">SESSÃO DE TREINO ATIVA</span>
         <h1 className="text-xl font-bold">{session?.title || 'Treino em Andamento'}</h1>
       </div>
 
@@ -365,7 +365,7 @@ export default function WorkoutSessionPage() {
             {/* Header do Exercício */}
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-7 h-7 rounded-lg bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[11px] font-bold text-[#818cf8]">
+                <div className="w-7 h-7 rounded-lg bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-xs font-bold text-[#818cf8]">
                   {exIdx + 1}
                 </div>
                 <div>
@@ -439,7 +439,7 @@ export default function WorkoutSessionPage() {
                       key={set.id}
                       className={`transition ${set.isCompleted ? 'bg-emerald-500/5' : 'hover:bg-[#16191e]'}`}
                     >
-                      <td className="py-2.5 text-center font-mono font-semibold text-[#8a8f98]">
+                      <td className="py-2.5 text-center font-mono font-semibold text-[#a1a1aa]">
                         {setIdx + 1}
                       </td>
 
@@ -474,7 +474,7 @@ export default function WorkoutSessionPage() {
                           className={`w-7 h-7 rounded-lg mx-auto flex items-center justify-center transition ${
                             set.isCompleted
                               ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
-                              : 'bg-[#16191e] text-[#575c66] hover:text-[#8a8f98] border border-[#ffffff12]'
+                              : 'bg-[#16191e] text-[#71717a] hover:text-[#a1a1aa] border border-[#ffffff12]'
                           }`}
                         >
                           <Check className="w-4 h-4 stroke-[3]" />
@@ -484,7 +484,7 @@ export default function WorkoutSessionPage() {
                       <td className="py-2 text-right">
                         <button
                           onClick={() => handleRemoveSet(set.id)}
-                          className="p-1 text-[#575c66] hover:text-rose-400 transition"
+                          className="p-1 text-[#71717a] hover:text-rose-400 transition"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -505,7 +505,7 @@ export default function WorkoutSessionPage() {
                 <span>Adicionar Série</span>
               </button>
 
-              <div className="flex items-center space-x-2 text-[11px] text-[#575c66]">
+              <div className="flex items-center space-x-2 text-xs text-[#71717a]">
                 <span>Descanso:</span>
                 <button
                   onClick={() => startRestTimer(60)}
@@ -540,7 +540,7 @@ export default function WorkoutSessionPage() {
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative max-h-[85vh] overflow-y-auto">
             <button
               onClick={() => setIsAddExerciseModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#a1a1aa] hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
@@ -571,7 +571,7 @@ export default function WorkoutSessionPage() {
                   >
                     <div>
                       <h4 className="font-semibold text-xs text-[#f7f8f8]">{ex.namePt}</h4>
-                      <span className="text-[10px] text-[#575c66]">{ex.muscleGroup}</span>
+                      <span className="text-xs text-[#71717a]">{ex.muscleGroup}</span>
                     </div>
                     <Plus className="w-4 h-4 text-[#818cf8]" />
                   </div>
@@ -587,19 +587,19 @@ export default function WorkoutSessionPage() {
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
             <button
               onClick={() => setIsFinishModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#a1a1aa] hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="text-center space-y-1">
               <h3 className="text-lg font-bold">Finalizar Treino</h3>
-              <p className="text-xs text-[#8a8f98]">Confira o resumo da sua sessão de hoje.</p>
+              <p className="text-xs text-[#a1a1aa]">Confira o resumo da sua sessão de hoje.</p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-[#8a8f98] block mb-1">Intensidade do Treino</label>
+                <label className="text-xs font-medium text-[#a1a1aa] block mb-1">Intensidade do Treino</label>
                 <select
                   value={intensity}
                   onChange={(e) => setIntensity(e.target.value)}
@@ -612,7 +612,7 @@ export default function WorkoutSessionPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#8a8f98] block mb-1">Como avalia este treino?</label>
+                <label className="text-xs font-medium text-[#a1a1aa] block mb-1">Como avalia este treino?</label>
                 <div className="flex items-center justify-center space-x-2 py-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -620,7 +620,7 @@ export default function WorkoutSessionPage() {
                       type="button"
                       onClick={() => setRating(star)}
                       className={`p-1 transition ${
-                        rating >= star ? 'text-amber-400 scale-110' : 'text-[#575c66]'
+                        rating >= star ? 'text-amber-400 scale-110' : 'text-[#71717a]'
                       }`}
                     >
                       <Star className="w-6 h-6 fill-current" />
@@ -630,7 +630,7 @@ export default function WorkoutSessionPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#8a8f98] block mb-1">Notas do Treino (Opcional)</label>
+                <label className="text-xs font-medium text-[#a1a1aa] block mb-1">Notas do Treino (Opcional)</label>
                 <textarea
                   rows={2}
                   placeholder="Ex: Supino bateu RPE 9. Tríceps rendeu bem."
@@ -644,7 +644,7 @@ export default function WorkoutSessionPage() {
             <div className="flex justify-end space-x-3 pt-3 border-t border-[#ffffff0e]">
               <button
                 onClick={() => setIsFinishModalOpen(false)}
-                className="px-4 py-2 rounded-lg bg-[#16191e] text-xs font-medium text-[#8a8f98]"
+                className="px-4 py-2 rounded-lg bg-[#16191e] text-xs font-medium text-[#a1a1aa]"
               >
                 Continuar Treinando
               </button>
@@ -665,7 +665,7 @@ export default function WorkoutSessionPage() {
           <div className="bg-[#0f1115] border border-[#ef444430] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
             <button
               onClick={() => setIsCancelModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#a1a1aa] hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
@@ -676,15 +676,15 @@ export default function WorkoutSessionPage() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-[#f7f8f8]">Cancelar Treino em Andamento?</h3>
-                <p className="text-xs text-[#8a8f98]">Esta ação não registrará este treino no histórico.</p>
+                <p className="text-xs text-[#a1a1aa]">Esta ação não registrará este treino no histórico.</p>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#16191e] border border-[#ffffff0a] text-xs text-[#8a8f98] space-y-1.5">
+            <div className="p-3.5 rounded-xl bg-[#16191e] border border-[#ffffff0a] text-xs text-[#a1a1aa] space-y-1.5">
               <p>
                 Você iniciou <strong className="text-white">{session?.title || 'este treino'}</strong> sem querer?
               </p>
-              <p className="text-[11px] text-[#ef4444]">
+              <p className="text-xs text-[#ef4444]">
                 • Os registros gravados nesta sessão serão excluídos.<br />
                 • A ficha voltará a ficar em aberto para quando você quiser treinar novamente.
               </p>
@@ -694,7 +694,7 @@ export default function WorkoutSessionPage() {
               <button
                 type="button"
                 onClick={() => setIsCancelModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+                className="px-4 py-2 rounded-xl bg-[#16191e] text-xs font-medium text-[#a1a1aa] hover:text-white"
               >
                 Manter Treino Ativo
               </button>

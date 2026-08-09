@@ -74,8 +74,8 @@ function LoginFormContent() {
           <div className="w-10 h-10 rounded-lg bg-[#5e6ad2] mx-auto flex items-center justify-center font-bold text-lg text-white shadow-sm">
             SF
           </div>
-          <h1 className="text-lg font-semibold text-[#f7f8f8] tracking-tight">Saúde & Finanças</h1>
-          <p className="text-xs text-[#8a8f98]">Entre na sua conta para continuar</p>
+          <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">Saúde & Finanças</h1>
+          <p className="text-xs sm:text-sm text-[#a1a1aa]">Entre na sua conta para continuar</p>
         </div>
 
         {error && (
@@ -101,7 +101,7 @@ function LoginFormContent() {
             />
             <path
               fill="#FBBC05"
-              d="M5.3 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.6 7.4C.6 9.4 0 10.6 0 12s.6 2.6 1.6 4.6l3.7-2.8z"
+              d="M5.3 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.6 7.4C.6 9.4 0 11.6 0 14s.6 4.6 1.6 6.6l3.7-2.9-1-2.9z"
             />
             <path
               fill="#34A853"
@@ -114,14 +114,14 @@ function LoginFormContent() {
         {/* Divider */}
         <div className="relative flex items-center justify-center">
           <div className="border-t border-[#ffffff0e] w-full" />
-          <span className="bg-[#0f1115] px-3 text-[10px] uppercase tracking-wider text-[#575c66] font-medium absolute">
+          <span className="bg-[#0f1115] px-3 text-xs uppercase tracking-wider text-[#71717a] font-medium absolute">
             ou continue com email
           </span>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-[#8a8f98] tracking-wider uppercase block">
+            <label className="text-xs font-semibold text-[#a1a1aa] tracking-wider uppercase block">
               EMAIL
             </label>
             <input
@@ -130,12 +130,12 @@ function LoginFormContent() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
-              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-lg px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] transition"
+              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-lg px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#71717a] focus:outline-none focus:border-[#5e6ad2] transition"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-[#8a8f98] tracking-wider uppercase block">
+            <label className="text-xs font-semibold text-[#a1a1aa] tracking-wider uppercase block">
               SENHA
             </label>
             <input
@@ -144,7 +144,7 @@ function LoginFormContent() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-lg px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#575c66] focus:outline-none focus:border-[#5e6ad2] transition"
+              className="w-full bg-[#16191e] border border-[#ffffff12] rounded-lg px-3 py-2 text-sm text-[#f7f8f8] placeholder:text-[#71717a] focus:outline-none focus:border-[#5e6ad2] transition"
             />
           </div>
 

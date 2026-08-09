@@ -681,13 +681,13 @@ export default function TreinosPage() {
             <Dumbbell className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#f7f8f8] tracking-tight flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2">
               Treinos Físicos & Musculação
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#6366f120] text-[#818cf8] border border-[#6366f140]">
+              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[#6366f120] text-[#818cf8] border border-[#6366f140]">
                 Coach Iron IA
               </span>
             </h1>
-            <p className="text-xs text-[#8a8f98]">
+            <p className="text-xs text-[#a1a1aa]">
               Gerencie seus treinos semanais, acompanhe cargas, séries e use a inteligência do Coach Iron.
             </p>
           </div>
@@ -717,7 +717,7 @@ export default function TreinosPage() {
 
           <Link
             href="/saude/treinos/historico"
-            className="px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium hover:bg-[#1f242d] transition flex items-center space-x-2 text-[#8a8f98] hover:text-[#f7f8f8]"
+            className="px-3 py-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-medium hover:bg-[#1f242d] transition flex items-center space-x-2 text-[#a1a1aa] hover:text-[#f7f8f8]"
           >
             <TrendingUp className="w-3.5 h-3.5 shrink-0" />
             <span className="inline">Histórico</span>
@@ -750,7 +750,7 @@ export default function TreinosPage() {
             <span className="text-xs sm:text-sm font-semibold truncate">Treinos Semana</span>
             <Calendar className="w-4 h-4 text-[#818cf8] shrink-0" />
           </div>
-          <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8]">{stats.weeklyWorkouts || 0}</div>
+          <div className="text-lg sm:text-xl font-semibold font-mono text-[#f7f8f8]">{stats.weeklyWorkouts || 0}</div>
           <span className="text-xs text-[#a1a1aa] truncate">Meta: 4-5 treinos</span>
         </div>
 
@@ -759,7 +759,7 @@ export default function TreinosPage() {
             <span className="text-xs sm:text-sm font-semibold truncate">Volume Carga</span>
             <Layers className="w-4 h-4 text-[#38bdf8] shrink-0" />
           </div>
-          <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8]">
+          <div className="text-lg sm:text-xl font-semibold font-mono text-[#f7f8f8]">
             {((stats.totalVolume || 0) / 1000).toFixed(1)} <span className="text-sm text-[#a1a1aa] font-normal">ton</span>
           </div>
           <span className="text-xs text-[#a1a1aa] truncate">Peso × Reps</span>
@@ -770,7 +770,7 @@ export default function TreinosPage() {
             <span className="text-xs sm:text-sm font-semibold truncate">Calorias Queimadas</span>
             <Flame className="w-4 h-4 text-[#f97316] shrink-0" />
           </div>
-          <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8]">
+          <div className="text-lg sm:text-xl font-semibold font-mono text-[#f7f8f8]">
             {stats.totalCalories || 0} <span className="text-sm text-[#a1a1aa] font-normal">kcal</span>
           </div>
           <span className="text-xs text-[#a1a1aa] truncate">Algoritmo MET</span>
@@ -781,7 +781,7 @@ export default function TreinosPage() {
             <span className="text-xs sm:text-sm font-semibold truncate">Total Sessões</span>
             <CheckCircle2 className="w-4 h-4 text-[#4ade80] shrink-0" />
           </div>
-          <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8]">{stats.totalWorkouts || 0}</div>
+          <div className="text-lg sm:text-xl font-semibold font-mono text-[#f7f8f8]">{stats.totalWorkouts || 0}</div>
           <span className="text-xs text-[#a1a1aa] truncate">Treinos concluídos</span>
         </div>
       </div>
@@ -892,7 +892,7 @@ export default function TreinosPage() {
                 <Calendar className="w-3.5 h-3.5 text-[#818cf8]" />
                 Progresso da Semana
               </h3>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#16191e] text-[#8a8f98]">
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#16191e] text-[#a1a1aa]">
                 {weeklyProgress.summary.completedDays}/{weeklyProgress.summary.plannedDays} treinos
               </span>
             </div>
@@ -911,7 +911,7 @@ export default function TreinosPage() {
                 nowObj.setHours(0, 0, 0, 0);
                 const isPast = dateObj.getTime() < nowObj.getTime();
 
-                let bgClass = 'bg-[#16191e] border-[#ffffff08] text-[#575c66]';
+                let bgClass = 'bg-[#16191e] border-[#ffffff08] text-[#71717a]';
                 let statusIcon = '—';
                 let subText = plannedName ? plannedName.split(' - ')[0] : '—';
 
@@ -925,7 +925,7 @@ export default function TreinosPage() {
                   statusIcon = '⚠️';
                   subText = plannedName.split(' - ')[0];
                 } else if (plannedName) {
-                  bgClass = 'bg-[#16191e] border-[#ffffff12] text-[#8a8f98]';
+                  bgClass = 'bg-[#16191e] border-[#ffffff12] text-[#a1a1aa]';
                   statusIcon = '⏳';
                   subText = plannedName.split(' - ')[0];
                 }
@@ -936,9 +936,9 @@ export default function TreinosPage() {
                     className={`px-0.5 py-1.5 sm:p-2 rounded-lg border text-center space-y-0.5 ${bgClass} ${isToday ? 'ring-1 ring-[#818cf8]/50' : ''}`}
                     title={hasTrained ? `Treinado: ${dayItem.sessions.map((s: any) => s.templateName).join(', ')}` : (plannedName ? `Planejado: ${plannedName}` : 'Sem treino')}
                   >
-                    <div className="text-[9px] sm:text-[10px] font-bold tracking-tight uppercase truncate">{dayItem.dayLabel}</div>
+                    <div className="text-xs sm:text-xs font-bold tracking-tight uppercase truncate">{dayItem.dayLabel}</div>
                     <div className="text-xs sm:text-sm">{statusIcon}</div>
-                    <div className="text-[7px] sm:text-[8px] truncate opacity-80">{subText}</div>
+                    <div className="text-xs truncate opacity-80">{subText}</div>
                   </div>
                 );
               })}
@@ -958,15 +958,15 @@ export default function TreinosPage() {
             {/* Streak */}
             <div className="p-3.5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold text-[#8a8f98] uppercase tracking-wider">🔥 Streak</span>
+                <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider">🔥 Streak</span>
                 {weeklyProgress.streaks.currentStreak > 0 && (
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     Recorde: {weeklyProgress.streaks.longestStreak}d
                   </span>
                 )}
               </div>
               <div className="text-2xl font-bold font-mono text-[#f7f8f8]">{weeklyProgress.streaks.currentStreak} dias</div>
-              <span className="text-[10px] text-[#575c66]">
+              <span className="text-xs text-[#71717a]">
                 {weeklyProgress.streaks.weeksConsistent > 0 ? `${weeklyProgress.streaks.weeksConsistent} semanas consistentes` : 'Continue treinando!'}
               </span>
             </div>
@@ -974,9 +974,9 @@ export default function TreinosPage() {
             {/* Volume */}
             <div className="p-3.5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold text-[#8a8f98] uppercase tracking-wider">📊 Volume</span>
+                <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider">📊 Volume</span>
                 {weeklyProgress.comparison.volumeChange !== 0 && (
-                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                  <span className={`text-xs font-mono px-1.5 py-0.5 rounded border ${
                     weeklyProgress.comparison.volumeChange > 0
                       ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                       : 'bg-red-500/10 text-red-400 border-red-500/20'
@@ -988,24 +988,24 @@ export default function TreinosPage() {
               <div className="text-2xl font-bold font-mono text-[#f7f8f8]">
                 {weeklyProgress.summary.totalVolumeWeek >= 1000 ? `${(weeklyProgress.summary.totalVolumeWeek / 1000).toFixed(1)}t` : `${weeklyProgress.summary.totalVolumeWeek}kg`}
               </div>
-              <span className="text-[10px] text-[#575c66]">vs semana anterior</span>
+              <span className="text-xs text-[#71717a]">vs semana anterior</span>
             </div>
 
             {/* Duration */}
             <div className="p-3.5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-1">
-              <span className="text-[10px] font-semibold text-[#8a8f98] uppercase tracking-wider">⏱️ Tempo Total</span>
+              <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider">⏱️ Tempo Total</span>
               <div className="text-2xl font-bold font-mono text-[#f7f8f8]">
                 {weeklyProgress.summary.totalDurationMin >= 60 ? `${Math.floor(weeklyProgress.summary.totalDurationMin / 60)}h ${weeklyProgress.summary.totalDurationMin % 60}min` : `${weeklyProgress.summary.totalDurationMin}min`}
               </div>
-              <span className="text-[10px] text-[#575c66]">Média: {weeklyProgress.summary.avgDurationMin}min/sessão</span>
+              <span className="text-xs text-[#71717a]">Média: {weeklyProgress.summary.avgDurationMin}min/sessão</span>
             </div>
 
             {/* Calories */}
             <div className="p-3.5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold text-[#8a8f98] uppercase tracking-wider">🔋 Calorias</span>
+                <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider">🔋 Calorias</span>
                 {weeklyProgress.comparison.caloriesChange !== 0 && (
-                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                  <span className={`text-xs font-mono px-1.5 py-0.5 rounded border ${
                     weeklyProgress.comparison.caloriesChange > 0
                       ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                       : 'bg-red-500/10 text-red-400 border-red-500/20'
@@ -1015,7 +1015,7 @@ export default function TreinosPage() {
                 )}
               </div>
               <div className="text-2xl font-bold font-mono text-[#f7f8f8]">{weeklyProgress.summary.totalCaloriesWeek} kcal</div>
-              <span className="text-[10px] text-[#575c66]">vs semana anterior</span>
+              <span className="text-xs text-[#71717a]">vs semana anterior</span>
             </div>
           </div>
 
@@ -1125,13 +1125,13 @@ export default function TreinosPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-[#f7f8f8]">Meus Treinos Semanais (Templates)</h2>
-            <p className="text-xs text-[#8a8f98]">Selecione um treino pronto para iniciar ou peça para a IA criar.</p>
+            <p className="text-xs text-[#a1a1aa]">Selecione um treino pronto para iniciar ou peça para a IA criar.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => router.push('/saude/treinos/analytics')}
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#38bdf820] border border-[#38bdf840] text-[11px] sm:text-xs font-semibold text-[#38bdf8] hover:bg-[#38bdf830] transition flex items-center space-x-1 sm:space-x-1.5 shadow-sm"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#38bdf820] border border-[#38bdf840] text-xs sm:text-xs font-semibold text-[#38bdf8] hover:bg-[#38bdf830] transition flex items-center space-x-1 sm:space-x-1.5 shadow-sm"
             >
               <BarChart2 className="w-3.5 h-3.5 shrink-0" />
               <span>Analytics</span>
@@ -1142,7 +1142,7 @@ export default function TreinosPage() {
                 setIsCompletedModalOpen(true);
                 fetchCompletedSessions();
               }}
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[11px] sm:text-xs font-medium text-[#818cf8] hover:bg-[#1f242d] transition flex items-center space-x-1 sm:space-x-1.5"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs sm:text-xs font-medium text-[#818cf8] hover:bg-[#1f242d] transition flex items-center space-x-1 sm:space-x-1.5"
             >
               <RotateCcw className="w-3.5 h-3.5 shrink-0" />
               <span>Concluídos</span>
@@ -1153,7 +1153,7 @@ export default function TreinosPage() {
                 setIsAiGeneratorOpen(true);
                 setAiStep(1);
               }}
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#6366f120] text-[#818cf8] hover:bg-[#6366f130] text-[11px] sm:text-xs font-medium transition flex items-center space-x-1 sm:space-x-1.5 border border-[#6366f140]"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#6366f120] text-[#818cf8] hover:bg-[#6366f130] text-xs sm:text-xs font-medium transition flex items-center space-x-1 sm:space-x-1.5 border border-[#6366f140]"
             >
               <Sparkles className="w-3.5 h-3.5 shrink-0" />
               <span>Via IA</span>
@@ -1164,7 +1164,7 @@ export default function TreinosPage() {
                 setIsCreateTemplateOpen(true);
                 fetchExercisesDirectly();
               }}
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[11px] sm:text-xs font-medium text-[#8a8f98] hover:text-white hover:bg-[#1f242d] transition flex items-center space-x-1 sm:space-x-1.5"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs sm:text-xs font-medium text-[#a1a1aa] hover:text-white hover:bg-[#1f242d] transition flex items-center space-x-1 sm:space-x-1.5"
             >
               <Plus className="w-3.5 h-3.5 shrink-0" />
               <span>Manual</span>
@@ -1174,8 +1174,8 @@ export default function TreinosPage() {
 
         {templates.length === 0 ? (
           <div className="p-8 rounded-xl bg-[#0f1115] border border-[#ffffff0e] text-center space-y-4">
-            <Dumbbell className="w-8 h-8 text-[#575c66] mx-auto" />
-            <p className="text-xs text-[#8a8f98]">Você ainda não possui rotinas de treino criadas.</p>
+            <Dumbbell className="w-8 h-8 text-[#71717a] mx-auto" />
+            <p className="text-xs text-[#a1a1aa]">Você ainda não possui rotinas de treino criadas.</p>
             <div className="flex items-center justify-center space-x-3">
               <button
                 onClick={() => {
@@ -1192,7 +1192,7 @@ export default function TreinosPage() {
                   setIsCreateTemplateOpen(true);
                   fetchExercisesDirectly();
                 }}
-                className="px-4 py-2 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white text-xs font-medium transition"
+                className="px-4 py-2 rounded-lg bg-[#16191e] text-[#a1a1aa] hover:text-white text-xs font-medium transition"
               >
                 Criar Manualmente
               </button>
@@ -1229,7 +1229,7 @@ export default function TreinosPage() {
                   <div className="space-y-2">
                     {/* Active Workout Pulsing Banner */}
                     {isCurrentActive && (
-                      <div className="flex items-center justify-between px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-[11px] font-bold tracking-wide">
+                      <div className="flex items-center justify-between px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-bold tracking-wide">
                         <div className="flex items-center space-x-1.5">
                           <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -1237,18 +1237,18 @@ export default function TreinosPage() {
                           </span>
                           <span>TREINO EM ANDAMENTO</span>
                         </div>
-                        <span className="text-[10px] text-emerald-300/80 font-mono">ATIVO</span>
+                        <span className="text-xs text-emerald-300/80 font-mono">ATIVO</span>
                       </div>
                     )}
 
                     {/* Completed This Week Badge */}
                     {isCompletedThisWeek && (
-                      <div className="flex items-center justify-between px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-bold tracking-wide">
+                      <div className="flex items-center justify-between px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold tracking-wide">
                         <div className="flex items-center space-x-1.5">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>CONCLUÍDO</span>
                         </div>
-                        <span className="text-[10px] text-amber-300/70 font-mono">
+                        <span className="text-xs text-amber-300/70 font-mono">
                           {completedDate ? completedDate.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '') + ' ' + completedDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}
                         </span>
                       </div>
@@ -1256,7 +1256,7 @@ export default function TreinosPage() {
 
                     {/* Pending Badge */}
                     {!isCurrentActive && !isCompletedThisWeek && (
-                      <div className="flex items-center px-3 py-1 rounded-lg bg-[#16191e] border border-[#ffffff08] text-[#575c66] text-[11px] font-medium tracking-wide space-x-1.5">
+                      <div className="flex items-center px-3 py-1 rounded-lg bg-[#16191e] border border-[#ffffff08] text-[#71717a] text-xs font-medium tracking-wide space-x-1.5">
                         <Clock className="w-3 h-3" />
                         <span>PENDENTE ESTA SEMANA</span>
                       </div>
@@ -1273,7 +1273,7 @@ export default function TreinosPage() {
                         </h3>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] text-[#8a8f98]">
+                        <span className="text-xs px-2 py-0.5 rounded bg-[#16191e] text-[#a1a1aa]">
                           {tpl.items?.length || 0} Ex.
                         </span>
                         <button
@@ -1285,7 +1285,7 @@ export default function TreinosPage() {
                         </button>
                         <button
                           onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
-                          className="p-1 rounded-md text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
+                          className="p-1 rounded-md text-[#a1a1aa] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
                           title="Excluir Treino"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1293,7 +1293,7 @@ export default function TreinosPage() {
                       </div>
                     </div>
 
-                    {tpl.description && <p className="text-xs text-[#8a8f98]">{tpl.description}</p>}
+                    {tpl.description && <p className="text-xs text-[#a1a1aa]">{tpl.description}</p>}
 
                     {/* Exercícios no card */}
                     <div
@@ -1302,17 +1302,17 @@ export default function TreinosPage() {
                       title="Clique para visualizar todos os exercícios"
                     >
                       {tpl.items?.slice(0, 4).map((item: any) => (
-                        <div key={item.id} className="text-xs text-[#8a8f98] flex items-center justify-between">
+                        <div key={item.id} className="text-xs text-[#a1a1aa] flex items-center justify-between">
                           <span className="truncate max-w-[200px]">
                             • {item.exercise?.namePt || item.exercise?.name}
                           </span>
-                          <span className="text-[10px] text-[#575c66]">
+                          <span className="text-xs text-[#71717a]">
                             {item.targetSets}x{item.targetReps}
                           </span>
                         </div>
                       ))}
                       {tpl.items?.length > 4 && (
-                        <span className="text-[10px] text-[#818cf8] font-semibold flex items-center gap-1">
+                        <span className="text-xs text-[#818cf8] font-semibold flex items-center gap-1">
                           <Eye className="w-3 h-3" />
                           <span>+{tpl.items.length - 4} outros exercícios (Clique para abrir)...</span>
                         </span>
@@ -1357,13 +1357,13 @@ export default function TreinosPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-[#f7f8f8]">Catálogo de Exercícios Musculação</h2>
-            <p className="text-xs text-[#8a8f98]">
+            <p className="text-xs text-[#a1a1aa]">
               Exercícios padrão com instruções de execução e simulação visual (GIFs).
             </p>
           </div>
 
           <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#575c66]" />
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#71717a]" />
             <input
               type="text"
               placeholder="Buscar exercício (Ex: Supino)..."
@@ -1386,10 +1386,10 @@ export default function TreinosPage() {
                 setSelectedMuscleGroup(mg.id);
                 setExercisePage(1);
               }}
-              className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-medium whitespace-nowrap transition ${
+              className={`px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-xs font-medium whitespace-nowrap transition ${
                 selectedMuscleGroup === mg.id
                   ? 'bg-[#6366f1] text-white shadow-md shadow-[#6366f130]'
-                  : 'bg-[#0f1115] text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8] border border-[#ffffff0e]'
+                  : 'bg-[#0f1115] text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8] border border-[#ffffff0e]'
               }`}
             >
               {mg.label}
@@ -1399,11 +1399,11 @@ export default function TreinosPage() {
 
         {/* Contagem e indicador de página */}
         {exercises.length > 0 && (
-          <div className="flex items-center justify-between text-xs text-[#8a8f98] px-1">
+          <div className="flex items-center justify-between text-xs text-[#a1a1aa] px-1">
             <span>
               Exibindo <strong className="text-[#f7f8f8]">{Math.min((exercisePage - 1) * 20 + 1, exercises.length)}-{Math.min(exercisePage * 20, exercises.length)}</strong> de <strong className="text-[#f7f8f8]">{exercises.length}</strong> exercícios
             </span>
-            <span className="font-mono text-[11px] text-[#818cf8]">
+            <span className="font-mono text-xs text-[#818cf8]">
               Página {exercisePage} de {Math.ceil(exercises.length / 20) || 1}
             </span>
           </div>
@@ -1422,14 +1422,14 @@ export default function TreinosPage() {
                   <h4 className="font-semibold text-xs text-[#f7f8f8] group-hover:text-[#818cf8] transition line-clamp-1">
                     {ex.namePt || ex.name}
                   </h4>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#16191e] text-[#38bdf8] font-mono whitespace-nowrap">
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-[#16191e] text-[#38bdf8] font-mono whitespace-nowrap">
                     {ex.equipment}
                   </span>
                 </div>
-                {ex.nameEn && <p className="text-[11px] text-[#575c66] italic line-clamp-1">{ex.nameEn}</p>}
+                {ex.nameEn && <p className="text-xs text-[#71717a] italic line-clamp-1">{ex.nameEn}</p>}
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-[#8a8f98] pt-2 border-t border-[#ffffff0a]">
+              <div className="flex items-center justify-between text-xs text-[#a1a1aa] pt-2 border-t border-[#ffffff0a]">
                 <span className="capitalize">{ex.muscleGroup?.replace('_', ' ').toLowerCase()}</span>
                 <span className="text-[#818cf8] font-medium group-hover:underline flex items-center">
                   Ver GIF / Detalhes <ChevronRight className="w-3 h-3 ml-0.5" />
@@ -1442,7 +1442,7 @@ export default function TreinosPage() {
         {/* Controles de Paginação Responsivos */}
         {Math.ceil(exercises.length / 20) > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#ffffff0e]">
-            <span className="text-xs text-[#8a8f98]">
+            <span className="text-xs text-[#a1a1aa]">
               Página <strong className="text-white">{exercisePage}</strong> de {Math.ceil(exercises.length / 20)}
             </span>
 
@@ -1452,7 +1452,7 @@ export default function TreinosPage() {
                 type="button"
                 onClick={() => setExercisePage((prev) => Math.max(1, prev - 1))}
                 disabled={exercisePage === 1}
-                className="flex-1 py-2 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 transition font-medium text-center"
+                className="flex-1 py-2 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#a1a1aa] hover:text-white disabled:opacity-30 transition font-medium text-center"
               >
                 ← Anterior
               </button>
@@ -1463,7 +1463,7 @@ export default function TreinosPage() {
                 type="button"
                 onClick={() => setExercisePage((prev) => Math.min(Math.ceil(exercises.length / 20), prev + 1))}
                 disabled={exercisePage === Math.ceil(exercises.length / 20)}
-                className="flex-1 py-2 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 transition font-medium text-center"
+                className="flex-1 py-2 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#a1a1aa] hover:text-white disabled:opacity-30 transition font-medium text-center"
               >
                 Próxima →
               </button>
@@ -1475,7 +1475,7 @@ export default function TreinosPage() {
                 type="button"
                 onClick={() => setExercisePage(1)}
                 disabled={exercisePage === 1}
-                className="px-2.5 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 disabled:hover:text-[#8a8f98] transition font-medium"
+                className="px-2.5 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#a1a1aa] hover:text-white disabled:opacity-30 disabled:hover:text-[#a1a1aa] transition font-medium"
               >
                 Primeira
               </button>
@@ -1483,7 +1483,7 @@ export default function TreinosPage() {
                 type="button"
                 onClick={() => setExercisePage((prev) => Math.max(1, prev - 1))}
                 disabled={exercisePage === 1}
-                className="px-3 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 disabled:hover:text-[#8a8f98] transition font-medium flex items-center space-x-1"
+                className="px-3 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#a1a1aa] hover:text-white disabled:opacity-30 disabled:hover:text-[#a1a1aa] transition font-medium flex items-center space-x-1"
               >
                 <span>← Anterior</span>
               </button>
@@ -1495,14 +1495,14 @@ export default function TreinosPage() {
                   const showEllipsis = idx > 0 && p - arr[idx - 1] > 1;
                   return (
                     <div key={p} className="flex items-center space-x-1.5">
-                      {showEllipsis && <span className="text-xs text-[#575c66] px-1">...</span>}
+                      {showEllipsis && <span className="text-xs text-[#71717a] px-1">...</span>}
                       <button
                         type="button"
                         onClick={() => setExercisePage(p)}
                         className={`w-7 h-7 rounded-lg text-xs font-semibold transition ${
                           exercisePage === p
                             ? 'bg-[#6366f1] text-white shadow-md shadow-[#6366f130]'
-                            : 'bg-[#0f1115] border border-[#ffffff10] text-[#8a8f98] hover:text-white hover:border-[#ffffff20]'
+                            : 'bg-[#0f1115] border border-[#ffffff10] text-[#a1a1aa] hover:text-white hover:border-[#ffffff20]'
                         }`}
                       >
                         {p}
@@ -1515,7 +1515,7 @@ export default function TreinosPage() {
                 type="button"
                 onClick={() => setExercisePage((prev) => Math.min(Math.ceil(exercises.length / 20), prev + 1))}
                 disabled={exercisePage === Math.ceil(exercises.length / 20)}
-                className="px-3 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 disabled:hover:text-[#8a8f98] transition font-medium flex items-center space-x-1"
+                className="px-3 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#a1a1aa] hover:text-white disabled:opacity-30 disabled:hover:text-[#a1a1aa] transition font-medium flex items-center space-x-1"
               >
                 <span>Próxima →</span>
               </button>
@@ -1523,7 +1523,7 @@ export default function TreinosPage() {
                 type="button"
                 onClick={() => setExercisePage(Math.ceil(exercises.length / 20))}
                 disabled={exercisePage === Math.ceil(exercises.length / 20)}
-                className="px-2.5 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#8a8f98] hover:text-white disabled:opacity-30 disabled:hover:text-[#8a8f98] transition font-medium"
+                className="px-2.5 py-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-xs text-[#a1a1aa] hover:text-white disabled:opacity-30 disabled:hover:text-[#a1a1aa] transition font-medium"
               >
                 Última
               </button>
@@ -1538,7 +1538,7 @@ export default function TreinosPage() {
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsAiGeneratorOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#a1a1aa] hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
@@ -1549,14 +1549,14 @@ export default function TreinosPage() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-[#f7f8f8]">Coach Iron — Gerador Inteligente de Treino</h3>
-                <p className="text-xs text-[#8a8f98]">Passo {aiStep} de 4 — Monte seu plano com Inteligência Artificial</p>
+                <p className="text-xs text-[#a1a1aa]">Passo {aiStep} de 4 — Monte seu plano com Inteligência Artificial</p>
               </div>
             </div>
 
             {/* Step 1: Escolher Objetivo */}
             {aiStep === 1 && (
               <div className="space-y-4">
-                <h4 className="text-xs font-semibold text-[#8a8f98]">Qual é o seu objetivo principal este mês?</h4>
+                <h4 className="text-xs font-semibold text-[#a1a1aa]">Qual é o seu objetivo principal este mês?</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     { id: 'HYPERTROPHY', title: 'Hipertrofia 💪', desc: 'Ganho de massa muscular com volume e tensão ideal.' },
@@ -1570,11 +1570,11 @@ export default function TreinosPage() {
                       className={`p-4 rounded-xl border cursor-pointer transition space-y-1 ${
                         aiGoal === item.id
                           ? 'bg-[#6366f120] border-[#6366f1] text-[#f7f8f8]'
-                          : 'bg-[#16191e] border-[#ffffff0e] text-[#8a8f98] hover:bg-[#1f242d]'
+                          : 'bg-[#16191e] border-[#ffffff0e] text-[#a1a1aa] hover:bg-[#1f242d]'
                       }`}
                     >
                       <h5 className="font-bold text-sm text-[#f7f8f8]">{item.title}</h5>
-                      <p className="text-xs text-[#8a8f98]">{item.desc}</p>
+                      <p className="text-xs text-[#a1a1aa]">{item.desc}</p>
                     </div>
                   ))}
                 </div>
@@ -1595,7 +1595,7 @@ export default function TreinosPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-[#8a8f98] block mb-1">Frequência Semanal ({aiFrequency} dias)</label>
+                    <label className="text-xs font-medium text-[#a1a1aa] block mb-1">Frequência Semanal ({aiFrequency} dias)</label>
                     <div className="flex gap-1.5">
                       {[3, 4, 5, 6].map((freq) => (
                         <button
@@ -1604,7 +1604,7 @@ export default function TreinosPage() {
                           className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition ${
                             aiFrequency === freq
                               ? 'bg-[#6366f1] text-white'
-                              : 'bg-[#16191e] text-[#8a8f98] hover:bg-[#1f242d]'
+                              : 'bg-[#16191e] text-[#a1a1aa] hover:bg-[#1f242d]'
                           }`}
                         >
                           {freq}d
@@ -1614,7 +1614,7 @@ export default function TreinosPage() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-[#8a8f98] block mb-1">Duração do Treino</label>
+                    <label className="text-xs font-medium text-[#a1a1aa] block mb-1">Duração do Treino</label>
                     <div className="flex gap-1.5">
                       {[
                         { min: 45, label: '45m ⚡' },
@@ -1627,7 +1627,7 @@ export default function TreinosPage() {
                           className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition ${
                             aiSessionDuration === dur.min
                               ? 'bg-[#6366f1] text-white'
-                              : 'bg-[#16191e] text-[#8a8f98] hover:bg-[#1f242d]'
+                              : 'bg-[#16191e] text-[#a1a1aa] hover:bg-[#1f242d]'
                           }`}
                         >
                           {dur.label}
@@ -1638,7 +1638,7 @@ export default function TreinosPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-[#8a8f98] block mb-1">Nível de Experiência</label>
+                  <label className="text-xs font-medium text-[#a1a1aa] block mb-1">Nível de Experiência</label>
                   <select
                     value={aiExperience}
                     onChange={(e) => setAiExperience(e.target.value as any)}
@@ -1654,7 +1654,7 @@ export default function TreinosPage() {
                 <div className="p-3 rounded-xl bg-[#16191e] border border-[#ffffff0e] space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold text-[#f7f8f8]">Cardio Semanal</label>
-                    <span className="text-[11px] text-[#8a8f98]">
+                    <span className="text-xs text-[#a1a1aa]">
                       {aiCardioDays === 0 ? 'Nenhum cardio' : `${aiCardioDays}x/sem por ${aiCardioDuration} min (${aiCardioType})`}
                     </span>
                   </div>
@@ -1667,7 +1667,7 @@ export default function TreinosPage() {
                         className={`flex-1 py-1 rounded-md text-xs font-medium transition ${
                           aiCardioDays === days
                             ? 'bg-[#6366f120] border border-[#6366f1] text-[#818cf8]'
-                            : 'bg-[#1f242d] text-[#8a8f98] border border-[#ffffff0a]'
+                            : 'bg-[#1f242d] text-[#a1a1aa] border border-[#ffffff0a]'
                         }`}
                       >
                         {days === 0 ? 'Off' : `${days}d`}
@@ -1678,7 +1678,7 @@ export default function TreinosPage() {
                   {aiCardioDays > 0 && (
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       <div>
-                        <label className="text-[11px] text-[#8a8f98] block mb-1">Duração por Sessão</label>
+                        <label className="text-xs text-[#a1a1aa] block mb-1">Duração por Sessão</label>
                         <select
                           value={aiCardioDuration}
                           onChange={(e) => setAiCardioDuration(Number(e.target.value))}
@@ -1692,7 +1692,7 @@ export default function TreinosPage() {
                       </div>
 
                       <div>
-                        <label className="text-[11px] text-[#8a8f98] block mb-1">Intensidade / Tipo</label>
+                        <label className="text-xs text-[#a1a1aa] block mb-1">Intensidade / Tipo</label>
                         <select
                           value={aiCardioType}
                           onChange={(e) => setAiCardioType(e.target.value as any)}
@@ -1708,7 +1708,7 @@ export default function TreinosPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-[#8a8f98] block mb-1">Músculos com Foco Prioritário (Opcional)</label>
+                  <label className="text-xs font-medium text-[#a1a1aa] block mb-1">Músculos com Foco Prioritário (Opcional)</label>
                   <div className="flex flex-wrap gap-1.5">
                     {['PEITORAL', 'DORSAL', 'OMBROS', 'BICEPS', 'TRICEPS', 'QUADRICEPS', 'POSTERIOR_COXA', 'GLUTEOS'].map((m) => {
                       const isSel = aiFocusMuscles.includes(m);
@@ -1716,10 +1716,10 @@ export default function TreinosPage() {
                         <button
                           key={m}
                           onClick={() => toggleFocusMuscle(m)}
-                          className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition ${
+                          className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
                             isSel
                               ? 'bg-[#6366f120] border border-[#6366f1] text-[#818cf8]'
-                              : 'bg-[#16191e] text-[#8a8f98] border border-[#ffffff0a]'
+                              : 'bg-[#16191e] text-[#a1a1aa] border border-[#ffffff0a]'
                           }`}
                         >
                           {m}
@@ -1730,7 +1730,7 @@ export default function TreinosPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-[#8a8f98] block mb-1">Lesões ou Restrições (Opcional)</label>
+                  <label className="text-xs font-medium text-[#a1a1aa] block mb-1">Lesões ou Restrições (Opcional)</label>
                   <input
                     type="text"
                     placeholder="Ex: Dor no ombro direito, evitar supino com barra livre"
@@ -1743,7 +1743,7 @@ export default function TreinosPage() {
                 <div className="flex justify-between pt-3">
                   <button
                     onClick={() => setAiStep(1)}
-                    className="px-4 py-2 rounded-lg bg-[#16191e] text-xs text-[#8a8f98]"
+                    className="px-4 py-2 rounded-lg bg-[#16191e] text-xs text-[#a1a1aa]"
                   >
                     Voltar
                   </button>
@@ -1764,7 +1764,7 @@ export default function TreinosPage() {
                 <Loader2 className="w-10 h-10 text-[#818cf8] animate-spin mx-auto" />
                 <div className="space-y-1">
                   <h4 className="font-bold text-sm text-[#f7f8f8]">Coach Iron está montando seu treino...</h4>
-                  <p className="text-xs text-[#8a8f98]">
+                  <p className="text-xs text-[#a1a1aa]">
                     Analisando seu perfil biológico, volume landmarks (MEV/MAV) e selecionando exercícios ideais.
                   </p>
                 </div>
@@ -1776,7 +1776,7 @@ export default function TreinosPage() {
               <div className="space-y-4">
                 <div className="p-3 bg-[#6366f115] border border-[#6366f130] rounded-xl text-xs space-y-1">
                   <h4 className="font-bold text-[#818cf8]">{generatedPlan.planName}</h4>
-                  <p className="text-[#8a8f98]">{generatedPlan.description}</p>
+                  <p className="text-[#a1a1aa]">{generatedPlan.description}</p>
                 </div>
 
                 <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
@@ -1784,16 +1784,16 @@ export default function TreinosPage() {
                     <div key={wIdx} className="p-3.5 bg-[#16191e] border border-[#ffffff0e] rounded-xl space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-xs text-[#f7f8f8]">{w.name}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#0f1115] text-[#8a8f98]">
+                        <span className="text-xs px-2 py-0.5 rounded bg-[#0f1115] text-[#a1a1aa]">
                           {w.exercises?.length || 0} Exercícios
                         </span>
                       </div>
 
                       <div className="space-y-1">
                         {w.exercises?.map((ex: any, exIdx: number) => (
-                          <div key={exIdx} className="text-xs text-[#8a8f98] flex items-center justify-between py-1 border-t border-[#ffffff08]">
+                          <div key={exIdx} className="text-xs text-[#a1a1aa] flex items-center justify-between py-1 border-t border-[#ffffff08]">
                             <span>• {ex.exerciseNamePt}</span>
-                            <div className="flex items-center space-x-3 text-[11px]">
+                            <div className="flex items-center space-x-3 text-xs">
                               <span>{ex.targetSets}x{ex.targetReps}</span>
                               <span className="text-[#38bdf8] font-mono">{ex.targetWeight || 0}kg</span>
                             </div>
@@ -1807,7 +1807,7 @@ export default function TreinosPage() {
                 <div className="flex justify-between pt-3 border-t border-[#ffffff0e]">
                   <button
                     onClick={() => setAiStep(2)}
-                    className="px-4 py-2 rounded-lg bg-[#16191e] text-xs text-[#8a8f98]"
+                    className="px-4 py-2 rounded-lg bg-[#16191e] text-xs text-[#a1a1aa]"
                   >
                     Ajustar Configurações
                   </button>
@@ -1836,7 +1836,7 @@ export default function TreinosPage() {
               </div>
               <div>
                 <h3 className="font-bold text-sm text-[#f7f8f8]">Coach Iron</h3>
-                <span className="text-[10px] text-[#4ade80] flex items-center gap-1">
+                <span className="text-xs text-[#4ade80] flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80]" />
                   Especialista em Musculação Online
                 </span>
@@ -1847,7 +1847,7 @@ export default function TreinosPage() {
               <button
                 onClick={() => fetchActionLogs()}
                 title="Histórico de Auditoria de Modificações"
-                className="px-2 py-1 rounded bg-[#16191e] border border-[#ffffff12] text-[10px] text-[#818cf8] hover:bg-[#1f242d] transition flex items-center space-x-1"
+                className="px-2 py-1 rounded bg-[#16191e] border border-[#ffffff12] text-xs text-[#818cf8] hover:bg-[#1f242d] transition flex items-center space-x-1"
               >
                 <span>📋 Auditoria</span>
               </button>
@@ -1857,20 +1857,20 @@ export default function TreinosPage() {
                   setShowSessionsModal(true);
                 }}
                 title="Lista de Conversas Anteriores"
-                className="px-2 py-1 rounded bg-[#16191e] border border-[#ffffff12] text-[10px] text-[#8a8f98] hover:text-white hover:bg-[#1f242d] transition"
+                className="px-2 py-1 rounded bg-[#16191e] border border-[#ffffff12] text-xs text-[#a1a1aa] hover:text-white hover:bg-[#1f242d] transition"
               >
                 <span>📜 Sessões</span>
               </button>
               <button
                 onClick={() => startNewChatSession()}
                 title="Iniciar Nova Conversa"
-                className="px-2 py-1 rounded bg-[#6366f120] border border-[#6366f140] text-[10px] text-[#818cf8] hover:bg-[#6366f140] transition"
+                className="px-2 py-1 rounded bg-[#6366f120] border border-[#6366f140] text-xs text-[#818cf8] hover:bg-[#6366f140] transition"
               >
                 <span>+ Nova</span>
               </button>
               <button
                 onClick={() => setIsChatOpen(false)}
-                className="p-1 rounded bg-[#16191e] text-[#8a8f98] hover:text-white"
+                className="p-1 rounded bg-[#16191e] text-[#a1a1aa] hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1902,13 +1902,13 @@ export default function TreinosPage() {
                       </div>
 
                       {msg.actionExecuted.addedExercises?.length > 0 && (
-                        <p className="text-[11px] text-[#8a8f98]">
+                        <p className="text-xs text-[#a1a1aa]">
                           Exercícios incluídos: <strong className="text-[#f7f8f8]">{msg.actionExecuted.addedExercises.join(', ')}</strong>
                         </p>
                       )}
 
                       {msg.actionExecuted.oldExercise && (
-                        <p className="text-[11px] text-[#8a8f98]">
+                        <p className="text-xs text-[#a1a1aa]">
                           Substituição: <span className="line-through text-red-400">{msg.actionExecuted.oldExercise}</span> → <strong className="text-emerald-400">{msg.actionExecuted.newExercise}</strong>
                         </p>
                       )}
@@ -1935,7 +1935,7 @@ export default function TreinosPage() {
 
             {sendingChat && (
               <div className="flex justify-start">
-                <div className="bg-[#16191e] text-[#8a8f98] p-3 rounded-2xl text-xs flex items-center space-x-2">
+                <div className="bg-[#16191e] text-[#a1a1aa] p-3 rounded-2xl text-xs flex items-center space-x-2">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-[#818cf8]" />
                   <span>Coach Iron está analisando e aplicando a adaptação...</span>
                 </div>
@@ -1963,7 +1963,7 @@ export default function TreinosPage() {
               </button>
             </div>
 
-            <div className="flex gap-1.5 overflow-x-auto text-[10px] text-[#8a8f98] pb-1 scrollbar-none">
+            <div className="flex gap-1.5 overflow-x-auto text-xs text-[#a1a1aa] pb-1 scrollbar-none">
               <button
                 onClick={() => handleSendChat('Quero dar uma adaptada no meu treino, focar mais em bíceps e tríceps')}
                 className="px-2.5 py-1 rounded-lg bg-[#16191e] border border-[#ffffff10] whitespace-nowrap hover:border-[#6366f140] hover:text-[#818cf8] transition flex items-center space-x-1"
@@ -1993,7 +1993,7 @@ export default function TreinosPage() {
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsCreateTemplateOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#a1a1aa] hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
@@ -2002,7 +2002,7 @@ export default function TreinosPage() {
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-[#8a8f98] block mb-1">Nome do Treino</label>
+                <label className="text-xs font-medium text-[#a1a1aa] block mb-1">Nome do Treino</label>
                 <input
                   type="text"
                   placeholder="Ex: Treino A - Peitoral & Tríceps"
@@ -2013,12 +2013,12 @@ export default function TreinosPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#8a8f98] block mb-1">
+                <label className="text-xs font-medium text-[#a1a1aa] block mb-1">
                   Selecione os Exercícios do Treino ({selectedExerciseIds.length} selecionados)
                 </label>
                 <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1 border border-[#ffffff0e] rounded-lg p-2 bg-[#16191e]/50">
                   {(allExercises.length > 0 ? allExercises : exercises).length === 0 ? (
-                    <div className="p-6 text-center text-xs text-[#8a8f98] space-y-3">
+                    <div className="p-6 text-center text-xs text-[#a1a1aa] space-y-3">
                       <p>Nenhum exercício disponível na lista.</p>
                       <button
                         type="button"
@@ -2038,12 +2038,12 @@ export default function TreinosPage() {
                           className={`p-2 rounded-md text-xs cursor-pointer flex items-center justify-between transition ${
                             isSelected
                               ? 'bg-[#6366f120] text-[#818cf8] border border-[#6366f140]'
-                              : 'hover:bg-[#16191e] text-[#8a8f98]'
+                              : 'hover:bg-[#16191e] text-[#a1a1aa]'
                           }`}
                         >
                           <div>
                             <span className="font-medium">{ex.namePt || ex.name}</span>
-                            <span className="text-[10px] text-[#575c66] ml-2">({ex.muscleGroup})</span>
+                            <span className="text-xs text-[#71717a] ml-2">({ex.muscleGroup})</span>
                           </div>
                           {isSelected && <CheckCircle2 className="w-4 h-4 text-[#818cf8]" />}
                         </div>
@@ -2057,7 +2057,7 @@ export default function TreinosPage() {
             <div className="flex justify-end space-x-3 pt-3 border-t border-[#ffffff0e]">
               <button
                 onClick={() => setIsCreateTemplateOpen(false)}
-                className="px-4 py-2 rounded-lg bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+                className="px-4 py-2 rounded-lg bg-[#16191e] text-xs font-medium text-[#a1a1aa] hover:text-white"
               >
                 Cancelar
               </button>
@@ -2083,14 +2083,14 @@ export default function TreinosPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-[#f7f8f8]">Treinos Concluídos & Reabertura</h3>
-                  <p className="text-xs text-[#8a8f98]">
+                  <p className="text-xs text-[#a1a1aa]">
                     Concluiu um treino sem querer? Clique em "Reabrir" para voltar à sessão e registrar novas séries.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsCompletedModalOpen(false)}
-                className="text-[#8a8f98] hover:text-white p-1"
+                className="text-[#a1a1aa] hover:text-white p-1"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2098,13 +2098,13 @@ export default function TreinosPage() {
 
             <div className="overflow-y-auto flex-1 space-y-3 pr-1 scrollbar-none">
               {loadingCompleted ? (
-                <div className="py-12 text-center text-xs text-[#8a8f98] space-y-2">
+                <div className="py-12 text-center text-xs text-[#a1a1aa] space-y-2">
                   <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#6366f1]" />
                   <p>Carregando treinos concluídos...</p>
                 </div>
               ) : completedSessions.length === 0 ? (
-                <div className="py-12 text-center text-xs text-[#8a8f98] space-y-2">
-                  <Calendar className="w-8 h-8 text-[#575c66] mx-auto" />
+                <div className="py-12 text-center text-xs text-[#a1a1aa] space-y-2">
+                  <Calendar className="w-8 h-8 text-[#71717a] mx-auto" />
                   <p>Nenhum treino concluído recentemente.</p>
                 </div>
               ) : (
@@ -2118,13 +2118,13 @@ export default function TreinosPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ffffff0a] pb-2">
                         <div>
                           <h4 className="font-bold text-sm text-[#f7f8f8]">{sess.title || 'Treino'}</h4>
-                          <span className="text-[11px] text-[#8a8f98]">
+                          <span className="text-xs text-[#a1a1aa]">
                             Concluído em {finishedDate.toLocaleDateString('pt-BR')} às {finishedDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
 
                         <div className="flex items-center space-x-3">
-                          <div className="flex items-center space-x-3 text-xs font-mono text-[#8a8f98]">
+                          <div className="flex items-center space-x-3 text-xs font-mono text-[#a1a1aa]">
                             <span className="text-[#38bdf8]">{sess.durationMinutes || 0} min</span>
                             <span className="text-[#818cf8]">{sess.totalVolume || 0} kg</span>
                             <span className="text-[#f97316]">{sess.caloriesBurned || 0} kcal</span>
@@ -2140,7 +2140,7 @@ export default function TreinosPage() {
 
                           <button
                             onClick={() => handleDeleteSession(sess.id)}
-                            className="p-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
+                            className="p-1.5 rounded-lg bg-[#0f1115] border border-[#ffffff10] text-[#a1a1aa] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
                             title="Excluir Registro"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2153,7 +2153,7 @@ export default function TreinosPage() {
                         {sess.exercises?.map((se: any) => (
                           <span
                             key={se.id}
-                            className="px-2 py-0.5 rounded bg-[#0f1115] border border-[#ffffff0a] text-[10px] text-[#8a8f98]"
+                            className="px-2 py-0.5 rounded bg-[#0f1115] border border-[#ffffff0a] text-xs text-[#a1a1aa]"
                           >
                             {se.exercise?.namePt || se.exercise?.name} ({se.sets?.filter((st: any) => st.isCompleted)?.length || 0} séries)
                           </span>
@@ -2175,7 +2175,7 @@ export default function TreinosPage() {
               </Link>
               <button
                 onClick={() => setIsCompletedModalOpen(false)}
-                className="px-4 py-1.5 rounded-lg bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+                className="px-4 py-1.5 rounded-lg bg-[#16191e] text-xs font-medium text-[#a1a1aa] hover:text-white"
               >
                 Fechar
               </button>
@@ -2193,14 +2193,14 @@ export default function TreinosPage() {
                 <MessageSquare className="w-5 h-5 text-[#818cf8]" />
                 <h3 className="text-sm font-bold text-[#f7f8f8]">Histórico de Conversas com Coach Iron</h3>
               </div>
-              <button onClick={() => setShowSessionsModal(false)} className="text-[#8a8f98] hover:text-white">
+              <button onClick={() => setShowSessionsModal(false)} className="text-[#a1a1aa] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="overflow-y-auto flex-1 space-y-2 pr-1 scrollbar-none">
               {chatSessions.length === 0 ? (
-                <p className="text-xs text-[#8a8f98] text-center py-8">Nenhuma conversa gravada ainda.</p>
+                <p className="text-xs text-[#a1a1aa] text-center py-8">Nenhuma conversa gravada ainda.</p>
               ) : (
                 chatSessions.map((s) => (
                   <div
@@ -2217,13 +2217,13 @@ export default function TreinosPage() {
                   >
                     <div className="space-y-0.5 max-w-[85%]">
                       <h4 className="text-xs font-bold text-[#f7f8f8] truncate">{s.title}</h4>
-                      <p className="text-[11px] text-[#8a8f98] truncate">{s.lastMessage}</p>
-                      <span className="text-[9px] text-[#6366f1] font-mono">
+                      <p className="text-xs text-[#a1a1aa] truncate">{s.lastMessage}</p>
+                      <span className="text-xs text-[#6366f1] font-mono">
                         {new Date(s.updatedAt).toLocaleDateString('pt-BR')} às {new Date(s.updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                     {activeChatSessionId === s.id && (
-                      <span className="text-[10px] bg-[#6366f1] text-white px-2 py-0.5 rounded-full font-semibold">Ativa</span>
+                      <span className="text-xs bg-[#6366f1] text-white px-2 py-0.5 rounded-full font-semibold">Ativa</span>
                     )}
                   </div>
                 ))
@@ -2239,7 +2239,7 @@ export default function TreinosPage() {
               </button>
               <button
                 onClick={() => setShowSessionsModal(false)}
-                className="px-3 py-1.5 rounded-lg bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+                className="px-3 py-1.5 rounded-lg bg-[#16191e] text-xs font-medium text-[#a1a1aa] hover:text-white"
               >
                 Fechar
               </button>
@@ -2257,14 +2257,14 @@ export default function TreinosPage() {
                 <CheckCircle2 className="w-5 h-5 text-[#4ade80]" />
                 <h3 className="text-sm font-bold text-[#f7f8f8]">Log de Auditoria — Alterações do Coach</h3>
               </div>
-              <button onClick={() => setShowActionLogModal(false)} className="text-[#8a8f98] hover:text-white">
+              <button onClick={() => setShowActionLogModal(false)} className="text-[#a1a1aa] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="overflow-y-auto flex-1 space-y-3 pr-1 scrollbar-none">
               {actionLogs.length === 0 ? (
-                <p className="text-xs text-[#8a8f98] text-center py-8">Nenhuma alteração registrada ainda.</p>
+                <p className="text-xs text-[#a1a1aa] text-center py-8">Nenhuma alteração registrada ainda.</p>
               ) : (
                 actionLogs.map((log) => {
                   const p: any = log.payload || {};
@@ -2274,28 +2274,28 @@ export default function TreinosPage() {
                   return (
                     <div key={log.id} className="p-3 rounded-xl bg-[#16191e] border border-[#ffffff0e] space-y-1.5 text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-emerald-400 font-mono text-[11px]">
+                        <span className="font-bold text-emerald-400 font-mono text-xs">
                           {log.actionType === 'WORKOUT_UPDATED' ? '⚡ TREINO ADAPTADO' : log.actionType === 'EXERCISE_SWAPPED' ? '🩹 EXERCÍCIO SUBSTITUÍDO' : '📋 NOVA ROTINA'}
                         </span>
-                        <span className="text-[10px] text-[#8a8f98]">{dateStr} às {timeStr}</span>
+                        <span className="text-xs text-[#a1a1aa]">{dateStr} às {timeStr}</span>
                       </div>
 
                       <h4 className="font-semibold text-[#f7f8f8]">{p.templateName || 'Ficha de Treino'}</h4>
 
                       {p.addedExercises?.length > 0 && (
-                        <p className="text-[#8a8f98] text-[11px]">
+                        <p className="text-[#a1a1aa] text-xs">
                           Exercícios Adicionados: <strong className="text-white">{p.addedExercises.join(', ')}</strong>
                         </p>
                       )}
 
                       {p.oldExercise && (
-                        <p className="text-[#8a8f98] text-[11px]">
+                        <p className="text-[#a1a1aa] text-xs">
                           Removido: <span className="line-through text-red-400">{p.oldExercise}</span> → Inserido: <strong className="text-emerald-400">{p.newExercise}</strong>
                         </p>
                       )}
 
                       {p.reasoning && (
-                        <p className="text-[10px] italic text-[#818cf8] bg-[#6366f110] p-2 rounded-lg border border-[#6366f120]">
+                        <p className="text-xs italic text-[#818cf8] bg-[#6366f110] p-2 rounded-lg border border-[#6366f120]">
                           Motivo técnico: "{p.reasoning}"
                         </p>
                       )}
@@ -2308,7 +2308,7 @@ export default function TreinosPage() {
             <div className="pt-3 border-t border-[#ffffff0e] flex justify-end">
               <button
                 onClick={() => setShowActionLogModal(false)}
-                className="px-4 py-1.5 rounded-lg bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+                className="px-4 py-1.5 rounded-lg bg-[#16191e] text-xs font-medium text-[#a1a1aa] hover:text-white"
               >
                 Fechar
               </button>
@@ -2323,7 +2323,7 @@ export default function TreinosPage() {
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-2xl p-6 max-w-2xl w-full space-y-5 max-h-[90vh] flex flex-col shadow-2xl relative">
             <button
               onClick={() => setSelectedTemplateForView(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#a1a1aa] hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
@@ -2341,7 +2341,7 @@ export default function TreinosPage() {
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#8a8f98]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#a1a1aa]">
                 <div className="flex items-center space-x-2">
                   <span>Cor do Card:</span>
                   {['#6366f1', '#38bdf8', '#4ade80', '#f97316', '#a855f7', '#ec4899'].map((c) => (
@@ -2364,7 +2364,7 @@ export default function TreinosPage() {
             {/* Exercise Items List */}
             <div className="overflow-y-auto flex-1 space-y-3 pr-1 scrollbar-none">
               {editTemplateItems.length === 0 ? (
-                <div className="text-center py-8 text-xs text-[#8a8f98]">
+                <div className="text-center py-8 text-xs text-[#a1a1aa]">
                   Nenhum exercício nesta ficha. Clique abaixo para adicionar.
                 </div>
               ) : (
@@ -2375,7 +2375,7 @@ export default function TreinosPage() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center space-x-2">
-                        <span className="w-5 h-5 rounded-full bg-[#6366f120] text-[#818cf8] font-bold font-mono text-[10px] flex items-center justify-center shrink-0">
+                        <span className="w-5 h-5 rounded-full bg-[#6366f120] text-[#818cf8] font-bold font-mono text-xs flex items-center justify-center shrink-0">
                           {idx + 1}
                         </span>
                         <div>
@@ -2388,14 +2388,14 @@ export default function TreinosPage() {
                                   setSelectedExerciseModal(item.exercise);
                                   setModalGifError(false);
                                 }}
-                                className="text-[10px] text-[#38bdf8] hover:underline flex items-center gap-0.5"
+                                className="text-xs text-[#38bdf8] hover:underline flex items-center gap-0.5"
                               >
                                 <Eye className="w-3 h-3" />
                                 <span>Ver 3D</span>
                               </button>
                             )}
                           </h4>
-                          <span className="text-[10px] text-[#8a8f98] font-mono">
+                          <span className="text-xs text-[#a1a1aa] font-mono">
                             Grupo: {item.exercise?.muscleGroup || 'GERAL'}
                           </span>
                         </div>
@@ -2404,7 +2404,7 @@ export default function TreinosPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveExerciseFromEditList(idx)}
-                        className="p-1 rounded text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
+                        className="p-1 rounded text-[#a1a1aa] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
                         title="Remover Exercício"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -2414,7 +2414,7 @@ export default function TreinosPage() {
                     {/* Set Config Grid */}
                     <div className="grid grid-cols-3 gap-2 pt-1">
                       <div>
-                        <label className="text-[10px] text-[#8a8f98] block">Séries Alvo</label>
+                        <label className="text-xs text-[#a1a1aa] block">Séries Alvo</label>
                         <input
                           type="number"
                           min={1}
@@ -2425,7 +2425,7 @@ export default function TreinosPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-[#8a8f98] block">Reps Alvo</label>
+                        <label className="text-xs text-[#a1a1aa] block">Reps Alvo</label>
                         <input
                           type="number"
                           min={1}
@@ -2436,7 +2436,7 @@ export default function TreinosPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-[#8a8f98] block">Descanso (s)</label>
+                        <label className="text-xs text-[#a1a1aa] block">Descanso (s)</label>
                         <select
                           value={item.restSeconds}
                           onChange={(e) => handleUpdateEditItemField(idx, 'restSeconds', Number(e.target.value))}
@@ -2452,7 +2452,7 @@ export default function TreinosPage() {
                     </div>
 
                     {item.notes && (
-                      <p className="text-[10px] text-[#818cf8] bg-[#6366f110] px-2 py-1 rounded border border-[#6366f120] italic">
+                      <p className="text-xs text-[#818cf8] bg-[#6366f110] px-2 py-1 rounded border border-[#6366f120] italic">
                         Obs: {item.notes}
                       </p>
                     )}
@@ -2468,7 +2468,7 @@ export default function TreinosPage() {
                     <button
                       type="button"
                       onClick={() => setIsAddingExerciseToEdit(false)}
-                      className="text-[#8a8f98] hover:text-white text-xs"
+                      className="text-[#a1a1aa] hover:text-white text-xs"
                     >
                       Cancelar
                     </button>
@@ -2537,7 +2537,7 @@ export default function TreinosPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedTemplateForView(null)}
-                  className="px-4 py-2 rounded-xl bg-[#16191e] text-xs font-medium text-[#8a8f98] hover:text-white"
+                  className="px-4 py-2 rounded-xl bg-[#16191e] text-xs font-medium text-[#a1a1aa] hover:text-white"
                 >
                   Cancelar
                 </button>
@@ -2573,24 +2573,24 @@ export default function TreinosPage() {
             <button
               type="button"
               onClick={() => setSelectedExerciseModal(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-white transition"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#16191e] text-[#a1a1aa] hover:text-white transition"
               title="Fechar Animação 3D"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#6366f120] text-[#818cf8] uppercase">
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#6366f120] text-[#818cf8] uppercase">
                 {selectedExerciseModal.muscleGroup}
               </span>
               <h3 className="text-lg font-bold text-[#f7f8f8] mt-1">{selectedExerciseModal.namePt}</h3>
               {selectedExerciseModal.nameEn && (
-                <p className="text-xs text-[#8a8f98] italic">{selectedExerciseModal.nameEn}</p>
+                <p className="text-xs text-[#a1a1aa] italic">{selectedExerciseModal.nameEn}</p>
               )}
             </div>
 
             <div key={selectedExerciseModal.id} className="w-full h-64 rounded-xl bg-[#16191e] border border-[#ffffff0e] flex items-center justify-center overflow-hidden relative group">
-              <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md border border-[#ffffff15] text-[10px] font-medium text-[#818cf8] flex items-center space-x-1">
+              <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md border border-[#ffffff15] text-xs font-medium text-[#818cf8] flex items-center space-x-1">
                 <Sparkles className="w-3 h-3 text-[#38bdf8]" />
                 <span>Animação 3D — Demonstração em Loop</span>
               </div>
@@ -2607,7 +2607,7 @@ export default function TreinosPage() {
               ) : (
                 <div className="text-center p-6 space-y-3">
                   <Dumbbell className="w-10 h-10 text-[#818cf8] mx-auto animate-pulse" />
-                  <p className="text-xs text-[#8a8f98]">Demonstração 3D Mannequin</p>
+                  <p className="text-xs text-[#a1a1aa]">Demonstração 3D Mannequin</p>
                   <button
                     type="button"
                     onClick={forceSyncGifs}
@@ -2622,13 +2622,13 @@ export default function TreinosPage() {
 
             <div className="space-y-2">
               <h4 className="text-xs font-semibold text-[#f7f8f8]">Instruções de Execução:</h4>
-              <p className="text-xs text-[#8a8f98] leading-relaxed">
+              <p className="text-xs text-[#a1a1aa] leading-relaxed">
                 {selectedExerciseModal.instructions ||
                   `Realize a amplitude completa do movimento para ${selectedExerciseModal.namePt}. Expire na fase concêntrica e mantenha o ritmo controlado na fase excêntrica.`}
               </p>
             </div>
 
-            <div className="pt-3 border-t border-[#ffffff0e] flex items-center justify-between text-xs text-[#575c66]">
+            <div className="pt-3 border-t border-[#ffffff0e] flex items-center justify-between text-xs text-[#71717a]">
               <span>Músculos secundários: {selectedExerciseModal.secondaryMuscle || 'Variados'}</span>
               <span>MET: {selectedExerciseModal.metValue || 5.0}</span>
             </div>

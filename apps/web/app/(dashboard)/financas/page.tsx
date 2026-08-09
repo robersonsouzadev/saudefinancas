@@ -455,8 +455,8 @@ export default function FinancasPage() {
             <Wallet className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight">Finanças Avançadas</h1>
-            <p className="text-sm text-[#8a8f98] mt-0.5">Gestão completa: Contas, Cartões, Orçamentos, Boletos e Recorrências</p>
+            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">Finanças Avançadas</h1>
+            <p className="text-sm text-[#a1a1aa] mt-0.5">Gestão completa: Contas, Cartões, Orçamentos, Boletos e Recorrências</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -472,7 +472,7 @@ export default function FinancasPage() {
         <div className="p-4 sm:p-5 bg-[#0f1115] border border-[#ffffff14] rounded-xl flex items-center justify-between">
           <div>
             <span className="text-xs sm:text-sm text-[#cbd5e1] font-bold uppercase tracking-wider block">Saldo Líquido em Contas</span>
-            <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8] mt-1">{formatBRL(overview.netBalance)}</div>
+            <div className="text-lg sm:text-xl font-semibold font-mono text-[#f7f8f8] mt-1">{formatBRL(overview.netBalance)}</div>
           </div>
           <div className="w-11 h-11 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center text-[#22c55e] shrink-0">
             <Landmark className="w-6 h-6" />
@@ -481,7 +481,7 @@ export default function FinancasPage() {
         <div className="p-4 sm:p-5 bg-[#0f1115] border border-[#ffffff14] rounded-xl flex items-center justify-between">
           <div>
             <span className="text-xs sm:text-sm text-[#cbd5e1] font-bold uppercase tracking-wider block">Entradas no Mês</span>
-            <div className="text-2xl sm:text-3xl font-bold font-mono text-[#4ade80] mt-1 flex items-center">
+            <div className="text-lg sm:text-xl font-semibold font-mono text-[#4ade80] mt-1 flex items-center">
               <ArrowUpRight className="w-5 h-5 mr-1" /> {formatBRL(overview.totalIncome)}
             </div>
           </div>
@@ -492,7 +492,7 @@ export default function FinancasPage() {
         <div className="p-4 sm:p-5 bg-[#0f1115] border border-[#ffffff14] rounded-xl flex items-center justify-between">
           <div>
             <span className="text-xs sm:text-sm text-[#cbd5e1] font-bold uppercase tracking-wider block">Saídas no Mês</span>
-            <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f87171] mt-1 flex items-center">
+            <div className="text-lg sm:text-xl font-semibold font-mono text-[#f87171] mt-1 flex items-center">
               <ArrowDownRight className="w-5 h-5 mr-1" /> {formatBRL(overview.totalExpenses)}
             </div>
           </div>
@@ -510,7 +510,7 @@ export default function FinancasPage() {
             <button onClick={() => handleOpenAccountModal()} className="text-xs sm:text-sm text-[#818cf8] hover:underline font-semibold flex items-center">
               + Nova Conta
             </button>
-            <span className="text-[#8a8f98]">•</span>
+            <span className="text-[#a1a1aa]">•</span>
             <button onClick={() => handleOpenCardModal()} className="text-xs sm:text-sm text-[#818cf8] hover:underline font-semibold flex items-center">
               + Novo Cartão
             </button>
@@ -524,15 +524,15 @@ export default function FinancasPage() {
               <div className="flex justify-between items-start mb-3 pl-2">
                 <div>
                   <span className="text-xs font-semibold block">{acc.name}</span>
-                  <span className="text-[10px] text-[#8a8f98]">{acc.bankName || 'Banco'}</span>
+                  <span className="text-xs text-[#a1a1aa]">{acc.bankName || 'Banco'}</span>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <button onClick={() => handleOpenAccountModal(acc)} className="text-[#8a8f98] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => handleDeleteAccount(acc.id)} className="text-[#8a8f98] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleOpenAccountModal(acc)} className="text-[#a1a1aa] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDeleteAccount(acc.id)} className="text-[#a1a1aa] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
               <div className="pl-2">
-                <span className="text-[10px] text-[#8a8f98] uppercase font-bold">Saldo Disponível</span>
+                <span className="text-xs text-[#a1a1aa] uppercase font-bold">Saldo Disponível</span>
                 <div className="text-lg font-bold font-mono text-[#f7f8f8]">{formatBRL(acc.balance)}</div>
               </div>
             </div>
@@ -544,21 +544,21 @@ export default function FinancasPage() {
               <div className="flex justify-between items-start mb-3 pl-2">
                 <div>
                   <span className="text-xs font-semibold block">{cc.name}</span>
-                  <span className="text-[10px] text-[#8a8f98]">Venc. dia {cc.dueDay}</span>
+                  <span className="text-xs text-[#a1a1aa]">Venc. dia {cc.dueDay}</span>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <button onClick={() => handleOpenCardModal(cc)} className="text-[#8a8f98] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => handleDeleteCard(cc.id)} className="text-[#8a8f98] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleOpenCardModal(cc)} className="text-[#a1a1aa] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDeleteCard(cc.id)} className="text-[#a1a1aa] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
               <div className="pl-2">
-                <span className="text-[10px] text-[#8a8f98] uppercase font-bold">Fatura Atual</span>
+                <span className="text-xs text-[#a1a1aa] uppercase font-bold">Fatura Atual</span>
                 <div className="text-lg font-bold font-mono text-[#f87171]">{formatBRL(cc.usedLimit || 0)}</div>
-                <div className="text-[10px] text-[#8a8f98] mt-1">Limite Livre: {formatBRL(cc.availableLimit || 0)}</div>
+                <div className="text-xs text-[#a1a1aa] mt-1">Limite Livre: {formatBRL(cc.availableLimit || 0)}</div>
               </div>
             </div>
           ))}
-          <button onClick={() => handleOpenAccountModal()} className="min-w-[150px] flex-shrink-0 p-4 rounded-xl border border-dashed border-[#ffffff20] flex flex-col items-center justify-center text-[#8a8f98] hover:text-[#f7f8f8] hover:border-[#ffffff40] transition">
+          <button onClick={() => handleOpenAccountModal()} className="min-w-[150px] flex-shrink-0 p-4 rounded-xl border border-dashed border-[#ffffff20] flex flex-col items-center justify-center text-[#a1a1aa] hover:text-[#f7f8f8] hover:border-[#ffffff40] transition">
             <Plus className="w-5 h-5 mb-1" />
             <span className="text-xs font-medium">+ Adicionar</span>
           </button>
@@ -567,27 +567,27 @@ export default function FinancasPage() {
 
       {/* TABS NAVIGATION */}
       <div className="flex space-x-1 border-b border-[#ffffff14] overflow-x-auto hide-scrollbar">
-        <button onClick={() => setActiveTab('extrato')} className={`px-4 py-2 text-xs font-medium border-b-2 transition whitespace-nowrap ${activeTab === 'extrato' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'}`}>
+        <button onClick={() => setActiveTab('extrato')} className={`px-4 py-2 text-xs font-medium border-b-2 transition whitespace-nowrap ${activeTab === 'extrato' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#a1a1aa] hover:text-[#f7f8f8]'}`}>
           Extrato de Transações
         </button>
-        <button onClick={() => setActiveTab('boletos')} className={`px-4 py-2 text-xs font-medium border-b-2 transition whitespace-nowrap flex items-center ${activeTab === 'boletos' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'}`}>
+        <button onClick={() => setActiveTab('boletos')} className={`px-4 py-2 text-xs font-medium border-b-2 transition whitespace-nowrap flex items-center ${activeTab === 'boletos' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#a1a1aa] hover:text-[#f7f8f8]'}`}>
           📄 Boletos a Pagar
-          {pendingBoletosCount > 0 && <span className="ml-2 bg-[#f87171] text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">{pendingBoletosCount}</span>}
+          {pendingBoletosCount > 0 && <span className="ml-2 bg-[#f87171] text-white text-xs px-1.5 py-0.5 rounded-full font-bold">{pendingBoletosCount}</span>}
         </button>
-        <button onClick={() => setActiveTab('contas')} className={`px-4 py-2 text-xs font-medium border-b-2 transition whitespace-nowrap ${activeTab === 'contas' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'}`}>
+        <button onClick={() => setActiveTab('contas')} className={`px-4 py-2 text-xs font-medium border-b-2 transition whitespace-nowrap ${activeTab === 'contas' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#a1a1aa] hover:text-[#f7f8f8]'}`}>
           🏦 Contas & Cartões
         </button>
-        <button onClick={() => setActiveTab('orcamentos')} className={`px-4 py-2 text-xs font-medium border-b-2 transition whitespace-nowrap ${activeTab === 'orcamentos' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'}`}>
+        <button onClick={() => setActiveTab('orcamentos')} className={`px-4 py-2 text-xs font-medium border-b-2 transition whitespace-nowrap ${activeTab === 'orcamentos' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#a1a1aa] hover:text-[#f7f8f8]'}`}>
           📊 Orçamentos por Categoria
         </button>
-        <button onClick={() => setActiveTab('recorrencias')} className={`px-4 py-2 text-xs font-medium border-b-2 transition whitespace-nowrap ${activeTab === 'recorrencias' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'}`}>
+        <button onClick={() => setActiveTab('recorrencias')} className={`px-4 py-2 text-xs font-medium border-b-2 transition whitespace-nowrap ${activeTab === 'recorrencias' ? 'border-[#5e6ad2] text-[#f7f8f8]' : 'border-transparent text-[#a1a1aa] hover:text-[#f7f8f8]'}`}>
           🔄 Contas Recorrentes
         </button>
       </div>
 
       {/* TAB CONTENT */}
       {loading ? (
-         <div className="py-12 flex justify-center items-center text-xs text-[#8a8f98]"><Loader2 className="w-5 h-5 animate-spin mr-2" /> Carregando...</div>
+         <div className="py-12 flex justify-center items-center text-xs text-[#a1a1aa]"><Loader2 className="w-5 h-5 animate-spin mr-2" /> Carregando...</div>
       ) : (
         <>
           {/* EXTRATO DE TRANSAÇÕES */}
@@ -596,13 +596,13 @@ export default function FinancasPage() {
               {/* Filter Controls Bar */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#0f1115] p-3 rounded-lg border border-[#ffffff14]">
                 <div className="relative w-full sm:w-72">
-                  <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#8a8f98]" />
+                  <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#a1a1aa]" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Buscar transação..."
-                    className="w-full h-9 pl-9 pr-3 bg-[#16191e] border border-[#ffffff14] rounded-md text-xs focus:outline-none focus:border-[#5e6ad2] placeholder-[#575c66]"
+                    className="w-full h-9 pl-9 pr-3 bg-[#16191e] border border-[#ffffff14] rounded-md text-xs focus:outline-none focus:border-[#5e6ad2] placeholder-[#71717a]"
                   />
                 </div>
                 <div className="flex items-center space-x-2 w-full sm:w-auto">
@@ -637,7 +637,7 @@ export default function FinancasPage() {
               {/* Transactions Table */}
               <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#16191e] border-b border-[#ffffff14] text-[#8a8f98] font-semibold uppercase text-[10px]">
+                  <thead className="bg-[#16191e] border-b border-[#ffffff14] text-[#a1a1aa] font-semibold uppercase text-xs">
                     <tr>
                       <th className="p-3">Data</th>
                       <th className="p-3">Descrição</th>
@@ -649,19 +649,19 @@ export default function FinancasPage() {
                   </thead>
                   <tbody className="divide-y divide-[#ffffff0a]">
                     {transactions.length === 0 ? (
-                      <tr><td colSpan={6} className="p-8 text-center text-[#8a8f98]">Nenhuma transação encontrada para este filtro.</td></tr>
+                      <tr><td colSpan={6} className="p-8 text-center text-[#a1a1aa]">Nenhuma transação encontrada para este filtro.</td></tr>
                     ) : transactions.map(tx => (
                       <tr key={tx.id} className="hover:bg-[#16191e] transition">
-                        <td className="p-3 font-mono text-[#8a8f98]">{new Date(tx.date).toLocaleDateString('pt-BR')}</td>
+                        <td className="p-3 font-mono text-[#a1a1aa]">{new Date(tx.date).toLocaleDateString('pt-BR')}</td>
                         <td className="p-3 font-medium">{tx.description}</td>
                         <td className="p-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded bg-[#16191e] border border-[#ffffff0a] text-[11px]">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded bg-[#16191e] border border-[#ffffff0a] text-xs">
                             <span className="mr-1">{categoryIcons[tx.category] || '📦'}</span>
                             {tx.category}
                           </span>
                         </td>
                         <td className="p-3 flex items-center space-x-2">
-                          <span className="text-[10px] uppercase font-bold text-[#8a8f98] flex items-center">
+                          <span className="text-xs uppercase font-bold text-[#a1a1aa] flex items-center">
                             {tx.method === 'CREDIT_CARD' || tx.method === 'CRÉDITO' ? <CreditCard className="w-3 h-3 mr-1"/> : null}
                             {tx.method === 'DEBIT_CARD' || tx.method === 'DÉBITO' ? <Landmark className="w-3 h-3 mr-1"/> : null}
                             {tx.method === 'PIX' ? <Smartphone className="w-3 h-3 mr-1"/> : null}
@@ -669,7 +669,7 @@ export default function FinancasPage() {
                             {tx.method}
                           </span>
                           {tx.bank && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ backgroundColor: getBankColor(tx.bank)+'33', color: getBankColor(tx.bank) }}>
+                            <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ backgroundColor: getBankColor(tx.bank)+'33', color: getBankColor(tx.bank) }}>
                               {tx.bank}
                             </span>
                           )}
@@ -678,8 +678,8 @@ export default function FinancasPage() {
                           {tx.type === 'INCOME' ? '+' : '-'} {formatBRL(tx.amount)}
                         </td>
                         <td className="p-3 text-right space-x-2">
-                          <button onClick={() => handleOpenTx(tx)} className="text-[#8a8f98] hover:text-[#5e6ad2]"><Edit3 className="w-3.5 h-3.5 inline" /></button>
-                          <button onClick={() => handleDeleteTx(tx.id)} className="text-[#8a8f98] hover:text-[#f87171]"><Trash2 className="w-3.5 h-3.5 inline" /></button>
+                          <button onClick={() => handleOpenTx(tx)} className="text-[#a1a1aa] hover:text-[#5e6ad2]"><Edit3 className="w-3.5 h-3.5 inline" /></button>
+                          <button onClick={() => handleDeleteTx(tx.id)} className="text-[#a1a1aa] hover:text-[#f87171]"><Trash2 className="w-3.5 h-3.5 inline" /></button>
                         </td>
                       </tr>
                     ))}
@@ -694,19 +694,19 @@ export default function FinancasPage() {
             <div className="space-y-6 pt-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-lg">
-                  <div className="text-[11px] text-[#8a8f98] uppercase font-semibold">Total Pendente</div>
+                  <div className="text-xs text-[#a1a1aa] uppercase font-semibold">Total Pendente</div>
                   <div className="text-2xl font-bold font-mono text-[#f7f8f8] mt-1">
                     {formatBRL(boletos.filter(b=>b.status==='PENDING').reduce((a,b)=>a+b.amount,0))}
                   </div>
                 </div>
                 <div className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-lg">
-                  <div className="text-[11px] text-[#8a8f98] uppercase font-semibold">Vencendo Hoje</div>
+                  <div className="text-xs text-[#a1a1aa] uppercase font-semibold">Vencendo Hoje</div>
                   <div className="text-2xl font-bold font-mono text-[#fbbf24] mt-1">
                     {boletos.filter(b=>b.status==='PENDING' && b.dueDate === new Date().toISOString().split('T')[0]).length}
                   </div>
                 </div>
                 <div className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-lg">
-                  <div className="text-[11px] text-[#8a8f98] uppercase font-semibold">Atrasados</div>
+                  <div className="text-xs text-[#a1a1aa] uppercase font-semibold">Atrasados</div>
                   <div className="text-2xl font-bold font-mono text-[#f87171] mt-1">
                     {boletos.filter(b=>b.status==='OVERDUE').length}
                   </div>
@@ -715,7 +715,7 @@ export default function FinancasPage() {
 
               <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#16191e] border-b border-[#ffffff14] text-[#8a8f98] font-semibold uppercase text-[10px]">
+                  <thead className="bg-[#16191e] border-b border-[#ffffff14] text-[#a1a1aa] font-semibold uppercase text-xs">
                     <tr>
                       <th className="p-3">Descrição</th>
                       <th className="p-3">Vencimento</th>
@@ -727,21 +727,21 @@ export default function FinancasPage() {
                   </thead>
                   <tbody className="divide-y divide-[#ffffff0a]">
                     {boletos.length === 0 ? (
-                      <tr><td colSpan={6} className="p-8 text-center text-[#8a8f98]">Nenhum boleto registrado.</td></tr>
+                      <tr><td colSpan={6} className="p-8 text-center text-[#a1a1aa]">Nenhum boleto registrado.</td></tr>
                     ) : boletos.map(b => (
                       <tr key={b.id} className="hover:bg-[#16191e] transition">
                         <td className="p-3 font-medium">{b.description}</td>
-                        <td className="p-3 font-mono text-[#8a8f98]">{new Date(b.dueDate).toLocaleDateString('pt-BR')}</td>
-                        <td className="p-3 font-mono text-[10px] text-[#575c66] truncate max-w-[150px]">{b.barcode || '—'}</td>
+                        <td className="p-3 font-mono text-[#a1a1aa]">{new Date(b.dueDate).toLocaleDateString('pt-BR')}</td>
+                        <td className="p-3 font-mono text-xs text-[#71717a] truncate max-w-[150px]">{b.barcode || '—'}</td>
                         <td className="p-3 text-right font-mono font-bold">{formatBRL(b.amount)}</td>
                         <td className="p-3 text-center">
-                          {b.status === 'PENDING' && <span className="px-2 py-0.5 rounded-full bg-[#fbbf24] text-black text-[10px] font-bold">PENDENTE 🟡</span>}
-                          {b.status === 'PAID' && <span className="px-2 py-0.5 rounded-full bg-[#4ade80] text-black text-[10px] font-bold">PAGO 🟢</span>}
-                          {b.status === 'OVERDUE' && <span className="px-2 py-0.5 rounded-full bg-[#f87171] text-white text-[10px] font-bold">ATRASADO 🔴</span>}
+                          {b.status === 'PENDING' && <span className="px-2 py-0.5 rounded-full bg-[#fbbf24] text-black text-xs font-bold">PENDENTE 🟡</span>}
+                          {b.status === 'PAID' && <span className="px-2 py-0.5 rounded-full bg-[#4ade80] text-black text-xs font-bold">PAGO 🟢</span>}
+                          {b.status === 'OVERDUE' && <span className="px-2 py-0.5 rounded-full bg-[#f87171] text-white text-xs font-bold">ATRASADO 🔴</span>}
                         </td>
                         <td className="p-3 text-right">
                           {b.status !== 'PAID' && (
-                            <button onClick={() => handleOpenQuitar(b)} className="px-3 py-1 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded text-[11px] font-bold transition flex items-center ml-auto">
+                            <button onClick={() => handleOpenQuitar(b)} className="px-3 py-1 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded text-xs font-bold transition flex items-center ml-auto">
                               <Check className="w-3 h-3 mr-1" /> Quitar
                             </button>
                           )}
@@ -770,13 +770,13 @@ export default function FinancasPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-sm">{acc.name}</span>
                       <div className="flex items-center space-x-2">
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] border border-[#ffffff14] text-[#8a8f98]">{acc.bankName || 'Banco'}</span>
-                        <button onClick={() => handleOpenAccountModal(acc)} className="text-[#8a8f98] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => handleDeleteAccount(acc.id)} className="text-[#8a8f98] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <span className="text-xs px-2 py-0.5 rounded bg-[#16191e] border border-[#ffffff14] text-[#a1a1aa]">{acc.bankName || 'Banco'}</span>
+                        <button onClick={() => handleOpenAccountModal(acc)} className="text-[#a1a1aa] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteAccount(acc.id)} className="text-[#a1a1aa] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-[#8a8f98] uppercase">Saldo Atual</div>
+                      <div className="text-xs text-[#a1a1aa] uppercase">Saldo Atual</div>
                       <div className="text-xl font-bold font-mono text-[#f7f8f8]">{formatBRL(acc.balance)}</div>
                     </div>
                   </div>
@@ -796,21 +796,21 @@ export default function FinancasPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-sm">{cc.name}</span>
                       <div className="flex items-center space-x-2">
-                        <button onClick={() => handleOpenCardModal(cc)} className="text-[#8a8f98] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => handleDeleteCard(cc.id)} className="text-[#8a8f98] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleOpenCardModal(cc)} className="text-[#a1a1aa] hover:text-[#5e6ad2] p-1"><Edit3 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteCard(cc.id)} className="text-[#a1a1aa] hover:text-[#f87171] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <div className="text-[10px] text-[#8a8f98] uppercase">Fatura Atual</div>
+                        <div className="text-xs text-[#a1a1aa] uppercase">Fatura Atual</div>
                         <div className="text-base font-bold font-mono text-[#f87171]">{formatBRL(cc.usedLimit || 0)}</div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-[#8a8f98] uppercase">Limite Disponível</div>
+                        <div className="text-xs text-[#a1a1aa] uppercase">Limite Disponível</div>
                         <div className="text-base font-bold font-mono text-[#4ade80]">{formatBRL(cc.availableLimit || 0)}</div>
                       </div>
                     </div>
-                    <div className="text-[10px] text-[#8a8f98] border-t border-[#ffffff0a] pt-2 flex justify-between">
+                    <div className="text-xs text-[#a1a1aa] border-t border-[#ffffff0a] pt-2 flex justify-between">
                       <span>Fechamento: dia {cc.closingDay}</span>
                       <span>Vencimento: dia {cc.dueDay}</span>
                     </div>
@@ -826,7 +826,7 @@ export default function FinancasPage() {
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-sm font-bold text-[#f7f8f8]">Orçamentos de Gastos Mensais</h3>
-                  <p className="text-xs text-[#8a8f98]">Defina limites por categoria e acompanhe o progresso em tempo real.</p>
+                  <p className="text-xs text-[#a1a1aa]">Defina limites por categoria e acompanhe o progresso em tempo real.</p>
                 </div>
                 <button onClick={() => setShowBudgetModal(true)} className="px-3 py-1.5 bg-[#5e6ad2] text-white text-xs font-medium rounded-lg flex items-center">
                   <Plus className="w-3.5 h-3.5 mr-1" /> Definir Orçamento
@@ -834,7 +834,7 @@ export default function FinancasPage() {
               </div>
 
               {budgets.length === 0 ? (
-                <div className="p-8 text-center text-[#8a8f98] border border-dashed border-[#ffffff14] rounded-lg bg-[#0f1115]">
+                <div className="p-8 text-center text-[#a1a1aa] border border-dashed border-[#ffffff14] rounded-lg bg-[#0f1115]">
                   Nenhum orçamento cadastrado. Clique em "+ Definir Orçamento" para começar.
                 </div>
               ) : (
@@ -848,11 +848,11 @@ export default function FinancasPage() {
                         </span>
                         <div className="flex items-center space-x-2">
                           {b.isExceeded && (
-                            <span className="px-2 py-0.5 rounded bg-[#f87171]/20 text-[#f87171] text-[10px] font-bold flex items-center">
+                            <span className="px-2 py-0.5 rounded bg-[#f87171]/20 text-[#f87171] text-xs font-bold flex items-center">
                               <AlertTriangle className="w-3 h-3 mr-1" /> Estourado
                             </span>
                           )}
-                          <button onClick={() => handleDeleteBudget(b.id)} className="text-[#8a8f98] hover:text-[#f87171]">
+                          <button onClick={() => handleDeleteBudget(b.id)} className="text-[#a1a1aa] hover:text-[#f87171]">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -862,7 +862,7 @@ export default function FinancasPage() {
                       <div className="space-y-1">
                         <div className="flex justify-between text-xs font-mono">
                           <span>{formatBRL(b.spent)} de {formatBRL(b.amount)}</span>
-                          <span className={b.isExceeded ? 'text-[#f87171] font-bold' : 'text-[#8a8f98]'}>{b.percentage}%</span>
+                          <span className={b.isExceeded ? 'text-[#f87171] font-bold' : 'text-[#a1a1aa]'}>{b.percentage}%</span>
                         </div>
                         <div className="w-full h-2 bg-[#16191e] rounded-full overflow-hidden border border-[#ffffff0a]">
                           <div
@@ -872,7 +872,7 @@ export default function FinancasPage() {
                         </div>
                       </div>
 
-                      <div className="text-[10px] text-[#8a8f98]">
+                      <div className="text-xs text-[#a1a1aa]">
                         {b.isExceeded
                           ? `Excedido em ${formatBRL(b.spent - b.amount)}`
                           : `Restante disponível: ${formatBRL(b.remaining)}`
@@ -891,7 +891,7 @@ export default function FinancasPage() {
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-sm font-bold text-[#f7f8f8]">Contas Fixas & Assinaturas Recorrentes</h3>
-                  <p className="text-xs text-[#8a8f98]">Controle despesas e receitas fixas automáticas (aluguel, internet, assinaturas).</p>
+                  <p className="text-xs text-[#a1a1aa]">Controle despesas e receitas fixas automáticas (aluguel, internet, assinaturas).</p>
                 </div>
                 <button onClick={() => setShowRecurringModal(true)} className="px-3 py-1.5 bg-[#5e6ad2] text-white text-xs font-medium rounded-lg flex items-center">
                   <Plus className="w-3.5 h-3.5 mr-1" /> Nova Recorrência
@@ -899,13 +899,13 @@ export default function FinancasPage() {
               </div>
 
               {recurringRules.length === 0 ? (
-                <div className="p-8 text-center text-[#8a8f98] border border-dashed border-[#ffffff14] rounded-lg bg-[#0f1115]">
+                <div className="p-8 text-center text-[#a1a1aa] border border-dashed border-[#ffffff14] rounded-lg bg-[#0f1115]">
                   Nenhuma regra de recorrência cadastrada.
                 </div>
               ) : (
                 <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#16191e] border-b border-[#ffffff14] text-[#8a8f98] font-semibold uppercase text-[10px]">
+                    <thead className="bg-[#16191e] border-b border-[#ffffff14] text-[#a1a1aa] font-semibold uppercase text-xs">
                       <tr>
                         <th className="p-3">Descrição</th>
                         <th className="p-3">Frequência</th>
@@ -918,13 +918,13 @@ export default function FinancasPage() {
                       {recurringRules.map(r => (
                         <tr key={r.id} className="hover:bg-[#16191e] transition">
                           <td className="p-3 font-medium">{r.description}</td>
-                          <td className="p-3 uppercase text-[10px] text-[#8a8f98] font-bold">{r.frequency}</td>
+                          <td className="p-3 uppercase text-xs text-[#a1a1aa] font-bold">{r.frequency}</td>
                           <td className="p-3">Dia {r.dayOfMonth || 1}</td>
                           <td className={`p-3 text-right font-mono font-bold ${r.type === 'INCOME' ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
                             {r.type === 'INCOME' ? '+' : '-'} {formatBRL(r.amount)}
                           </td>
                           <td className="p-3 text-right">
-                            <button onClick={() => handleDeleteRecurring(r.id)} className="text-[#8a8f98] hover:text-[#f87171]">
+                            <button onClick={() => handleDeleteRecurring(r.id)} className="text-[#a1a1aa] hover:text-[#f87171]">
                               <Trash2 className="w-3.5 h-3.5 inline" />
                             </button>
                           </td>
@@ -943,7 +943,7 @@ export default function FinancasPage() {
       {showTxModal && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-lg shadow-2xl relative max-h-[85vh] overflow-y-auto">
-            <button onClick={() => setShowTxModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
+            <button onClick={() => setShowTxModal(false)} className="absolute top-4 right-4 text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             <h3 className="text-lg font-bold mb-4">{editingTx ? 'Editar Transação' : 'Nova Transação Rápida'}</h3>
 
             <form onSubmit={handleSaveTx} className="space-y-4">
@@ -951,7 +951,7 @@ export default function FinancasPage() {
                 {['EXPENSE', 'INCOME', 'TRANSFER', 'BOLETO'].map((t) => (
                   <button 
                     key={t} type="button" onClick={() => setTxType(t as any)}
-                    className={`flex-1 min-w-[70px] py-2 text-xs font-bold rounded-md transition ${txType === t ? (t==='EXPENSE'||t==='BOLETO' ? 'bg-[#f87171] text-white' : t==='INCOME' ? 'bg-[#4ade80] text-black' : 'bg-[#5e6ad2] text-white') : 'text-[#8a8f98] hover:bg-[#ffffff0a]'}`}
+                    className={`flex-1 min-w-[70px] py-2 text-xs font-bold rounded-md transition ${txType === t ? (t==='EXPENSE'||t==='BOLETO' ? 'bg-[#f87171] text-white' : t==='INCOME' ? 'bg-[#4ade80] text-black' : 'bg-[#5e6ad2] text-white') : 'text-[#a1a1aa] hover:bg-[#ffffff0a]'}`}
                   >
                     {t==='EXPENSE' && '💸 Despesa'}
                     {t==='INCOME' && '💰 Receita'}
@@ -963,23 +963,23 @@ export default function FinancasPage() {
 
               <div className="bg-[#16191e] p-4 rounded-lg border border-[#ffffff14] space-y-3">
                 <div className="flex items-center space-x-2">
-                  <span className="text-2xl font-bold text-[#8a8f98]">R$</span>
+                  <span className="text-2xl font-bold text-[#a1a1aa]">R$</span>
                   <input type="number" step="0.01" value={txAmount} onChange={e=>setTxAmount(e.target.value)} placeholder="0.00" required
-                    className="w-full bg-transparent text-3xl sm:text-4xl font-bold font-mono focus:outline-none placeholder-[#3a3f4a]" />
+                    className="w-full bg-transparent text-2xl font-bold font-mono focus:outline-none placeholder-[#3a3f4a]" />
                 </div>
                 <input type="text" value={txDescription} onChange={e=>setTxDescription(e.target.value)} placeholder="O que foi isso? (Descrição)" required
-                  className="w-full bg-transparent text-sm border-b border-[#ffffff14] pb-2 focus:outline-none focus:border-[#5e6ad2] placeholder-[#575c66]" />
+                  className="w-full bg-transparent text-sm border-b border-[#ffffff14] pb-2 focus:outline-none focus:border-[#5e6ad2] placeholder-[#71717a]" />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Categoria</label>
+                  <label className="block text-xs uppercase font-bold text-[#a1a1aa] mb-1">Categoria</label>
                   <select value={txCategory} onChange={e=>setTxCategory(e.target.value)} className="w-full h-10 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md text-xs focus:outline-none">
                     {Object.keys(categoryIcons).map(c => <option key={c} value={c}>{categoryIcons[c]} {c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Método de Pgto</label>
+                  <label className="block text-xs uppercase font-bold text-[#a1a1aa] mb-1">Método de Pgto</label>
                   <select value={txMethod} onChange={e=>setTxMethod(e.target.value)} className="w-full h-10 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md text-xs focus:outline-none">
                     <option value="CRÉDITO">💳 Cartão de Crédito</option>
                     <option value="DÉBITO">💳 Cartão de Débito</option>
@@ -993,7 +993,7 @@ export default function FinancasPage() {
               <div className="bg-[#16191e] p-3 rounded-lg border border-[#ffffff14] grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {txMethod === 'CRÉDITO' ? (
                   <div className="col-span-1 sm:col-span-2">
-                    <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Cartão de Crédito</label>
+                    <label className="block text-xs uppercase font-bold text-[#a1a1aa] mb-1">Cartão de Crédito</label>
                     <select value={txCard} onChange={e=>setTxCard(e.target.value)} className="w-full h-9 px-2 bg-[#0f1115] border border-[#ffffff14] rounded text-xs focus:outline-none">
                       <option value="">Selecione o cartão...</option>
                       {creditCards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -1001,7 +1001,7 @@ export default function FinancasPage() {
                   </div>
                 ) : (
                   <div className="col-span-1 sm:col-span-2">
-                    <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Conta Bancária</label>
+                    <label className="block text-xs uppercase font-bold text-[#a1a1aa] mb-1">Conta Bancária</label>
                     <select value={txAccount} onChange={e=>setTxAccount(e.target.value)} className="w-full h-9 px-2 bg-[#0f1115] border border-[#ffffff14] rounded text-xs focus:outline-none">
                       <option value="">Selecione a conta...</option>
                       {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -1022,20 +1022,20 @@ export default function FinancasPage() {
       {showAccountModal && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto">
-            <button onClick={() => setShowAccountModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
+            <button onClick={() => setShowAccountModal(false)} className="absolute top-4 right-4 text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             <h3 className="text-base font-bold mb-4">{editingAccount ? 'Editar Conta Bancária' : 'Nova Conta Bancária'}</h3>
 
             <form onSubmit={handleSaveAccount} className="space-y-3 text-xs">
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Nome da Conta</label>
+                <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Nome da Conta</label>
                 <input type="text" value={accName} onChange={e=>setAccName(e.target.value)} placeholder="Ex: Conta Corrente Principal" required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
               </div>
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Instituição / Banco</label>
+                <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Instituição / Banco</label>
                 <input type="text" value={accBank} onChange={e=>setAccBank(e.target.value)} placeholder="Ex: Nubank, Bradesco, Itaú" required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
               </div>
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Saldo Atual (R$)</label>
+                <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Saldo Atual (R$)</label>
                 <input type="number" step="0.01" value={accBalance} onChange={e=>setAccBalance(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none text-[#22c55e]" />
               </div>
               <button type="submit" className="w-full h-11 sm:h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">
@@ -1050,32 +1050,32 @@ export default function FinancasPage() {
       {showCardModal && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto">
-            <button onClick={() => setShowCardModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
+            <button onClick={() => setShowCardModal(false)} className="absolute top-4 right-4 text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             <h3 className="text-base font-bold mb-4">{editingCard ? 'Editar Cartão de Crédito' : 'Novo Cartão de Crédito'}</h3>
 
             <form onSubmit={handleSaveCard} className="space-y-3 text-xs">
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Conta Vinculada</label>
+                <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Conta Vinculada</label>
                 <select value={cardAccount} onChange={e=>setCardAccount(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none">
                   <option value="">Selecione...</option>
                   {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Nome do Cartão</label>
+                <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Nome do Cartão</label>
                 <input type="text" value={cardName} onChange={e=>setCardName(e.target.value)} placeholder="Ex: Nubank Violeta" required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
               </div>
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Limite Total (R$)</label>
+                <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Limite Total (R$)</label>
                 <input type="number" step="0.01" value={cardLimit} onChange={e=>setCardLimit(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block uppercase font-bold text-[#8a8f98] mb-1">Dia Fechamento</label>
+                  <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Dia Fechamento</label>
                   <input type="number" min="1" max="31" value={cardClosing} onChange={e=>setCardClosing(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
                 </div>
                 <div>
-                  <label className="block uppercase font-[#8a8f98] mb-1">Dia Vencimento</label>
+                  <label className="block uppercase font-[#a1a1aa] mb-1">Dia Vencimento</label>
                   <input type="number" min="1" max="31" value={cardDue} onChange={e=>setCardDue(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
                 </div>
               </div>
@@ -1091,18 +1091,18 @@ export default function FinancasPage() {
       {showBudgetModal && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto">
-            <button onClick={() => setShowBudgetModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
+            <button onClick={() => setShowBudgetModal(false)} className="absolute top-4 right-4 text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             <h3 className="text-base font-bold mb-4">Definir Orçamento Categoria</h3>
 
             <form onSubmit={handleSaveBudget} className="space-y-3 text-xs">
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Categoria</label>
+                <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Categoria</label>
                 <select value={budCategory} onChange={e=>setBudCategory(e.target.value)} className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none">
                   {Object.keys(categoryIcons).map(c => <option key={c} value={c}>{categoryIcons[c]} {c}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Limite Mensal (R$)</label>
+                <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Limite Mensal (R$)</label>
                 <input type="number" step="0.01" value={budLimit} onChange={e=>setBudLimit(e.target.value)} placeholder="Ex: 1000.00" required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none" />
               </div>
               <button type="submit" className="w-full h-11 sm:h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">Salvar Orçamento</button>
@@ -1115,28 +1115,28 @@ export default function FinancasPage() {
       {showRecurringModal && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto">
-            <button onClick={() => setShowRecurringModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
+            <button onClick={() => setShowRecurringModal(false)} className="absolute top-4 right-4 text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             <h3 className="text-base font-bold mb-4">Nova Conta Recorrente</h3>
 
             <form onSubmit={handleSaveRecurring} className="space-y-3 text-xs">
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Descrição</label>
+                <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Descrição</label>
                 <input type="text" value={recDesc} onChange={e=>setRecDesc(e.target.value)} placeholder="Ex: Aluguel, Netflix, Salário" required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
               </div>
               <div>
-                <label className="block uppercase font-bold text-[#8a8f98] mb-1">Valor (R$)</label>
+                <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Valor (R$)</label>
                 <input type="number" step="0.01" value={recAmount} onChange={e=>setRecAmount(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block uppercase font-bold text-[#8a8f98] mb-1">Tipo</label>
+                  <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Tipo</label>
                   <select value={recType} onChange={e=>setRecType(e.target.value as any)} className="w-full h-10 sm:h-9 px-2 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none">
                     <option value="EXPENSE">Despesa</option>
                     <option value="INCOME">Receita</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block uppercase font-bold text-[#8a8f98] mb-1">Dia do Mês</label>
+                  <label className="block uppercase font-bold text-[#a1a1aa] mb-1">Dia do Mês</label>
                   <input type="number" min="1" max="31" value={recDay} onChange={e=>setRecDay(e.target.value)} required className="w-full h-10 sm:h-9 px-2 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
                 </div>
               </div>
@@ -1150,26 +1150,26 @@ export default function FinancasPage() {
       {showQuitarModal && selectedBoleto && (
         <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
           <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto">
-            <button onClick={() => setShowQuitarModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
+            <button onClick={() => setShowQuitarModal(false)} className="absolute top-4 right-4 text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             
             <div className="text-center mb-6">
               <div className="w-12 h-12 rounded-full bg-[#22c55e]/20 text-[#22c55e] flex items-center justify-center mx-auto mb-2"><Check className="w-6 h-6" /></div>
               <h3 className="text-lg font-bold">Quitar Boleto</h3>
-              <p className="text-xs text-[#8a8f98]">{selectedBoleto.description}</p>
+              <p className="text-xs text-[#a1a1aa]">{selectedBoleto.description}</p>
             </div>
 
             <form onSubmit={handleQuitarBoleto} className="space-y-4">
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Data do Pagamento</label>
+                <label className="block text-xs uppercase font-bold text-[#a1a1aa] mb-1">Data do Pagamento</label>
                 <input type="date" value={quitarDate} onChange={e=>setQuitarDate(e.target.value)} required className="w-full h-10 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md text-xs focus:outline-none" />
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Valor Final Pago (R$)</label>
+                <label className="block text-xs uppercase font-bold text-[#a1a1aa] mb-1">Valor Final Pago (R$)</label>
                 <input type="number" step="0.01" value={quitarAmount} onChange={e=>setQuitarAmount(e.target.value)} required className="w-full h-10 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md text-sm font-bold font-mono focus:outline-none" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Método</label>
+                  <label className="block text-xs uppercase font-bold text-[#a1a1aa] mb-1">Método</label>
                   <select value={quitarMethod} onChange={e=>setQuitarMethod(e.target.value)} className="w-full h-10 px-2 bg-[#16191e] border border-[#ffffff14] rounded-md text-xs focus:outline-none">
                     <option value="PIX">PIX</option>
                     <option value="DÉBITO">Débito</option>
@@ -1177,7 +1177,7 @@ export default function FinancasPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Conta de Saída</label>
+                  <label className="block text-xs uppercase font-bold text-[#a1a1aa] mb-1">Conta de Saída</label>
                   <select value={quitarAccount} onChange={e=>setQuitarAccount(e.target.value)} required className="w-full h-10 px-2 bg-[#16191e] border border-[#ffffff14] rounded-md text-xs focus:outline-none">
                     <option value="">Selecione...</option>
                     {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}

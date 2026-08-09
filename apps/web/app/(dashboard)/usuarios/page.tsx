@@ -249,8 +249,8 @@ export default function UsuariosPage() {
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight">Controle de Usuários (Modo Restrito)</h1>
-            <p className="text-sm text-[#8a8f98] mt-0.5">Autorize e-mails para acesso ao sistema e envie convites</p>
+            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">Controle de Usuários (Modo Restrito)</h1>
+            <p className="text-sm text-[#a1a1aa] mt-0.5">Autorize e-mails para acesso ao sistema e envie convites</p>
           </div>
         </div>
 
@@ -284,7 +284,7 @@ export default function UsuariosPage() {
 
         {users.length === 0 ? (
           <div className="py-12 text-center space-y-2 border border-dashed border-[#ffffff0a] rounded-md">
-            <UserCheck className="w-8 h-8 text-[#8a8f98] mx-auto" />
+            <UserCheck className="w-8 h-8 text-[#a1a1aa] mx-auto" />
             <h4 className="text-sm font-bold text-[#f7f8f8]">Nenhum usuário cadastrado além de você</h4>
             <p className="text-xs text-[#cbd5e1] max-w-sm mx-auto">
               Clique em "+ Autorizar E-mail" para permitir que familiares ou membros acessem o sistema.
@@ -318,7 +318,7 @@ export default function UsuariosPage() {
                     <div className="flex items-center space-x-1">
                       <button 
                         onClick={() => handleOpenInvite(u)}
-                        className="px-2 py-1 bg-[#5e6ad2]/20 text-[#5e6ad2] rounded text-[10px] font-medium flex items-center space-x-1"
+                        className="px-2 py-1 bg-[#5e6ad2]/20 text-[#5e6ad2] rounded text-xs font-medium flex items-center space-x-1"
                         title="Enviar Convite"
                       >
                         <Send className="w-3 h-3" />
@@ -326,7 +326,7 @@ export default function UsuariosPage() {
                       </button>
                       <button 
                         onClick={() => handleOpenEdit(u)}
-                        className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f7f8f8]"
+                        className="p-1 hover:bg-[#272a30] rounded text-[#a1a1aa] hover:text-[#f7f8f8]"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
@@ -385,14 +385,14 @@ export default function UsuariosPage() {
 
                         <button 
                           onClick={() => handleOpenEdit(u)}
-                          className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f7f8f8]"
+                          className="p-1 hover:bg-[#272a30] rounded text-[#a1a1aa] hover:text-[#f7f8f8]"
                           title="Editar Dados"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button 
                           onClick={() => handleDeleteUser(u.id)}
-                          className="p-1 hover:bg-[#272a30] rounded text-[#8a8f98] hover:text-[#f87171]"
+                          className="p-1 hover:bg-[#272a30] rounded text-[#a1a1aa] hover:text-[#f87171]"
                           title="Inativar Acesso"
                         >
                           <Power className="w-3.5 h-3.5" />
@@ -415,7 +415,7 @@ export default function UsuariosPage() {
               <h3 className="font-semibold text-sm text-[#f7f8f8]">
                 {editingUser ? 'Editar Permissões do Usuário' : 'Autorizar Novo E-mail'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-[#a1a1aa] hover:text-[#f7f8f8] text-xs">✕</button>
             </div>
 
             <form onSubmit={handleSaveUser} className="space-y-4 text-xs">
@@ -425,7 +425,7 @@ export default function UsuariosPage() {
                 </div>
               )}
               <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome Completo</label>
+                <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">Nome Completo</label>
                 <input 
                   type="text" 
                   value={name}
@@ -438,7 +438,7 @@ export default function UsuariosPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">E-mail do Google</label>
+                  <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">E-mail do Google</label>
                   <input 
                     type="email" 
                     value={email}
@@ -450,7 +450,7 @@ export default function UsuariosPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Cargo / Função</label>
+                  <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">Cargo / Função</label>
                   <select 
                     value={role}
                     onChange={(e: any) => setRole(e.target.value)}
@@ -464,7 +464,7 @@ export default function UsuariosPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">📱 WhatsApp para Mensagens/Assistente IA (opcional)</label>
+                <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">📱 WhatsApp para Mensagens/Assistente IA (opcional)</label>
                 <input 
                   type="text" 
                   value={whatsappPhone}
@@ -475,7 +475,7 @@ export default function UsuariosPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">
+                <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">
                   {editingUser ? 'Alterar Senha (opcional)' : 'Senha de Acesso Direto (opcional)'}
                 </label>
                 <input 
@@ -491,7 +491,7 @@ export default function UsuariosPage() {
                 <button 
                   type="button" 
                   onClick={() => setShowModal(false)}
-                  className="h-9 px-4 rounded-lg bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8] border border-[#ffffff0a]"
+                  className="h-9 px-4 rounded-lg bg-[#16191e] text-[#a1a1aa] hover:text-[#f7f8f8] border border-[#ffffff0a]"
                 >
                   Cancelar
                 </button>
@@ -519,11 +519,11 @@ export default function UsuariosPage() {
                   Enviar Convite de Acesso
                 </h3>
               </div>
-              <button onClick={() => setShowInviteModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
+              <button onClick={() => setShowInviteModal(false)} className="text-[#a1a1aa] hover:text-[#f7f8f8] text-xs">✕</button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <p className="text-[#8a8f98]">
+              <p className="text-[#a1a1aa]">
                 O e-mail <strong className="text-[#f7f8f8]">{selectedInviteUser.email}</strong> foi autorizado no sistema. Envie o texto do convite para ele:
               </p>
 
@@ -537,7 +537,7 @@ export default function UsuariosPage() {
                   onClick={() => handleCopyInvite(selectedInviteUser)}
                   className="py-2.5 px-3 rounded-lg bg-[#16191e] hover:bg-[#272a30] border border-[#ffffff14] text-[#f7f8f8] font-medium flex items-center justify-center space-x-2 transition"
                 >
-                  {copied ? <Check className="w-4 h-4 text-[#4ade80]" /> : <Copy className="w-4 h-4 text-[#8a8f98]" />}
+                  {copied ? <Check className="w-4 h-4 text-[#4ade80]" /> : <Copy className="w-4 h-4 text-[#a1a1aa]" />}
                   <span>{copied ? 'Copiado!' : 'Copiar Texto'}</span>
                 </button>
 

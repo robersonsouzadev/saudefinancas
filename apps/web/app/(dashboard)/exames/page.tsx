@@ -138,7 +138,7 @@ function HealthScoreRing({ score, size = 140 }: { score: number; size?: number }
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-3xl font-bold font-mono" style={{ color }}>{animatedScore}</span>
-        <span className="text-[10px] text-[#8a8f98] font-medium">{getScoreLabel(animatedScore)}</span>
+        <span className="text-xs text-[#a1a1aa] font-medium">{getScoreLabel(animatedScore)}</span>
       </div>
     </div>
   );
@@ -241,20 +241,20 @@ function HealthTipTooltip({ biomarkerKey, status, onClose }: { biomarkerKey: str
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-[#f7f8f8]">{tip.name}</h3>
-                <p className="text-[10px] text-[#8a8f98]">Entenda seu resultado</p>
+                <p className="text-xs text-[#a1a1aa]">Entenda seu resultado</p>
               </div>
             </div>
-            <button onClick={onClose} className="text-[#8a8f98] hover:text-white"><X className="w-5 h-5" /></button>
+            <button onClick={onClose} className="text-[#a1a1aa] hover:text-white"><X className="w-5 h-5" /></button>
           </div>
 
           <div className="p-3 rounded-lg bg-[#16191e] border border-[#ffffff08]">
-            <p className="text-[10px] uppercase tracking-wider text-[#5e6ad2] font-semibold mb-1">O que é</p>
+            <p className="text-xs uppercase tracking-wider text-[#5e6ad2] font-semibold mb-1">O que é</p>
             <p className="text-xs text-[#c4c7cd] leading-relaxed">{tip.whatIs}</p>
           </div>
 
           {isAltered && (
             <div className={`p-3 rounded-lg border ${status.includes('CRITICO') ? 'bg-[#f871710d] border-[#f8717125]' : 'bg-[#fbbf240d] border-[#fbbf2425]'}`}>
-              <p className="text-[10px] uppercase tracking-wider font-semibold mb-1" style={{ color: status.includes('CRITICO') ? '#f87171' : '#fbbf24' }}>
+              <p className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: status.includes('CRITICO') ? '#f87171' : '#fbbf24' }}>
                 {status === 'ALTO' || status === 'CRITICO_ALTO' ? '↑ Seu valor está alto' : '↓ Seu valor está baixo'}
               </p>
               <p className="text-xs text-[#c4c7cd] leading-relaxed">{explanation}</p>
@@ -262,7 +262,7 @@ function HealthTipTooltip({ biomarkerKey, status, onClose }: { biomarkerKey: str
           )}
 
           <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-[#4ade80] font-semibold flex items-center gap-1">
+            <p className="text-xs uppercase tracking-wider text-[#4ade80] font-semibold flex items-center gap-1">
               <Lightbulb className="w-3 h-3" /> Dicas para melhorar
             </p>
             {tip.tips.map((t, i) => (
@@ -749,12 +749,12 @@ export default function LabExamsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8]">Laboratório Inteligente & Biomarcadores</h1>
+            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8]">Laboratório Inteligente & Biomarcadores</h1>
             <span className="text-xs font-mono text-[#5e6ad2] bg-[#5e6ad215] border border-[#5e6ad230] px-2.5 py-0.5 rounded-full">
               Vision IA Active
             </span>
           </div>
-          <p className="text-sm text-[#8a8f98] mt-1">
+          <p className="text-sm text-[#a1a1aa] mt-1">
             Acompanhe o histórico de laudos, zonas funcionais e cálculo de idade biológica
           </p>
         </div>
@@ -787,7 +787,7 @@ export default function LabExamsPage() {
               <button
                 onClick={() => setIsPhenoInfoOpen(true)}
                 title="O que é a Idade Biológica PhenoAge?"
-                className="text-[#8a8f98] hover:text-[#5e6ad2] transition"
+                className="text-[#a1a1aa] hover:text-[#5e6ad2] transition"
               >
                 <Info className="w-4 h-4" />
               </button>
@@ -795,7 +795,7 @@ export default function LabExamsPage() {
             <Activity className="w-4 h-4 text-[#5e6ad2]" />
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-2xl sm:text-3xl font-bold text-[#f7f8f8] font-mono">
+            <span className="text-lg sm:text-xl font-semibold text-[#f7f8f8] font-mono">
               {summary?.phenoAge ? `${summary.phenoAge}` : '--'}
             </span>
             <span className="text-xs text-[#cbd5e1] font-medium">anos</span>
@@ -817,7 +817,7 @@ export default function LabExamsPage() {
           ) : (
             <button
               onClick={() => setIsPhenoInfoOpen(true)}
-              className="text-[10px] font-semibold text-[#fbbf24] bg-[#fbbf2415] border border-[#fbbf2430] hover:bg-[#fbbf2425] px-2 py-0.5 rounded inline-flex items-center gap-1 mt-1 transition"
+              className="text-xs font-semibold text-[#fbbf24] bg-[#fbbf2415] border border-[#fbbf2430] hover:bg-[#fbbf2425] px-2 py-0.5 rounded inline-flex items-center gap-1 mt-1 transition"
             >
               <span>Faltam {summary?.missingPhenoAgeBiomarkers?.length || 9} exames</span>
               <Info className="w-3 h-3" />
@@ -832,7 +832,7 @@ export default function LabExamsPage() {
             <BarChart3 className="w-4 h-4 text-[#38bdf8]" />
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-2xl sm:text-3xl font-bold text-[#f7f8f8] font-mono">{summary?.totalBiomarkers || 0}</span>
+            <span className="text-lg sm:text-xl font-semibold text-[#f7f8f8] font-mono">{summary?.totalBiomarkers || 0}</span>
             <span className="text-xs text-[#cbd5e1] font-medium">em {summary?.totalExams || 0} exames</span>
           </div>
           {/* Progress bar: % optimal */}
@@ -854,7 +854,7 @@ export default function LabExamsPage() {
             <Zap className="w-4 h-4 text-[#fbbf24]" />
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-2xl sm:text-3xl font-bold text-[#fbbf24] font-mono">{summary?.attentionCount || 0}</span>
+            <span className="text-lg sm:text-xl font-semibold text-[#fbbf24] font-mono">{summary?.attentionCount || 0}</span>
             <span className="text-xs text-[#cbd5e1] font-medium">fora da zona</span>
           </div>
           <p className="text-xs text-[#a1a1aa] mt-1">Requer ajuste de estilo de vida</p>
@@ -867,7 +867,7 @@ export default function LabExamsPage() {
             <TrendingUp className="w-4 h-4 text-[#4ade80]" />
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className={`text-2xl sm:text-3xl font-bold font-mono ${String(trendValue).startsWith('-') ? 'text-[#f87171]' : 'text-[#4ade80]'}`}>
+            <span className={`text-lg sm:text-xl font-semibold font-mono ${String(trendValue).startsWith('-') ? 'text-[#f87171]' : 'text-[#4ade80]'}`}>
               {String(trendValue).startsWith('-') || String(trendValue).startsWith('+') ? trendValue : `+${trendValue}`}
             </span>
             <span className="text-xs text-[#cbd5e1] font-medium">pts</span>
@@ -1055,7 +1055,7 @@ export default function LabExamsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#f7f8f8]">{pattern.title}</span>
                   <span
-                    className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                    className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
                       isCritical
                         ? 'text-[#f87171] bg-[#f8717115]'
                         : isWarning
@@ -1066,14 +1066,14 @@ export default function LabExamsPage() {
                     {isCritical ? '🔴 Crítico' : isWarning ? '🟡 Atenção' : '🔵 Info'}
                   </span>
                 </div>
-                <p className="text-[11px] text-[#8a8f98] leading-relaxed">{pattern.description}</p>
+                <p className="text-xs text-[#a1a1aa] leading-relaxed">{pattern.description}</p>
               </div>
             );
           })}
 
           {(!summary?.recentPatterns || summary.recentPatterns.length === 0) && (
             <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff12] text-center">
-              <p className="text-xs text-[#8a8f98]">Nenhum padrão metabólico detectado</p>
+              <p className="text-xs text-[#a1a1aa]">Nenhum padrão metabólico detectado</p>
             </div>
           )}
         </div>
@@ -1086,7 +1086,7 @@ export default function LabExamsPage() {
                 <Target className="w-4 h-4 text-[#5e6ad2]" />
                 <span>Visão Geral por Categoria</span>
               </h2>
-              <p className="text-[10px] text-[#8a8f98]">% de biomarcadores em zona ótima por sistema</p>
+              <p className="text-xs text-[#a1a1aa]">% de biomarcadores em zona ótima por sistema</p>
             </div>
           </div>
 
@@ -1108,7 +1108,7 @@ export default function LabExamsPage() {
                 </RadarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-xs text-[#8a8f98]">
+              <div className="flex items-center justify-center h-full text-xs text-[#a1a1aa]">
                 Envie exames para visualizar o radar de saúde
               </div>
             )}
@@ -1172,8 +1172,8 @@ export default function LabExamsPage() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
-              <XAxis dataKey="date" stroke="#575c66" tick={{ fill: '#8a8f98', fontSize: 11 }} axisLine={false} />
-              <YAxis stroke="#575c66" tick={{ fill: '#8a8f98', fontSize: 11 }} axisLine={false} />
+              <XAxis dataKey="date" stroke="#71717a" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} />
+              <YAxis stroke="#71717a" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} />
               <Tooltip
                 contentStyle={{ backgroundColor: '#16191e', borderColor: '#ffffff12', borderRadius: '8px', fontSize: '12px' }}
                 labelStyle={{ color: '#f7f8f8', fontWeight: 'bold' }}
@@ -1249,7 +1249,7 @@ export default function LabExamsPage() {
                             {getHealthTip(item.biomarkerKey) && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setActiveTip({ key: item.biomarkerKey, status: item.status }); }}
-                                className="p-1 rounded hover:bg-[#5e6ad220] text-[#8a8f98] hover:text-[#818cf8] transition min-h-[32px] min-w-[32px] flex items-center justify-center"
+                                className="p-1 rounded hover:bg-[#5e6ad220] text-[#a1a1aa] hover:text-[#818cf8] transition min-h-[32px] min-w-[32px] flex items-center justify-center"
                                 title="Ver dicas de saúde"
                               >
                                 <Info className="w-4 h-4" />
@@ -1301,14 +1301,14 @@ export default function LabExamsPage() {
                           <div className="flex items-center gap-1">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleEditResult(item); }}
-                              className="p-1.5 rounded hover:bg-[#1d2127] text-[#575c66] hover:text-[#5e6ad2] transition"
+                              className="p-1.5 rounded hover:bg-[#1d2127] text-[#71717a] hover:text-[#5e6ad2] transition"
                               title="Editar biomarcador"
                             >
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleDeleteResult(item.id, item.biomarkerKey, item.biomarkerName); }}
-                              className="p-1.5 rounded hover:bg-[#1d2127] text-[#575c66] hover:text-[#f87171] transition"
+                              className="p-1.5 rounded hover:bg-[#1d2127] text-[#71717a] hover:text-[#f87171] transition"
                               title="Excluir biomarcador"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1331,12 +1331,12 @@ export default function LabExamsPage() {
           <div className="w-full max-w-md bg-[#0f1115] border border-[#ffffff12] rounded-t-2xl sm:rounded-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-[#f7f8f8]">Upload de Laudo de Exame</h3>
-              <button onClick={() => setIsUploadOpen(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center">
+              <button onClick={() => setIsUploadOpen(false)} className="text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-[#8a8f98]">
+            <p className="text-xs text-[#a1a1aa]">
               Tire uma foto ou anexe o PDF do seu exame de sangue. A IA extrai e classifica todos os biomarcadores.
             </p>
 
@@ -1355,7 +1355,7 @@ export default function LabExamsPage() {
               >
                 <Upload className="w-8 h-8 text-[#5e6ad2] mx-auto" />
                 <span className="text-xs text-[#f7f8f8] block font-medium">Clique para selecionar foto ou PDF</span>
-                <span className="text-[10px] text-[#575c66] block">JPG, PNG, PDF até 10MB</span>
+                <span className="text-xs text-[#71717a] block">JPG, PNG, PDF até 10MB</span>
                 <input ref={fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={handleFileSelect} />
               </div>
             ) : (
@@ -1372,12 +1372,12 @@ export default function LabExamsPage() {
 
                 {/* ═══ LIVE UPLOAD LOGS & ERROR BOX ═══ */}
                 {uploadLogs.length > 0 && (
-                  <div className="p-3 rounded-lg bg-[#08090b] border border-[#ffffff10] font-mono text-[11px] space-y-1 max-h-36 overflow-y-auto">
-                    <div className="text-[10px] text-[#5e6ad2] font-semibold uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <div className="p-3 rounded-lg bg-[#08090b] border border-[#ffffff10] font-mono text-xs space-y-1 max-h-36 overflow-y-auto">
+                    <div className="text-xs text-[#5e6ad2] font-semibold uppercase tracking-wider mb-1 flex items-center gap-1">
                       <Activity className="w-3 h-3 animate-pulse" /> Console de Diagnóstico IA:
                     </div>
                     {uploadLogs.map((log, idx) => (
-                      <div key={idx} className={log.includes('❌') ? 'text-[#f87171]' : log.includes('✅') ? 'text-[#4ade80]' : 'text-[#8a8f98]'}>
+                      <div key={idx} className={log.includes('❌') ? 'text-[#f87171]' : log.includes('✅') ? 'text-[#4ade80]' : 'text-[#a1a1aa]'}>
                         {log}
                       </div>
                     ))}
@@ -1389,7 +1389,7 @@ export default function LabExamsPage() {
                     <div className="font-semibold flex items-center gap-1.5">
                       <AlertTriangle className="w-4 h-4 text-red-400" /> Falha no Processamento
                     </div>
-                    <p className="text-[11px] opacity-90">{uploadError}</p>
+                    <p className="text-xs opacity-90">{uploadError}</p>
                   </div>
                 )}
 
@@ -1422,13 +1422,13 @@ export default function LabExamsPage() {
           <div className="bg-[#0f1115] border border-[#ffffff12] rounded-t-2xl sm:rounded-2xl w-full max-w-md shadow-2xl max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-[#ffffff08]">
               <h3 className="text-sm font-semibold text-[#f7f8f8]">Editar Biomarcador</h3>
-              <button onClick={() => { setIsEditModalOpen(false); setEditingResult(null); }} className="text-[#8a8f98] hover:text-white p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center">
+              <button onClick={() => { setIsEditModalOpen(false); setEditingResult(null); }} className="text-[#a1a1aa] hover:text-white p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Nome do Biomarcador</label>
+                <label className="text-xs text-[#a1a1aa] uppercase tracking-wider">Nome do Biomarcador</label>
                 <input
                   type="text"
                   value={editForm.biomarkerName}
@@ -1438,7 +1438,7 @@ export default function LabExamsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Valor</label>
+                  <label className="text-xs text-[#a1a1aa] uppercase tracking-wider">Valor</label>
                   <input
                     type="number"
                     step="any"
@@ -1448,7 +1448,7 @@ export default function LabExamsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Unidade</label>
+                  <label className="text-xs text-[#a1a1aa] uppercase tracking-wider">Unidade</label>
                   <input
                     type="text"
                     value={editForm.unit}
@@ -1459,7 +1459,7 @@ export default function LabExamsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Ref. Mínima</label>
+                  <label className="text-xs text-[#a1a1aa] uppercase tracking-wider">Ref. Mínima</label>
                   <input
                     type="number"
                     step="any"
@@ -1469,7 +1469,7 @@ export default function LabExamsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Ref. Máxima</label>
+                  <label className="text-xs text-[#a1a1aa] uppercase tracking-wider">Ref. Máxima</label>
                   <input
                     type="number"
                     step="any"
@@ -1480,7 +1480,7 @@ export default function LabExamsPage() {
                 </div>
               </div>
               <div>
-                <label className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Status</label>
+                <label className="text-xs text-[#a1a1aa] uppercase tracking-wider">Status</label>
                 <select
                   value={editForm.status}
                   onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
@@ -1498,7 +1498,7 @@ export default function LabExamsPage() {
             <div className="flex justify-end gap-2 px-6 py-4 border-t border-[#ffffff08]">
               <button
                 onClick={() => { setIsEditModalOpen(false); setEditingResult(null); }}
-                className="px-4 py-1.5 rounded-lg text-xs text-[#8a8f98] hover:text-white hover:bg-[#16191e] transition"
+                className="px-4 py-1.5 rounded-lg text-xs text-[#a1a1aa] hover:text-white hover:bg-[#16191e] transition"
               >
                 Cancelar
               </button>
@@ -1533,12 +1533,12 @@ export default function LabExamsPage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-[#f7f8f8]">Idade Biológica (PhenoAge)</h3>
-                  <p className="text-[10px] text-[#8a8f98]">Algoritmo Científico de Yale — Dra. Morgan Levine</p>
+                  <p className="text-xs text-[#a1a1aa]">Algoritmo Científico de Yale — Dra. Morgan Levine</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsPhenoInfoOpen(false)}
-                className="text-[#8a8f98] hover:text-white transition p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
+                className="text-[#a1a1aa] hover:text-white transition p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1550,9 +1550,9 @@ export default function LabExamsPage() {
               </p>
 
               <div className="p-3.5 rounded-xl bg-[#16191e] border border-[#ffffff0a] space-y-2">
-                <h4 className="text-[11px] font-bold text-[#f7f8f8] flex items-center justify-between">
+                <h4 className="text-xs font-bold text-[#f7f8f8] flex items-center justify-between">
                   <span>Requisitos para o Cálculo ({summary?.providedPhenoAgeBiomarkers?.length || 0}/9)</span>
-                  <span className="text-[10px] font-semibold text-[#fbbf24]">
+                  <span className="text-xs font-semibold text-[#fbbf24]">
                     {summary?.missingPhenoAgeBiomarkers?.length ? `Faltam ${summary.missingPhenoAgeBiomarkers.length}` : 'Completo 🎉'}
                   </span>
                 </h4>
@@ -1576,20 +1576,20 @@ export default function LabExamsPage() {
                     return (
                       <div
                         key={idx}
-                        className={`p-2 rounded-lg flex items-center justify-between text-[11px] border ${
+                        className={`p-2 rounded-lg flex items-center justify-between text-xs border ${
                           isProvided
                             ? 'bg-[#4ade800a] border-[#4ade8020] text-[#f7f8f8]'
-                            : 'bg-[#fbbf240a] border-[#fbbf2420] text-[#8a8f98]'
+                            : 'bg-[#fbbf240a] border-[#fbbf2420] text-[#a1a1aa]'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="shrink-0">{isProvided ? '✅' : '❌'}</span>
                           <div>
                             <span className="font-semibold block">{req.name}</span>
-                            <span className="text-[10px] text-[#8a8f98]">{req.desc}</span>
+                            <span className="text-xs text-[#a1a1aa]">{req.desc}</span>
                           </div>
                         </div>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isProvided ? 'text-[#4ade80] bg-[#4ade8015]' : 'text-[#fbbf24] bg-[#fbbf2415]'}`}>
+                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${isProvided ? 'text-[#4ade80] bg-[#4ade8015]' : 'text-[#fbbf24] bg-[#fbbf2415]'}`}>
                           {isProvided ? 'Enviado' : 'Pendente'}
                         </span>
                       </div>
@@ -1598,7 +1598,7 @@ export default function LabExamsPage() {
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[#5e6ad20a] border border-[#5e6ad220] text-[11px] text-[#8a8f98]">
+              <div className="p-3 rounded-xl bg-[#5e6ad20a] border border-[#5e6ad220] text-xs text-[#a1a1aa]">
                 💡 <strong className="text-[#f7f8f8]">Dica:</strong> Ao solicitar seu próximo exame de sangue de rotina, peça para seu médico incluir os biomarcadores pendentes para desbloquear a sua Idade Biológica PhenoAge.
               </div>
             </div>

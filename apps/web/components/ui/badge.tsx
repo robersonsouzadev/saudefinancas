@@ -22,7 +22,7 @@ export const Badge: React.FC<BadgeProps> = ({
     error: 'bg-[#f8717115] text-[#f87171] border-[#f8717130]',
     info: 'bg-[#60a5fa15] text-[#60a5fa] border-[#60a5fa30]',
     accent: 'bg-[#5e6ad215] text-[#818cf8] border-[#5e6ad230]',
-    neutral: 'bg-[#ffffff0a] text-[#8a8f98] border-[#ffffff12]',
+    neutral: 'bg-[#ffffff0a] text-[#a1a1aa] border-[#ffffff12]',
   };
 
   const dotColors = {
@@ -31,12 +31,12 @@ export const Badge: React.FC<BadgeProps> = ({
     error: 'bg-[#f87171]',
     info: 'bg-[#60a5fa]',
     accent: 'bg-[#5e6ad2]',
-    neutral: 'bg-[#8a8f98]',
+    neutral: 'bg-[#a1a1aa]',
   };
 
   const sizes = {
     sm: 'text-xs px-2 py-0.5 font-semibold',
-    md: 'text-xs sm:text-sm px-2.5 py-1 font-semibold',
+    md: 'text-xs px-2.5 py-1 font-semibold',
   };
 
   return (

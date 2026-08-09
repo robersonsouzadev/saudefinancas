@@ -29,10 +29,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         )}
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold text-[#f7f8f8] tracking-tight">{title}</h1>
+            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">{title}</h1>
             {badge}
           </div>
-          {subtitle && <p className="text-xs text-[#8a8f98] mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1">{subtitle}</p>}
         </div>
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">{actions}</div>}

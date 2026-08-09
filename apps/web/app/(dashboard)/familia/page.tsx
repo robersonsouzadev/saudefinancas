@@ -111,7 +111,7 @@ export default function FamiliaPage() {
           <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">
             Teto Orçamentário Familiar
           </span>
-          <div className="text-3xl sm:text-4xl font-bold font-mono text-primary">
+          <div className="text-2xl font-bold font-mono text-primary">
             R$ {totalBudget.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </div>
           <span className="text-xs text-[#a1a1aa] font-medium block mt-1">Mês Vigente</span>
@@ -121,7 +121,7 @@ export default function FamiliaPage() {
           <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">
             Membros no Grupo
           </span>
-          <div className="text-3xl sm:text-4xl font-bold font-mono text-[#f97316]">
+          <div className="text-2xl font-bold font-mono text-[#f97316]">
             {members.length} Integrantes
           </div>
           <span className="text-xs text-[#a1a1aa] font-medium block mt-1">Visão financeira compartilhada</span>
@@ -131,7 +131,7 @@ export default function FamiliaPage() {
           <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">
             Distribuição Orçamentária
           </span>
-          <div className={`text-3xl sm:text-4xl font-bold font-mono ${isPercentageValid ? 'text-success' : 'text-error'}`}>
+          <div className={`text-2xl font-bold font-mono ${isPercentageValid ? 'text-success' : 'text-error'}`}>
             {totalPercentage}% / 100%
           </div>
           <span className="text-xs text-[#a1a1aa] font-medium block mt-1">

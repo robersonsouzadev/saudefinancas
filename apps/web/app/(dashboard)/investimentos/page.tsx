@@ -184,7 +184,7 @@ export default function InvestimentosPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card padding="standard">
           <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">Patrimônio Atual</span>
-          <div className="text-3xl sm:text-4xl font-bold font-mono text-primary">
+          <div className="text-2xl font-bold font-mono text-primary">
             R$ {currentTotalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <span className="text-xs text-[#a1a1aa] font-medium block mt-1">Avaliação a mercado</span>
@@ -192,7 +192,7 @@ export default function InvestimentosPage() {
 
         <Card padding="standard">
           <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">Total Aportado</span>
-          <div className="text-3xl sm:text-4xl font-bold font-mono text-secondary">
+          <div className="text-2xl font-bold font-mono text-secondary">
             R$ {totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <span className="text-xs text-[#a1a1aa] font-medium block mt-1">Custo acumulado de aquisição</span>
@@ -200,7 +200,7 @@ export default function InvestimentosPage() {
 
         <Card padding="standard">
           <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">Rentabilidade Total</span>
-          <div className={`text-3xl sm:text-4xl font-bold font-mono ${totalProfit >= 0 ? 'text-success' : 'text-error'}`}>
+          <div className={`text-2xl font-bold font-mono ${totalProfit >= 0 ? 'text-success' : 'text-error'}`}>
             {totalProfit >= 0 ? '+' : ''} R$ {totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <span className="text-xs text-[#a1a1aa] font-medium block mt-1">Lucro ou prejuízo não realizado</span>
@@ -211,7 +211,7 @@ export default function InvestimentosPage() {
           <div className={`text-3xl font-bold font-mono ${profitPercentage >= 0 ? 'text-success' : 'text-error'}`}>
             {profitPercentage >= 0 ? '+' : ''} {profitPercentage.toFixed(2)}%
           </div>
-          <span className="text-[11px] text-secondary block">Rentabilidade da carteira</span>
+          <span className="text-xs text-secondary block">Rentabilidade da carteira</span>
         </Card>
       </div>
 
@@ -246,7 +246,7 @@ export default function InvestimentosPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="font-bold text-sm font-mono text-primary">{a.ticker}</span>
-                        <span className="text-[10px] text-secondary block">{a.name}</span>
+                        <span className="text-xs text-secondary block">{a.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="neutral" size="sm">{a.type}</Badge>
@@ -259,20 +259,20 @@ export default function InvestimentosPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 py-1 border-t border-b border-subtle text-[11px] font-mono">
+                    <div className="grid grid-cols-2 gap-2 py-1 border-t border-b border-subtle text-xs font-mono">
                       <div>
-                        <span className="text-secondary block text-[10px]">Posição Atual</span>
+                        <span className="text-secondary block text-xs">Posição Atual</span>
                         <span className="font-bold text-primary">R$ {currentVal.toFixed(2)}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-secondary block text-[10px]">Resultado</span>
+                        <span className="text-secondary block text-xs">Resultado</span>
                         <span className={`font-bold ${profit >= 0 ? 'text-success' : 'text-error'}`}>
                           {profit >= 0 ? '+' : ''} R$ {profit.toFixed(2)} ({profitPct.toFixed(1)}%)
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex justify-between text-[10px] text-secondary font-mono">
+                    <div className="flex justify-between text-xs text-secondary font-mono">
                       <span>Qtd: {a.quantity}</span>
                       <span>PM: R$ {a.averagePrice.toFixed(2)}</span>
                       <span>Atual: R$ {a.currentPrice.toFixed(2)}</span>
@@ -286,7 +286,7 @@ export default function InvestimentosPage() {
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-subtle text-tertiary uppercase font-semibold text-[10px]">
+                  <tr className="border-b border-subtle text-tertiary uppercase font-semibold text-xs">
                     <th className="pb-3 px-3">Ativo / Ticker</th>
                     <th className="pb-3 px-3">Tipo</th>
                     <th className="pb-3 px-3">Corretora</th>
@@ -309,7 +309,7 @@ export default function InvestimentosPage() {
                       <tr key={a.id} className="hover:bg-elevated transition-colors">
                         <td className="py-3 px-3 font-medium">
                           <span className="font-bold block font-mono text-primary">{a.ticker}</span>
-                          <span className="text-[10px] text-secondary font-sans">{a.name}</span>
+                          <span className="text-xs text-secondary font-sans">{a.name}</span>
                         </td>
                         <td className="py-3 px-3">
                           <Badge variant="neutral" size="sm">{a.type}</Badge>
@@ -459,7 +459,7 @@ export default function InvestimentosPage() {
             className="font-mono font-bold text-sm"
           />
 
-          <div className="p-3 rounded bg-surface border border-subtle text-secondary space-y-1 text-[11px]">
+          <div className="p-3 rounded bg-surface border border-subtle text-secondary space-y-1 text-xs">
             <strong className="text-primary block">🤖 Diagnóstico da IA (Agente Otávio):</strong>
             <p>
               Com base no valor de <strong>R$ {availableContribution.toLocaleString('pt-BR')}</strong>, a IA calculou a distribuição ideal para rebalancear a sua carteira até atingir a meta estipulada de cada ativo:
@@ -474,14 +474,14 @@ export default function InvestimentosPage() {
                 <div key={item.id} className="p-3 rounded bg-surface border border-subtle flex items-center justify-between font-mono">
                   <div>
                     <span className="font-bold text-primary">{item.ticker}</span>
-                    <span className="text-[10px] text-secondary block">
+                    <span className="text-xs text-secondary block">
                       Atual: {item.currentPercent}% (Meta: {item.targetPercent}%)
                     </span>
                   </div>
 
                   <div className="text-right">
                     <span className="text-success font-bold">R$ {item.suggestedAmount.toLocaleString('pt-BR')}</span>
-                    <span className="text-[10px] text-secondary block">Aporte Sugerido</span>
+                    <span className="text-xs text-secondary block">Aporte Sugerido</span>
                   </div>
                 </div>
               ))

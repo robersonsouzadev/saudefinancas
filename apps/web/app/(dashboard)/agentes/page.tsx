@@ -346,10 +346,10 @@ export default function AgentesPage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-[#f7f8f8]">Prompt Otimizado pela IA</h3>
-                  <p className="text-xs text-[#8a8f98]">Revise as melhorias antes de aplicar ao agente</p>
+                  <p className="text-xs text-[#a1a1aa]">Revise as melhorias antes de aplicar ao agente</p>
                 </div>
               </div>
-              <button onClick={() => setOptimizeResult(null)} className="text-[#8a8f98] hover:text-[#f7f8f8]">
+              <button onClick={() => setOptimizeResult(null)} className="text-[#a1a1aa] hover:text-[#f7f8f8]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -375,7 +375,7 @@ export default function AgentesPage() {
             <div className="flex justify-end gap-3 p-5 border-t border-[#ffffff0e]">
               <button
                 onClick={() => setOptimizeResult(null)}
-                className="px-4 py-2 bg-[#16191e] hover:bg-[#1f232b] text-[#8a8f98] rounded-lg font-medium text-xs"
+                className="px-4 py-2 bg-[#16191e] hover:bg-[#1f232b] text-[#a1a1aa] rounded-lg font-medium text-xs"
               >
                 Descartar
               </button>
@@ -401,13 +401,13 @@ export default function AgentesPage() {
               </div>
               <div>
                 <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Meus Agentes de IA</h1>
-                <p className="text-xs text-[#8a8f98]">Especialistas virtuais de saúde, nutrição, finanças e suporte</p>
+                <p className="text-xs text-[#a1a1aa]">Especialistas virtuais de saúde, nutrição, finanças e suporte</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-3">
               <div className="relative w-full sm:w-60">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8a8f98]" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#a1a1aa]" />
                 <input 
                   type="text" 
                   placeholder="Buscar agente por nome..."
@@ -474,14 +474,14 @@ export default function AgentesPage() {
                   <div className="flex items-center space-x-1">
                     <button 
                       onClick={() => handleEdit(ag)}
-                      className="p-1.5 text-[#8a8f98] hover:text-[#f7f8f8] transition"
+                      className="p-1.5 text-[#a1a1aa] hover:text-[#f7f8f8] transition"
                       title="Editar Configurações"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
                     <button 
                       onClick={(e) => handleDeleteAgent(ag.id, e)}
-                      className="p-1.5 text-[#8a8f98] hover:text-[#f87171] transition"
+                      className="p-1.5 text-[#a1a1aa] hover:text-[#f87171] transition"
                       title="Remover Agente"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -502,7 +502,7 @@ export default function AgentesPage() {
           <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-4">
             <button 
               onClick={() => setViewMode('list')}
-              className="text-xs text-[#8a8f98] hover:text-[#f7f8f8] flex items-center space-x-1.5 font-medium transition"
+              className="text-xs text-[#a1a1aa] hover:text-[#f7f8f8] flex items-center space-x-1.5 font-medium transition"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Voltar para lista de agentes</span>
@@ -604,7 +604,7 @@ export default function AgentesPage() {
                     onChange={(e) => setTemperature(e.target.value)}
                     className="w-full mt-2 accent-[#5e6ad2]"
                   />
-                  <div className="flex justify-between text-[10px] font-mono text-[#8a8f98] mt-1 uppercase">
+                  <div className="flex justify-between text-xs font-mono text-[#a1a1aa] mt-1 uppercase">
                     <span>Preciso (0.0)</span>
                     <span>Criativo (2.0)</span>
                   </div>
@@ -644,7 +644,7 @@ export default function AgentesPage() {
                 <button 
                   type="button" 
                   onClick={() => setViewMode('list')}
-                  className="h-9 px-4 rounded-lg bg-[#16191e] hover:bg-[#1f232b] text-[#8a8f98] font-medium text-xs"
+                  className="h-9 px-4 rounded-lg bg-[#16191e] hover:bg-[#1f232b] text-[#a1a1aa] font-medium text-xs"
                 >
                   Cancelar
                 </button>
@@ -669,7 +669,7 @@ export default function AgentesPage() {
                   <h3 className="text-xs font-semibold text-[#f7f8f8]">🤖 Sandbox de Testes Em Tempo Real</h3>
                 </div>
 
-                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono bg-[#4ade8010] text-[#4ade80] border border-[#4ade8025]">
+                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono bg-[#4ade8010] text-[#4ade80] border border-[#4ade8025]">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-ping"></span>
                   LIVE AGENT
                 </span>
@@ -680,13 +680,13 @@ export default function AgentesPage() {
                 {sandboxMessages.length === 0 && (
                   <div className="flex flex-col items-center justify-center h-full text-center space-y-2 opacity-50 p-6">
                     <Zap className="w-8 h-8 text-[#5e6ad2]" />
-                    <p className="text-xs text-[#8a8f98]">Envie uma mensagem de teste para interagir com este agente usando IA real.</p>
+                    <p className="text-xs text-[#a1a1aa]">Envie uma mensagem de teste para interagir com este agente usando IA real.</p>
                   </div>
                 )}
 
                 {sandboxMessages.map((msg, idx) => (
                   <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                    <span className="text-[10px] text-[#8a8f98] mb-1 font-mono">
+                    <span className="text-xs text-[#a1a1aa] mb-1 font-mono">
                       {msg.role === 'user' ? 'Você (Teste)' : name || 'Agente'}
                     </span>
                     <div className={`p-3 rounded-xl max-w-[85%] text-xs leading-relaxed font-sans ${
@@ -696,7 +696,7 @@ export default function AgentesPage() {
                     }`}>
                       <p className="whitespace-pre-wrap">{msg.content}</p>
                       {msg.tokens && (
-                        <span className="text-[9px] font-mono text-[#4ade80] block text-right mt-1">
+                        <span className="text-xs font-mono text-[#4ade80] block text-right mt-1">
                           ⚡ {msg.tokens} tokens
                         </span>
                       )}
@@ -705,7 +705,7 @@ export default function AgentesPage() {
                 ))}
 
                 {sandboxLoading && (
-                  <div className="flex items-center space-x-2 text-xs text-[#8a8f98] bg-[#16191e] p-3 rounded-xl border border-[#ffffff0a] w-max">
+                  <div className="flex items-center space-x-2 text-xs text-[#a1a1aa] bg-[#16191e] p-3 rounded-xl border border-[#ffffff0a] w-max">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-[#5e6ad2]" />
                     <span>Pensando e gerando resposta...</span>
                   </div>

@@ -70,7 +70,7 @@ function BodyScoreRing({ score }: { score?: number }) {
   let scoreColor = '#4ade80'; // verde
   let label = 'Excelente';
   if (score === undefined || score === null) {
-    scoreColor = '#8a8f98';
+    scoreColor = '#a1a1aa';
     label = 'Aguardando';
   } else if (score < 60) {
     scoreColor = '#f87171';
@@ -113,13 +113,13 @@ function BodyScoreRing({ score }: { score?: number }) {
           <span className="text-3xl font-extrabold tracking-tight text-[#f7f8f8]">
             {score !== undefined && score !== null ? score : '--'}
           </span>
-          <span className="text-[10px] uppercase tracking-wider font-semibold text-[#8a8f98]">
+          <span className="text-xs uppercase tracking-wider font-semibold text-[#a1a1aa]">
             Body Score
           </span>
         </div>
       </div>
       <div
-        className="mt-2 inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium border"
+        className="mt-2 inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium border"
         style={{
           color: scoreColor,
           borderColor: `${scoreColor}40`,
@@ -169,7 +169,7 @@ function BioCapsuleBar({
   
   // Percentual de 0 a 100%
   const percent = ((clampedVal - min) / (max - min)) * 100;
-  const gaugeColor = hasValue ? color : '#575c66';
+  const gaugeColor = hasValue ? color : '#71717a';
 
   // Verifica se o valor atual está dentro de uma zona ideal
   const currentZone = zones.find(z => clampedVal >= z.from && clampedVal <= z.to);
@@ -184,9 +184,9 @@ function BioCapsuleBar({
     <div className="linear-card p-5 flex flex-col justify-between text-left relative overflow-hidden group hover:border-[#5e6ad250] transition-all duration-300">
       {/* 1. Header do Indicador */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider">{label}</span>
         <span
-          className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"
+          className="text-xs font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"
           style={{
             color: gaugeColor,
             backgroundColor: `${gaugeColor}15`,
@@ -203,7 +203,7 @@ function BioCapsuleBar({
         <span className="text-3xl font-extrabold text-[#f7f8f8] font-mono tracking-tight">
           {hasValue ? value : '--'}
         </span>
-        {unit && <span className="text-xs font-medium text-[#8a8f98] font-mono">{unit}</span>}
+        {unit && <span className="text-xs font-medium text-[#a1a1aa] font-mono">{unit}</span>}
       </div>
 
       {/* 3. BARRA CÁPSULA DE HORIZONTE BIOMÉTRICO */}
@@ -249,7 +249,7 @@ function BioCapsuleBar({
         </div>
 
         {/* Escala Numérica de Referência Alinhada com a Barra */}
-        <div className="relative w-full h-4 mt-2 text-[9.5px] font-mono text-[#8a8f98]">
+        <div className="relative w-full h-4 mt-2 text-[9.5px] font-mono text-[#a1a1aa]">
           {tickValues.map((tickVal, idx) => {
             const tickPercent = ((tickVal - min) / (max - min)) * 100;
             const isIdealTick = zones.some(z => z.isIdeal && tickVal >= z.from && tickVal <= z.to);
@@ -259,7 +259,7 @@ function BioCapsuleBar({
                 className="absolute top-0 -translate-x-1/2 flex flex-col items-center"
                 style={{ left: `${tickPercent}%` }}
               >
-                <div className={`h-1.5 w-0.5 ${isIdealTick ? 'bg-[#22c55e]' : 'bg-[#575c66]'} mb-0.5`} />
+                <div className={`h-1.5 w-0.5 ${isIdealTick ? 'bg-[#22c55e]' : 'bg-[#71717a]'} mb-0.5`} />
                 <span className={isIdealTick ? 'text-[#22c55e] font-bold' : ''}>
                   {tickVal}
                 </span>
@@ -271,12 +271,12 @@ function BioCapsuleBar({
 
       {/* 4. Rodapé com Alvo Recomendado */}
       {targetText && (
-        <div className="mt-3 pt-2.5 border-t border-[#ffffff0a] flex items-center justify-between text-[11px]">
-          <span className="text-[#8a8f98] font-medium flex items-center gap-1.5">
+        <div className="mt-3 pt-2.5 border-t border-[#ffffff0a] flex items-center justify-between text-xs">
+          <span className="text-[#a1a1aa] font-medium flex items-center gap-1.5">
             🎯 <strong className="text-[#c4c7cd]">{targetText}</strong>
           </span>
           {isInIdealZone && (
-            <span className="text-[10px] font-bold text-[#22c55e] bg-[#22c55e15] px-2 py-0.5 rounded-full border border-[#22c55e30]">
+            <span className="text-xs font-bold text-[#22c55e] bg-[#22c55e15] px-2 py-0.5 rounded-full border border-[#22c55e30]">
               100% no Alvo
             </span>
           )}
@@ -300,7 +300,7 @@ function CellularAgeCard({
   const gap = hasData ? cronologicalAge - cellularAge : null;
 
   let statusLabel = 'Aguardando dados';
-  let statusColor = '#8a8f98';
+  let statusColor = '#a1a1aa';
   if (gap !== null) {
     if (gap >= 5) {
       statusLabel = `${gap} anos mais jovem 🎉`;
@@ -329,13 +329,13 @@ function CellularAgeCard({
           <span className="text-3xl font-extrabold text-[#f7f8f8]">
             {cellularAge != null ? cellularAge : '--'}
           </span>
-          <span className="block text-[10px] text-[#8a8f98] mt-1">Idade Celular</span>
+          <span className="block text-xs text-[#a1a1aa] mt-1">Idade Celular</span>
         </div>
         <div className="text-center opacity-60">
-          <span className="text-xl font-bold text-[#8a8f98]">
+          <span className="text-xl font-bold text-[#a1a1aa]">
             {cronologicalAge != null ? cronologicalAge : '--'}
           </span>
-          <span className="block text-[10px] text-[#575c66] mt-1">Cronológica</span>
+          <span className="block text-xs text-[#71717a] mt-1">Cronológica</span>
         </div>
       </div>
 
@@ -347,7 +347,7 @@ function CellularAgeCard({
       </div>
 
       <div className="mt-4 pt-3 border-t border-[#ffffff0a] text-center">
-        <span className="text-[10px] text-[#575c66]">Ângulo de Fase: </span>
+        <span className="text-xs text-[#71717a]">Ângulo de Fase: </span>
         <span className="text-xs font-bold text-[#3b82f6]">
           {phaseAngle != null ? `${phaseAngle}°` : '--'}
         </span>
@@ -436,7 +436,7 @@ function GoalCard({
             <h4 className="text-sm font-bold text-[#f7f8f8] tracking-tight">{conf.name}</h4>
             <div className="flex items-center space-x-2 mt-1">
               <span
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center space-x-1"
+                className="text-xs font-semibold px-2 py-0.5 rounded-full inline-flex items-center space-x-1"
                 style={{
                   color: status.color,
                   backgroundColor: status.bg,
@@ -446,8 +446,8 @@ function GoalCard({
                 <span>{status.label}</span>
               </span>
               {goal.deadlineMonths && (
-                <span className="text-[10px] text-[#8a8f98] flex items-center space-x-1">
-                  <Clock className="w-3 h-3 text-[#575c66]" />
+                <span className="text-xs text-[#a1a1aa] flex items-center space-x-1">
+                  <Clock className="w-3 h-3 text-[#71717a]" />
                   <span>Prazo: {goal.deadlineMonths}m</span>
                 </span>
               )}
@@ -458,7 +458,7 @@ function GoalCard({
         <button
           onClick={() => onDelete(goal.id)}
           title="Excluir meta"
-          className="p-1.5 rounded-md hover:bg-[#f8717115] text-[#575c66] hover:text-[#f87171] transition opacity-40 group-hover:opacity-100"
+          className="p-1.5 rounded-md hover:bg-[#f8717115] text-[#71717a] hover:text-[#f87171] transition opacity-40 group-hover:opacity-100"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -467,19 +467,19 @@ function GoalCard({
       {/* Valores: Atual → Meta */}
       <div className="grid grid-cols-3 gap-2 p-3 rounded-lg bg-[#080a0c] border border-[#ffffff0a] text-center">
         <div>
-          <span className="text-[10px] text-[#8a8f98] block">Atual</span>
+          <span className="text-xs text-[#a1a1aa] block">Atual</span>
           <span className="text-xs font-bold text-[#f7f8f8]">
             {currentValue} {progress.unit}
           </span>
         </div>
         <div className="border-x border-[#ffffff0a]">
-          <span className="text-[10px] text-[#8a8f98] block">Restam</span>
+          <span className="text-xs text-[#a1a1aa] block">Restam</span>
           <span className="text-xs font-bold text-[#3b82f6]">
             {progress.remaining} {progress.unit}
           </span>
         </div>
         <div>
-          <span className="text-[10px] text-[#8a8f98] block">Meta Alvo</span>
+          <span className="text-xs text-[#a1a1aa] block">Meta Alvo</span>
           <span className="text-xs font-bold text-[#4ade80]">
             {targetValue} {progress.unit}
           </span>
@@ -496,7 +496,7 @@ function GoalCard({
         </div>
 
         {/* Marcadores de Milestone (25%, 50%, 75%, 100%) */}
-        <div className="flex justify-between items-center text-[10px] text-[#575c66] mt-1.5 px-0.5">
+        <div className="flex justify-between items-center text-xs text-[#71717a] mt-1.5 px-0.5">
           {milestones.map((m) => (
             <div key={m.percent} className="flex items-center space-x-0.5">
               {m.isReached ? (
@@ -511,7 +511,7 @@ function GoalCard({
       </div>
 
       {/* Velocidade e Projeção (ETG) */}
-      <div className="flex items-center justify-between text-[11px] text-[#8a8f98] px-1">
+      <div className="flex items-center justify-between text-xs text-[#a1a1aa] px-1">
         <div className="flex items-center space-x-1">
           <Zap className="w-3 h-3 text-[#fbbf24]" />
           <span>
@@ -527,9 +527,9 @@ function GoalCard({
       </div>
 
       {/* Dica Contextual */}
-      <div className="p-3 rounded-lg bg-[#3b82f60a] border border-[#3b82f620] flex items-start space-x-2 text-[11px]">
+      <div className="p-3 rounded-lg bg-[#3b82f60a] border border-[#3b82f620] flex items-start space-x-2 text-xs">
         <Lightbulb className="w-4 h-4 text-[#3b82f6] flex-shrink-0 mt-0.5" />
-        <span className="text-[#8a8f98] leading-relaxed">{tip}</span>
+        <span className="text-[#a1a1aa] leading-relaxed">{tip}</span>
       </div>
     </div>
   );
@@ -712,7 +712,7 @@ export default function BodyAssessmentDashboard() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center space-y-3">
           <RefreshCw className="w-8 h-8 text-[#3b82f6] animate-spin" />
-          <span className="text-sm text-[#8a8f98]">Carregando Bioimpedância & Composição...</span>
+          <span className="text-sm text-[#a1a1aa]">Carregando Bioimpedância & Composição...</span>
         </div>
       </div>
     );
@@ -724,12 +724,12 @@ export default function BodyAssessmentDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div>
           <div className="flex items-center space-x-2.5">
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#f7f8f8] tracking-tight">Avaliação Corporal</h1>
+            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">Avaliação Corporal</h1>
             <span className="px-2.5 py-0.5 rounded-md text-xs font-mono bg-[#3b82f615] text-[#3b82f6] border border-[#3b82f630]">
               Bioimpedância 3D
             </span>
           </div>
-          <p className="text-xs text-[#8a8f98] mt-1">
+          <p className="text-xs text-[#a1a1aa] mt-1">
             {latest
               ? `Última avaliação: ${new Date(latest.assessmentDate).toLocaleDateString('pt-BR')} • Avaliador: ${latest.assessorName || 'Profissional'}`
               : 'Nenhuma avaliação cadastrada ainda.'}
@@ -771,7 +771,7 @@ export default function BodyAssessmentDashboard() {
           className={`px-4 py-2.5 min-h-[44px] sm:min-h-[38px] border-b-2 transition flex items-center space-x-2 whitespace-nowrap ${
             activeTab === 'dashboard'
               ? 'border-[#3b82f6] text-[#3b82f6]'
-              : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'
+              : 'border-transparent text-[#a1a1aa] hover:text-[#f7f8f8]'
           }`}
         >
           <Activity className="w-3.5 h-3.5" />
@@ -782,7 +782,7 @@ export default function BodyAssessmentDashboard() {
           className={`px-4 py-2.5 min-h-[44px] sm:min-h-[38px] border-b-2 transition flex items-center space-x-2 whitespace-nowrap ${
             activeTab === 'charts'
               ? 'border-[#3b82f6] text-[#3b82f6]'
-              : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'
+              : 'border-transparent text-[#a1a1aa] hover:text-[#f7f8f8]'
           }`}
         >
           <BarChart3 className="w-3.5 h-3.5" />
@@ -793,7 +793,7 @@ export default function BodyAssessmentDashboard() {
           className={`px-4 py-2.5 min-h-[44px] sm:min-h-[38px] border-b-2 transition flex items-center space-x-2 whitespace-nowrap ${
             activeTab === 'compare'
               ? 'border-[#3b82f6] text-[#3b82f6]'
-              : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'
+              : 'border-transparent text-[#a1a1aa] hover:text-[#f7f8f8]'
           }`}
         >
           <GitCompare className="w-3.5 h-3.5" />
@@ -804,7 +804,7 @@ export default function BodyAssessmentDashboard() {
           className={`px-4 py-2.5 min-h-[44px] sm:min-h-[38px] border-b-2 transition flex items-center space-x-2 whitespace-nowrap ${
             activeTab === 'history'
               ? 'border-[#3b82f6] text-[#3b82f6]'
-              : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'
+              : 'border-transparent text-[#a1a1aa] hover:text-[#f7f8f8]'
           }`}
         >
           <History className="w-3.5 h-3.5" />
@@ -819,7 +819,7 @@ export default function BodyAssessmentDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             <div className="linear-card p-4 flex flex-col items-center justify-center bg-gradient-to-b from-[#16191e] to-[#0f1115]">
               <BodyScoreRing score={summary?.bodyScore || 70} />
-              <span className="text-[11px] text-[#8a8f98] text-center px-4 mt-1">
+              <span className="text-xs text-[#a1a1aa] text-center px-4 mt-1">
                 Score baseado no percentual de gordura, RCEst, hidratação e ângulo de fase.
               </span>
             </div>
@@ -828,19 +828,19 @@ export default function BodyAssessmentDashboard() {
               {/* KPI 1: Peso */}
               <div className="linear-card p-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#8a8f98]">Peso Corporal</span>
+                  <span className="text-xs text-[#a1a1aa]">Peso Corporal</span>
                   <Scale className="w-4 h-4 text-[#60a5fa]" />
                 </div>
                 <div className="my-2">
                   <span className="text-2xl font-bold text-[#f7f8f8]">{latest?.weightKg || '--'}</span>
-                  <span className="text-xs text-[#8a8f98] ml-1">kg</span>
+                  <span className="text-xs text-[#a1a1aa] ml-1">kg</span>
                 </div>
                 {latest?.deltaWeight !== undefined && (
                   <div className="flex items-center space-x-1">
-                    <span className="text-[11px] font-medium text-[#4ade80] bg-[#4ade8015] px-1.5 py-0.5 rounded">
+                    <span className="text-xs font-medium text-[#4ade80] bg-[#4ade8015] px-1.5 py-0.5 rounded">
                       {latest.deltaWeight > 0 ? `+${latest.deltaWeight}` : latest.deltaWeight} kg
                     </span>
-                    <span className="text-[10px] text-[#575c66]">vs anterior</span>
+                    <span className="text-xs text-[#71717a]">vs anterior</span>
                   </div>
                 )}
               </div>
@@ -848,21 +848,21 @@ export default function BodyAssessmentDashboard() {
               {/* KPI 2: % Gordura */}
               <div className="linear-card p-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#8a8f98]">Gordura Corporal</span>
+                  <span className="text-xs text-[#a1a1aa]">Gordura Corporal</span>
                   <Activity className="w-4 h-4 text-[#f472b6]" />
                 </div>
                 <div className="my-2">
                   <span className="text-2xl font-bold text-[#f7f8f8]">
                     {latest?.bodyFatPercent || '--'}
                   </span>
-                  <span className="text-xs text-[#8a8f98] ml-1">%</span>
+                  <span className="text-xs text-[#a1a1aa] ml-1">%</span>
                 </div>
                 {latest?.deltaFatPercent !== undefined && (
                   <div className="flex items-center space-x-1">
-                    <span className="text-[11px] font-medium text-[#4ade80] bg-[#4ade8015] px-1.5 py-0.5 rounded">
+                    <span className="text-xs font-medium text-[#4ade80] bg-[#4ade8015] px-1.5 py-0.5 rounded">
                       {latest.deltaFatPercent > 0 ? `+${latest.deltaFatPercent}` : latest.deltaFatPercent} pp
                     </span>
-                    <span className="text-[10px] text-[#575c66]">({latest.fatMassKg} kg)</span>
+                    <span className="text-xs text-[#71717a]">({latest.fatMassKg} kg)</span>
                   </div>
                 )}
               </div>
@@ -870,21 +870,21 @@ export default function BodyAssessmentDashboard() {
               {/* KPI 3: Massa Muscular */}
               <div className="linear-card p-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#8a8f98]">Massa Muscular</span>
+                  <span className="text-xs text-[#a1a1aa]">Massa Muscular</span>
                   <TrendingUp className="w-4 h-4 text-[#4ade80]" />
                 </div>
                 <div className="my-2">
                   <span className="text-2xl font-bold text-[#f7f8f8]">
                     {latest?.skeletalMuscleMassKg || '--'}
                   </span>
-                  <span className="text-xs text-[#8a8f98] ml-1">kg</span>
+                  <span className="text-xs text-[#a1a1aa] ml-1">kg</span>
                 </div>
                 {latest?.deltaMuscleMass !== undefined && (
                   <div className="flex items-center space-x-1">
-                    <span className="text-[11px] font-medium text-[#4ade80] bg-[#4ade8015] px-1.5 py-0.5 rounded">
+                    <span className="text-xs font-medium text-[#4ade80] bg-[#4ade8015] px-1.5 py-0.5 rounded">
                       {latest.deltaMuscleMass > 0 ? `+${latest.deltaMuscleMass}` : latest.deltaMuscleMass} kg
                     </span>
-                    <span className="text-[10px] text-[#575c66]">({latest.skeletalMusclePercent}%)</span>
+                    <span className="text-xs text-[#71717a]">({latest.skeletalMusclePercent}%)</span>
                   </div>
                 )}
               </div>
@@ -892,16 +892,16 @@ export default function BodyAssessmentDashboard() {
               {/* KPI 4: Massa Magra Total */}
               <div className="linear-card p-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#8a8f98]">Massa Magra</span>
+                  <span className="text-xs text-[#a1a1aa]">Massa Magra</span>
                   <Layers className="w-4 h-4 text-[#a78bfa]" />
                 </div>
                 <div className="my-2">
                   <span className="text-2xl font-bold text-[#f7f8f8]">
                     {latest?.leanMassKg || '--'}
                   </span>
-                  <span className="text-xs text-[#8a8f98] ml-1">kg</span>
+                  <span className="text-xs text-[#a1a1aa] ml-1">kg</span>
                 </div>
-                <div className="text-[11px] text-[#8a8f98]">
+                <div className="text-xs text-[#a1a1aa]">
                   {latest?.leanMassPercent ? `${latest.leanMassPercent}% do peso` : '--'}
                 </div>
               </div>
@@ -909,14 +909,14 @@ export default function BodyAssessmentDashboard() {
               {/* KPI 5: IMC */}
               <div className="linear-card p-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#8a8f98]">IMC (Padrão OMS)</span>
+                  <span className="text-xs text-[#a1a1aa]">IMC (Padrão OMS)</span>
                   <Activity className="w-4 h-4 text-[#fbbf24]" />
                 </div>
                 <div className="my-2">
                   <span className="text-2xl font-bold text-[#f7f8f8]">{latest?.bmi || '--'}</span>
-                  <span className="text-xs text-[#8a8f98] ml-1">kg/m²</span>
+                  <span className="text-xs text-[#a1a1aa] ml-1">kg/m²</span>
                 </div>
-                <span className="text-[11px] text-[#fbbf24] bg-[#fbbf2415] px-1.5 py-0.5 rounded w-fit">
+                <span className="text-xs text-[#fbbf24] bg-[#fbbf2415] px-1.5 py-0.5 rounded w-fit">
                   {latest?.bmi ? (latest.bmi >= 25 ? 'Sobrepeso' : 'Eutrófico') : '--'}
                 </span>
               </div>
@@ -924,17 +924,17 @@ export default function BodyAssessmentDashboard() {
               {/* KPI 6: Cintura & RCEst */}
               <div className="linear-card p-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#8a8f98]">Cintura & RCEst</span>
+                  <span className="text-xs text-[#a1a1aa]">Cintura & RCEst</span>
                   <Ruler className="w-4 h-4 text-[#3b82f6]" />
                 </div>
                 <div className="my-2">
                   <span className="text-2xl font-bold text-[#f7f8f8]">
                     {latest?.waistCm || '--'}
                   </span>
-                  <span className="text-xs text-[#8a8f98] ml-1">cm</span>
+                  <span className="text-xs text-[#a1a1aa] ml-1">cm</span>
                 </div>
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#8a8f98]">RCEst:</span>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[#a1a1aa]">RCEst:</span>
                   <span className="font-bold text-[#3b82f6]">{latest?.waistHeightRatio || '--'}</span>
                 </div>
               </div>
@@ -1021,7 +1021,7 @@ export default function BodyAssessmentDashboard() {
                   <Droplets className="w-5 h-5 text-[#60a5fa]" />
                   <h4 className="text-sm font-semibold text-[#f7f8f8]">Análise de Água Corporal</h4>
                 </div>
-                <span className="text-xs text-[#8a8f98]">
+                <span className="text-xs text-[#a1a1aa]">
                   Total: <strong className="text-[#f7f8f8]">{latest?.totalBodyWaterL ? `${latest.totalBodyWaterL} L` : '--'}</strong> ({latest?.totalBodyWaterPercent ? `${latest.totalBodyWaterPercent}%` : '--'})
                 </span>
               </div>
@@ -1029,7 +1029,7 @@ export default function BodyAssessmentDashboard() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-[#8a8f98]">Água Intracelular (ICW)</span>
+                    <span className="text-xs font-medium text-[#a1a1aa]">Água Intracelular (ICW)</span>
                     <span className="text-xs font-bold text-[#60a5fa]">{latest?.intracellularWaterPercent ? `${latest.intracellularWaterPercent}%` : '--'}</span>
                   </div>
                   <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden mb-2">
@@ -1038,12 +1038,12 @@ export default function BodyAssessmentDashboard() {
                       style={{ width: `${latest?.intracellularWaterPercent || 0}%` }}
                     />
                   </div>
-                  <span className="text-xs text-[#8a8f98]">{latest?.intracellularWaterL ? `${latest.intracellularWaterL} Litros` : 'Sem dados'}</span>
+                  <span className="text-xs text-[#a1a1aa]">{latest?.intracellularWaterL ? `${latest.intracellularWaterL} Litros` : 'Sem dados'}</span>
                 </div>
 
                 <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-[#8a8f98]">Água Extracelular (ECW)</span>
+                    <span className="text-xs font-medium text-[#a1a1aa]">Água Extracelular (ECW)</span>
                     <span className="text-xs font-bold text-[#a78bfa]">{latest?.extracellularWaterPercent ? `${latest.extracellularWaterPercent}%` : '--'}</span>
                   </div>
                   <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden mb-2">
@@ -1052,12 +1052,12 @@ export default function BodyAssessmentDashboard() {
                       style={{ width: `${latest?.extracellularWaterPercent || 0}%` }}
                     />
                   </div>
-                  <span className="text-xs text-[#8a8f98]">{latest?.extracellularWaterL ? `${latest.extracellularWaterL} Litros` : 'Sem dados'}</span>
+                  <span className="text-xs text-[#a1a1aa]">{latest?.extracellularWaterL ? `${latest.extracellularWaterL} Litros` : 'Sem dados'}</span>
                 </div>
               </div>
 
               <div className="mt-4 p-3 rounded-lg bg-[#3b82f60a] border border-[#3b82f620] flex items-center justify-between text-xs">
-                <span className="text-[#8a8f98]">Água na Massa Magra (FFM Hydration):</span>
+                <span className="text-[#a1a1aa]">Água na Massa Magra (FFM Hydration):</span>
                 <span className="font-bold text-[#60a5fa]">{latest?.leanMassWaterPercent ? `${latest.leanMassWaterPercent}%` : '--'} (Faixa Ideal: 72% - 74%)</span>
               </div>
             </div>
@@ -1086,7 +1086,7 @@ export default function BodyAssessmentDashboard() {
                 </div>
                 <div className="max-w-md">
                   <h5 className="text-sm font-bold text-[#f7f8f8]">Nenhuma meta definida ainda</h5>
-                  <p className="text-xs text-[#8a8f98] mt-1">
+                  <p className="text-xs text-[#a1a1aa] mt-1">
                     Crie alvos para % de gordura, massa muscular, circunferência de cintura ou hidratação. O sistema calcula o ritmo semanal, projeção temporal (ETG) e dicas práticas.
                   </p>
                 </div>
@@ -1122,13 +1122,13 @@ export default function BodyAssessmentDashboard() {
             {/* Gráfico 1: Evolução do Peso & Gordura */}
             <div className="linear-card p-5">
               <h4 className="text-sm font-semibold text-[#f7f8f8] mb-1">Evolução do Peso & % Gordura</h4>
-              <p className="text-xs text-[#8a8f98] mb-4">Acompanhamento temporal de perda lipídica</p>
+              <p className="text-xs text-[#a1a1aa] mb-4">Acompanhamento temporal de perda lipídica</p>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={evolution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" />
-                    <XAxis dataKey="date" stroke="#575c66" fontSize={11} />
-                    <YAxis stroke="#575c66" fontSize={11} domain={['auto', 'auto']} />
+                    <XAxis dataKey="date" stroke="#71717a" fontSize={11} />
+                    <YAxis stroke="#71717a" fontSize={11} domain={['auto', 'auto']} />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#16191e', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '6px' }}
                     />
@@ -1142,13 +1142,13 @@ export default function BodyAssessmentDashboard() {
             {/* Gráfico 2: Massa Muscular vs Massa Magra */}
             <div className="linear-card p-5">
               <h4 className="text-sm font-semibold text-[#f7f8f8] mb-1">Massa Muscular vs Massa Magra</h4>
-              <p className="text-xs text-[#8a8f98] mb-4">Preservação muscular durante o processo</p>
+              <p className="text-xs text-[#a1a1aa] mb-4">Preservação muscular durante o processo</p>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={evolution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" />
-                    <XAxis dataKey="date" stroke="#575c66" fontSize={11} />
-                    <YAxis stroke="#575c66" fontSize={11} domain={['auto', 'auto']} />
+                    <XAxis dataKey="date" stroke="#71717a" fontSize={11} />
+                    <YAxis stroke="#71717a" fontSize={11} domain={['auto', 'auto']} />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#16191e', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '6px' }}
                     />
@@ -1162,13 +1162,13 @@ export default function BodyAssessmentDashboard() {
             {/* Gráfico 3: Ângulo de Fase (Vitalidade Celular) */}
             <div className="linear-card p-5">
               <h4 className="text-sm font-semibold text-[#f7f8f8] mb-1">Evolução do Ângulo de Fase (°)</h4>
-              <p className="text-xs text-[#8a8f98] mb-4">Integridade de membrana celular (Valores &gt; 6.5° ideal)</p>
+              <p className="text-xs text-[#a1a1aa] mb-4">Integridade de membrana celular (Valores &gt; 6.5° ideal)</p>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={evolution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" />
-                    <XAxis dataKey="date" stroke="#575c66" fontSize={11} />
-                    <YAxis stroke="#575c66" fontSize={11} domain={[4, 11]} />
+                    <XAxis dataKey="date" stroke="#71717a" fontSize={11} />
+                    <YAxis stroke="#71717a" fontSize={11} domain={[4, 11]} />
                     <ReferenceLine y={6.5} stroke="#4ade80" strokeDasharray="3 3" label={{ value: 'Ideal (6.5°)', fill: '#4ade80', fontSize: 10 }} />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#16191e', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '6px' }}
@@ -1182,13 +1182,13 @@ export default function BodyAssessmentDashboard() {
             {/* Gráfico 4: RCEst (Relação Cintura / Estatura) */}
             <div className="linear-card p-5">
               <h4 className="text-sm font-semibold text-[#f7f8f8] mb-1">Relação Cintura / Estatura (RCEst)</h4>
-              <p className="text-xs text-[#8a8f98] mb-4">Indicador de risco cardiometabólico (Manter &lt; 0,50)</p>
+              <p className="text-xs text-[#a1a1aa] mb-4">Indicador de risco cardiometabólico (Manter &lt; 0,50)</p>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={evolution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" />
-                    <XAxis dataKey="date" stroke="#575c66" fontSize={11} />
-                    <YAxis stroke="#575c66" fontSize={11} domain={[0.3, 0.8]} />
+                    <XAxis dataKey="date" stroke="#71717a" fontSize={11} />
+                    <YAxis stroke="#71717a" fontSize={11} domain={[0.3, 0.8]} />
                     <ReferenceArea y1={0.4} y2={0.49} fill="#4ade8010" />
                     <ReferenceLine y={0.5} stroke="#fbbf24" strokeDasharray="3 3" label={{ value: 'Limite Risco (0.50)', fill: '#fbbf24', fontSize: 10 }} />
                     <Tooltip
@@ -1208,7 +1208,7 @@ export default function BodyAssessmentDashboard() {
         <div className="space-y-6">
           <div className="linear-card p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="w-full sm:w-auto">
-              <label className="text-xs text-[#8a8f98] block mb-1">Avaliação Anterior (A):</label>
+              <label className="text-xs text-[#a1a1aa] block mb-1">Avaliação Anterior (A):</label>
               <select
                 value={compareId1}
                 onChange={(e) => setCompareId1(e.target.value)}
@@ -1225,7 +1225,7 @@ export default function BodyAssessmentDashboard() {
             <span className="text-xs font-bold text-[#3b82f6]">VS</span>
 
             <div className="w-full sm:w-auto">
-              <label className="text-xs text-[#8a8f98] block mb-1">Avaliação Mais Recente (B):</label>
+              <label className="text-xs text-[#a1a1aa] block mb-1">Avaliação Mais Recente (B):</label>
               <select
                 value={compareId2}
                 onChange={(e) => setCompareId2(e.target.value)}
@@ -1243,7 +1243,7 @@ export default function BodyAssessmentDashboard() {
           {compareData && compareData.current && (
             <div className="linear-card overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#16191e] border-b border-[#ffffff0e] text-[#8a8f98] font-medium">
+                <thead className="bg-[#16191e] border-b border-[#ffffff0e] text-[#a1a1aa] font-medium">
                   <tr>
                     <th className="p-3.5">Indicador</th>
                     <th className="p-3.5">Anterior (A)</th>
@@ -1266,14 +1266,14 @@ export default function BodyAssessmentDashboard() {
                         <td className="p-3.5 font-medium text-[#f7f8f8]">
                           {config.name}
                         </td>
-                        <td className="p-3.5 text-[#8a8f98]">
+                        <td className="p-3.5 text-[#a1a1aa]">
                           {valA !== null && valA !== undefined ? `${valA} ${config.unit}` : '—'}
                         </td>
                         <td className="p-3.5 font-bold text-[#f7f8f8]">
                           {valB} {config.unit}
                         </td>
                         <td className="p-3.5">
-                          <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${badge.color} ${badge.bg}`}>
+                          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${badge.color} ${badge.bg}`}>
                             {badge.text} {config.unit}
                           </span>
                         </td>
@@ -1305,38 +1305,38 @@ export default function BodyAssessmentDashboard() {
                       {new Date(a.assessmentDate).toLocaleDateString('pt-BR')} às{' '}
                       {new Date(a.assessmentDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </h4>
-                    <span className="text-xs text-[#8a8f98]">Avaliador: {a.assessorName || 'Profissional'}</span>
+                    <span className="text-xs text-[#a1a1aa]">Avaliador: {a.assessorName || 'Profissional'}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4 text-xs text-[#8a8f98]">
+                <div className="flex items-center space-x-4 text-xs text-[#a1a1aa]">
                   <span>Equipamento: <strong className="text-[#f7f8f8]">{a.equipmentName || 'BIA'}</strong></span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 text-xs">
                 <div className="p-2.5 rounded bg-[#080a0c] border border-[#ffffff0a]">
-                  <span className="text-[#8a8f98] block text-[10px]">Peso</span>
+                  <span className="text-[#a1a1aa] block text-xs">Peso</span>
                   <strong className="text-[#f7f8f8] text-sm">{a.weightKg} kg</strong>
                 </div>
                 <div className="p-2.5 rounded bg-[#080a0c] border border-[#ffffff0a]">
-                  <span className="text-[#8a8f98] block text-[10px]">Gordura %</span>
+                  <span className="text-[#a1a1aa] block text-xs">Gordura %</span>
                   <strong className="text-[#f472b6] text-sm">{a.bodyFatPercent}%</strong>
                 </div>
                 <div className="p-2.5 rounded bg-[#080a0c] border border-[#ffffff0a]">
-                  <span className="text-[#8a8f98] block text-[10px]">Massa Muscular</span>
+                  <span className="text-[#a1a1aa] block text-xs">Massa Muscular</span>
                   <strong className="text-[#4ade80] text-sm">{a.skeletalMuscleMassKg} kg</strong>
                 </div>
                 <div className="p-2.5 rounded bg-[#080a0c] border border-[#ffffff0a]">
-                  <span className="text-[#8a8f98] block text-[10px]">Ângulo de Fase</span>
+                  <span className="text-[#a1a1aa] block text-xs">Ângulo de Fase</span>
                   <strong className="text-[#3b82f6] text-sm">{a.phaseAngle}°</strong>
                 </div>
                 <div className="p-2.5 rounded bg-[#080a0c] border border-[#ffffff0a]">
-                  <span className="text-[#8a8f98] block text-[10px]">Cintura</span>
+                  <span className="text-[#a1a1aa] block text-xs">Cintura</span>
                   <strong className="text-[#f7f8f8] text-sm">{a.waistCm} cm</strong>
                 </div>
                 <div className="p-2.5 rounded bg-[#080a0c] border border-[#ffffff0a]">
-                  <span className="text-[#8a8f98] block text-[10px]">RCEst</span>
+                  <span className="text-[#a1a1aa] block text-xs">RCEst</span>
                   <strong className="text-[#fbbf24] text-sm">{a.waistHeightRatio}</strong>
                 </div>
               </div>
@@ -1386,11 +1386,11 @@ export default function BodyAssessmentDashboard() {
                       updateUserProfileHeight: false,
                     })
                   }
-                  className="px-2.5 py-1 rounded bg-[#3b82f615] text-[#3b82f6] hover:bg-[#3b82f625] border border-[#3b82f630] text-[11px] font-medium transition"
+                  className="px-2.5 py-1 rounded bg-[#3b82f615] text-[#3b82f6] hover:bg-[#3b82f625] border border-[#3b82f630] text-xs font-medium transition"
                 >
                   ⚡ Preencher Exemplo
                 </button>
-                <button onClick={() => setIsNewModalOpen(false)} className="text-[#8a8f98] hover:text-white">
+                <button onClick={() => setIsNewModalOpen(false)} className="text-[#a1a1aa] hover:text-white">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -1399,10 +1399,10 @@ export default function BodyAssessmentDashboard() {
             <form onSubmit={handleCreateAssessment} className="space-y-4 text-xs">
               {/* Grupo 1: Dados da Medição */}
               <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a] space-y-3">
-                <h4 className="font-bold text-[#3b82f6] uppercase tracking-wider text-[11px]">1. Dados da Avaliação</h4>
+                <h4 className="font-bold text-[#3b82f6] uppercase tracking-wider text-xs">1. Dados da Avaliação</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">Data</label>
+                    <label className="text-[#a1a1aa] block mb-1">Data</label>
                     <input
                       type="date"
                       value={formData.assessmentDate || ''}
@@ -1411,7 +1411,7 @@ export default function BodyAssessmentDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">Avaliador / Profissional</label>
+                    <label className="text-[#a1a1aa] block mb-1">Avaliador / Profissional</label>
                     <input
                       type="text"
                       placeholder="Ex: Dr. Leonardo Zonzini"
@@ -1421,7 +1421,7 @@ export default function BodyAssessmentDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">Equipamento BIA</label>
+                    <label className="text-[#a1a1aa] block mb-1">Equipamento BIA</label>
                     <input
                       type="text"
                       placeholder="Ex: InBody 570"
@@ -1435,10 +1435,10 @@ export default function BodyAssessmentDashboard() {
 
               {/* Grupo 2: Dados Físicos */}
               <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a] space-y-3">
-                <h4 className="font-bold text-[#3b82f6] uppercase tracking-wider text-[11px]">2. Dados Físicos Básicos</h4>
+                <h4 className="font-bold text-[#3b82f6] uppercase tracking-wider text-xs">2. Dados Físicos Básicos</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">Peso (kg)</label>
+                    <label className="text-[#a1a1aa] block mb-1">Peso (kg)</label>
                     <input
                       type="number"
                       step="0.1"
@@ -1449,7 +1449,7 @@ export default function BodyAssessmentDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">Altura (cm)</label>
+                    <label className="text-[#a1a1aa] block mb-1">Altura (cm)</label>
                     <input
                       type="number"
                       step="0.5"
@@ -1460,7 +1460,7 @@ export default function BodyAssessmentDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">Idade (anos)</label>
+                    <label className="text-[#a1a1aa] block mb-1">Idade (anos)</label>
                     <input
                       type="number"
                       placeholder="Ex: 46"
@@ -1470,7 +1470,7 @@ export default function BodyAssessmentDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">Cintura (cm)</label>
+                    <label className="text-[#a1a1aa] block mb-1">Cintura (cm)</label>
                     <input
                       type="number"
                       step="0.5"
@@ -1490,7 +1490,7 @@ export default function BodyAssessmentDashboard() {
                     onChange={(e) => setFormData({ ...formData, updateUserProfileHeight: e.target.checked })}
                     className="rounded border-[#ffffff30] bg-[#16191e]"
                   />
-                  <label htmlFor="updateUserProfileHeight" className="text-[11px] text-[#8a8f98]">
+                  <label htmlFor="updateUserProfileHeight" className="text-xs text-[#a1a1aa]">
                     Atualizar altura padrão no meu perfil de usuário
                   </label>
                 </div>
@@ -1498,10 +1498,10 @@ export default function BodyAssessmentDashboard() {
 
               {/* Grupo 3: Composição Corporal */}
               <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a] space-y-3">
-                <h4 className="font-bold text-[#3b82f6] uppercase tracking-wider text-[11px]">3. Composição Corporal</h4>
+                <h4 className="font-bold text-[#3b82f6] uppercase tracking-wider text-xs">3. Composição Corporal</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">% Gordura</label>
+                    <label className="text-[#a1a1aa] block mb-1">% Gordura</label>
                     <input
                       type="number"
                       step="0.1"
@@ -1512,7 +1512,7 @@ export default function BodyAssessmentDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">Massa Muscular (kg)</label>
+                    <label className="text-[#a1a1aa] block mb-1">Massa Muscular (kg)</label>
                     <input
                       type="number"
                       step="0.1"
@@ -1523,7 +1523,7 @@ export default function BodyAssessmentDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">Ângulo de Fase (°)</label>
+                    <label className="text-[#a1a1aa] block mb-1">Ângulo de Fase (°)</label>
                     <input
                       type="number"
                       step="0.1"
@@ -1534,7 +1534,7 @@ export default function BodyAssessmentDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">Idade Celular</label>
+                    <label className="text-[#a1a1aa] block mb-1">Idade Celular</label>
                     <input
                       type="number"
                       placeholder="Ex: 40"
@@ -1551,7 +1551,7 @@ export default function BodyAssessmentDashboard() {
                 <button
                   type="button"
                   onClick={() => setIsNewModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-[#16191e] hover:bg-[#22272f] text-[#8a8f98] text-xs font-semibold"
+                  className="px-4 py-2 rounded-lg bg-[#16191e] hover:bg-[#22272f] text-[#a1a1aa] text-xs font-semibold"
                 >
                   Cancelar
                 </button>
@@ -1579,12 +1579,12 @@ export default function BodyAssessmentDashboard() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-[#f7f8f8]">Criar Nova Meta Corporal</h3>
-                  <p className="text-xs text-[#8a8f98]">Defina um alvo de evolução e acompanhe o ritmo</p>
+                  <p className="text-xs text-[#a1a1aa]">Defina um alvo de evolução e acompanhe o ritmo</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsGoalModalOpen(false)}
-                className="text-[#8a8f98] hover:text-white"
+                className="text-[#a1a1aa] hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1593,7 +1593,7 @@ export default function BodyAssessmentDashboard() {
             <form onSubmit={handleCreateGoal} className="space-y-5 text-xs">
               {/* Passo 1: Selecionar Indicador */}
               <div className="space-y-2">
-                <label className="text-[#8a8f98] font-semibold block uppercase tracking-wider text-[10px]">
+                <label className="text-[#a1a1aa] font-semibold block uppercase tracking-wider text-xs">
                   1. Selecione o Indicador
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -1630,7 +1630,7 @@ export default function BodyAssessmentDashboard() {
                         className={`p-3 rounded-lg border text-left flex flex-col justify-between space-y-2 transition ${
                           isSelected
                             ? 'bg-[#3b82f615] border-[#3b82f6] text-[#f7f8f8]'
-                            : 'bg-[#080a0c] border-[#ffffff0a] text-[#8a8f98] hover:border-[#ffffff20]'
+                            : 'bg-[#080a0c] border-[#ffffff0a] text-[#a1a1aa] hover:border-[#ffffff20]'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -1639,7 +1639,7 @@ export default function BodyAssessmentDashboard() {
                         </div>
                         <div>
                           <span className="font-semibold text-xs block text-[#f7f8f8]">{ind.name}</span>
-                          <span className="text-[10px] text-[#8a8f98]">Atual: {currentVal}</span>
+                          <span className="text-xs text-[#a1a1aa]">Atual: {currentVal}</span>
                         </div>
                       </button>
                     );
@@ -1649,12 +1649,12 @@ export default function BodyAssessmentDashboard() {
 
               {/* Passo 2: Alvo Desejado */}
               <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a] space-y-3">
-                <label className="text-[#8a8f98] font-semibold block uppercase tracking-wider text-[10px]">
+                <label className="text-[#a1a1aa] font-semibold block uppercase tracking-wider text-xs">
                   2. Defina o Alvo Desejado
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                   <div>
-                    <label className="text-[#8a8f98] block mb-1">
+                    <label className="text-[#a1a1aa] block mb-1">
                       Valor Meta ({INDICATOR_CONFIGS[goalFormData.indicator]?.unit || goalFormData.unit})
                     </label>
                     <input
@@ -1672,13 +1672,13 @@ export default function BodyAssessmentDashboard() {
                   </div>
 
                   <div className="p-3 rounded-lg bg-[#16191e] border border-[#ffffff0a] text-xs">
-                    <span className="text-[#8a8f98] block text-[10px] mb-1">Comparativo de Alvo</span>
+                    <span className="text-[#a1a1aa] block text-xs mb-1">Comparativo de Alvo</span>
                     <div className="flex justify-between font-medium">
                       <span>Atual: <strong className="text-[#f7f8f8]">{latest ? latest[goalFormData.indicator] || '--' : '--'}</strong></span>
                       <span>Meta: <strong className="text-[#4ade80]">{goalFormData.targetValue}</strong></span>
                     </div>
                     {INDICATOR_CONFIGS[goalFormData.indicator]?.optimalRange && (
-                      <span className="text-[10px] text-[#60a5fa] block mt-1">
+                      <span className="text-xs text-[#60a5fa] block mt-1">
                         Faixa ideal: {INDICATOR_CONFIGS[goalFormData.indicator]?.optimalRange?.min} - {INDICATOR_CONFIGS[goalFormData.indicator]?.optimalRange?.max} {goalFormData.unit}
                       </span>
                     )}
@@ -1688,7 +1688,7 @@ export default function BodyAssessmentDashboard() {
 
               {/* Passo 3: Prazo e Ritmo Esperado */}
               <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a] space-y-3">
-                <label className="text-[#8a8f98] font-semibold block uppercase tracking-wider text-[10px]">
+                <label className="text-[#a1a1aa] font-semibold block uppercase tracking-wider text-xs">
                   3. Prazo e Ritmo Estimado
                 </label>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -1708,7 +1708,7 @@ export default function BodyAssessmentDashboard() {
                         className={`py-2 rounded-lg border text-center font-medium transition ${
                           isSelected
                             ? 'bg-[#3b82f615] border-[#3b82f6] text-[#3b82f6]'
-                            : 'bg-[#16191e] border-[#ffffff0a] text-[#8a8f98] hover:border-[#ffffff20]'
+                            : 'bg-[#16191e] border-[#ffffff0a] text-[#a1a1aa] hover:border-[#ffffff20]'
                         }`}
                       >
                         {p.label}
@@ -1719,7 +1719,7 @@ export default function BodyAssessmentDashboard() {
 
                 {/* Cálculo de Ritmo Semanal */}
                 {goalFormData.deadlineMonths > 0 && latest && latest[goalFormData.indicator] != null && (
-                  <div className="p-2.5 rounded bg-[#3b82f60a] border border-[#3b82f620] text-[11px] text-[#8a8f98] flex items-center justify-between">
+                  <div className="p-2.5 rounded bg-[#3b82f60a] border border-[#3b82f620] text-xs text-[#a1a1aa] flex items-center justify-between">
                     <span>Ritmo necessário:</span>
                     <strong className="text-[#60a5fa]">
                       {Math.abs(
@@ -1741,7 +1741,7 @@ export default function BodyAssessmentDashboard() {
                 <button
                   type="button"
                   onClick={() => setIsGoalModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-[#16191e] hover:bg-[#22272f] text-[#8a8f98] text-xs font-semibold"
+                  className="px-4 py-2 rounded-lg bg-[#16191e] hover:bg-[#22272f] text-[#a1a1aa] text-xs font-semibold"
                 >
                   Cancelar
                 </button>

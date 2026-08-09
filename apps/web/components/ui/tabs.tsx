@@ -36,10 +36,10 @@ export const Tabs: React.FC<TabsProps> = ({
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 sm:py-1.5 min-h-[44px] sm:min-h-[36px] text-xs sm:text-sm font-semibold rounded-md transition-all whitespace-nowrap touch-manipulation ${
+              className={`flex items-center gap-2 px-3.5 py-2 sm:py-1.5 min-h-[44px] sm:min-h-[36px] text-xs sm:text-sm font-medium rounded-md transition-all whitespace-nowrap touch-manipulation ${
                 isActive
                   ? 'bg-[#16191e] text-[#f7f8f8] shadow-sm border border-[#ffffff12]'
-                  : 'text-[#8a8f98] hover:text-[#f7f8f8] hover:bg-[#ffffff08]'
+                  : 'text-[#a1a1aa] hover:text-[#f7f8f8] hover:bg-[#ffffff08]'
               }`}
             >
               {tab.icon}
@@ -47,7 +47,7 @@ export const Tabs: React.FC<TabsProps> = ({
               {tab.badge !== undefined && (
                 <span
                   className={`px-2 py-0.5 text-xs rounded-full font-bold ${
-                    isActive ? 'bg-[#5e6ad2] text-white' : 'bg-[#16191e] text-[#8a8f98]'
+                    isActive ? 'bg-[#5e6ad2] text-white' : 'bg-[#16191e] text-[#a1a1aa]'
                   }`}
                 >
                   {tab.badge}
@@ -61,10 +61,10 @@ export const Tabs: React.FC<TabsProps> = ({
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] sm:min-h-[38px] text-xs sm:text-sm font-semibold border-b-2 transition-all whitespace-nowrap -mb-px touch-manipulation ${
+            className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] sm:min-h-[38px] text-xs sm:text-sm font-medium border-b-2 transition-all whitespace-nowrap -mb-px touch-manipulation ${
               isActive
                 ? 'border-[#5e6ad2] text-[#f7f8f8]'
-                : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8] hover:border-[#ffffff20]'
+                : 'border-transparent text-[#a1a1aa] hover:text-[#f7f8f8] hover:border-[#ffffff20]'
             }`}
           >
             {tab.icon}
@@ -72,7 +72,7 @@ export const Tabs: React.FC<TabsProps> = ({
             {tab.badge !== undefined && (
               <span
                 className={`px-2 py-0.5 text-xs rounded-full font-bold ${
-                  isActive ? 'bg-[#5e6ad2] text-white' : 'bg-[#16191e] text-[#8a8f98]'
+                  isActive ? 'bg-[#5e6ad2] text-white' : 'bg-[#16191e] text-[#a1a1aa]'
                 }`}
               >
                 {tab.badge}

@@ -59,8 +59,8 @@ export default function NutricaoPage() {
             <Apple className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight">Análise Nutricional & Visão Multimodal</h1>
-            <p className="text-sm text-[#8a8f98] mt-0.5">Fotografe seu prato ou envie o texto para cálculo de macros em tempo real</p>
+            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">Análise Nutricional & Visão Multimodal</h1>
+            <p className="text-sm text-[#a1a1aa] mt-0.5">Fotografe seu prato ou envie o texto para cálculo de macros em tempo real</p>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ export default function NutricaoPage() {
 
           <div>
             <h3 className="font-semibold text-sm text-[#f7f8f8]">Arraste uma foto da refeição ou clique para selecionar</h3>
-            <p className="text-xs text-[#8a8f98] mt-1 max-w-md">
+            <p className="text-xs text-[#a1a1aa] mt-1 max-w-md">
               A IA identifica os ingredientes, estima a porção e calcula calorias e macronutrientes instantaneamente.
             </p>
           </div>
@@ -116,7 +116,7 @@ export default function NutricaoPage() {
             {analyzedMeal.items.map((item: any, idx: number) => (
               <div key={idx} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md flex justify-between items-center text-xs">
                 <span className="text-[#f7f8f8] font-medium">{item.name} ({item.weight_g || item.weight || '100g'})</span>
-                <span className="text-[#8a8f98] font-mono">{item.calories} kcal</span>
+                <span className="text-[#a1a1aa] font-mono">{item.calories} kcal</span>
               </div>
             ))}
           </div>
@@ -132,7 +132,7 @@ export default function NutricaoPage() {
         <div className="space-y-4 text-xs font-mono">
           <div className="space-y-1.5">
             <div className="flex justify-between">
-              <span className="text-[#8a8f98]">Carboidratos</span>
+              <span className="text-[#a1a1aa]">Carboidratos</span>
               <span className="text-[#f7f8f8] font-bold">{currentCarbs}g / 250g ({Math.round((currentCarbs / 250) * 100)}%)</span>
             </div>
             <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">
@@ -142,7 +142,7 @@ export default function NutricaoPage() {
 
           <div className="space-y-1.5">
             <div className="flex justify-between">
-              <span className="text-[#8a8f98]">Proteínas</span>
+              <span className="text-[#a1a1aa]">Proteínas</span>
               <span className="text-[#f7f8f8] font-bold">{currentProtein}g / 140g ({Math.round((currentProtein / 140) * 100)}%)</span>
             </div>
             <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">
@@ -152,7 +152,7 @@ export default function NutricaoPage() {
 
           <div className="space-y-1.5">
             <div className="flex justify-between">
-              <span className="text-[#8a8f98]">Gorduras</span>
+              <span className="text-[#a1a1aa]">Gorduras</span>
               <span className="text-[#f7f8f8] font-bold">{currentFat}g / 65g ({Math.round((currentFat / 65) * 100)}%)</span>
             </div>
             <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">

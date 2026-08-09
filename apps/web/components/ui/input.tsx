@@ -15,13 +15,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full space-y-1 text-left">
         {label && (
-          <label htmlFor={inputId} className="block text-xs sm:text-sm font-bold text-[#cbd5e1] mb-1 uppercase tracking-wide">
+          <label htmlFor={inputId} className="block text-xs font-semibold text-[#a1a1aa] mb-1 uppercase tracking-wide">
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3 text-[#8a8f98] pointer-events-none flex items-center justify-center">
+            <div className="absolute left-3 text-[#a1a1aa] pointer-events-none flex items-center justify-center">
               {leftIcon}
             </div>
           )}
@@ -29,7 +29,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             disabled={disabled}
-            className={`w-full bg-[#080a0c] border text-[#f7f8f8] placeholder-[#575c66] text-sm rounded-md py-2.5 sm:py-2 min-h-[44px] sm:min-h-[38px] transition-all duration-150 focus:outline-none focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] disabled:opacity-50 disabled:bg-[#0c0e12] ${
+            className={`w-full bg-[#080a0c] border text-[#f7f8f8] placeholder-[#71717a] text-sm rounded-md py-2.5 sm:py-2 min-h-[44px] sm:min-h-[38px] transition-all duration-150 focus:outline-none focus:border-[#5e6ad2] focus:ring-1 focus:ring-[#5e6ad2] disabled:opacity-50 disabled:bg-[#0c0e12] ${
               leftIcon ? 'pl-9' : 'pl-3'
             } ${rightIcon ? 'pr-9' : 'pr-3'} ${
               error ? 'border-[#f87171] focus:border-[#f87171] focus:ring-[#f87171]' : 'border-[#ffffff12]'
@@ -37,7 +37,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3 text-[#8a8f98] flex items-center justify-center">
+            <div className="absolute right-3 text-[#a1a1aa] flex items-center justify-center">
               {rightIcon}
             </div>
           )}

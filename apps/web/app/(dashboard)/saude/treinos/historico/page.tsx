@@ -93,13 +93,13 @@ export default function WorkoutHistoryPage() {
         <div className="flex items-center space-x-3">
           <Link
             href="/saude/treinos"
-            className="p-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#8a8f98] hover:text-white transition"
+            className="p-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#a1a1aa] hover:text-white transition"
           >
             <ChevronLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Histórico de Treinos & Progresso</h1>
-            <p className="text-sm text-[#8a8f98] mt-0.5">
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight">Histórico de Treinos & Progresso</h1>
+            <p className="text-sm text-[#a1a1aa] mt-0.5">
               Consulte seu histórico completo de sessões executadas, volume levantado e calorias.
             </p>
           </div>
@@ -109,31 +109,31 @@ export default function WorkoutHistoryPage() {
       {/* Cards de Métricas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e]">
-          <span className="text-xs text-[#8a8f98] block mb-1">Total de Treinos</span>
+          <span className="text-xs text-[#a1a1aa] block mb-1">Total de Treinos</span>
           <div className="text-2xl font-bold">{stats?.totalWorkouts || 0}</div>
-          <span className="text-[10px] text-[#575c66]">Sessões concluídas</span>
+          <span className="text-xs text-[#71717a]">Sessões concluídas</span>
         </div>
 
         <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e]">
-          <span className="text-xs text-[#8a8f98] block mb-1">Volume Acumulado</span>
+          <span className="text-xs text-[#a1a1aa] block mb-1">Volume Acumulado</span>
           <div className="text-2xl font-bold text-[#818cf8]">
-            {(((stats?.totalVolume || 0) / 1000)).toFixed(1)} <span className="text-xs text-[#8a8f98]">ton</span>
+            {(((stats?.totalVolume || 0) / 1000)).toFixed(1)} <span className="text-xs text-[#a1a1aa]">ton</span>
           </div>
-          <span className="text-[10px] text-[#575c66]">Soma total de cargas</span>
+          <span className="text-xs text-[#71717a]">Soma total de cargas</span>
         </div>
 
         <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e]">
-          <span className="text-xs text-[#8a8f98] block mb-1">Calorias Gastas</span>
+          <span className="text-xs text-[#a1a1aa] block mb-1">Calorias Gastas</span>
           <div className="text-2xl font-bold text-[#f97316]">
-            {stats?.totalCalories || 0} <span className="text-xs text-[#8a8f98]">kcal</span>
+            {stats?.totalCalories || 0} <span className="text-xs text-[#a1a1aa]">kcal</span>
           </div>
-          <span className="text-[10px] text-[#575c66]">Total estimado MET</span>
+          <span className="text-xs text-[#71717a]">Total estimado MET</span>
         </div>
 
         <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e]">
-          <span className="text-xs text-[#8a8f98] block mb-1">Treinos Esta Semana</span>
+          <span className="text-xs text-[#a1a1aa] block mb-1">Treinos Esta Semana</span>
           <div className="text-2xl font-bold text-emerald-400">{stats?.weeklyWorkouts || 0}</div>
-          <span className="text-[10px] text-[#575c66]">Assiduidade semanal</span>
+          <span className="text-xs text-[#71717a]">Assiduidade semanal</span>
         </div>
       </div>
 
@@ -145,7 +145,7 @@ export default function WorkoutHistoryPage() {
               <span className="text-lg">🤖</span>
               <div>
                 <h3 className="font-bold text-sm text-[#f7f8f8]">Relatório Semanal Executivo — Coach Iron</h3>
-                <span className="text-[10px] text-[#818cf8] font-mono">{weeklyReport.period} • {weeklyReport.userName}</span>
+                <span className="text-xs text-[#818cf8] font-mono">{weeklyReport.period} • {weeklyReport.userName}</span>
               </div>
             </div>
             <span className="text-xs px-3 py-1 rounded-full bg-[#6366f120] text-[#818cf8] border border-[#6366f140] font-mono font-semibold">
@@ -242,7 +242,7 @@ export default function WorkoutHistoryPage() {
 
                       <button
                         onClick={() => handleDeleteSession(sess.id)}
-                        className="p-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#8a8f98] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
+                        className="p-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#a1a1aa] hover:text-[#ef4444] hover:bg-[#ef444415] transition"
                         title="Excluir Registro"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -262,7 +262,7 @@ export default function WorkoutHistoryPage() {
                           <span className="font-semibold text-[#f7f8f8] block truncate">
                             {sessionEx.exercise?.namePt || sessionEx.exercise?.name}
                           </span>
-                          <span className="text-[10px] text-[#8a8f98] block">
+                          <span className="text-xs text-[#a1a1aa] block">
                             {completedSets?.length || 0} séries concluídas
                           </span>
                         </div>
@@ -271,7 +271,7 @@ export default function WorkoutHistoryPage() {
                   </div>
 
                   {sess.notes && (
-                    <p className="text-xs text-[#8a8f98] italic pt-1 border-t border-[#ffffff08]">
+                    <p className="text-xs text-[#a1a1aa] italic pt-1 border-t border-[#ffffff08]">
                       Nota: "{sess.notes}"
                     </p>
                   )}

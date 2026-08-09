@@ -116,13 +116,13 @@ export default function ChatPage() {
               <p className="leading-relaxed whitespace-pre-wrap break-words">{m.text}</p>
 
               {m.toolBadge && (
-                <div className="text-[10px] font-mono text-accent bg-accent-subtle px-2 py-0.5 rounded border border-[#5e6ad230] flex items-center gap-1 w-max max-w-full truncate">
+                <div className="text-xs font-mono text-accent bg-accent-subtle px-2 py-0.5 rounded border border-[#5e6ad230] flex items-center gap-1 w-max max-w-full truncate">
                   <Sparkles className="w-3 h-3 shrink-0" />
                   <span className="truncate">{m.toolBadge}</span>
                 </div>
               )}
 
-              <span className="text-[10px] text-tertiary block text-right font-mono">{m.time}</span>
+              <span className="text-xs text-tertiary block text-right font-mono">{m.time}</span>
             </div>
           </div>
         ))}

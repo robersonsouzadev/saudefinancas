@@ -35,9 +35,9 @@ export function Table<T>({
 
   return (
     <div className={`w-full overflow-x-auto border border-[#ffffff12] rounded-lg bg-[#0f1115] ${className}`}>
-      <table className="w-full text-left text-xs sm:text-sm border-collapse">
+      <table className="w-full text-left text-sm border-collapse">
         <thead>
-          <tr className="border-b border-[#ffffff12] bg-[#0c0e12] text-[#cbd5e1] font-bold uppercase tracking-wider text-xs sm:text-sm">
+          <tr className="border-b border-[#ffffff12] bg-[#0c0e12] text-[#a1a1aa] font-bold uppercase tracking-wider text-xs">
             {columns.map((col) => (
               <th
                 key={col.key}
@@ -51,7 +51,7 @@ export function Table<T>({
         <tbody className="divide-y divide-[#ffffff0e] text-[#f7f8f8]">
           {isLoading ? (
             <tr>
-              <td colSpan={columns.length} className="py-8 text-center text-[#8a8f98]">
+              <td colSpan={columns.length} className="py-8 text-center text-[#a1a1aa]">
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 rounded-full border-2 border-[#5e6ad2] border-t-transparent animate-spin" />
                   <span>Carregando dados...</span>
@@ -60,7 +60,7 @@ export function Table<T>({
             </tr>
           ) : data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="py-8 text-center text-[#8a8f98]">
+              <td colSpan={columns.length} className="py-8 text-center text-[#a1a1aa]">
                 {emptyMessage}
               </td>
             </tr>

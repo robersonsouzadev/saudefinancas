@@ -27,8 +27,8 @@ export default function SaudePage() {
             <HeartPulse className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight">Diário de Saúde & Hábitos Biológicos</h1>
-            <p className="text-sm text-[#8a8f98] mt-0.5">Acompanhamento de sono, hidratação, estresse e atividades físicas</p>
+            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">Diário de Saúde & Hábitos Biológicos</h1>
+            <p className="text-sm text-[#a1a1aa] mt-0.5">Acompanhamento de sono, hidratação, estresse e atividades físicas</p>
           </div>
         </div>
 
@@ -43,46 +43,46 @@ export default function SaudePage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="linear-card p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <Moon className="w-3.5 h-3.5 text-[#60a5fa]" /> Sono
             </span>
-            <span className="text-[10px] font-mono text-[#4ade80]">88% Qualidade</span>
+            <span className="text-xs font-mono text-[#4ade80]">88% Qualidade</span>
           </div>
           <div className="text-3xl font-bold font-mono text-[#f7f8f8]">{sleepHours}h</div>
-          <span className="text-[11px] text-[#8a8f98] block">Meta: 8.0h diárias</span>
+          <span className="text-xs text-[#a1a1aa] block">Meta: 8.0h diárias</span>
         </div>
 
         <div className="linear-card p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <Droplets className="w-3.5 h-3.5 text-[#38bdf8]" /> Hidratação
             </span>
-            <span className="text-[10px] font-mono text-[#38bdf8]">96% Meta</span>
+            <span className="text-xs font-mono text-[#38bdf8]">96% Meta</span>
           </div>
           <div className="text-3xl font-bold font-mono text-[#f7f8f8]">{waterLiters.toFixed(1)} L</div>
-          <span className="text-[11px] text-[#8a8f98] block">Meta: 2.5 Litros</span>
+          <span className="text-xs text-[#a1a1aa] block">Meta: 2.5 Litros</span>
         </div>
 
         <div className="linear-card p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <Smile className="w-3.5 h-3.5 text-[#4ade80]" /> Humor & Energia
             </span>
-            <span className="text-[10px] font-mono text-[#4ade80]">Estresse Baixo</span>
+            <span className="text-xs font-mono text-[#4ade80]">Estresse Baixo</span>
           </div>
           <div className="text-3xl font-bold font-mono text-[#f7f8f8]">{mood} / 10</div>
-          <span className="text-[11px] text-[#8a8f98] block">Nível excelente</span>
+          <span className="text-xs text-[#a1a1aa] block">Nível excelente</span>
         </div>
 
         <div className="linear-card p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <Dumbbell className="w-3.5 h-3.5 text-[#facc15]" /> Exercício
             </span>
-            <span className="text-[10px] font-mono text-[#facc15]">{exerciseType}</span>
+            <span className="text-xs font-mono text-[#facc15]">{exerciseType}</span>
           </div>
           <div className="text-3xl font-bold font-mono text-[#f7f8f8]">{exerciseMin} min</div>
-          <span className="text-[11px] text-[#8a8f98] block">Treino diário concluído</span>
+          <span className="text-xs text-[#a1a1aa] block">Treino diário concluído</span>
         </div>
       </div>
 
@@ -98,7 +98,7 @@ export default function SaudePage() {
             {/* Sleep Slider */}
             <div className="space-y-2">
               <div className="flex justify-between font-mono">
-                <span className="text-[#8a8f98]">Horas de Sono:</span>
+                <span className="text-[#a1a1aa]">Horas de Sono:</span>
                 <span className="font-bold text-[#f7f8f8]">{sleepHours}h</span>
               </div>
               <input 
@@ -115,14 +115,14 @@ export default function SaudePage() {
             {/* Water Quick Add */}
             <div className="space-y-2">
               <div className="flex justify-between font-mono">
-                <span className="text-[#8a8f98]">Água Ingerida Hoje:</span>
+                <span className="text-[#a1a1aa]">Água Ingerida Hoje:</span>
                 <span className="font-bold text-[#f7f8f8]">{waterLiters.toFixed(2)} L</span>
               </div>
               <div className="flex space-x-2">
                 <button 
                   type="button" 
                   onClick={() => setWaterLiters(prev => Math.max(0, prev - 0.25))}
-                  className="h-8 px-3 rounded bg-[#16191e] border border-[#ffffff10] text-[#8a8f98] hover:text-[#f7f8f8]"
+                  className="h-8 px-3 rounded bg-[#16191e] border border-[#ffffff10] text-[#a1a1aa] hover:text-[#f7f8f8]"
                 >
                   - 250ml
                 </button>
@@ -146,7 +146,7 @@ export default function SaudePage() {
             {/* Mood Slider */}
             <div className="space-y-2">
               <div className="flex justify-between font-mono">
-                <span className="text-[#8a8f98]">Nível de Humor & Energia (1-10):</span>
+                <span className="text-[#a1a1aa]">Nível de Humor & Energia (1-10):</span>
                 <span className="font-bold text-[#f7f8f8]">{mood} / 10</span>
               </div>
               <input 
@@ -162,7 +162,7 @@ export default function SaudePage() {
             {/* Exercise Details */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[#8a8f98] mb-1 font-mono">Atividade (Minutos)</label>
+                <label className="block text-[#a1a1aa] mb-1 font-mono">Atividade (Minutos)</label>
                 <input 
                   type="number"
                   value={exerciseMin}
@@ -172,7 +172,7 @@ export default function SaudePage() {
               </div>
 
               <div>
-                <label className="block text-[#8a8f98] mb-1 font-mono">Tipo de Exercício</label>
+                <label className="block text-[#a1a1aa] mb-1 font-mono">Tipo de Exercício</label>
                 <select 
                   value={exerciseType}
                   onChange={(e) => setExerciseType(e.target.value)}

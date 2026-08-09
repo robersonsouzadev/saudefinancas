@@ -74,15 +74,15 @@ export const Modal: React.FC<ModalProps> = ({
           <div className="flex items-start justify-between border-b border-[#ffffff0e] pb-3 mb-3 shrink-0">
             <div className="pr-2">
               {title && (
-                <h3 className="text-base font-bold text-[#f7f8f8] flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-semibold text-[#f7f8f8] flex items-center gap-2">
                   {title}
                 </h3>
               )}
-              {description && <p className="text-xs text-[#8a8f98] mt-1">{description}</p>}
+              {description && <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1">{description}</p>}
             </div>
             <button
               onClick={onClose}
-              className="text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-[32px] sm:min-w-[32px] flex items-center justify-center rounded-md hover:bg-[#ffffff0e] transition-colors shrink-0"
+              className="text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-[32px] sm:min-w-[32px] flex items-center justify-center rounded-md hover:bg-[#ffffff0e] transition-colors shrink-0"
               aria-label="Fechar modal"
             >
               <X className="w-5 h-5 sm:w-4 sm:h-4" />

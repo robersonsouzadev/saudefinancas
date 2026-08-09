@@ -67,13 +67,13 @@ export default function DashboardHome() {
       {/* 1. Header & Quick Action Buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2.5">
             <span>Painel Executivo de Saúde & Finanças</span>
             <span className="text-xs font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2.5 py-0.5 rounded border border-[#5e6ad230]">
               Modo Produção
             </span>
           </h1>
-          <p className="text-sm text-[#8a8f98] mt-1">
+          <p className="text-sm text-[#a1a1aa] mt-1">
             Métricas integradas de longevidade biológica, composição corporal e fluxo de caixa
           </p>
         </div>
@@ -116,17 +116,17 @@ export default function DashboardHome() {
               <div className="flex items-center space-x-2">
                 <h3 className="text-sm font-semibold text-[#f7f8f8]">{healthProfile.user.name || 'Usuário'}</h3>
                 {age !== null && age !== undefined && (
-                  <span className="text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
+                  <span className="text-xs font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
                     {age} anos
                   </span>
                 )}
                 {healthProfile.user.heightCm && (
-                  <span className="text-[10px] font-mono text-[#8a8f98]">
+                  <span className="text-xs font-mono text-[#a1a1aa]">
                     • {healthProfile.user.heightCm} cm
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#8a8f98]">
+              <p className="text-xs text-[#a1a1aa]">
                 {latest?.weightKg 
                   ? `Peso atual: ${latest.weightKg} kg ${latest.bodyFatPercent ? `(${latest.bodyFatPercent}% BF)` : ''}` 
                   : 'Nenhuma medição corporal registrada recentemente'}
@@ -139,7 +139,7 @@ export default function DashboardHome() {
               <div className="bg-[#080a0c] px-3 py-1.5 rounded-lg border border-[#ffffff08] flex items-center space-x-2">
                 <Scale className="w-3.5 h-3.5 text-[#5e6ad2]" />
                 <span>IMC: <strong className="font-mono text-[#f7f8f8]">{bmi.bmi}</strong></span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold" style={{ color: bmi.statusColor, backgroundColor: `${bmi.statusColor}15` }}>
+                <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ color: bmi.statusColor, backgroundColor: `${bmi.statusColor}15` }}>
                   {bmi.classification}
                 </span>
               </div>
@@ -169,7 +169,7 @@ export default function DashboardHome() {
         {/* KPI 1: Patrimônio Total Líquido */}
         <div className="linear-card p-4 sm:p-5 xl:p-6 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <Wallet className="w-4 h-4 text-[#5e6ad2]" /> Saldo Líquido
             </span>
             <span className="text-xs font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
@@ -178,13 +178,13 @@ export default function DashboardHome() {
           </div>
 
           <div>
-            <div className={`text-3xl sm:text-4xl font-bold font-mono ${netBalance < 0 ? 'text-[#f87171]' : 'text-[#f7f8f8]'} tracking-tight`}>
+            <div className={`text-2xl font-bold font-mono ${netBalance < 0 ? 'text-[#f87171]' : 'text-[#f7f8f8]'} tracking-tight`}>
               R$ {netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <span className="text-xs text-[#8a8f98] block mt-1">Saldo em contas bancárias salvas</span>
+            <span className="text-xs text-[#a1a1aa] block mt-1">Saldo em contas bancárias salvas</span>
           </div>
 
-          <div className="pt-2 border-t border-[#ffffff08] flex justify-between items-center text-xs font-mono text-[#8a8f98]">
+          <div className="pt-2 border-t border-[#ffffff08] flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
             <span>Receitas: <strong className="text-[#4ade80]">R$ {totalIncome.toFixed(2)}</strong></span>
             <span>Saídas: <strong className="text-[#f87171]">R$ {totalExpenses.toFixed(2)}</strong></span>
           </div>
@@ -193,7 +193,7 @@ export default function DashboardHome() {
         {/* KPI 2: Recovery / Readiness Score */}
         <div className="linear-card p-4 sm:p-5 xl:p-6 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <HeartPulse className="w-4 h-4 text-[#f87171]" /> Readiness Index
             </span>
             <span className="text-xs font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
@@ -202,17 +202,17 @@ export default function DashboardHome() {
           </div>
 
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#4ade80]">
+            <span className="text-2xl font-bold font-mono text-[#4ade80]">
               {dashboardSummary?.scores?.wellbeing || 80}
             </span>
-            <span className="text-[#575c66] text-sm font-medium">/ 100</span>
+            <span className="text-[#71717a] text-sm font-medium">/ 100</span>
           </div>
 
           <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
             <div className="bg-[#4ade80] h-full rounded-full transition-all duration-500" style={{ width: `${dashboardSummary?.scores?.wellbeing || 80}%` }}></div>
           </div>
 
-          <div className="pt-1 flex justify-between items-center text-[11px] font-mono text-[#8a8f98]">
+          <div className="pt-1 flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
             <span>😴 Sono: <strong className="text-[#f7f8f8]">{latest?.weightKg ? '7.5h' : '0.0h'}</strong></span>
             <span>⚡ Saúde: <strong className="text-[#4ade80]">Normal</strong></span>
           </div>
@@ -221,7 +221,7 @@ export default function DashboardHome() {
         {/* KPI 3: Fluxo de Caixa & Savings Rate */}
         <div className="linear-card p-4 sm:p-5 xl:p-6 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <TrendingUp className="w-4 h-4 text-[#22c55e]" /> Taxa de Poupança
             </span>
             <span className="text-xs font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
@@ -230,13 +230,13 @@ export default function DashboardHome() {
           </div>
 
           <div>
-            <div className="text-3xl sm:text-4xl font-bold font-mono text-[#4ade80]">
+            <div className="text-2xl font-bold font-mono text-[#4ade80]">
               R$ {(totalIncome - totalExpenses > 0 ? totalIncome - totalExpenses : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
-            <span className="text-xs text-[#8a8f98] block mt-1">Sobra líquida calculada</span>
+            <span className="text-xs text-[#a1a1aa] block mt-1">Sobra líquida calculada</span>
           </div>
 
-          <div className="pt-2 border-t border-[#ffffff08] flex justify-between items-center text-xs font-mono text-[#8a8f98]">
+          <div className="pt-2 border-t border-[#ffffff08] flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
             <span>Entradas: <strong className="text-[#4ade80]">R$ {totalIncome.toFixed(2)}</strong></span>
             <span>Saídas: <strong className="text-[#f87171]">R$ {totalExpenses.toFixed(2)}</strong></span>
           </div>
@@ -245,7 +245,7 @@ export default function DashboardHome() {
         {/* KPI 4: Balanço Calórico */}
         <div className="linear-card p-4 sm:p-5 xl:p-6 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider flex items-center gap-1.5">
               <Flame className="w-4 h-4 text-[#fb923c]" /> Balanço Calórico
             </span>
             <span className="text-xs font-mono text-[#fb923c]">
@@ -254,10 +254,10 @@ export default function DashboardHome() {
           </div>
 
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#f7f8f8]">
+            <span className="text-2xl font-bold font-mono text-[#f7f8f8]">
               {dashboardSummary?.health?.calorieTracker?.consumed || 0}
             </span>
-            <span className="text-[#575c66] text-sm font-medium">/ {bmr || 2200} kcal</span>
+            <span className="text-[#71717a] text-sm font-medium">/ {bmr || 2200} kcal</span>
           </div>
 
           <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
@@ -267,7 +267,7 @@ export default function DashboardHome() {
             ></div>
           </div>
 
-          <div className="pt-1 flex justify-between items-center text-[10px] font-mono text-[#8a8f98]">
+          <div className="pt-1 flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
             <span>C: 0g</span>
             <span>P: 0g</span>
             <span>G: 0g</span>
@@ -281,18 +281,18 @@ export default function DashboardHome() {
         <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
           <div>
             <h3 className="text-sm font-semibold text-[#f7f8f8]">Despesas por Categoria</h3>
-            <p className="text-xs text-[#8a8f98]">Gastos reais consolidados do mês vigente</p>
+            <p className="text-xs text-[#a1a1aa]">Gastos reais consolidados do mês vigente</p>
           </div>
-          <span className="text-[11px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
+          <span className="text-xs font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
             {categoryChartData.length} categorias com lançamentos
           </span>
         </div>
 
         {categoryChartData.length === 0 ? (
-          <div className="py-12 text-center text-xs text-[#8a8f98] space-y-2 border border-dashed border-[#ffffff0a] rounded-lg">
-            <PieChart className="w-8 h-8 text-[#575c66] mx-auto" />
+          <div className="py-12 text-center text-xs text-[#a1a1aa] space-y-2 border border-dashed border-[#ffffff0a] rounded-lg">
+            <PieChart className="w-8 h-8 text-[#71717a] mx-auto" />
             <p className="font-semibold text-[#f7f8f8]">Nenhuma despesa registrada ainda</p>
-            <p className="text-[11px] max-w-sm mx-auto">
+            <p className="text-xs max-w-sm mx-auto">
               Lance suas despesas no Chat Vita ou na página de Finanças para visualizar o gráfico categorizado.
             </p>
           </div>
@@ -300,8 +300,8 @@ export default function DashboardHome() {
           <div className="h-64 w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={categoryChartData}>
-                <XAxis dataKey="category" stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#575c66" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `R$ ${v}`} />
+                <XAxis dataKey="category" stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `R$ ${v}`} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#0f1115', borderColor: '#ffffff14', borderRadius: '8px', fontSize: '12px' }}
                   formatter={(value: any) => [`R$ ${Number(value).toFixed(2)}`, 'Gasto']}

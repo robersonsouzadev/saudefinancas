@@ -59,10 +59,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <LayoutDashboard className={`w-4 h-4 shrink-0 transition ${getIconColor('/', 'text-[#575c66]', 'text-[#f7f8f8]')}`} />
+            <LayoutDashboard className={`w-4 h-4 shrink-0 transition ${getIconColor('/', 'text-[#71717a]', 'text-[#f7f8f8]')}`} />
             {!collapsed && <span>Dashboard</span>}
           </Link>
         </div>
@@ -85,10 +85,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/saude') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <HeartPulse className={`w-4 h-4 shrink-0 transition ${getIconColor('/saude', 'text-[#575c66]', 'text-[#f87171]')}`} />
+            <HeartPulse className={`w-4 h-4 shrink-0 transition ${getIconColor('/saude', 'text-[#71717a]', 'text-[#f87171]')}`} />
             {!collapsed && <span>Saúde & Hábitos</span>}
           </Link>
 
@@ -101,10 +101,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/saude/treinos') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Dumbbell className={`w-4 h-4 shrink-0 transition ${getIconColor('/saude/treinos', 'text-[#575c66]', 'text-[#6366f1]')}`} />
+            <Dumbbell className={`w-4 h-4 shrink-0 transition ${getIconColor('/saude/treinos', 'text-[#71717a]', 'text-[#6366f1]')}`} />
             {!collapsed && <span>Treinos Físicos</span>}
           </Link>
 
@@ -117,10 +117,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/medicamentos') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Pill className={`w-4 h-4 shrink-0 transition ${getIconColor('/medicamentos', 'text-[#575c66]', 'text-[#f472b6]')}`} />
+            <Pill className={`w-4 h-4 shrink-0 transition ${getIconColor('/medicamentos', 'text-[#71717a]', 'text-[#f472b6]')}`} />
             {!collapsed && <span>Medicamentos</span>}
           </Link>
 
@@ -133,10 +133,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/saude/nutricao') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Apple className={`w-4 h-4 shrink-0 transition ${getIconColor('/saude/nutricao', 'text-[#575c66]', 'text-[#4ade80]')}`} />
+            <Apple className={`w-4 h-4 shrink-0 transition ${getIconColor('/saude/nutricao', 'text-[#71717a]', 'text-[#4ade80]')}`} />
             {!collapsed && <span>Nutrição</span>}
           </Link>
 
@@ -149,10 +149,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/exames') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <TestTube className={`w-4 h-4 shrink-0 transition ${getIconColor('/exames', 'text-[#575c66]', 'text-[#c084fc]')}`} />
+            <TestTube className={`w-4 h-4 shrink-0 transition ${getIconColor('/exames', 'text-[#71717a]', 'text-[#c084fc]')}`} />
             {!collapsed && <span>Exames Lab</span>}
           </Link>
 
@@ -165,10 +165,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/avaliacao-corporal') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Ruler className={`w-4 h-4 shrink-0 transition ${getIconColor('/avaliacao-corporal', 'text-[#575c66]', 'text-[#3b82f6]')}`} />
+            <Ruler className={`w-4 h-4 shrink-0 transition ${getIconColor('/avaliacao-corporal', 'text-[#71717a]', 'text-[#3b82f6]')}`} />
             {!collapsed && <span>Avaliação Corporal</span>}
           </Link>
         </div>
@@ -191,10 +191,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/financas') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Wallet className={`w-4 h-4 shrink-0 transition ${getIconColor('/financas', 'text-[#575c66]', 'text-[#22c55e]')}`} />
+            <Wallet className={`w-4 h-4 shrink-0 transition ${getIconColor('/financas', 'text-[#71717a]', 'text-[#22c55e]')}`} />
             {!collapsed && <span>Finanças</span>}
           </Link>
 
@@ -207,10 +207,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/investimentos') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <TrendingUp className={`w-4 h-4 shrink-0 transition ${getIconColor('/investimentos', 'text-[#575c66]', 'text-[#10b981]')}`} />
+            <TrendingUp className={`w-4 h-4 shrink-0 transition ${getIconColor('/investimentos', 'text-[#71717a]', 'text-[#10b981]')}`} />
             {!collapsed && <span>Investimentos</span>}
           </Link>
         </div>
@@ -233,10 +233,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/insights') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Sparkles className={`w-4 h-4 shrink-0 transition ${getIconColor('/insights', 'text-[#575c66]', 'text-[#eab308]')}`} />
+            <Sparkles className={`w-4 h-4 shrink-0 transition ${getIconColor('/insights', 'text-[#71717a]', 'text-[#eab308]')}`} />
             {!collapsed && <span>Insights Bio-Financeiros</span>}
           </Link>
 
@@ -249,10 +249,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/agentes') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Bot className={`w-4 h-4 shrink-0 transition ${getIconColor('/agentes', 'text-[#575c66]', 'text-[#a855f7]')}`} />
+            <Bot className={`w-4 h-4 shrink-0 transition ${getIconColor('/agentes', 'text-[#71717a]', 'text-[#a855f7]')}`} />
             {!collapsed && <span>Meus Agentes</span>}
           </Link>
 
@@ -265,10 +265,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/base-conhecimento') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <BookOpen className={`w-4 h-4 shrink-0 transition ${getIconColor('/base-conhecimento', 'text-[#575c66]', 'text-[#facc15]')}`} />
+            <BookOpen className={`w-4 h-4 shrink-0 transition ${getIconColor('/base-conhecimento', 'text-[#71717a]', 'text-[#facc15]')}`} />
             {!collapsed && <span>Base Conhecimento</span>}
           </Link>
 
@@ -281,10 +281,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/provedores-ia') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Cpu className={`w-4 h-4 shrink-0 transition ${getIconColor('/provedores-ia', 'text-[#575c66]', 'text-[#5e6ad2]')}`} />
+            <Cpu className={`w-4 h-4 shrink-0 transition ${getIconColor('/provedores-ia', 'text-[#71717a]', 'text-[#5e6ad2]')}`} />
             {!collapsed && <span>Provedores IA</span>}
           </Link>
         </div>
@@ -307,10 +307,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/usuarios') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Users className={`w-4 h-4 shrink-0 transition ${getIconColor('/usuarios', 'text-[#575c66]', 'text-[#3b82f6]')}`} />
+            <Users className={`w-4 h-4 shrink-0 transition ${getIconColor('/usuarios', 'text-[#71717a]', 'text-[#3b82f6]')}`} />
             {!collapsed && <span>Usuários</span>}
           </Link>
 
@@ -323,10 +323,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/familia') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <UserCheck className={`w-4 h-4 shrink-0 transition ${getIconColor('/familia', 'text-[#575c66]', 'text-[#f97316]')}`} />
+            <UserCheck className={`w-4 h-4 shrink-0 transition ${getIconColor('/familia', 'text-[#71717a]', 'text-[#f97316]')}`} />
             {!collapsed && <span>Grupo Familiar</span>}
           </Link>
 
@@ -339,10 +339,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/chat') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <MessageSquare className={`w-4 h-4 shrink-0 transition ${getIconColor('/chat', 'text-[#575c66]', 'text-[#c084fc]')}`} />
+            <MessageSquare className={`w-4 h-4 shrink-0 transition ${getIconColor('/chat', 'text-[#71717a]', 'text-[#c084fc]')}`} />
             {!collapsed && <span>Chat Vita</span>}
           </Link>
 
@@ -355,10 +355,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             } ${
               isActive('/configuracoes') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#8a8f98] hover:bg-[#16191e] hover:text-[#f7f8f8]'
+                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Settings className={`w-4 h-4 shrink-0 transition ${getIconColor('/configuracoes', 'text-[#575c66]', 'text-[#a1a1aa]')}`} />
+            <Settings className={`w-4 h-4 shrink-0 transition ${getIconColor('/configuracoes', 'text-[#71717a]', 'text-[#a1a1aa]')}`} />
             {!collapsed && <span>Configurações</span>}
           </Link>
         </div>
@@ -377,27 +377,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <div className="h-12 px-3 flex items-center justify-between border-b border-[#ffffff0e]">
           <div className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition overflow-hidden">
-            <div className="w-5 h-5 rounded-md bg-[#5e6ad2] flex items-center justify-center font-bold text-white text-[10px] shadow-sm shrink-0">
+            <div className="w-5 h-5 rounded-md bg-[#5e6ad2] flex items-center justify-center font-bold text-white text-xs shadow-sm shrink-0">
               SF
             </div>
             {!isSidebarCollapsed && (
               <>
                 <span className="font-semibold text-xs text-[#f7f8f8] tracking-tight truncate">Saúde & Finanças</span>
-                <ChevronDown className="w-3 h-3 text-[#8a8f98] shrink-0" />
+                <ChevronDown className="w-3 h-3 text-[#a1a1aa] shrink-0" />
               </>
             )}
           </div>
 
           <button 
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="p-1 hover:text-white text-[#8a8f98] rounded hover:bg-[#16191e] transition shrink-0"
+            className="p-1 hover:text-white text-[#a1a1aa] rounded hover:bg-[#16191e] transition shrink-0"
             title={isSidebarCollapsed ? "Expandir barra lateral" : "Recolher barra lateral"}
           >
             {isSidebarCollapsed ? <PanelLeft className="w-3.5 h-3.5" /> : <PanelLeftClose className="w-3.5 h-3.5" />}
           </button>
         </div>
 
-        <nav className="flex-1 px-2 py-3 space-y-4 overflow-y-auto text-[13px] no-scrollbar">
+        <nav className="flex-1 px-2 py-3 space-y-4 overflow-y-auto text-sm no-scrollbar">
           {navContent(isSidebarCollapsed)}
         </nav>
 
@@ -406,18 +406,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt={displayName} className="w-6 h-6 rounded-full object-cover border border-[#ffffff12] shrink-0" />
             ) : (
-              <div className="w-6 h-6 rounded-full bg-[#1e2229] border border-[#ffffff12] flex items-center justify-center text-[10px] font-bold text-[#f7f8f8] shrink-0">
+              <div className="w-6 h-6 rounded-full bg-[#1e2229] border border-[#ffffff12] flex items-center justify-center text-xs font-bold text-[#f7f8f8] shrink-0">
                 {initial}
               </div>
             )}
             {!isSidebarCollapsed && (
-              <span className="text-[12px] font-medium text-[#8a8f98] truncate max-w-[110px]">{displayName}</span>
+              <span className="text-xs font-medium text-[#a1a1aa] truncate max-w-[110px]">{displayName}</span>
             )}
           </div>
 
           <button 
             onClick={logout} 
-            className="p-1.5 hover:text-rose-400 text-[#575c66] rounded transition min-h-[36px] min-w-[36px] flex items-center justify-center" 
+            className="p-1.5 hover:text-rose-400 text-[#71717a] rounded transition min-h-[36px] min-w-[36px] flex items-center justify-center" 
             title="Sair do Sistema"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -447,7 +447,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8]"
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-[#16191e] text-[#a1a1aa] hover:text-[#f7f8f8]"
                 aria-label="Fechar menu"
               >
                 <X className="w-5 h-5" />
@@ -467,12 +467,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {initial}
                   </div>
                 )}
-                <span className="text-xs font-medium text-[#8a8f98] truncate max-w-[130px]">{displayName}</span>
+                <span className="text-xs font-medium text-[#a1a1aa] truncate max-w-[130px]">{displayName}</span>
               </div>
 
               <button 
                 onClick={() => { setIsMobileMenuOpen(false); logout(); }} 
-                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-rose-400 text-[#575c66] rounded transition" 
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-rose-400 text-[#71717a] rounded transition" 
                 title="Sair do Sistema"
               >
                 <LogOut className="w-4 h-4" />
@@ -486,26 +486,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 flex flex-col overflow-hidden bg-[#080a0c]">
         {/* Minimal Linear Header Bar */}
         <header className="h-12 border-b border-[#ffffff0e] bg-[#0f1115]/50 backdrop-blur-md flex items-center justify-between px-3 md:px-4 flex-shrink-0 select-none safe-pt">
-          <div className="flex items-center space-x-2 text-[12px] font-medium text-[#8a8f98] min-w-0 overflow-hidden">
+          <div className="flex items-center space-x-2 text-xs font-medium text-[#a1a1aa] min-w-0 overflow-hidden">
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-[#8a8f98] hover:text-white hover:bg-[#16191e] transition shrink-0"
+              className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-[#a1a1aa] hover:text-white hover:bg-[#16191e] transition shrink-0"
               aria-label="Abrir Menu"
             >
               <Menu className="w-4 h-4" />
             </button>
             <span className="text-[#f7f8f8] font-semibold hidden sm:inline shrink-0">Saúde & Finanças</span>
             <span className="hidden sm:inline shrink-0">/</span>
-            <span className="text-[#8a8f98] capitalize truncate min-w-0">{pathname === '/' ? 'Dashboard' : pathname.replace('/', '').replace('-', ' ')}</span>
+            <span className="text-[#a1a1aa] capitalize truncate min-w-0">{pathname === '/' ? 'Dashboard' : pathname.replace('/', '').replace('-', ' ')}</span>
           </div>
 
-          <div className="flex items-center space-x-2 sm:space-x-3 text-[12px] shrink-0">
-            <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-[#4ade8015] border border-[#4ade8030] text-[#4ade80] text-[10px] sm:text-[11px] font-mono">
+          <div className="flex items-center space-x-2 sm:space-x-3 text-xs shrink-0">
+            <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-[#4ade8015] border border-[#4ade8030] text-[#4ade80] text-xs font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80]"></span>
               <span>Vita Online</span>
             </div>
 
-            <button className="hidden sm:flex items-center space-x-1 text-[#8a8f98] hover:text-[#f7f8f8] px-2 py-1 rounded hover:bg-[#16191e] transition text-[11px]">
+            <button className="hidden sm:flex items-center space-x-1 text-[#a1a1aa] hover:text-[#f7f8f8] px-2 py-1 rounded hover:bg-[#16191e] transition text-xs">
               <Command className="w-3 h-3" />
               <span>K</span>
             </button>

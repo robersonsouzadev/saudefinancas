@@ -236,8 +236,8 @@ export default function ConfiguracoesPage() {
             <Settings className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight">Configurações & Perfil de Saúde</h1>
-            <p className="text-sm text-[#8a8f98] mt-0.5">Dados pessoais, medições corporais, cálculo metabólico e integrações</p>
+            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">Configurações & Perfil de Saúde</h1>
+            <p className="text-sm text-[#a1a1aa] mt-0.5">Dados pessoais, medições corporais, cálculo metabólico e integrações</p>
           </div>
         </div>
 
@@ -262,7 +262,7 @@ export default function ConfiguracoesPage() {
           </div>
           <div>
             <h4 className="text-xs font-semibold text-[#f7f8f8]">Provedores de Inteligência Artificial</h4>
-            <p className="text-[11px] text-[#8a8f98]">Gerencie suas chaves API do OpenAI, Anthropic, Gemini e DeepSeek na tela dedicada.</p>
+            <p className="text-xs text-[#a1a1aa]">Gerencie suas chaves API do OpenAI, Anthropic, Gemini e DeepSeek na tela dedicada.</p>
           </div>
         </div>
         <Link 
@@ -281,7 +281,7 @@ export default function ConfiguracoesPage() {
             <h2 className="font-semibold text-sm text-[#f7f8f8] flex items-center gap-2">
               <User className="w-4 h-4 text-[#5e6ad2]" /> Meu Perfil & Dados Biológicos
             </h2>
-            <p className="text-[11px] text-[#8a8f98] mt-0.5">Informações essenciais para cálculo automático de TMB, IMC e evolução corporal.</p>
+            <p className="text-xs text-[#a1a1aa] mt-0.5">Informações essenciais para cálculo automático de TMB, IMC e evolução corporal.</p>
           </div>
           {age !== null && age !== undefined && (
             <span className="text-xs font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2.5 py-1 rounded-md border border-[#5e6ad230]">
@@ -292,7 +292,7 @@ export default function ConfiguracoesPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
           <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome Completo</label>
+            <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">Nome Completo</label>
             <input 
               type="text" 
               value={name}
@@ -303,17 +303,17 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">E-mail de Acesso</label>
+            <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">E-mail de Acesso</label>
             <input 
               type="email" 
               value={email}
               disabled
-              className="w-full h-9 px-3 rounded-lg bg-[#16191e]/50 border border-[#ffffff08] text-[#8a8f98] cursor-not-allowed font-mono"
+              className="w-full h-9 px-3 rounded-lg bg-[#16191e]/50 border border-[#ffffff08] text-[#a1a1aa] cursor-not-allowed font-mono"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">📅 Data de Nascimento</label>
+            <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">📅 Data de Nascimento</label>
             <input 
               type="date" 
               value={birthDate}
@@ -323,7 +323,7 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">🧬 Sexo Biológico</label>
+            <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">🧬 Sexo Biológico</label>
             <select 
               value={biologicalSex}
               onChange={(e: any) => setBiologicalSex(e.target.value)}
@@ -335,7 +335,7 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">📏 Altura (em cm)</label>
+            <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">📏 Altura (em cm)</label>
             <input 
               type="number" 
               placeholder="ex: 178"
@@ -346,7 +346,7 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">📱 WhatsApp (Notificações)</label>
+            <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">📱 WhatsApp (Notificações)</label>
             <input 
               type="text" 
               placeholder="5567999887766"
@@ -357,7 +357,7 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div className="sm:col-span-2 lg:col-span-3">
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">🔑 Alterar Senha (opcional)</label>
+            <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">🔑 Alterar Senha (opcional)</label>
             <input 
               type="password" 
               placeholder="Deixe em branco para manter a senha atual"
@@ -386,7 +386,7 @@ export default function ConfiguracoesPage() {
             <h2 className="font-semibold text-sm text-[#f7f8f8] flex items-center gap-2">
               <Ruler className="w-4 h-4 text-[#4ade80]" /> Composição & Medidas Corporais
             </h2>
-            <p className="text-[11px] text-[#8a8f98] mt-0.5">Acompanhamento temporal do quadro muscular, gordura corporal e circunferências.</p>
+            <p className="text-xs text-[#a1a1aa] mt-0.5">Acompanhamento temporal do quadro muscular, gordura corporal e circunferências.</p>
           </div>
           <button
             onClick={() => setShowMeasurementModal(true)}
@@ -401,8 +401,8 @@ export default function ConfiguracoesPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card Peso */}
           <div className="bg-[#16191e] border border-[#ffffff0d] rounded-xl p-4 space-y-2">
-            <div className="flex justify-between items-center text-[#8a8f98]">
-              <span className="text-[11px] font-semibold uppercase">Peso & Gordura</span>
+            <div className="flex justify-between items-center text-[#a1a1aa]">
+              <span className="text-xs font-semibold uppercase">Peso & Gordura</span>
               <Scale className="w-4 h-4 text-[#38bdf8]" />
             </div>
             <div className="flex items-baseline space-x-2">
@@ -410,11 +410,11 @@ export default function ConfiguracoesPage() {
                 {latest?.weightKg ? `${latest.weightKg} kg` : '--'}
               </span>
               {latest?.bodyFatPercent && (
-                <span className="text-xs text-[#8a8f98]">({latest.bodyFatPercent}% BF)</span>
+                <span className="text-xs text-[#a1a1aa]">({latest.bodyFatPercent}% BF)</span>
               )}
             </div>
             {deltas?.weightKg !== undefined && deltas.weightKg !== null && (
-              <div className="flex items-center space-x-1 text-[11px]">
+              <div className="flex items-center space-x-1 text-xs">
                 {deltas.weightKg < 0 ? (
                   <span className="text-[#4ade80] flex items-center gap-0.5">
                     <TrendingDown className="w-3 h-3" /> {deltas.weightKg} kg vs anterior
@@ -424,7 +424,7 @@ export default function ConfiguracoesPage() {
                     <TrendingUp className="w-3 h-3" /> +{deltas.weightKg} kg vs anterior
                   </span>
                 ) : (
-                  <span className="text-[#8a8f98]">Sem alteração de peso</span>
+                  <span className="text-[#a1a1aa]">Sem alteração de peso</span>
                 )}
               </div>
             )}
@@ -432,8 +432,8 @@ export default function ConfiguracoesPage() {
 
           {/* Card IMC */}
           <div className="bg-[#16191e] border border-[#ffffff0d] rounded-xl p-4 space-y-2">
-            <div className="flex justify-between items-center text-[#8a8f98]">
-              <span className="text-[11px] font-semibold uppercase">Índice IMC (OMS)</span>
+            <div className="flex justify-between items-center text-[#a1a1aa]">
+              <span className="text-xs font-semibold uppercase">Índice IMC (OMS)</span>
               <Activity className="w-4 h-4 text-[#5e6ad2]" />
             </div>
             <div className="flex items-baseline space-x-2">
@@ -443,7 +443,7 @@ export default function ConfiguracoesPage() {
             </div>
             {bmi?.classification && (
               <span 
-                className="inline-block px-2 py-0.5 rounded text-[10px] font-semibold border"
+                className="inline-block px-2 py-0.5 rounded text-xs font-semibold border"
                 style={{ 
                   color: bmi.statusColor, 
                   backgroundColor: `${bmi.statusColor}15`,
@@ -457,8 +457,8 @@ export default function ConfiguracoesPage() {
 
           {/* Card TMB */}
           <div className="bg-[#16191e] border border-[#ffffff0d] rounded-xl p-4 space-y-2">
-            <div className="flex justify-between items-center text-[#8a8f98]">
-              <span className="text-[11px] font-semibold uppercase">Taxa Metabólica (TMB)</span>
+            <div className="flex justify-between items-center text-[#a1a1aa]">
+              <span className="text-xs font-semibold uppercase">Taxa Metabólica (TMB)</span>
               <Flame className="w-4 h-4 text-[#fb923c]" />
             </div>
             <div className="flex items-baseline space-x-1">
@@ -466,13 +466,13 @@ export default function ConfiguracoesPage() {
                 {bmr ? `${bmr.toLocaleString('pt-BR')} kcal` : '--'}
               </span>
             </div>
-            <p className="text-[10px] text-[#8a8f98]">Gasto calórico mínimo em repouso</p>
+            <p className="text-xs text-[#a1a1aa]">Gasto calórico mínimo em repouso</p>
           </div>
 
           {/* Card Relação Cintura/Quadril */}
           <div className="bg-[#16191e] border border-[#ffffff0d] rounded-xl p-4 space-y-2">
-            <div className="flex justify-between items-center text-[#8a8f98]">
-              <span className="text-[11px] font-semibold uppercase">Relação Cintura/Quadril</span>
+            <div className="flex justify-between items-center text-[#a1a1aa]">
+              <span className="text-xs font-semibold uppercase">Relação Cintura/Quadril</span>
               <HeartPulse className="w-4 h-4 text-[#f43f5e]" />
             </div>
             <div className="flex items-baseline space-x-2">
@@ -481,7 +481,7 @@ export default function ConfiguracoesPage() {
               </span>
             </div>
             {waistToHip?.risk && (
-              <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold border ${
+              <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold border ${
                 waistToHip.risk === 'Baixo' 
                   ? 'text-[#4ade80] bg-[#4ade8015] border-[#4ade8030]' 
                   : waistToHip.risk === 'Moderado' 
@@ -496,16 +496,16 @@ export default function ConfiguracoesPage() {
 
         {/* SEÇÃO HISTÓRICO DE MEDIDAS */}
         <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider">Histórico de Medições Registradas</h3>
+          <h3 className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider">Histórico de Medições Registradas</h3>
           
           {measurements.length === 0 ? (
-            <div className="p-8 text-center bg-[#16191e]/50 border border-[#ffffff08] rounded-xl text-[#8a8f98] text-xs">
+            <div className="p-8 text-center bg-[#16191e]/50 border border-[#ffffff08] rounded-xl text-[#a1a1aa] text-xs">
               Nenhuma medição corporal registrada ainda. Clique em <strong>"+ Registrar Medidas Corporais"</strong> para começar.
             </div>
           ) : (
             <div className="overflow-x-auto border border-[#ffffff0d] rounded-xl">
               <table className="w-full text-left text-xs text-[#f7f8f8]">
-                <thead className="bg-[#16191e] text-[#8a8f98] text-[11px] uppercase font-semibold border-b border-[#ffffff0d]">
+                <thead className="bg-[#16191e] text-[#a1a1aa] text-xs uppercase font-semibold border-b border-[#ffffff0d]">
                   <tr>
                     <th className="py-2.5 px-3">Data</th>
                     <th className="py-2.5 px-3">Peso</th>
@@ -538,11 +538,11 @@ export default function ConfiguracoesPage() {
                           ? `${m.rightThighCm || '-'} / ${m.leftThighCm || '-'} cm` 
                           : '-'}
                       </td>
-                      <td className="py-2.5 px-3 text-[#8a8f98] max-w-[150px] truncate">{m.notes || '-'}</td>
+                      <td className="py-2.5 px-3 text-[#a1a1aa] max-w-[150px] truncate">{m.notes || '-'}</td>
                       <td className="py-2.5 px-3 text-right">
                         <button
                           onClick={() => handleDeleteMeasurement(m.id)}
-                          className="text-[#8a8f98] hover:text-[#f87171] p-1 transition"
+                          className="text-[#a1a1aa] hover:text-[#f87171] p-1 transition"
                           title="Excluir medição"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -564,16 +564,16 @@ export default function ConfiguracoesPage() {
             <h2 className="font-semibold text-sm text-[#f7f8f8] flex items-center gap-2">
               <PhoneCall className="w-4 h-4 text-[#4ade80]" /> Canal Oficial WhatsApp (UazAPI)
             </h2>
-            <p className="text-[11px] text-[#8a8f98] mt-0.5">Instância global para envio de alertas e envio de voz do assistente Vita.</p>
+            <p className="text-xs text-[#a1a1aa] mt-0.5">Instância global para envio de alertas e envio de voz do assistente Vita.</p>
           </div>
-          <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2.5 py-1 rounded border border-[#4ade8030]">
+          <span className="text-xs font-mono text-[#4ade80] bg-[#4ade8015] px-2.5 py-1 rounded border border-[#4ade8030]">
             ● UazAPI Ativo
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome da Instância UazAPI</label>
+            <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">Nome da Instância UazAPI</label>
             <input 
               type="text" 
               value={uazapiInstance}
@@ -583,7 +583,7 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Token de Autenticação</label>
+            <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">Token de Autenticação</label>
             <input 
               type="password" 
               value={uazapiToken}
@@ -604,7 +604,7 @@ export default function ConfiguracoesPage() {
               </h3>
               <button 
                 onClick={() => setShowMeasurementModal(false)} 
-                className="text-[#8a8f98] hover:text-[#f7f8f8] text-sm p-1"
+                className="text-[#a1a1aa] hover:text-[#f7f8f8] text-sm p-1"
               >
                 ✕
               </button>
@@ -612,7 +612,7 @@ export default function ConfiguracoesPage() {
 
             <form onSubmit={handleSaveMeasurement} className="space-y-4 text-xs">
               <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">📅 Data da Medição</label>
+                <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">📅 Data da Medição</label>
                 <input 
                   type="date" 
                   value={measurementDate}
@@ -624,10 +624,10 @@ export default function ConfiguracoesPage() {
 
               {/* Composição Principal */}
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-[#5e6ad2] uppercase tracking-wider">── Composição Principal ──</span>
+                <span className="text-xs font-bold text-[#5e6ad2] uppercase tracking-wider">── Composição Principal ──</span>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Peso (kg)</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Peso (kg)</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 82.5"
                       value={weightKg} onChange={(e) => setWeightKg(e.target.value)}
@@ -636,7 +636,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">% Gordura Corporal (BF)</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">% Gordura Corporal (BF)</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 18.5"
                       value={bodyFatPercent} onChange={(e) => setBodyFatPercent(e.target.value)}
@@ -648,10 +648,10 @@ export default function ConfiguracoesPage() {
 
               {/* Circunferências Tronco */}
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-[#38bdf8] uppercase tracking-wider">── Circunferências Tronco (cm) ──</span>
+                <span className="text-xs font-bold text-[#38bdf8] uppercase tracking-wider">── Circunferências Tronco (cm) ──</span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Cintura</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Cintura</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 88"
                       value={waistCm} onChange={(e) => setWaistCm(e.target.value)}
@@ -659,7 +659,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Quadril</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Quadril</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 101"
                       value={hipCm} onChange={(e) => setHipCm(e.target.value)}
@@ -667,7 +667,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Peito / Tórax</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Peito / Tórax</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 104"
                       value={chestCm} onChange={(e) => setChestCm(e.target.value)}
@@ -675,7 +675,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Pescoço</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Pescoço</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 39"
                       value={neckCm} onChange={(e) => setNeckCm(e.target.value)}
@@ -683,7 +683,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Ombros</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Ombros</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 118"
                       value={shoulderCm} onChange={(e) => setShoulderCm(e.target.value)}
@@ -691,7 +691,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Abdômen</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Abdômen</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 90"
                       value={abdomenCm} onChange={(e) => setAbdomenCm(e.target.value)}
@@ -703,10 +703,10 @@ export default function ConfiguracoesPage() {
 
               {/* Membros Superiores */}
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-[#4ade80] uppercase tracking-wider">── Membros Superiores (cm) ──</span>
+                <span className="text-xs font-bold text-[#4ade80] uppercase tracking-wider">── Membros Superiores (cm) ──</span>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Bíceps Direito</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Bíceps Direito</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 36.5"
                       value={rightBicepCm} onChange={(e) => setRightBicepCm(e.target.value)}
@@ -714,7 +714,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Bíceps Esquerdo</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Bíceps Esquerdo</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 36.0"
                       value={leftBicepCm} onChange={(e) => setLeftBicepCm(e.target.value)}
@@ -722,7 +722,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Antebraço Dir</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Antebraço Dir</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 29.5"
                       value={rightForearmCm} onChange={(e) => setRightForearmCm(e.target.value)}
@@ -730,7 +730,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Antebraço Esq</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Antebraço Esq</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 29.0"
                       value={leftForearmCm} onChange={(e) => setLeftForearmCm(e.target.value)}
@@ -742,10 +742,10 @@ export default function ConfiguracoesPage() {
 
               {/* Membros Inferiores */}
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-[#facc15] uppercase tracking-wider">── Membros Inferiores (cm) ──</span>
+                <span className="text-xs font-bold text-[#facc15] uppercase tracking-wider">── Membros Inferiores (cm) ──</span>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Coxa Direita</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Coxa Direita</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 58.0"
                       value={rightThighCm} onChange={(e) => setRightThighCm(e.target.value)}
@@ -753,7 +753,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Coxa Esquerda</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Coxa Esquerda</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 57.5"
                       value={leftThighCm} onChange={(e) => setLeftThighCm(e.target.value)}
@@ -761,7 +761,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Panturrilha Dir</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Panturrilha Dir</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 38.5"
                       value={rightCalfCm} onChange={(e) => setRightCalfCm(e.target.value)}
@@ -769,7 +769,7 @@ export default function ConfiguracoesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Panturrilha Esq</label>
+                    <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Panturrilha Esq</label>
                     <input 
                       type="number" step="0.1" placeholder="ex: 38.0"
                       value={leftCalfCm} onChange={(e) => setLeftCalfCm(e.target.value)}
@@ -780,7 +780,7 @@ export default function ConfiguracoesPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Observações (opcional)</label>
+                <label className="block text-xs text-[#a1a1aa] uppercase mb-1">Observações (opcional)</label>
                 <input 
                   type="text" placeholder="ex: Em jejum, pós-treino"
                   value={measurementNotes} onChange={(e) => setMeasurementNotes(e.target.value)}
@@ -792,7 +792,7 @@ export default function ConfiguracoesPage() {
                 <button 
                   type="button" 
                   onClick={() => setShowMeasurementModal(false)}
-                  className="h-9 px-4 rounded-lg bg-[#16191e] hover:bg-[#1f232b] text-[#8a8f98] font-medium"
+                  className="h-9 px-4 rounded-lg bg-[#16191e] hover:bg-[#1f232b] text-[#a1a1aa] font-medium"
                 >
                   Cancelar
                 </button>
