@@ -218,22 +218,22 @@ export default function ProvedoresIAPage() {
 
                 {/* Status Notice */}
                 {!isConnected && (
-                  <div className="p-2.5 rounded-md bg-surface border border-subtle text-[11px] text-secondary flex items-start gap-2">
-                    <AlertTriangle className="w-3.5 h-3.5 text-tertiary shrink-0 mt-0.5" />
+                  <div className="p-2.5 rounded-md bg-surface border border-subtle text-xs text-[#cbd5e1] flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
                     <span>{p.statusReason}</span>
                   </div>
                 )}
 
                 {/* Models Supported Tags */}
                 <div>
-                  <span className="text-[10px] font-semibold text-tertiary uppercase tracking-wider block mb-1.5">
+                  <span className="text-xs font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1.5">
                     Modelos Suportados
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {p.models.map((m) => (
                       <span
                         key={m}
-                        className="px-2 py-0.5 rounded bg-surface border border-subtle text-[11px] text-secondary"
+                        className="px-2.5 py-1 rounded bg-surface border border-subtle text-xs font-mono text-[#cbd5e1] font-medium"
                       >
                         {m}
                       </span>
@@ -244,7 +244,7 @@ export default function ProvedoresIAPage() {
 
               {/* Card Footer Actions */}
               <div className="pt-3 border-t border-subtle flex flex-col xs:flex-row xs:items-center justify-between gap-2 mt-3">
-                <span className="text-[11px] font-mono text-tertiary">0 / {p.tokenLimit.toLocaleString()} tokens</span>
+                <span className="text-xs font-mono font-medium text-[#a1a1aa]">0 / {p.tokenLimit.toLocaleString()} tokens</span>
 
                 <Button
                   variant="secondary"

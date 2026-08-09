@@ -182,32 +182,32 @@ export default function InvestimentosPage() {
 
       {/* Patrimony Summary Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card padding="compact">
-          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">Patrimônio Atual</span>
-          <div className="text-3xl font-bold font-mono text-primary">
+        <Card padding="standard">
+          <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">Patrimônio Atual</span>
+          <div className="text-3xl sm:text-4xl font-bold font-mono text-primary">
             R$ {currentTotalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-secondary block">Avaliação a mercado</span>
+          <span className="text-xs text-[#a1a1aa] font-medium block mt-1">Avaliação a mercado</span>
         </Card>
 
-        <Card padding="compact">
-          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">Total Aportado</span>
-          <div className="text-3xl font-bold font-mono text-secondary">
+        <Card padding="standard">
+          <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">Total Aportado</span>
+          <div className="text-3xl sm:text-4xl font-bold font-mono text-secondary">
             R$ {totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-secondary block">Custo acumulado de aquisição</span>
+          <span className="text-xs text-[#a1a1aa] font-medium block mt-1">Custo acumulado de aquisição</span>
         </Card>
 
-        <Card padding="compact">
-          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">Rentabilidade Total</span>
-          <div className={`text-3xl font-bold font-mono ${totalProfit >= 0 ? 'text-success' : 'text-error'}`}>
+        <Card padding="standard">
+          <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">Rentabilidade Total</span>
+          <div className={`text-3xl sm:text-4xl font-bold font-mono ${totalProfit >= 0 ? 'text-success' : 'text-error'}`}>
             {totalProfit >= 0 ? '+' : ''} R$ {totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-secondary block">Lucro ou prejuízo não realizado</span>
+          <span className="text-xs text-[#a1a1aa] font-medium block mt-1">Lucro ou prejuízo não realizado</span>
         </Card>
 
-        <Card padding="compact">
-          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">Retorno (%)</span>
+        <Card padding="standard">
+          <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">Retorno (%)</span>
           <div className={`text-3xl font-bold font-mono ${profitPercentage >= 0 ? 'text-success' : 'text-error'}`}>
             {profitPercentage >= 0 ? '+' : ''} {profitPercentage.toFixed(2)}%
           </div>

@@ -45,7 +45,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* VISÃO GERAL */}
       <div>
         {!collapsed && (
-          <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          <div className="px-2 pb-1 text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">
             Geral
           </div>
         )}
@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* SAÚDE & BEM-ESTAR */}
       <div>
         {!collapsed && (
-          <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          <div className="px-2 pb-1 text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">
             Saúde & Bem-Estar
           </div>
         )}
@@ -177,7 +177,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* FINANÇAS & PATRIMÔNIO */}
       <div>
         {!collapsed && (
-          <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          <div className="px-2 pb-1 text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">
             Finanças & Patrimônio
           </div>
         )}
@@ -219,7 +219,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* INTELIGÊNCIA */}
       <div>
         {!collapsed && (
-          <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          <div className="px-2 pb-1 text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">
             Inteligência
           </div>
         )}
@@ -293,7 +293,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* WORKSPACE & SISTEMA */}
       <div>
         {!collapsed && (
-          <div className="px-2 pb-1 text-[10px] font-semibold text-[#575c66] uppercase tracking-wider">
+          <div className="px-2 pb-1 text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">
             Workspace
           </div>
         )}

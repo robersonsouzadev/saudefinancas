@@ -215,7 +215,7 @@ function BioCapsuleBar({
             style={{ left: `${percent}%` }}
           >
             {/* Valor Flutuante com Sombra Glow */}
-            <div className="bg-[#0f1117] border border-amber-400/80 px-2 py-0.5 rounded text-[10px] font-bold font-mono text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.6)] whitespace-nowrap mb-0.5">
+            <div className="bg-[#0f1117] border border-amber-400/80 px-2.5 py-0.5 rounded text-xs font-bold font-mono text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.6)] whitespace-nowrap mb-0.5">
               {value}
             </div>
             {/* Diamante Flutuante em Losango */}

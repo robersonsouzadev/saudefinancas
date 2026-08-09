@@ -35,9 +35,9 @@ export function Table<T>({
 
   return (
     <div className={`w-full overflow-x-auto border border-[#ffffff12] rounded-lg bg-[#0f1115] ${className}`}>
-      <table className="w-full text-left text-xs border-collapse">
+      <table className="w-full text-left text-xs sm:text-sm border-collapse">
         <thead>
-          <tr className="border-b border-[#ffffff12] bg-[#0c0e12] text-[#8a8f98] font-semibold uppercase tracking-wider text-[11px]">
+          <tr className="border-b border-[#ffffff12] bg-[#0c0e12] text-[#cbd5e1] font-bold uppercase tracking-wider text-xs sm:text-sm">
             {columns.map((col) => (
               <th
                 key={col.key}

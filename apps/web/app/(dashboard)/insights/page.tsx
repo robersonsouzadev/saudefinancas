@@ -30,12 +30,12 @@ export default function InsightsPage() {
         {/* Insight 1 */}
         <div className="linear-card p-5 space-y-3">
           <div className="flex justify-between items-start">
-            <div className="space-y-1">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#f8717115] text-[#f87171] border border-[#f8717130] text-[10px] font-mono font-semibold rounded">
-                <AlertCircle className="w-3 h-3" /> Crítico
+            <div className="space-y-1.5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#f8717115] text-[#f87171] border border-[#f8717130] text-xs font-mono font-semibold rounded">
+                <AlertCircle className="w-3.5 h-3.5" /> Crítico
               </span>
-              <h3 className="text-sm font-semibold text-[#f7f8f8]">Gatilho de Estresse e Gastos Com Delivery</h3>
-              <p className="text-xs text-[#8a8f98]">
+              <h3 className="text-base sm:text-lg font-bold text-[#f7f8f8]">Gatilho de Estresse e Gastos Com Delivery</h3>
+              <p className="text-sm text-[#cbd5e1] leading-relaxed">
                 Nos dias em que seu nível de estresse ultrapassa 8/10, seus gastos com pedidos de restaurante e transporte por aplicativo aumentam em média 45%.
               </p>
             </div>

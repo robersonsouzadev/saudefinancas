@@ -261,22 +261,22 @@ export default function MedicamentosPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* KPI 1: Score de Aderência */}
-        <div className="linear-card p-4 space-y-3">
+        <div className="linear-card p-4 sm:p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#4ade80]" /> Score de Aderência
+            <span className="text-xs sm:text-sm font-semibold text-[#cbd5e1] uppercase tracking-wider flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-[#4ade80]" /> Score de Aderência
             </span>
-            <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
+            <span className="text-xs font-mono font-semibold text-[#4ade80] bg-[#4ade8015] px-2.5 py-0.5 rounded border border-[#4ade8030]">
               Excelente
             </span>
           </div>
 
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold font-mono text-[#4ade80]">{adherencePercent}%</span>
-            <span className="text-[#8a8f98] text-xs">dos horários</span>
+            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#4ade80]">{adherencePercent}%</span>
+            <span className="text-[#a1a1aa] text-xs sm:text-sm font-medium">dos horários</span>
           </div>
 
-          <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
+          <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden border border-[#ffffff0a]">
             <div className="bg-[#4ade80] h-full rounded-full transition-all duration-500" style={{ width: `${adherencePercent}%` }}></div>
           </div>
 

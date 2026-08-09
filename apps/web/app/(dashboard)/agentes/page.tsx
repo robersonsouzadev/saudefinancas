@@ -437,26 +437,26 @@ export default function AgentesPage() {
                         <Bot className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-sm text-[#f7f8f8] tracking-tight">{ag.name}</h3>
-                        <span className="text-[10px] text-[#8a8f98] font-mono">{ag.modelName || 'gpt-4o-mini'}</span>
+                        <h3 className="font-semibold text-base text-[#f7f8f8] tracking-tight">{ag.name}</h3>
+                        <span className="text-xs text-[#cbd5e1] font-mono font-medium">{ag.modelName || 'gpt-4o-mini'}</span>
                       </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#4ade8010] text-[#4ade80] border border-[#4ade8025]">
+                    <span className="px-2.5 py-0.5 rounded text-xs font-mono font-semibold bg-[#4ade8010] text-[#4ade80] border border-[#4ade8025]">
                       ATIVO
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[#16191e] border border-[#ffffff0a] text-[11px] text-[#8a8f98] font-mono line-clamp-3 leading-relaxed">
+                  <div className="p-3 rounded-lg bg-[#16191e] border border-[#ffffff0a] text-xs sm:text-sm text-[#cbd5e1] font-mono line-clamp-3 leading-relaxed">
                     "{ag.systemPrompt}"
                   </div>
 
-                  <div className="flex items-center space-x-2 text-[10px] font-mono text-[#8a8f98]">
-                    <span className="px-2 py-0.5 rounded bg-[#16191e] border border-[#ffffff08]">
+                  <div className="flex items-center space-x-2 text-xs font-mono text-[#cbd5e1]">
+                    <span className="px-2.5 py-1 rounded bg-[#16191e] border border-[#ffffff12] font-medium">
                       Temp: {ag.temperature}
                     </span>
                     {ag.whatsappEnabled && (
-                      <span className="px-2 py-0.5 rounded bg-[#4ade8010] border border-[#4ade8020] text-[#4ade80] flex items-center gap-1">
-                        <PhoneCall className="w-3 h-3" /> WhatsApp UazAPI
+                      <span className="px-2.5 py-1 rounded bg-[#4ade8010] border border-[#4ade8020] text-[#4ade80] font-semibold flex items-center gap-1">
+                        <PhoneCall className="w-3.5 h-3.5" /> WhatsApp UazAPI
                       </span>
                     )}
                   </div>
@@ -465,9 +465,9 @@ export default function AgentesPage() {
                 <div className="pt-3 border-t border-[#ffffff08] flex items-center justify-between">
                   <button 
                     onClick={() => handleEdit(ag)}
-                    className="h-7 px-3 rounded bg-[#5e6ad215] hover:bg-[#5e6ad225] border border-[#5e6ad230] text-[11px] text-[#5e6ad2] font-semibold flex items-center space-x-1.5 transition"
+                    className="h-8 px-3.5 rounded bg-[#5e6ad215] hover:bg-[#5e6ad225] border border-[#5e6ad230] text-xs sm:text-sm text-[#818cf8] font-semibold flex items-center space-x-1.5 transition"
                   >
-                    <Zap className="w-3 h-3" />
+                    <Zap className="w-3.5 h-3.5" />
                     <span>Testar & Editar</span>
                   </button>
 

@@ -460,8 +460,8 @@ export default function FinancasPage() {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <button onClick={() => handleOpenTx()} className="h-8 px-4 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm">
-            <Plus className="w-3.5 h-3.5" />
+          <button onClick={() => handleOpenTx()} className="h-9 px-4 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-semibold text-xs sm:text-sm flex items-center space-x-1.5 transition shadow-sm">
+            <Plus className="w-4 h-4" />
             <span>Nova Transação Rápida</span>
           </button>
         </div>
@@ -469,35 +469,35 @@ export default function FinancasPage() {
 
       {/* KPI Cards Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-xl flex items-center justify-between">
+        <div className="p-4 sm:p-5 bg-[#0f1115] border border-[#ffffff14] rounded-xl flex items-center justify-between">
           <div>
-            <span className="text-[10px] text-[#8a8f98] font-bold uppercase tracking-wider">Saldo Líquido em Contas</span>
-            <div className="text-2xl font-bold font-mono text-[#f7f8f8] mt-1">{formatBRL(overview.netBalance)}</div>
+            <span className="text-xs sm:text-sm text-[#cbd5e1] font-bold uppercase tracking-wider block">Saldo Líquido em Contas</span>
+            <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8] mt-1">{formatBRL(overview.netBalance)}</div>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center text-[#22c55e]">
-            <Landmark className="w-5 h-5" />
+          <div className="w-11 h-11 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center text-[#22c55e] shrink-0">
+            <Landmark className="w-6 h-6" />
           </div>
         </div>
-        <div className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-xl flex items-center justify-between">
+        <div className="p-4 sm:p-5 bg-[#0f1115] border border-[#ffffff14] rounded-xl flex items-center justify-between">
           <div>
-            <span className="text-[10px] text-[#8a8f98] font-bold uppercase tracking-wider">Entradas no Mês</span>
-            <div className="text-2xl font-bold font-mono text-[#4ade80] mt-1 flex items-center">
-              <ArrowUpRight className="w-4 h-4 mr-1" /> {formatBRL(overview.totalIncome)}
+            <span className="text-xs sm:text-sm text-[#cbd5e1] font-bold uppercase tracking-wider block">Entradas no Mês</span>
+            <div className="text-2xl sm:text-3xl font-bold font-mono text-[#4ade80] mt-1 flex items-center">
+              <ArrowUpRight className="w-5 h-5 mr-1" /> {formatBRL(overview.totalIncome)}
             </div>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-[#4ade80]/10 border border-[#4ade80]/20 flex items-center justify-center text-[#4ade80]">
-            <Wallet className="w-5 h-5" />
+          <div className="w-11 h-11 rounded-lg bg-[#4ade80]/10 border border-[#4ade80]/20 flex items-center justify-center text-[#4ade80] shrink-0">
+            <Wallet className="w-6 h-6" />
           </div>
         </div>
-        <div className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-xl flex items-center justify-between">
+        <div className="p-4 sm:p-5 bg-[#0f1115] border border-[#ffffff14] rounded-xl flex items-center justify-between">
           <div>
-            <span className="text-[10px] text-[#8a8f98] font-bold uppercase tracking-wider">Saídas no Mês</span>
-            <div className="text-2xl font-bold font-mono text-[#f87171] mt-1 flex items-center">
-              <ArrowDownRight className="w-4 h-4 mr-1" /> {formatBRL(overview.totalExpenses)}
+            <span className="text-xs sm:text-sm text-[#cbd5e1] font-bold uppercase tracking-wider block">Saídas no Mês</span>
+            <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f87171] mt-1 flex items-center">
+              <ArrowDownRight className="w-5 h-5 mr-1" /> {formatBRL(overview.totalExpenses)}
             </div>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-[#f87171]/10 border border-[#f87171]/20 flex items-center justify-center text-[#f87171]">
-            <Receipt className="w-5 h-5" />
+          <div className="w-11 h-11 rounded-lg bg-[#f87171]/10 border border-[#f87171]/20 flex items-center justify-center text-[#f87171] shrink-0">
+            <Receipt className="w-6 h-6" />
           </div>
         </div>
       </div>
@@ -505,13 +505,13 @@ export default function FinancasPage() {
       {/* TOP CAROUSEL: Minhas Contas & Cartões */}
       <div>
         <div className="flex justify-between items-center mb-3">
-          <h2 className="text-sm font-semibold flex items-center"><Landmark className="w-4 h-4 mr-2 text-[#8a8f98]"/> Minhas Contas & Cartões</h2>
-          <div className="flex space-x-2">
-            <button onClick={() => handleOpenAccountModal()} className="text-[11px] text-[#5e6ad2] hover:underline font-medium flex items-center">
+          <h2 className="text-base sm:text-lg font-bold flex items-center"><Landmark className="w-5 h-5 mr-2 text-[#a1a1aa]"/> Minhas Contas & Cartões</h2>
+          <div className="flex items-center space-x-3">
+            <button onClick={() => handleOpenAccountModal()} className="text-xs sm:text-sm text-[#818cf8] hover:underline font-semibold flex items-center">
               + Nova Conta
             </button>
             <span className="text-[#8a8f98]">•</span>
-            <button onClick={() => handleOpenCardModal()} className="text-[11px] text-[#5e6ad2] hover:underline font-medium flex items-center">
+            <button onClick={() => handleOpenCardModal()} className="text-xs sm:text-sm text-[#818cf8] hover:underline font-semibold flex items-center">
               + Novo Cartão
             </button>
           </div>

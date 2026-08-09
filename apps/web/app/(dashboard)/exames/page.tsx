@@ -773,16 +773,16 @@ export default function LabExamsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         
         {/* Health Score Ring Card */}
-        <div className="col-span-2 sm:col-span-1 p-4 rounded-xl bg-[#0f1115] border border-[#ffffff12] relative overflow-hidden group flex flex-col items-center justify-center">
+        <div className="col-span-2 sm:col-span-1 p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff12] relative overflow-hidden group flex flex-col items-center justify-center">
           <div className="absolute inset-0 bg-gradient-to-br from-[#5e6ad210] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <p className="text-[10px] text-[#8a8f98] uppercase tracking-wider font-semibold mb-2">Health Score</p>
+          <p className="text-xs sm:text-sm text-[#cbd5e1] uppercase tracking-wider font-bold mb-2">Health Score</p>
           <HealthScoreRing score={score} size={110} />
         </div>
 
         {/* PhenoAge Card */}
-        <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff12] relative overflow-hidden group">
+        <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff12] relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-20 h-20 bg-[#5e6ad210] rounded-full blur-xl group-hover:bg-[#5e6ad220] transition" />
-          <div className="flex items-center justify-between text-xs text-[#8a8f98]">
+          <div className="flex items-center justify-between text-xs sm:text-sm text-[#cbd5e1] font-semibold">
             <div className="flex items-center gap-1">
               <span>Idade Biológica</span>
               <button
@@ -790,16 +790,16 @@ export default function LabExamsPage() {
                 title="O que é a Idade Biológica PhenoAge?"
                 className="text-[#8a8f98] hover:text-[#5e6ad2] transition"
               >
-                <Info className="w-3.5 h-3.5" />
+                <Info className="w-4 h-4" />
               </button>
             </div>
             <Activity className="w-4 h-4 text-[#5e6ad2]" />
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-[#f7f8f8] font-mono">
+            <span className="text-2xl sm:text-3xl font-bold text-[#f7f8f8] font-mono">
               {summary?.phenoAge ? `${summary.phenoAge}` : '--'}
             </span>
-            <span className="text-[10px] text-[#8a8f98]">anos</span>
+            <span className="text-xs text-[#cbd5e1] font-medium">anos</span>
           </div>
           {summary?.phenoAge && summary?.chronologicalAge ? (
             (() => {
@@ -807,8 +807,8 @@ export default function LabExamsPage() {
               const isYounger = diff > 0;
               return (
                 <span
-                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded inline-block mt-1 ${
-                    isYounger ? 'text-[#4ade80] bg-[#4ade8015]' : 'text-[#fbbf24] bg-[#fbbf2415]'
+                  className={`text-xs font-bold px-2 py-0.5 rounded inline-block mt-2 ${
+                    isYounger ? 'text-[#4ade80] bg-[#4ade8015] border border-[#4ade8030]' : 'text-[#fbbf24] bg-[#fbbf2415] border border-[#fbbf2430]'
                   }`}
                 >
                   {isYounger ? `-${diff.toFixed(1)} anos mais jovem` : `+${Math.abs(diff).toFixed(1)} anos acima`}

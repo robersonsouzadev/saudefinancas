@@ -369,11 +369,11 @@ export default function WorkoutSessionPage() {
                   {exIdx + 1}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-[#f7f8f8]">
+                  <h3 className="font-bold text-base sm:text-lg text-[#f7f8f8]">
                     {sessionEx.exercise?.namePt || sessionEx.exercise?.name}
                   </h3>
                   {sessionEx.exercise?.nameEn && (
-                    <span className="text-[11px] text-[#575c66] italic block">{sessionEx.exercise.nameEn}</span>
+                    <span className="text-xs text-[#a1a1aa] italic block">{sessionEx.exercise.nameEn}</span>
                   )}
                 </div>
               </div>
@@ -383,22 +383,22 @@ export default function WorkoutSessionPage() {
                 {sessionEx.exercise?.gifUrl && (
                   <button
                     onClick={() => setExpandedGifId(expandedGifId === sessionEx.id ? null : sessionEx.id)}
-                    className={`flex items-center space-x-1 px-2 py-1 rounded-lg border text-[10px] font-semibold transition-all ${
+                    className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all ${
                       expandedGifId === sessionEx.id
                         ? 'bg-[#818cf820] border-[#818cf850] text-[#818cf8]'
-                        : 'bg-[#16191e] border-[#ffffff12] text-[#8a8f98] hover:text-[#818cf8] hover:border-[#818cf840]'
+                        : 'bg-[#16191e] border-[#ffffff12] text-[#cbd5e1] hover:text-[#818cf8] hover:border-[#818cf840]'
                     }`}
                     title="Ver demonstração do exercício"
                   >
                     {expandedGifId === sessionEx.id ? (
-                      <><EyeOff className="w-3 h-3" /><span>Ocultar</span></>
+                      <><EyeOff className="w-3.5 h-3.5" /><span>Ocultar</span></>
                     ) : (
-                      <><Eye className="w-3 h-3" /><span>Como fazer</span></>
+                      <><Eye className="w-3.5 h-3.5" /><span>Como fazer</span></>
                     )}
                   </button>
                 )}
 
-                <span className="text-[10px] px-2 py-0.5 rounded bg-[#16191e] text-[#38bdf8] font-mono">
+                <span className="text-xs px-2.5 py-1 rounded bg-[#16191e] text-[#38bdf8] font-mono font-medium border border-[#38bdf820]">
                   {sessionEx.exercise?.equipment}
                 </span>
               </div>
@@ -415,7 +415,7 @@ export default function WorkoutSessionPage() {
                     loading="lazy"
                   />
                   <div className="absolute bottom-2 left-2 right-2 px-2 py-1 rounded-md bg-black/70 backdrop-blur-sm">
-                    <span className="text-[10px] text-[#8a8f98] block text-center">Demonstração 3D — {sessionEx.exercise?.namePt || sessionEx.exercise?.name}</span>
+                    <span className="text-xs text-[#cbd5e1] block text-center font-medium">Demonstração 3D — {sessionEx.exercise?.namePt || sessionEx.exercise?.name}</span>
                   </div>
                 </div>
               </div>
@@ -423,14 +423,14 @@ export default function WorkoutSessionPage() {
 
             {/* Tabela de Séries (3-Tap UX Rule) */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs sm:text-sm">
                 <thead>
-                  <tr className="text-[#575c66] border-b border-[#ffffff0a] pb-2">
-                    <th className="py-1 font-medium w-12 text-center">SÉRIE</th>
-                    <th className="py-1 font-medium w-24">CARGA (KG)</th>
-                    <th className="py-1 font-medium w-24">REPS</th>
-                    <th className="py-1 font-medium text-center w-16">CONCLUÍDO</th>
-                    <th className="py-1 font-medium w-10 text-right"></th>
+                  <tr className="text-[#cbd5e1] font-bold text-xs uppercase border-b border-[#ffffff12] pb-2">
+                    <th className="py-2 font-bold w-14 text-center">SÉRIE</th>
+                    <th className="py-2 font-bold w-28">CARGA (KG)</th>
+                    <th className="py-2 font-bold w-28">REPS</th>
+                    <th className="py-2 font-bold text-center w-20">CONCLUÍDO</th>
+                    <th className="py-2 font-bold w-12 text-right"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#ffffff08]">

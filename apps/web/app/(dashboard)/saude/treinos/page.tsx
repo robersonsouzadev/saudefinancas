@@ -744,45 +744,45 @@ export default function TreinosPage() {
       </div>
 
       {/* Cards de Resumo Semanal */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
-        <div className="p-3 sm:p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#8a8f98] mb-1.5">
-            <span className="text-[11px] sm:text-xs font-medium truncate">Treinos Semana</span>
-            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#818cf8] shrink-0" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-[#a1a1aa] mb-1">
+            <span className="text-xs sm:text-sm font-semibold truncate">Treinos Semana</span>
+            <Calendar className="w-4 h-4 text-[#818cf8] shrink-0" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold text-[#f7f8f8]">{stats.weeklyWorkouts || 0}</div>
-          <span className="text-[9px] sm:text-[10px] text-[#575c66] mt-1 truncate">Meta: 4-5 treinos</span>
+          <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8]">{stats.weeklyWorkouts || 0}</div>
+          <span className="text-xs text-[#a1a1aa] truncate">Meta: 4-5 treinos</span>
         </div>
 
-        <div className="p-3 sm:p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#8a8f98] mb-1.5">
-            <span className="text-[11px] sm:text-xs font-medium truncate">Volume Carga</span>
-            <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#38bdf8] shrink-0" />
+        <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-[#a1a1aa] mb-1">
+            <span className="text-xs sm:text-sm font-semibold truncate">Volume Carga</span>
+            <Layers className="w-4 h-4 text-[#38bdf8] shrink-0" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold text-[#f7f8f8]">
-            {((stats.totalVolume || 0) / 1000).toFixed(1)} <span className="text-xs text-[#8a8f98] font-normal">ton</span>
+          <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8]">
+            {((stats.totalVolume || 0) / 1000).toFixed(1)} <span className="text-sm text-[#a1a1aa] font-normal">ton</span>
           </div>
-          <span className="text-[9px] sm:text-[10px] text-[#575c66] mt-1 truncate">Peso × Reps</span>
+          <span className="text-xs text-[#a1a1aa] truncate">Peso × Reps</span>
         </div>
 
-        <div className="p-3 sm:p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#8a8f98] mb-1.5">
-            <span className="text-[11px] sm:text-xs font-medium truncate">Calorias Queimadas</span>
-            <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f97316] shrink-0" />
+        <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-[#a1a1aa] mb-1">
+            <span className="text-xs sm:text-sm font-semibold truncate">Calorias Queimadas</span>
+            <Flame className="w-4 h-4 text-[#f97316] shrink-0" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold text-[#f7f8f8]">
-            {stats.totalCalories || 0} <span className="text-xs text-[#8a8f98] font-normal">kcal</span>
+          <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8]">
+            {stats.totalCalories || 0} <span className="text-sm text-[#a1a1aa] font-normal">kcal</span>
           </div>
-          <span className="text-[9px] sm:text-[10px] text-[#575c66] mt-1 truncate">Algoritmo MET</span>
+          <span className="text-xs text-[#a1a1aa] truncate">Algoritmo MET</span>
         </div>
 
-        <div className="p-3 sm:p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#8a8f98] mb-1.5">
-            <span className="text-[11px] sm:text-xs font-medium truncate">Total Sessões</span>
-            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#4ade80] shrink-0" />
+        <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-[#a1a1aa] mb-1">
+            <span className="text-xs sm:text-sm font-semibold truncate">Total Sessões</span>
+            <CheckCircle2 className="w-4 h-4 text-[#4ade80] shrink-0" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold text-[#f7f8f8]">{stats.totalWorkouts || 0}</div>
-          <span className="text-[9px] sm:text-[10px] text-[#575c66] mt-1 truncate">Treinos concluídos</span>
+          <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8]">{stats.totalWorkouts || 0}</div>
+          <span className="text-xs text-[#a1a1aa] truncate">Treinos concluídos</span>
         </div>
       </div>
 
@@ -790,46 +790,46 @@ export default function TreinosPage() {
       {coachInsights && (
         <div className="space-y-4">
           {/* Banner de Dica Inteligente */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-[#6366f115] via-[#a855f710] to-[#16191e] border border-[#6366f130] flex items-start space-x-3">
-            <div className="p-2 rounded-lg bg-[#6366f120] text-[#818cf8] mt-0.5">
-              <Sparkles className="w-4 h-4" />
+          <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-[#6366f115] via-[#a855f710] to-[#16191e] border border-[#6366f130] flex items-start space-x-3.5">
+            <div className="p-2.5 rounded-lg bg-[#6366f120] text-[#818cf8] mt-0.5 shrink-0">
+              <Sparkles className="w-5 h-5" />
             </div>
-            <div className="space-y-0.5 flex-1">
-              <h3 className="text-xs font-bold text-[#818cf8] uppercase tracking-wider">Coach Iron — Diagnóstico de Fadiga & Treino</h3>
-              <p className="text-xs text-[#f7f8f8] leading-relaxed">{coachInsights.summaryTip}</p>
+            <div className="space-y-1 flex-1">
+              <h3 className="text-sm font-bold text-[#a5b4fc] uppercase tracking-wider">Coach Iron — Diagnóstico de Fadiga & Treino</h3>
+              <p className="text-sm text-[#f8fafc] leading-relaxed">{coachInsights.summaryTip}</p>
             </div>
           </div>
 
           {/* Grid de Recuperação por Grupo Muscular (Heatmap) */}
           {coachInsights.recovery?.length > 0 && (
-            <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <h3 className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
-                    <Target className="w-3.5 h-3.5 text-[#38bdf8]" />
+                  <h3 className="text-base font-semibold text-[#f7f8f8] flex items-center gap-2">
+                    <Target className="w-4 h-4 text-[#38bdf8]" />
                     Mapa de Recuperação Muscular (Recovery Decay)
                   </h3>
-                  <p className="text-[11px] text-[#8a8f98]">
+                  <p className="text-sm text-[#a1a1aa] mt-0.5">
                     Calculado com base nos últimos 7 dias de treino e volume de séries por grupo.
                   </p>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#16191e] text-[#8a8f98]">
+                <span className="text-xs font-mono font-medium px-2.5 py-1 rounded bg-[#16191e] text-[#a1a1aa] border border-[#ffffff12]">
                   48h+ Decay
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-1">
                 {coachInsights.recovery.map((m: any) => (
-                  <div key={m.muscleGroup} className="p-2.5 rounded-lg bg-[#16191e] border border-[#ffffff08] space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-[#f7f8f8]">{m.muscleGroup}</span>
-                      <span className={`text-[10px] font-mono ${m.status === 'OPTIMAL' ? 'text-[#4ade80]' : m.status === 'PARTIAL' ? 'text-[#facc15]' : 'text-[#f87171]'}`}>
+                  <div key={m.muscleGroup} className="p-3 rounded-lg bg-[#16191e] border border-[#ffffff08] space-y-2">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
+                      <span className="font-bold text-[#f7f8f8]">{m.muscleGroup}</span>
+                      <span className={`font-mono font-bold text-xs sm:text-sm ${m.status === 'OPTIMAL' ? 'text-[#4ade80]' : m.status === 'PARTIAL' ? 'text-[#facc15]' : 'text-[#f87171]'}`}>
                         {m.recoveryPercent}%
                       </span>
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="w-full h-1.5 rounded-full bg-[#080a0c] overflow-hidden">
+                    <div className="w-full h-2 rounded-full bg-[#080a0c] overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
                           m.status === 'OPTIMAL' ? 'bg-[#4ade80]' : m.status === 'PARTIAL' ? 'bg-[#facc15]' : 'bg-[#f87171]'
@@ -838,7 +838,7 @@ export default function TreinosPage() {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between text-[9px] text-[#575c66]">
+                    <div className="flex items-center justify-between text-xs text-[#a1a1aa] font-medium">
                       <span>{m.weeklySets} séries/sem</span>
                       <span>{m.hoursSinceLastTrained < 168 ? `${m.hoursSinceLastTrained}h atrás` : 'Descansado'}</span>
                     </div>
@@ -850,27 +850,27 @@ export default function TreinosPage() {
 
           {/* Sugestões de Sobrecarga Progressiva */}
           {coachInsights.overloadSuggestions?.length > 0 && (
-            <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-3">
-              <h3 className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-amber-400 fill-current" />
+            <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-4">
+              <h3 className="text-base font-semibold text-[#f7f8f8] flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-400 fill-current" />
                 Sugestões de Progressão de Cargas (Coach Iron Engine)
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {coachInsights.overloadSuggestions.map((sug: any, idx: number) => (
-                  <div key={idx} className="p-3 rounded-lg bg-[#16191e] border border-[#ffffff08] flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-semibold text-[#f7f8f8] block">{sug.exerciseName}</span>
-                      <span className="text-[10px] text-[#8a8f98]">{sug.reason}</span>
+                  <div key={idx} className="p-3.5 rounded-xl bg-[#16191e] border border-[#ffffff0e] flex items-center justify-between gap-3 text-sm">
+                    <div className="space-y-0.5 min-w-0">
+                      <span className="font-bold text-[#f8fafc] text-sm sm:text-base block truncate">{sug.exerciseName}</span>
+                      <span className="text-xs sm:text-sm text-[#cbd5e1] block leading-relaxed">{sug.reason}</span>
                     </div>
 
                     {sug.action === 'INCREASE_WEIGHT' ? (
-                      <div className="text-right">
-                        <span className="text-[10px] text-[#575c66] line-through block">{sug.currentWeight}kg</span>
-                        <span className="font-bold text-[#4ade80] font-mono text-sm">+{sug.suggestedWeight}kg</span>
+                      <div className="text-right shrink-0">
+                        <span className="text-xs sm:text-sm text-[#94a3b8] font-mono line-through block">{sug.currentWeight}kg</span>
+                        <span className="font-bold text-[#4ade80] font-mono text-base sm:text-lg">+{sug.suggestedWeight}kg</span>
                       </div>
                     ) : (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0f1115] text-[#8a8f98]">
+                      <span className="text-xs font-mono font-medium px-2.5 py-1 rounded bg-[#0f1115] text-[#cbd5e1] shrink-0 border border-[#ffffff12]">
                         Manter {sug.currentWeight}kg
                       </span>
                     )}
@@ -1021,24 +1021,24 @@ export default function TreinosPage() {
 
           {/* Muscle Group Coverage Map */}
           {(weeklyProgress.muscleGroupCoverage.trained.length > 0 || weeklyProgress.muscleGroupCoverage.pending.length > 0) && (
-            <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold text-[#f7f8f8] flex items-center gap-1.5">
-                  <Target className="w-3.5 h-3.5 text-[#38bdf8]" />
+            <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h3 className="text-base font-semibold text-[#f7f8f8] flex items-center gap-2">
+                  <Target className="w-4 h-4 text-[#38bdf8]" />
                   Cobertura Muscular da Semana
                 </h3>
                 {weeklyProgress.muscleGroupCoverage.pending.length === 0 ? (
-                  <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/25">
+                  <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
                     ✨ 100% dos grupos planejados treinados!
                   </span>
                 ) : (
-                  <span className="text-[10px] font-mono text-[#8a8f98]">
+                  <span className="text-xs font-mono font-medium text-[#cbd5e1] bg-[#16191e] px-2.5 py-1 rounded border border-[#ffffff12]">
                     {weeklyProgress.muscleGroupCoverage.trained.length} treinados / {weeklyProgress.muscleGroupCoverage.pending.length} pendentes
                   </span>
                 )}
               </div>
 
-              <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
                 {weeklyProgress.muscleGroupCoverage.trained.map((mg: string) => {
                   const labelMap: Record<string, string> = {
                     PEITORAL_SUPERIOR: 'Peitoral Sup.',
@@ -1068,11 +1068,11 @@ export default function TreinosPage() {
                   const displayLabel = labelMap[mg] || mg.replace(/_/g, ' ');
 
                   return (
-                    <div key={mg} className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-center space-y-0.5">
-                      <span className="text-[10px] font-semibold text-emerald-400 block truncate" title={mg}>
+                    <div key={mg} className="p-2.5 sm:p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/35 text-center space-y-1">
+                      <span className="text-xs sm:text-sm font-bold text-emerald-300 block truncate" title={mg}>
                         {displayLabel}
                       </span>
-                      <span className="text-[9px] font-mono text-emerald-300/70">{weeklyProgress.muscleGroupCoverage.setsPerGroup[mg]} séries</span>
+                      <span className="text-xs font-mono font-semibold text-emerald-400 block">{weeklyProgress.muscleGroupCoverage.setsPerGroup[mg]} séries</span>
                     </div>
                   );
                 })}
@@ -1106,11 +1106,11 @@ export default function TreinosPage() {
                   const displayLabel = labelMap[mg] || mg.replace(/_/g, ' ');
 
                   return (
-                    <div key={mg} className="p-2 rounded-lg bg-red-500/8 border border-red-500/20 text-center space-y-0.5">
-                      <span className="text-[10px] font-semibold text-red-400/80 block truncate" title={mg}>
+                    <div key={mg} className="p-2.5 sm:p-3 rounded-xl bg-rose-500/15 border border-rose-500/35 text-center space-y-1">
+                      <span className="text-xs sm:text-sm font-bold text-rose-300 block truncate" title={mg}>
                         {displayLabel}
                       </span>
-                      <span className="text-[9px] font-mono text-red-300/50">Devendo!</span>
+                      <span className="text-xs font-mono font-bold text-rose-400 block">Devendo!</span>
                     </div>
                   );
                 })}
