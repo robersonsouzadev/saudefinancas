@@ -293,4 +293,11 @@ export class BodyAssessmentsService {
       data: dto,
     });
   }
+
+  async deleteGoal(userId: string, id: string) {
+    return this.prisma.bodyAssessmentGoal.update({
+      where: { id },
+      data: { isActive: false },
+    });
+  }
 }

@@ -80,6 +80,12 @@ export class BodyAssessmentsController {
     return this.bodyAssessmentsService.updateGoal(userId, id, dto);
   }
 
+  @Delete('goals/:id')
+  async deleteGoal(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.bodyAssessmentsService.deleteGoal(userId, id);
+  }
+
   @Get(':id')
   async findOne(@Req() req: any, @Param('id') id: string) {
     const userId = req.user?.id || req.user?.userId;

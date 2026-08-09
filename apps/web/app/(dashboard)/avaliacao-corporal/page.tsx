@@ -27,6 +27,11 @@ import {
   BarChart3,
   GitCompare,
   History,
+  Trash2,
+  Lightbulb,
+  Zap,
+  Clock,
+  Check,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -44,6 +49,14 @@ import {
 import { useAuth } from '../../providers/AuthProvider';
 import { authFetch } from '@/lib/api';
 import { INDICATOR_CONFIGS, getTrendBadge } from './body-constants';
+import {
+  calculateGoalProgress,
+  calculateVelocity,
+  estimateTimeToGoal,
+  getGoalStatus,
+  getGoalTip,
+  getMilestones,
+} from './goal-utils';
 
 // ─── ANEL DE BODY SCORE ─────────────────────────────────────────
 function BodyScoreRing({ score }: { score?: number }) {
@@ -265,6 +278,185 @@ function CellularAgeCard({
   );
 }
 
+// ─── CARD DE META INDIVIDUAL REDESENHADO ────────────────────────
+function GoalCard({
+  goal,
+  latest,
+  allAssessments,
+  onDelete,
+}: {
+  goal: any;
+  latest: any;
+  allAssessments: any[];
+  onDelete: (id: string) => void;
+}) {
+  const conf = INDICATOR_CONFIGS[goal.indicator] || {
+    name: goal.indicator,
+    unit: goal.unit || '',
+    isHigherBetter: true,
+  };
+
+  const currentValue = latest ? (latest[goal.indicator] ?? goal.currentValue ?? 0) : (goal.currentValue ?? 0);
+  const startValue = goal.currentValue ?? currentValue ?? 0;
+  const targetValue = goal.targetValue;
+  const isHigherBetter = conf.isHigherBetter ?? true;
+
+  const progress = calculateGoalProgress(
+    currentValue,
+    startValue,
+    targetValue,
+    isHigherBetter,
+    goal.unit || conf.unit
+  );
+
+  const velocity = calculateVelocity(allAssessments, goal.indicator, targetValue, isHigherBetter);
+  const etg = estimateTimeToGoal(progress.remaining, velocity.monthlyRate, isHigherBetter, goal.deadlineMonths);
+  const status = getGoalStatus(progress.progressPercent, progress.isAchieved, velocity, goal.deadlineMonths);
+  const tip = getGoalTip(goal.indicator, status.code, velocity, progress.progressPercent);
+  const milestones = getMilestones(progress.progressPercent);
+
+  // Raio do anel de progresso mini
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progress.progressPercent / 100) * circumference;
+
+  return (
+    <div className="linear-card p-5 relative flex flex-col justify-between space-y-4 border border-[#ffffff10] hover:border-[#ffffff20] transition group">
+      {/* Header com Nome, Status e Botão Delete */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center space-x-3">
+          {/* Mini Anel de Progresso */}
+          <div className="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 70 70">
+              <circle
+                cx="35"
+                cy="35"
+                r={radius}
+                className="stroke-[#ffffff12]"
+                strokeWidth="6"
+                fill="transparent"
+              />
+              <circle
+                cx="35"
+                cy="35"
+                r={radius}
+                stroke={status.color}
+                strokeWidth="6"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                fill="transparent"
+                className="transition-all duration-1000 ease-out"
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-[#f7f8f8]">
+              {progress.progressPercent}%
+            </span>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-[#f7f8f8] tracking-tight">{conf.name}</h4>
+            <div className="flex items-center space-x-2 mt-1">
+              <span
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center space-x-1"
+                style={{
+                  color: status.color,
+                  backgroundColor: status.bg,
+                  border: `1px solid ${status.borderColor}`,
+                }}
+              >
+                <span>{status.label}</span>
+              </span>
+              {goal.deadlineMonths && (
+                <span className="text-[10px] text-[#8a8f98] flex items-center space-x-1">
+                  <Clock className="w-3 h-3 text-[#575c66]" />
+                  <span>Prazo: {goal.deadlineMonths}m</span>
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onDelete(goal.id)}
+          title="Excluir meta"
+          className="p-1.5 rounded-md hover:bg-[#f8717115] text-[#575c66] hover:text-[#f87171] transition opacity-40 group-hover:opacity-100"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Valores: Atual → Meta */}
+      <div className="grid grid-cols-3 gap-2 p-3 rounded-lg bg-[#080a0c] border border-[#ffffff0a] text-center">
+        <div>
+          <span className="text-[10px] text-[#8a8f98] block">Atual</span>
+          <span className="text-xs font-bold text-[#f7f8f8]">
+            {currentValue} {progress.unit}
+          </span>
+        </div>
+        <div className="border-x border-[#ffffff0a]">
+          <span className="text-[10px] text-[#8a8f98] block">Restam</span>
+          <span className="text-xs font-bold text-[#3b82f6]">
+            {progress.remaining} {progress.unit}
+          </span>
+        </div>
+        <div>
+          <span className="text-[10px] text-[#8a8f98] block">Meta Alvo</span>
+          <span className="text-xs font-bold text-[#4ade80]">
+            {targetValue} {progress.unit}
+          </span>
+        </div>
+      </div>
+
+      {/* Barra de Progresso com Milestones */}
+      <div>
+        <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden relative">
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${progress.progressPercent}%`, backgroundColor: status.color }}
+          />
+        </div>
+
+        {/* Marcadores de Milestone (25%, 50%, 75%, 100%) */}
+        <div className="flex justify-between items-center text-[10px] text-[#575c66] mt-1.5 px-0.5">
+          {milestones.map((m) => (
+            <div key={m.percent} className="flex items-center space-x-0.5">
+              {m.isReached ? (
+                <CheckCircle2 className="w-3 h-3 text-[#4ade80]" />
+              ) : (
+                <div className="w-1.5 h-1.5 rounded-full bg-[#ffffff20]" />
+              )}
+              <span className={m.isReached ? 'text-[#4ade80] font-bold' : ''}>{m.percent}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Velocidade e Projeção (ETG) */}
+      <div className="flex items-center justify-between text-[11px] text-[#8a8f98] px-1">
+        <div className="flex items-center space-x-1">
+          <Zap className="w-3 h-3 text-[#fbbf24]" />
+          <span>
+            Ritmo: <strong className="text-[#f7f8f8]">{velocity.monthlyRate > 0 ? `+${velocity.monthlyRate}` : velocity.monthlyRate} {progress.unit}/mês</strong>
+          </span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <Clock className="w-3 h-3 text-[#60a5fa]" />
+          <span>
+            ETG: <strong className="text-[#60a5fa]">{etg.description}</strong>
+          </span>
+        </div>
+      </div>
+
+      {/* Dica Contextual */}
+      <div className="p-3 rounded-lg bg-[#3b82f60a] border border-[#3b82f620] flex items-start space-x-2 text-[11px]">
+        <Lightbulb className="w-4 h-4 text-[#3b82f6] flex-shrink-0 mt-0.5" />
+        <span className="text-[#8a8f98] leading-relaxed">{tip}</span>
+      </div>
+    </div>
+  );
+}
+
 // ─── DASHBOARD PRINCIPAL DE AVALIAÇÃO CORPORAL ──────────────────
 export default function BodyAssessmentDashboard() {
   const { user } = useAuth();
@@ -399,6 +591,19 @@ export default function BodyAssessmentDashboard() {
       console.error('Erro ao criar meta:', err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteGoal = async (id: string) => {
+    try {
+      const res = await authFetch(`/api/body-assessments/goals/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        fetchDashboardData();
+      }
+    } catch (err) {
+      console.error('Erro ao excluir meta:', err);
     }
   };
 
@@ -753,52 +958,55 @@ export default function BodyAssessmentDashboard() {
             </div>
           </div>
 
-          {/* Seção de Metas Corporal */}
-          {goals.length > 0 && (
-            <div className="linear-card p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <Target className="w-5 h-5 text-[#4ade80]" />
-                  <h4 className="text-sm font-semibold text-[#f7f8f8]">Metas de Composição Corporal</h4>
+          {/* Seção de Metas Corporal Redenhada */}
+          <div className="linear-card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Target className="w-5 h-5 text-[#4ade80]" />
+                <h4 className="text-sm font-semibold text-[#f7f8f8]">Metas de Composição Corporal & Performance</h4>
+              </div>
+              <button
+                onClick={() => setIsGoalModalOpen(true)}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-[#3b82f615] hover:bg-[#3b82f625] border border-[#3b82f630] text-[#3b82f6] text-xs font-semibold transition"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Adicionar Meta</span>
+              </button>
+            </div>
+
+            {goals.length === 0 ? (
+              <div className="p-8 rounded-lg bg-[#080a0c] border border-dashed border-[#ffffff15] text-center flex flex-col items-center justify-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-[#4ade8015] border border-[#4ade8030] flex items-center justify-center text-[#4ade80]">
+                  <Target className="w-6 h-6" />
+                </div>
+                <div className="max-w-md">
+                  <h5 className="text-sm font-bold text-[#f7f8f8]">Nenhuma meta definida ainda</h5>
+                  <p className="text-xs text-[#8a8f98] mt-1">
+                    Crie alvos para % de gordura, massa muscular, circunferência de cintura ou hidratação. O sistema calcula o ritmo semanal, projeção temporal (ETG) e dicas práticas.
+                  </p>
                 </div>
                 <button
                   onClick={() => setIsGoalModalOpen(true)}
-                  className="text-xs text-[#3b82f6] hover:underline"
+                  className="px-4 py-2 rounded-lg bg-[#3b82f6] hover:bg-[#2563eb] text-white text-xs font-semibold shadow-lg shadow-[#3b82f620] transition flex items-center space-x-2"
                 >
-                  + Adicionar Meta
+                  <Plus className="w-4 h-4" />
+                  <span>Criar Primeira Meta</span>
                 </button>
               </div>
-
+            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {goals.map((g: any) => {
-                  const conf = INDICATOR_CONFIGS[g.indicator] || { name: g.indicator, unit: g.unit };
-                  const currentVal = latest ? latest[g.indicator] : g.currentValue;
-                  const progress = currentVal ? Math.min(100, Math.round((currentVal / g.targetValue) * 100)) : 50;
-
-                  return (
-                    <div key={g.id} className="p-3.5 rounded-lg bg-[#080a0c] border border-[#ffffff0a]">
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="font-medium text-[#f7f8f8]">{conf.name}</span>
-                        <span className="text-[#8a8f98]">
-                          Atual: <strong className="text-[#f7f8f8]">{currentVal || '--'} {g.unit}</strong> → Meta: <strong className="text-[#4ade80]">{g.targetValue} {g.unit}</strong>
-                        </span>
-                      </div>
-                      <div className="w-full bg-[#16191e] h-2.5 rounded-full overflow-hidden mb-1">
-                        <div
-                          className="bg-[#4ade80] h-full rounded-full transition-all duration-500"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center text-[10px] text-[#575c66]">
-                        <span>Prazo: {g.deadlineMonths ? `${g.deadlineMonths} meses` : 'Livre'}</span>
-                        <span>{progress}% da meta atingido</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                {goals.map((g: any) => (
+                  <GoalCard
+                    key={g.id}
+                    goal={g}
+                    latest={latest}
+                    allAssessments={allAssessments}
+                    onDelete={handleDeleteGoal}
+                  />
+                ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
@@ -1248,6 +1456,197 @@ export default function BodyAssessmentDashboard() {
                   className="px-5 py-2 rounded-lg bg-[#3b82f6] hover:bg-[#2563eb] text-white text-xs font-semibold shadow-lg shadow-[#3b82f620] disabled:opacity-50"
                 >
                   {isSubmitting ? 'Salvando...' : 'Salvar Avaliação'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: CRIAR NOVA META (REDESENHADO) ───────────────────── */}
+      {isGoalModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="linear-card w-full max-w-xl p-6 space-y-6 my-8 border border-[#ffffff15]">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-lg bg-[#4ade8015] border border-[#4ade8030] flex items-center justify-center text-[#4ade80]">
+                  <Target className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#f7f8f8]">Criar Nova Meta Corporal</h3>
+                  <p className="text-xs text-[#8a8f98]">Defina um alvo de evolução e acompanhe o ritmo</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsGoalModalOpen(false)}
+                className="text-[#8a8f98] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateGoal} className="space-y-5 text-xs">
+              {/* Passo 1: Selecionar Indicador */}
+              <div className="space-y-2">
+                <label className="text-[#8a8f98] font-semibold block uppercase tracking-wider text-[10px]">
+                  1. Selecione o Indicador
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { key: 'bodyFatPercent', name: 'Gordura (%)', icon: Flame, color: '#f472b6' },
+                    { key: 'skeletalMuscleMassKg', name: 'Massa Muscular (kg)', icon: TrendingUp, color: '#4ade80' },
+                    { key: 'weightKg', name: 'Peso Total (kg)', icon: Scale, color: '#60a5fa' },
+                    { key: 'waistCm', name: 'Cintura (cm)', icon: Ruler, color: '#3b82f6' },
+                    { key: 'hydrationIndex', name: 'Hidratação', icon: Droplets, color: '#60a5fa' },
+                    { key: 'phaseAngle', name: 'Ângulo de Fase (°)', icon: Activity, color: '#a78bfa' },
+                    { key: 'bmi', name: 'IMC (kg/m²)', icon: Activity, color: '#fbbf24' },
+                    { key: 'waistHeightRatio', name: 'RCEst', icon: Ruler, color: '#fbbf24' },
+                    { key: 'basalMetabolicRate', name: 'TMB (kcal)', icon: Zap, color: '#f97316' },
+                  ].map((ind) => {
+                    const isSelected = goalFormData.indicator === ind.key;
+                    const conf = INDICATOR_CONFIGS[ind.key];
+                    const currentVal = latest ? latest[ind.key] : '--';
+                    const IconComp = ind.icon;
+
+                    return (
+                      <button
+                        key={ind.key}
+                        type="button"
+                        onClick={() => {
+                          const unit = conf?.unit || '';
+                          const curr = latest ? latest[ind.key] : 0;
+                          setGoalFormData({
+                            ...goalFormData,
+                            indicator: ind.key,
+                            unit,
+                            targetValue: curr ? parseFloat((curr * (conf?.isHigherBetter ? 1.05 : 0.95)).toFixed(1)) : 10,
+                          });
+                        }}
+                        className={`p-3 rounded-lg border text-left flex flex-col justify-between space-y-2 transition ${
+                          isSelected
+                            ? 'bg-[#3b82f615] border-[#3b82f6] text-[#f7f8f8]'
+                            : 'bg-[#080a0c] border-[#ffffff0a] text-[#8a8f98] hover:border-[#ffffff20]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <IconComp className="w-4 h-4" style={{ color: ind.color }} />
+                          {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-[#3b82f6]" />}
+                        </div>
+                        <div>
+                          <span className="font-semibold text-xs block text-[#f7f8f8]">{ind.name}</span>
+                          <span className="text-[10px] text-[#8a8f98]">Atual: {currentVal}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Passo 2: Alvo Desejado */}
+              <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a] space-y-3">
+                <label className="text-[#8a8f98] font-semibold block uppercase tracking-wider text-[10px]">
+                  2. Defina o Alvo Desejado
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                  <div>
+                    <label className="text-[#8a8f98] block mb-1">
+                      Valor Meta ({INDICATOR_CONFIGS[goalFormData.indicator]?.unit || goalFormData.unit})
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={goalFormData.targetValue}
+                      onChange={(e) =>
+                        setGoalFormData({
+                          ...goalFormData,
+                          targetValue: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="bg-[#16191e] border border-[#ffffff12] rounded-lg px-3 py-2 text-base font-bold text-[#4ade80] w-full"
+                    />
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-[#16191e] border border-[#ffffff0a] text-xs">
+                    <span className="text-[#8a8f98] block text-[10px] mb-1">Comparativo de Alvo</span>
+                    <div className="flex justify-between font-medium">
+                      <span>Atual: <strong className="text-[#f7f8f8]">{latest ? latest[goalFormData.indicator] || '--' : '--'}</strong></span>
+                      <span>Meta: <strong className="text-[#4ade80]">{goalFormData.targetValue}</strong></span>
+                    </div>
+                    {INDICATOR_CONFIGS[goalFormData.indicator]?.optimalRange && (
+                      <span className="text-[10px] text-[#60a5fa] block mt-1">
+                        Faixa ideal: {INDICATOR_CONFIGS[goalFormData.indicator]?.optimalRange?.min} - {INDICATOR_CONFIGS[goalFormData.indicator]?.optimalRange?.max} {goalFormData.unit}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Passo 3: Prazo e Ritmo Esperado */}
+              <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a] space-y-3">
+                <label className="text-[#8a8f98] font-semibold block uppercase tracking-wider text-[10px]">
+                  3. Prazo e Ritmo Estimado
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {[
+                    { label: '1 Mês', months: 1 },
+                    { label: '3 Meses', months: 3 },
+                    { label: '6 Meses', months: 6 },
+                    { label: '12 Meses', months: 12 },
+                    { label: 'Livre', months: 0 },
+                  ].map((p) => {
+                    const isSelected = goalFormData.deadlineMonths === p.months;
+                    return (
+                      <button
+                        key={p.months}
+                        type="button"
+                        onClick={() => setGoalFormData({ ...goalFormData, deadlineMonths: p.months })}
+                        className={`py-2 rounded-lg border text-center font-medium transition ${
+                          isSelected
+                            ? 'bg-[#3b82f615] border-[#3b82f6] text-[#3b82f6]'
+                            : 'bg-[#16191e] border-[#ffffff0a] text-[#8a8f98] hover:border-[#ffffff20]'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Cálculo de Ritmo Semanal */}
+                {goalFormData.deadlineMonths > 0 && latest && latest[goalFormData.indicator] != null && (
+                  <div className="p-2.5 rounded bg-[#3b82f60a] border border-[#3b82f620] text-[11px] text-[#8a8f98] flex items-center justify-between">
+                    <span>Ritmo necessário:</span>
+                    <strong className="text-[#60a5fa]">
+                      {Math.abs(
+                        parseFloat(
+                          (
+                            (goalFormData.targetValue - latest[goalFormData.indicator]) /
+                            (goalFormData.deadlineMonths * 4.33)
+                          ).toFixed(2)
+                        )
+                      )}{' '}
+                      {goalFormData.unit} por semana
+                    </strong>
+                  </div>
+                )}
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="flex justify-end space-x-3 pt-3 border-t border-[#ffffff0e]">
+                <button
+                  type="button"
+                  onClick={() => setIsGoalModalOpen(false)}
+                  className="px-4 py-2 rounded-lg bg-[#16191e] hover:bg-[#22272f] text-[#8a8f98] text-xs font-semibold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-5 py-2 rounded-lg bg-[#3b82f6] hover:bg-[#2563eb] text-white text-xs font-semibold shadow-lg shadow-[#3b82f620] disabled:opacity-50 flex items-center space-x-1.5"
+                >
+                  <Target className="w-3.5 h-3.5" />
+                  <span>{isSubmitting ? 'Criando Meta...' : 'Criar Meta'}</span>
                 </button>
               </div>
             </form>
