@@ -719,13 +719,13 @@ export default function BodyAssessmentDashboard() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
       {/* ─── HEADER BAR ───────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div>
-          <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-[#f7f8f8] tracking-tight">Avaliação Corporal</h1>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-[#3b82f615] text-[#3b82f6] border border-[#3b82f630]">
+          <div className="flex items-center space-x-2.5">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#f7f8f8] tracking-tight">Avaliação Corporal</h1>
+            <span className="px-2.5 py-0.5 rounded-md text-xs font-mono bg-[#3b82f615] text-[#3b82f6] border border-[#3b82f630]">
               Bioimpedância 3D
             </span>
           </div>

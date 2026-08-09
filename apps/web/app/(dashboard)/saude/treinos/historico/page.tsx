@@ -87,7 +87,7 @@ export default function WorkoutHistoryPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-16 text-[#f7f8f8]">
+    <div className="space-y-6 max-w-[1400px] mx-auto pb-16 text-[#f7f8f8]">
       {/* Header Linear */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div className="flex items-center space-x-3">
@@ -95,11 +95,11 @@ export default function WorkoutHistoryPage() {
             href="/saude/treinos"
             className="p-2 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#8a8f98] hover:text-white transition"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Histórico de Treinos & Progresso</h1>
-            <p className="text-xs text-[#8a8f98]">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Histórico de Treinos & Progresso</h1>
+            <p className="text-sm text-[#8a8f98] mt-0.5">
               Consulte seu histórico completo de sessões executadas, volume levantado e calorias.
             </p>
           </div>

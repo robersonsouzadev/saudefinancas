@@ -227,17 +227,17 @@ export default function ConfiguracoesPage() {
   const age = healthProfile?.age;
 
   return (
-    <div className="space-y-6 text-[#f7f8f8] max-w-5xl mx-auto pb-16">
+    <div className="space-y-6 text-[#f7f8f8] max-w-[1400px] mx-auto pb-16">
       
       {/* Header Estilo Linear */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-lg bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#5e6ad2]">
+          <div className="w-10 h-10 rounded-lg bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#5e6ad2]">
             <Settings className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-[#f7f8f8] tracking-tight">Configurações & Perfil de Saúde</h1>
-            <p className="text-xs text-[#8a8f98]">Dados pessoais, medições corporais, cálculo metabólico e integrações</p>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight">Configurações & Perfil de Saúde</h1>
+            <p className="text-sm text-[#8a8f98] mt-0.5">Dados pessoais, medições corporais, cálculo metabólico e integrações</p>
           </div>
         </div>
 

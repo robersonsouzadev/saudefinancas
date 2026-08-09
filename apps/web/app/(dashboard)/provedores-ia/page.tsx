@@ -175,7 +175,7 @@ export default function ProvedoresIAPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-[1400px] mx-auto pb-12">
       {/* Design System Page Header */}
       <PageHeader
         icon={<Cpu className="w-5 h-5 text-accent" />}

@@ -673,7 +673,7 @@ export default function TreinosPage() {
   };
 
   return (
-    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-16 relative">
+    <div className="space-y-6 text-[#f7f8f8] max-w-[1600px] mx-auto pb-16 relative">
       {/* Header Linear */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div className="flex items-center space-x-3">
@@ -681,7 +681,7 @@ export default function TreinosPage() {
             <Dumbbell className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#f7f8f8] tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#f7f8f8] tracking-tight flex items-center gap-2">
               Treinos Físicos & Musculação
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#6366f120] text-[#818cf8] border border-[#6366f140]">
                 Coach Iron IA

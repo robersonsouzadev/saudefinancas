@@ -240,17 +240,17 @@ export default function UsuariosPage() {
   };
 
   return (
-    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 text-[#f7f8f8] max-w-[1400px] mx-auto pb-12">
       
       {/* Linear Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#3b82f6]">
-            <Users className="w-4 h-4" />
+          <div className="w-9 h-9 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#3b82f6]">
+            <Users className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Controle de Usuários (Modo Restrito)</h1>
-            <p className="text-xs text-[#8a8f98]">Autorize e-mails para acesso ao sistema e envie convites</p>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight">Controle de Usuários (Modo Restrito)</h1>
+            <p className="text-sm text-[#8a8f98] mt-0.5">Autorize e-mails para acesso ao sistema e envie convites</p>
           </div>
         </div>
 

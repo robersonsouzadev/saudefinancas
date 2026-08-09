@@ -73,7 +73,7 @@ export default function WorkoutAnalyticsPage() {
   ) || analytics?.exerciseProgress?.[0];
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-24 text-[#f7f8f8]">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-24 text-[#f7f8f8]">
       {/* Top Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-4">
         <div className="space-y-1">

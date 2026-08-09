@@ -744,18 +744,18 @@ export default function LabExamsPage() {
       : '-';
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
       
       {/* ═══ HEADER ═══ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold text-[#f7f8f8]">Laboratório Inteligente & Biomarcadores</h1>
-            <span className="text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] border border-[#5e6ad230] px-2 py-0.5 rounded-full">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8]">Laboratório Inteligente & Biomarcadores</h1>
+            <span className="text-xs font-mono text-[#5e6ad2] bg-[#5e6ad215] border border-[#5e6ad230] px-2.5 py-0.5 rounded-full">
               Vision IA Active
             </span>
           </div>
-          <p className="text-xs text-[#8a8f98] mt-0.5">
+          <p className="text-sm text-[#8a8f98] mt-1">
             Acompanhe o histórico de laudos, zonas funcionais e cálculo de idade biológica
           </p>
         </div>

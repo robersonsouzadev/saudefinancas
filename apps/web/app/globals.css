@@ -48,6 +48,20 @@
   --ds-radius-xl:   14px;
   --ds-radius-full: 9999px;
 
+  /* Typography Hierarchy Scale (Accessibility-first) */
+  --ds-font-xs:         12px;   /* Microcopy, badges, timestamps */
+  --ds-font-sm:         13px;   /* Subtitles, secondary text */
+  --ds-font-base:       14px;   /* Body text, inputs, table content */
+  --ds-font-lg:         16px;   /* Card titles, field labels */
+  --ds-font-xl:         20px;   /* Section headers */
+  --ds-font-2xl:        28px;   /* Page titles, medium KPIs */
+  --ds-font-3xl:        36px;   /* Large KPI numbers */
+  --ds-font-4xl:        48px;   /* Hero metrics */
+
+  /* Responsive Spacing & Layout Tokens */
+  --ds-space-content-x: clamp(16px, 2.5vw, 40px);
+  --ds-space-content-y: clamp(16px, 2vw, 32px);
+
   /* Backward-compatible --sf-* Aliases */
   --sf-bg-base:        var(--ds-bg-canvas);
   --sf-bg-surface:     var(--ds-bg-surface);
@@ -98,7 +112,7 @@ body {
   border: 1px solid var(--sf-border);
   color: var(--sf-text-primary);
   border-radius: var(--sf-radius-md);
-  font-size: 13px;
+  font-size: 14px;
   transition: all 120ms ease;
 }
 
@@ -112,7 +126,7 @@ body {
   background: var(--sf-accent);
   color: #ffffff;
   border-radius: var(--sf-radius-md);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   transition: all 120ms ease;
 }
@@ -126,7 +140,7 @@ body {
   border: 1px solid var(--sf-border);
   color: var(--sf-text-primary);
   border-radius: var(--sf-radius-md);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   transition: all 120ms ease;
 }

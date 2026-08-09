@@ -218,13 +218,13 @@ export default function MedicamentosPage() {
   const totalMonthlySpend = medications.reduce((acc, m) => acc + m.costPerUnit * 30, 0);
 
   return (
-    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 text-[#f7f8f8] max-w-[1400px] mx-auto pb-12">
       
       {/* 1. Header & Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div>
-          <h1 className="text-xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2">
-            <Pill className="w-5 h-5 text-[#f472b6]" />
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2.5">
+            <Pill className="w-6 h-6 text-[#f472b6]" />
             <span>Controle de Medicamentos & Vitaminas</span>
             <span className="text-[10px] font-mono text-[#f472b6] bg-[#f472b615] px-2 py-0.5 rounded border border-[#f472b630]">
               WhatsApp Active

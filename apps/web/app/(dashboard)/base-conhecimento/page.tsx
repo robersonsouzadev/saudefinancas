@@ -96,7 +96,7 @@ export default function BaseConhecimentoPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-[1400px] mx-auto pb-12">
       {/* Design System Page Header */}
       <PageHeader
         icon={<BookOpen className="w-5 h-5 text-warning" />}

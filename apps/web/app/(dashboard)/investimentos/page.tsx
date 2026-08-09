@@ -152,7 +152,7 @@ export default function InvestimentosPage() {
   const adviceItems = calculateAiAdvice();
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
       {/* Design System Page Header */}
       <PageHeader
         icon={<TrendingUp className="w-5 h-5 text-[#10b981]" />}

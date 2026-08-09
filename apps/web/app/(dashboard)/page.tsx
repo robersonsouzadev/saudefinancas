@@ -62,18 +62,18 @@ export default function DashboardHome() {
   }));
 
   return (
-    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 text-[#f7f8f8] max-w-[1600px] mx-auto pb-12">
       
       {/* 1. Header & Quick Action Buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div>
-          <h1 className="text-xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2.5">
             <span>Painel Executivo de Saúde & Finanças</span>
-            <span className="text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
+            <span className="text-xs font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2.5 py-0.5 rounded border border-[#5e6ad230]">
               Modo Produção
             </span>
           </h1>
-          <p className="text-xs text-[#8a8f98] mt-0.5">
+          <p className="text-sm text-[#8a8f98] mt-1">
             Métricas integradas de longevidade biológica, composição corporal e fluxo de caixa
           </p>
         </div>
@@ -164,48 +164,48 @@ export default function DashboardHome() {
       )}
 
       {/* 2. Top 4 Executive KPI Cards (REAL DATA) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6">
         
         {/* KPI 1: Patrimônio Total Líquido */}
-        <div className="linear-card p-4 space-y-3">
+        <div className="linear-card p-4 sm:p-5 xl:p-6 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
-              <Wallet className="w-3.5 h-3.5 text-[#5e6ad2]" /> Saldo Líquido
+            <span className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+              <Wallet className="w-4 h-4 text-[#5e6ad2]" /> Saldo Líquido
             </span>
-            <span className="text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
+            <span className="text-xs font-mono text-[#5e6ad2] bg-[#5e6ad215] px-2 py-0.5 rounded border border-[#5e6ad230]">
               Real
             </span>
           </div>
 
           <div>
-            <div className={`text-3xl font-bold font-mono ${netBalance < 0 ? 'text-[#f87171]' : 'text-[#f7f8f8]'} tracking-tight`}>
+            <div className={`text-3xl sm:text-4xl font-bold font-mono ${netBalance < 0 ? 'text-[#f87171]' : 'text-[#f7f8f8]'} tracking-tight`}>
               R$ {netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <span className="text-[11px] text-[#8a8f98] block mt-0.5">Saldo em contas bancárias salvas</span>
+            <span className="text-xs text-[#8a8f98] block mt-1">Saldo em contas bancárias salvas</span>
           </div>
 
-          <div className="pt-2 border-t border-[#ffffff08] flex justify-between items-center text-[11px] font-mono text-[#8a8f98]">
+          <div className="pt-2 border-t border-[#ffffff08] flex justify-between items-center text-xs font-mono text-[#8a8f98]">
             <span>Receitas: <strong className="text-[#4ade80]">R$ {totalIncome.toFixed(2)}</strong></span>
             <span>Saídas: <strong className="text-[#f87171]">R$ {totalExpenses.toFixed(2)}</strong></span>
           </div>
         </div>
 
         {/* KPI 2: Recovery / Readiness Score */}
-        <div className="linear-card p-4 space-y-3">
+        <div className="linear-card p-4 sm:p-5 xl:p-6 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
-              <HeartPulse className="w-3.5 h-3.5 text-[#f87171]" /> Readiness Index
+            <span className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+              <HeartPulse className="w-4 h-4 text-[#f87171]" /> Readiness Index
             </span>
-            <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
+            <span className="text-xs font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
               {dashboardSummary?.scores?.wellbeing ? 'Ativo' : 'Aguardando'}
             </span>
           </div>
 
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold font-mono text-[#4ade80]">
+            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#4ade80]">
               {dashboardSummary?.scores?.wellbeing || 80}
             </span>
-            <span className="text-[#575c66] text-xs font-medium">/ 100</span>
+            <span className="text-[#575c66] text-sm font-medium">/ 100</span>
           </div>
 
           <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
@@ -219,45 +219,45 @@ export default function DashboardHome() {
         </div>
 
         {/* KPI 3: Fluxo de Caixa & Savings Rate */}
-        <div className="linear-card p-4 space-y-3">
+        <div className="linear-card p-4 sm:p-5 xl:p-6 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-[#22c55e]" /> Taxa de Poupança
+            <span className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+              <TrendingUp className="w-4 h-4 text-[#22c55e]" /> Taxa de Poupança
             </span>
-            <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
+            <span className="text-xs font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
               {savingsRate}% Mês
             </span>
           </div>
 
           <div>
-            <div className="text-3xl font-bold font-mono text-[#4ade80]">
+            <div className="text-3xl sm:text-4xl font-bold font-mono text-[#4ade80]">
               R$ {(totalIncome - totalExpenses > 0 ? totalIncome - totalExpenses : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
-            <span className="text-[11px] text-[#8a8f98] block mt-0.5">Sobra líquida calculada</span>
+            <span className="text-xs text-[#8a8f98] block mt-1">Sobra líquida calculada</span>
           </div>
 
-          <div className="pt-2 border-t border-[#ffffff08] flex justify-between items-center text-[11px] font-mono text-[#8a8f98]">
+          <div className="pt-2 border-t border-[#ffffff08] flex justify-between items-center text-xs font-mono text-[#8a8f98]">
             <span>Entradas: <strong className="text-[#4ade80]">R$ {totalIncome.toFixed(2)}</strong></span>
             <span>Saídas: <strong className="text-[#f87171]">R$ {totalExpenses.toFixed(2)}</strong></span>
           </div>
         </div>
 
         {/* KPI 4: Balanço Calórico */}
-        <div className="linear-card p-4 space-y-3">
+        <div className="linear-card p-4 sm:p-5 xl:p-6 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
-              <Flame className="w-3.5 h-3.5 text-[#fb923c]" /> Balanço Calórico
+            <span className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider flex items-center gap-1.5">
+              <Flame className="w-4 h-4 text-[#fb923c]" /> Balanço Calórico
             </span>
-            <span className="text-[10px] font-mono text-[#fb923c]">
+            <span className="text-xs font-mono text-[#fb923c]">
               Meta TMB: {bmr || 2200} kcal
             </span>
           </div>
 
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold font-mono text-[#f7f8f8]">
+            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#f7f8f8]">
               {dashboardSummary?.health?.calorieTracker?.consumed || 0}
             </span>
-            <span className="text-[#575c66] text-xs font-medium">/ {bmr || 2200} kcal</span>
+            <span className="text-[#575c66] text-sm font-medium">/ {bmr || 2200} kcal</span>
           </div>
 
           <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">

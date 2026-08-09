@@ -80,7 +80,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-75px)] sm:h-[calc(100dvh-90px)] max-w-5xl mx-auto pb-2 sm:pb-4">
+    <div className="flex flex-col h-[calc(100dvh-75px)] sm:h-[calc(100dvh-90px)] max-w-[1000px] mx-auto pb-2 sm:pb-4">
       {/* Design System Page Header */}
       <PageHeader
         icon={<MessageSquare className="w-5 h-5 text-[#c084fc]" />}

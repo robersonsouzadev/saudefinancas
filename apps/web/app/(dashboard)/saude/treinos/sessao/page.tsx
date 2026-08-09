@@ -294,7 +294,7 @@ export default function WorkoutSessionPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-24 text-[#f7f8f8]">
+    <div className="space-y-6 max-w-[1000px] mx-auto pb-24 text-[#f7f8f8]">
       {/* Top Header Sticky Bar */}
       <div className="sticky top-0 z-30 bg-[#080a0c]/90 backdrop-blur-md py-2.5 sm:py-3 border-b border-[#ffffff0e] flex flex-wrap items-center justify-between gap-2">
         <button
