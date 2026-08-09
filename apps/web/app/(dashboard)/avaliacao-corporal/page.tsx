@@ -133,31 +133,16 @@ function BodyScoreRing({ score }: { score?: number }) {
   );
 }
 
-// ─── UTILS TRIGONOMÉTRICAS PARA GAUGE SVG ────────────────────────
-function polarToCartesian(cx: number, cy: number, r: number, angleInDegrees: number) {
-  const angleInRadians = (angleInDegrees * Math.PI) / 180.0;
-  return {
-    x: cx + r * Math.cos(angleInRadians),
-    y: cy + r * Math.sin(angleInRadians),
-  };
-}
-
-function describeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
-  const start = polarToCartesian(cx, cy, r, endAngle);
-  const end = polarToCartesian(cx, cy, r, startAngle);
-  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
-  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
-}
-
+// ─── VISUALIZADOR BIOMÉTRICO ULTRAMODERNO (BIO-CAPSULE HORIZON BAR) ──
 export interface GaugeZone {
   from: number;
   to: number;
   color: string;
+  label?: string;
   isIdeal?: boolean;
 }
 
-// ─── GAUGE ARC SEMICIRCULAR 100% SVG (TERA SCIENCE / AMAMBAY STYLE) ──
-function BioGaugeArc({
+function BioCapsuleBar({
   value,
   min,
   max,
@@ -182,142 +167,121 @@ function BioGaugeArc({
   const numValue = hasValue ? value : min;
   const clampedVal = Math.max(min, Math.min(max, numValue));
   
-  // Mapeia valor para ângulo polar: 180° (esquerda) -> 270° (cima) -> 360° (direita)
-  const valToAngle = (v: number) => 180 + Math.max(0, Math.min(1, (v - min) / (max - min))) * 180;
-  const needleAngle = valToAngle(clampedVal);
+  // Percentual de 0 a 100%
+  const percent = ((clampedVal - min) / (max - min)) * 100;
   const gaugeColor = hasValue ? color : '#575c66';
 
-  // Configurações geométricas do SVG
-  const cx = 100;
-  const cy = 85;
-  const r = 62;
+  // Verifica se o valor atual está dentro de uma zona ideal
+  const currentZone = zones.find(z => clampedVal >= z.from && clampedVal <= z.to);
+  const isInIdealZone = currentZone?.isIdeal ?? false;
 
-  // Extrai ticks únicos para exibir ao redor do arco
+  // Extrai ticks únicos para a régua de escala
   const tickValues = Array.from(
     new Set([min, ...zones.flatMap(z => [z.from, z.to]), max])
   ).sort((a, b) => a - b);
 
   return (
-    <div className="linear-card p-4 flex flex-col items-center justify-between text-center relative overflow-hidden group hover:border-[#5e6ad240] transition">
-      {/* Label Superior */}
-      <span className="text-xs font-semibold text-[#8a8f98] mb-1">{label}</span>
-
-      {/* Container SVG Semicircular */}
-      <div className="w-full flex justify-center items-center my-1">
-        <svg viewBox="0 0 200 110" className="w-full max-w-[210px] h-auto overflow-visible">
-          <defs>
-            {/* Gradiente da Agulha */}
-            <linearGradient id="needle-gradient" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stopColor="#f59e0b" />
-              <stop offset="100%" stopColor="#fef08a" />
-            </linearGradient>
-            {/* Filtro Glow para Agulha */}
-            <filter id="needle-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#f59e0b" floodOpacity="0.8" />
-            </filter>
-          </defs>
-
-          {/* 1. Track Base Cinza de Fundo */}
-          <path
-            d={describeArc(cx, cy, r, 180, 360)}
-            fill="none"
-            stroke="#ffffff12"
-            strokeWidth="8"
-            strokeLinecap="round"
-          />
-
-          {/* 2. Arcos das Zonas Coloridas */}
-          {zones.map((zone, idx) => {
-            const startAng = valToAngle(zone.from);
-            const endAng = valToAngle(zone.to);
-            if (startAng >= endAng) return null;
-            return (
-              <path
-                key={idx}
-                d={describeArc(cx, cy, r, startAng, endAng)}
-                fill="none"
-                stroke={zone.color}
-                strokeWidth={zone.isIdeal ? 10 : 7}
-                strokeOpacity={hasValue ? (zone.isIdeal ? 1 : 0.85) : 0.3}
-                strokeLinecap="flat"
-                className="transition-all duration-700"
-              />
-            );
-          })}
-
-          {/* 3. Escala Numérica ao Redor do Arco */}
-          {tickValues.map((tickVal, idx) => {
-            const angleDeg = valToAngle(tickVal);
-            const isIdealTick = zones.some(z => z.isIdeal && tickVal >= z.from && tickVal <= z.to);
-            const pos = polarToCartesian(cx, cy, r + 16, angleDeg);
-            return (
-              <text
-                key={idx}
-                x={pos.x}
-                y={pos.y}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill={isIdealTick ? '#4ade80' : '#8a8f98'}
-                fontSize="8.5"
-                fontWeight={isIdealTick ? 'bold' : 'normal'}
-                className="font-mono"
-              >
-                {tickVal}
-              </text>
-            );
-          })}
-
-          {/* 4. Agulha SVG Nativa Rotacionada com Precisão (Posição Inicial 270° = Cima) */}
-          <g
-            transform={`rotate(${needleAngle - 270}, ${cx}, ${cy})`}
-            className="transition-transform duration-1000 ease-out"
-          >
-            {/* Haste da Agulha */}
-            <line
-              x1={cx}
-              y1={cy}
-              x2={cx}
-              y2={cy - r + 12}
-              stroke="url(#needle-gradient)"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              filter="url(#needle-glow)"
-            />
-            {/* Seta Triangular na Ponta */}
-            <polygon
-              points={`${cx},${cy - r + 4} ${cx - 5},${cy - r + 15} ${cx + 5},${cy - r + 15}`}
-              fill="#f59e0b"
-              filter="url(#needle-glow)"
-            />
-            {/* Pivot Central no Eixo do Arco */}
-            <circle cx={cx} cy={cy} r="5" fill="#f59e0b" stroke="#0f1115" strokeWidth="2" />
-            <circle cx={cx} cy={cy} r="2" fill="#fff" />
-          </g>
-        </svg>
+    <div className="linear-card p-5 flex flex-col justify-between text-left relative overflow-hidden group hover:border-[#5e6ad250] transition-all duration-300">
+      {/* 1. Header do Indicador */}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-[#8a8f98] uppercase tracking-wider">{label}</span>
+        <span
+          className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"
+          style={{
+            color: gaugeColor,
+            backgroundColor: `${gaugeColor}15`,
+            border: `1px solid ${gaugeColor}35`,
+          }}
+        >
+          {isInIdealZone && <span className="animate-pulse">🟢</span>}
+          {hasValue ? statusText : 'Aguardando'}
+        </span>
       </div>
 
-      {/* Valor Numérico & Status Badge */}
-      <div className="mt-1 space-y-1">
-        <div className="text-2xl font-bold text-[#f7f8f8] font-mono">
-          {hasValue ? value : '--'}{' '}
-          <span className="text-xs font-normal text-[#8a8f98]">{hasValue ? unit : ''}</span>
+      {/* 2. Valor Numérico de Destaque */}
+      <div className="flex items-baseline gap-2 mb-3">
+        <span className="text-3xl font-extrabold text-[#f7f8f8] font-mono tracking-tight">
+          {hasValue ? value : '--'}
+        </span>
+        {unit && <span className="text-xs font-medium text-[#8a8f98] font-mono">{unit}</span>}
+      </div>
+
+      {/* 3. BARRA CÁPSULA DE HORIZONTE BIOMÉTRICO */}
+      <div className="relative pt-6 pb-4 my-1">
+        {/* Flutuante: Cursor Diamante & Badge de Valor */}
+        {hasValue && (
+          <div
+            className="absolute top-0 flex flex-col items-center -translate-x-1/2 transition-all duration-1000 ease-out z-20 pointer-events-none"
+            style={{ left: `${percent}%` }}
+          >
+            {/* Valor Flutuante com Sombra Glow */}
+            <div className="bg-[#0f1117] border border-amber-400/80 px-2 py-0.5 rounded text-[10px] font-bold font-mono text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.6)] whitespace-nowrap mb-0.5">
+              {value}
+            </div>
+            {/* Diamante Flutuante em Losango */}
+            <div className="w-3.5 h-3.5 rotate-45 bg-gradient-to-br from-amber-300 to-amber-500 border border-white shadow-[0_0_10px_#f59e0b]" />
+          </div>
+        )}
+
+        {/* Track em Cápsula Arredondada dividida por Zonas Coloridas */}
+        <div className="h-4 w-full bg-[#181b22] rounded-full overflow-hidden flex p-0.5 border border-[#ffffff15] shadow-inner relative">
+          {zones.map((zone, idx) => {
+            const zoneWidth = ((zone.to - zone.from) / (max - min)) * 100;
+            return (
+              <div
+                key={idx}
+                className="h-full relative transition-all duration-500 first:rounded-l-full last:rounded-r-full"
+                style={{
+                  width: `${zoneWidth}%`,
+                  backgroundColor: zone.color,
+                  opacity: zone.isIdeal ? 1 : 0.75,
+                  boxShadow: zone.isIdeal ? `0 0 12px ${zone.color}aa` : 'none',
+                }}
+                title={`Faixa: ${zone.from} - ${zone.to}`}
+              >
+                {/* Destaque Glassmorphism para Zona Ideal */}
+                {zone.isIdeal && (
+                  <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] border-x border-white/40" />
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <div className="flex flex-col items-center gap-1">
-          <span
-            className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full inline-block"
-            style={{ color: gaugeColor, backgroundColor: `${gaugeColor}15`, border: `1px solid ${gaugeColor}30` }}
-          >
-            {hasValue ? statusText : 'Aguardando medição'}
-          </span>
+        {/* Escala Numérica de Referência Alinhada com a Barra */}
+        <div className="relative w-full h-4 mt-2 text-[9.5px] font-mono text-[#8a8f98]">
+          {tickValues.map((tickVal, idx) => {
+            const tickPercent = ((tickVal - min) / (max - min)) * 100;
+            const isIdealTick = zones.some(z => z.isIdeal && tickVal >= z.from && tickVal <= z.to);
+            return (
+              <div
+                key={idx}
+                className="absolute top-0 -translate-x-1/2 flex flex-col items-center"
+                style={{ left: `${tickPercent}%` }}
+              >
+                <div className={`h-1.5 w-0.5 ${isIdealTick ? 'bg-[#22c55e]' : 'bg-[#575c66]'} mb-0.5`} />
+                <span className={isIdealTick ? 'text-[#22c55e] font-bold' : ''}>
+                  {tickVal}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-          {targetText && (
-            <span className="text-[10px] text-[#8a8f98] font-medium block mt-0.5">
-              🎯 <strong className="text-[#c4c7cd]">{targetText}</strong>
+      {/* 4. Rodapé com Alvo Recomendado */}
+      {targetText && (
+        <div className="mt-3 pt-2.5 border-t border-[#ffffff0a] flex items-center justify-between text-[11px]">
+          <span className="text-[#8a8f98] font-medium flex items-center gap-1.5">
+            🎯 <strong className="text-[#c4c7cd]">{targetText}</strong>
+          </span>
+          {isInIdealZone && (
+            <span className="text-[10px] font-bold text-[#22c55e] bg-[#22c55e15] px-2 py-0.5 rounded-full border border-[#22c55e30]">
+              100% no Alvo
             </span>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -977,9 +941,9 @@ export default function BodyAssessmentDashboard() {
             </div>
           </div>
 
-          {/* Semicircular BioGauges Row */}
+          {/* BioCapsule Horizon Bars Row (InsideTracker / Apple Health Style) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <BioGaugeArc
+            <BioCapsuleBar
               label="Índice de Hidratação"
               value={latest?.hydrationIndex}
               min={1.9}
@@ -994,7 +958,7 @@ export default function BodyAssessmentDashboard() {
                 { from: 5.1, to: 6.2, color: '#38bdf8' },
               ]}
             />
-            <BioGaugeArc
+            <BioCapsuleBar
               label="Ângulo de Fase (°)"
               value={latest?.phaseAngle}
               min={4.0}
@@ -1009,7 +973,7 @@ export default function BodyAssessmentDashboard() {
                 { from: 8.5, to: 10.2, color: '#3b82f6', isIdeal: true },
               ]}
             />
-            <BioGaugeArc
+            <BioCapsuleBar
               label="Razão Músculo / Gordura"
               value={latest?.muscleFatRatio}
               min={0.3}
@@ -1025,7 +989,7 @@ export default function BodyAssessmentDashboard() {
                 { from: 3.5, to: 4.5, color: '#3b82f6' },
               ]}
             />
-            <BioGaugeArc
+            <BioCapsuleBar
               label="Relação Cintura/Estatura"
               value={latest?.waistHeightRatio}
               min={0.3}
