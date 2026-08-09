@@ -133,7 +133,30 @@ function BodyScoreRing({ score }: { score?: number }) {
   );
 }
 
-// ─── GAUGE ARC SEMICIRCULAR (TERA SCIENCE / AMAMBAY STYLE) ──────
+// ─── UTILS TRIGONOMÉTRICAS PARA GAUGE SVG ────────────────────────
+function polarToCartesian(cx: number, cy: number, r: number, angleInDegrees: number) {
+  const angleInRadians = (angleInDegrees * Math.PI) / 180.0;
+  return {
+    x: cx + r * Math.cos(angleInRadians),
+    y: cy + r * Math.sin(angleInRadians),
+  };
+}
+
+function describeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
+  const start = polarToCartesian(cx, cy, r, endAngle);
+  const end = polarToCartesian(cx, cy, r, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+}
+
+export interface GaugeZone {
+  from: number;
+  to: number;
+  color: string;
+  isIdeal?: boolean;
+}
+
+// ─── GAUGE ARC SEMICIRCULAR 100% SVG (TERA SCIENCE / AMAMBAY STYLE) ──
 function BioGaugeArc({
   value,
   min,
@@ -141,10 +164,9 @@ function BioGaugeArc({
   label,
   unit = '',
   statusText = 'Sem dados',
-  color = '#4ade80',
-  idealMin,
-  idealMax,
+  color = '#22c55e',
   targetText,
+  zones,
 }: {
   value?: number | null;
   min: number;
@@ -153,85 +175,129 @@ function BioGaugeArc({
   unit?: string;
   statusText?: string;
   color?: string;
-  idealMin?: number;
-  idealMax?: number;
   targetText?: string;
+  zones: GaugeZone[];
 }) {
   const hasValue = value !== undefined && value !== null;
   const numValue = hasValue ? value : min;
-  const percent = hasValue ? Math.max(0, Math.min(100, ((numValue - min) / (max - min)) * 100)) : 0;
+  const clampedVal = Math.max(min, Math.min(max, numValue));
   
-  // Eixo corrigido: -90° (esquerda - 9h) -> 0° (cima - 12h) -> +90° (direita - 3h)
-  const angle = -90 + (percent / 100) * 180;
+  // Mapeia valor para ângulo polar: 180° (esquerda) -> 270° (cima) -> 360° (direita)
+  const valToAngle = (v: number) => 180 + Math.max(0, Math.min(1, (v - min) / (max - min))) * 180;
+  const needleAngle = valToAngle(clampedVal);
   const gaugeColor = hasValue ? color : '#575c66';
+
+  // Configurações geométricas do SVG
+  const cx = 100;
+  const cy = 85;
+  const r = 62;
+
+  // Extrai ticks únicos para exibir ao redor do arco
+  const tickValues = Array.from(
+    new Set([min, ...zones.flatMap(z => [z.from, z.to]), max])
+  ).sort((a, b) => a - b);
 
   return (
     <div className="linear-card p-4 flex flex-col items-center justify-between text-center relative overflow-hidden group hover:border-[#5e6ad240] transition">
-      {/* Top Label */}
+      {/* Label Superior */}
       <span className="text-xs font-semibold text-[#8a8f98] mb-1">{label}</span>
 
-      {/* Semicircular Gauge Container */}
-      <div className="relative w-44 h-24 overflow-hidden my-1 flex justify-center items-end">
-        {/* Arc Background with Multi-zone Gradient */}
-        <svg className="w-44 h-44 -mb-2" viewBox="0 0 100 100">
+      {/* Container SVG Semicircular */}
+      <div className="w-full flex justify-center items-center my-1">
+        <svg viewBox="0 0 200 110" className="w-full max-w-[210px] h-auto overflow-visible">
           <defs>
-            <linearGradient id={`gauge-grad-${label.replace(/[^a-zA-Z0-9]/g, '')}`} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#f87171" />
-              <stop offset="25%" stopColor="#fbbf24" />
-              <stop offset="55%" stopColor="#4ade80" />
-              <stop offset="85%" stopColor="#38bdf8" />
+            {/* Gradiente da Agulha */}
+            <linearGradient id="needle-gradient" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="#f59e0b" />
+              <stop offset="100%" stopColor="#fef08a" />
             </linearGradient>
+            {/* Filtro Glow para Agulha */}
+            <filter id="needle-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#f59e0b" floodOpacity="0.8" />
+            </filter>
           </defs>
-          
-          {/* Base Track */}
+
+          {/* 1. Track Base Cinza de Fundo */}
           <path
-            d="M 10 50 A 40 40 0 0 1 90 50"
+            d={describeArc(cx, cy, r, 180, 360)}
             fill="none"
             stroke="#ffffff12"
             strokeWidth="8"
             strokeLinecap="round"
           />
-          {/* Colored Reference Arc */}
-          <path
-            d="M 10 50 A 40 40 0 0 1 90 50"
-            fill="none"
-            stroke={`url(#gauge-grad-${label.replace(/[^a-zA-Z0-9]/g, '')})`}
-            strokeWidth="8"
-            strokeDasharray="126"
-            strokeDashoffset={hasValue ? 126 - (percent / 100) * 126 : 126}
-            strokeLinecap="round"
-            className="transition-all duration-1000 ease-out"
-          />
+
+          {/* 2. Arcos das Zonas Coloridas */}
+          {zones.map((zone, idx) => {
+            const startAng = valToAngle(zone.from);
+            const endAng = valToAngle(zone.to);
+            if (startAng >= endAng) return null;
+            return (
+              <path
+                key={idx}
+                d={describeArc(cx, cy, r, startAng, endAng)}
+                fill="none"
+                stroke={zone.color}
+                strokeWidth={zone.isIdeal ? 10 : 7}
+                strokeOpacity={hasValue ? (zone.isIdeal ? 1 : 0.85) : 0.3}
+                strokeLinecap="flat"
+                className="transition-all duration-700"
+              />
+            );
+          })}
+
+          {/* 3. Escala Numérica ao Redor do Arco */}
+          {tickValues.map((tickVal, idx) => {
+            const angleDeg = valToAngle(tickVal);
+            const isIdealTick = zones.some(z => z.isIdeal && tickVal >= z.from && tickVal <= z.to);
+            const pos = polarToCartesian(cx, cy, r + 16, angleDeg);
+            return (
+              <text
+                key={idx}
+                x={pos.x}
+                y={pos.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill={isIdealTick ? '#4ade80' : '#8a8f98'}
+                fontSize="8.5"
+                fontWeight={isIdealTick ? 'bold' : 'normal'}
+                className="font-mono"
+              >
+                {tickVal}
+              </text>
+            );
+          })}
+
+          {/* 4. Agulha SVG Nativa Rotacionada com Precisão (Posição Inicial 270° = Cima) */}
+          <g
+            transform={`rotate(${needleAngle - 270}, ${cx}, ${cy})`}
+            className="transition-transform duration-1000 ease-out"
+          >
+            {/* Haste da Agulha */}
+            <line
+              x1={cx}
+              y1={cy}
+              x2={cx}
+              y2={cy - r + 12}
+              stroke="url(#needle-gradient)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              filter="url(#needle-glow)"
+            />
+            {/* Seta Triangular na Ponta */}
+            <polygon
+              points={`${cx},${cy - r + 4} ${cx - 5},${cy - r + 15} ${cx + 5},${cy - r + 15}`}
+              fill="#f59e0b"
+              filter="url(#needle-glow)"
+            />
+            {/* Pivot Central no Eixo do Arco */}
+            <circle cx={cx} cy={cy} r="5" fill="#f59e0b" stroke="#0f1115" strokeWidth="2" />
+            <circle cx={cx} cy={cy} r="2" fill="#fff" />
+          </g>
         </svg>
-
-        {/* Pointer Needle (Agulha Dourada com Seta) */}
-        <div
-          className="absolute bottom-1 origin-bottom flex flex-col items-center transition-transform duration-1000 ease-out z-10"
-          style={{
-            height: '62px',
-            transform: `rotate(${angle}deg)`,
-          }}
-        >
-          {/* Seta Amarela na Ponta */}
-          <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-[#f59e0b] filter drop-shadow-[0_0_6px_#f59e0b]" />
-          {/* Haste da Agulha */}
-          <div className="w-0.5 h-12 bg-gradient-to-t from-amber-400 to-amber-200 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
-          {/* Ponto Central Pivot */}
-          <div className="w-3 h-3 rounded-full bg-amber-400 border-2 border-[#0f1115] -mt-1 shadow-md" />
-        </div>
-
-        {/* Numeric Scale Ticks (Régua Graduada Tera Science Style) */}
-        <div className="absolute bottom-0 inset-x-2 flex justify-between text-[9px] font-mono text-[#8a8f98] px-1 pointer-events-none">
-          <span>{min}</span>
-          {idealMin !== undefined && idealMax !== undefined && (
-            <span className="text-[#4ade80] font-bold">🟢 {idealMin}–{idealMax}</span>
-          )}
-          <span>{max}</span>
-        </div>
       </div>
 
-      {/* Numeric Value & Status Badge */}
-      <div className="mt-2 space-y-1">
+      {/* Valor Numérico & Status Badge */}
+      <div className="mt-1 space-y-1">
         <div className="text-2xl font-bold text-[#f7f8f8] font-mono">
           {hasValue ? value : '--'}{' '}
           <span className="text-xs font-normal text-[#8a8f98]">{hasValue ? unit : ''}</span>
@@ -246,7 +312,7 @@ function BioGaugeArc({
           </span>
 
           {targetText && (
-            <span className="text-[10px] text-[#8a8f98] font-medium block">
+            <span className="text-[10px] text-[#8a8f98] font-medium block mt-0.5">
               🎯 <strong className="text-[#c4c7cd]">{targetText}</strong>
             </span>
           )}
@@ -918,45 +984,60 @@ export default function BodyAssessmentDashboard() {
               value={latest?.hydrationIndex}
               min={1.9}
               max={6.2}
-              idealMin={3.5}
-              idealMax={5.1}
               targetText="Meta Ideal: 3,5 a 5,1"
               statusText="Euhidratado (Saudável)"
-              color="#4ade80"
+              color="#22c55e"
+              zones={[
+                { from: 1.9, to: 3.0, color: '#ef4444' },
+                { from: 3.0, to: 3.5, color: '#f59e0b' },
+                { from: 3.5, to: 5.1, color: '#22c55e', isIdeal: true },
+                { from: 5.1, to: 6.2, color: '#38bdf8' },
+              ]}
             />
             <BioGaugeArc
               label="Ângulo de Fase (°)"
               value={latest?.phaseAngle}
               min={4.0}
               max={10.2}
-              idealMin={7.5}
-              idealMax={8.5}
               targetText="Meta Ideal: 7,5 a 8,5°"
               statusText="Excelente Integridade"
               color="#3b82f6"
+              zones={[
+                { from: 4.0, to: 6.0, color: '#ef4444' },
+                { from: 6.0, to: 7.5, color: '#f59e0b' },
+                { from: 7.5, to: 8.5, color: '#22c55e', isIdeal: true },
+                { from: 8.5, to: 10.2, color: '#3b82f6', isIdeal: true },
+              ]}
             />
             <BioGaugeArc
               label="Razão Músculo / Gordura"
               value={latest?.muscleFatRatio}
               min={0.3}
               max={4.5}
-              idealMin={1.7}
-              idealMax={3.5}
               targetText="Meta Ideal: 1,7 a 3,5 kg/kg"
               unit="kg/kg"
               statusText="Atlético / Protegido"
-              color="#4ade80"
+              color="#22c55e"
+              zones={[
+                { from: 0.3, to: 1.0, color: '#ef4444' },
+                { from: 1.0, to: 1.7, color: '#f59e0b' },
+                { from: 1.7, to: 3.5, color: '#22c55e', isIdeal: true },
+                { from: 3.5, to: 4.5, color: '#3b82f6' },
+              ]}
             />
             <BioGaugeArc
               label="Relação Cintura/Estatura"
               value={latest?.waistHeightRatio}
               min={0.3}
               max={0.8}
-              idealMin={0.3}
-              idealMax={0.49}
               targetText="Meta Ideal: < 0,50 (Baixo Risco)"
               statusText={latest?.waistHeightRatio ? (latest.waistHeightRatio >= 0.50 ? 'Risco Aumentado (Meta: <0,50)' : 'Saudável (< 0,50)') : 'Aguardando'}
-              color={latest?.waistHeightRatio && latest.waistHeightRatio >= 0.50 ? '#fbbf24' : '#4ade80'}
+              color={latest?.waistHeightRatio && latest.waistHeightRatio >= 0.50 ? '#f59e0b' : '#22c55e'}
+              zones={[
+                { from: 0.3, to: 0.5, color: '#22c55e', isIdeal: true },
+                { from: 0.5, to: 0.6, color: '#f59e0b' },
+                { from: 0.6, to: 0.8, color: '#ef4444' },
+              ]}
             />
           </div>
 
