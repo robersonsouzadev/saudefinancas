@@ -350,7 +350,7 @@ export default function InvestimentosPage() {
         description="Preencha as informações do ativo para atualizar sua carteira de investimentos."
       >
         <form onSubmit={handleSaveAsset} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Input
               label="TICKER / CÓDIGO"
               value={ticker}
@@ -381,7 +381,7 @@ export default function InvestimentosPage() {
             placeholder="ex: CSHG Logística FII"
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Input
               label="QUANTIDADE"
               type="number"
@@ -405,7 +405,7 @@ export default function InvestimentosPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Input
               label="COTAÇÃO ATUAL (R$)"
               type="number"

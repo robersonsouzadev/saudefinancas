@@ -898,7 +898,7 @@ export default function TreinosPage() {
             </div>
 
             {/* Weekly Days Bar (Based on REAL execution date) */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+            <div className="grid grid-cols-7 gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar min-w-[300px]">
               {(weeklyProgress.dailyActivity || []).map((dayItem: any) => {
                 const today = new Date().getDay();
                 const dayNum = dayItem.dayOfWeek;

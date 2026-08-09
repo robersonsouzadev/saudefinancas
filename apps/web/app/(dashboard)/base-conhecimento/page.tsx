@@ -144,30 +144,30 @@ export default function BaseConhecimentoPage() {
           {docs.map((doc) => (
             <div
               key={doc.id}
-              className="p-3 bg-surface border border-subtle rounded-md flex items-center justify-between hover:border-hover transition"
+              className="p-3 bg-surface border border-subtle rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-hover transition"
             >
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded bg-canvas border border-subtle flex items-center justify-center font-mono font-bold text-[10px] text-warning">
+              <div className="flex items-center space-x-3 min-w-0">
+                <div className="w-8 h-8 rounded bg-canvas border border-subtle flex items-center justify-center font-mono font-bold text-[10px] text-warning shrink-0">
                   {doc.fileType}
                 </div>
-                <div>
-                  <h4 className="font-medium text-xs text-primary">{doc.title}</h4>
-                  <span className="text-[11px] text-secondary block">
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium text-xs text-primary truncate">{doc.title}</h4>
+                  <span className="text-[11px] text-secondary block truncate">
                     Vinculado ao Agente: <strong className="text-primary">{doc.agentName}</strong> ·{' '}
                     <span className="font-mono text-accent">{doc.totalChunks} chunks vetoriais</span>
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 text-xs font-mono text-secondary">
+              <div className="flex items-center justify-between sm:justify-end space-x-3 text-xs font-mono text-secondary pt-2 sm:pt-0 border-t sm:border-t-0 border-subtle">
                 <span>{doc.createdAt}</span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleDelete(doc.id)}
-                  className="text-tertiary hover:text-error h-7 w-7 p-0"
+                  className="text-tertiary hover:text-error min-h-[36px] min-w-[36px] sm:h-7 sm:w-7 p-0 flex items-center justify-center"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                 </Button>
               </div>
             </div>

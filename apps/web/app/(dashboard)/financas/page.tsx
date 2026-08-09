@@ -635,7 +635,7 @@ export default function FinancasPage() {
               </div>
 
               {/* Transactions Table */}
-              <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg overflow-hidden">
+              <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-[#16191e] border-b border-[#ffffff14] text-[#8a8f98] font-semibold uppercase text-[10px]">
                     <tr>
@@ -692,7 +692,7 @@ export default function FinancasPage() {
           {/* BOLETOS A PAGAR */}
           {activeTab === 'boletos' && (
             <div className="space-y-6 pt-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 bg-[#0f1115] border border-[#ffffff14] rounded-lg">
                   <div className="text-[11px] text-[#8a8f98] uppercase font-semibold">Total Pendente</div>
                   <div className="text-2xl font-bold font-mono text-[#f7f8f8] mt-1">
@@ -713,7 +713,7 @@ export default function FinancasPage() {
                 </div>
               </div>
 
-              <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg overflow-hidden">
+              <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-[#16191e] border-b border-[#ffffff14] text-[#8a8f98] font-semibold uppercase text-[10px]">
                     <tr>
@@ -903,7 +903,7 @@ export default function FinancasPage() {
                   Nenhuma regra de recorrência cadastrada.
                 </div>
               ) : (
-                <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg overflow-hidden">
+                <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-[#16191e] border-b border-[#ffffff14] text-[#8a8f98] font-semibold uppercase text-[10px]">
                       <tr>
@@ -941,17 +941,17 @@ export default function FinancasPage() {
 
       {/* YNAB TRANSACTION MODAL */}
       {showTxModal && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-xl p-6 w-full max-w-lg shadow-2xl relative">
-            <button onClick={() => setShowTxModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8]"><X className="w-5 h-5"/></button>
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-lg shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <button onClick={() => setShowTxModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             <h3 className="text-lg font-bold mb-4">{editingTx ? 'Editar Transação' : 'Nova Transação Rápida'}</h3>
 
             <form onSubmit={handleSaveTx} className="space-y-4">
-              <div className="flex bg-[#16191e] rounded-lg p-1 border border-[#ffffff14]">
+              <div className="flex flex-wrap bg-[#16191e] rounded-lg p-1 border border-[#ffffff14] gap-1">
                 {['EXPENSE', 'INCOME', 'TRANSFER', 'BOLETO'].map((t) => (
                   <button 
                     key={t} type="button" onClick={() => setTxType(t as any)}
-                    className={`flex-1 py-2 text-xs font-bold rounded-md transition ${txType === t ? (t==='EXPENSE'||t==='BOLETO' ? 'bg-[#f87171] text-white' : t==='INCOME' ? 'bg-[#4ade80] text-black' : 'bg-[#5e6ad2] text-white') : 'text-[#8a8f98] hover:bg-[#ffffff0a]'}`}
+                    className={`flex-1 min-w-[70px] py-2 text-xs font-bold rounded-md transition ${txType === t ? (t==='EXPENSE'||t==='BOLETO' ? 'bg-[#f87171] text-white' : t==='INCOME' ? 'bg-[#4ade80] text-black' : 'bg-[#5e6ad2] text-white') : 'text-[#8a8f98] hover:bg-[#ffffff0a]'}`}
                   >
                     {t==='EXPENSE' && '💸 Despesa'}
                     {t==='INCOME' && '💰 Receita'}
@@ -965,13 +965,13 @@ export default function FinancasPage() {
                 <div className="flex items-center space-x-2">
                   <span className="text-2xl font-bold text-[#8a8f98]">R$</span>
                   <input type="number" step="0.01" value={txAmount} onChange={e=>setTxAmount(e.target.value)} placeholder="0.00" required
-                    className="w-full bg-transparent text-4xl font-bold font-mono focus:outline-none placeholder-[#3a3f4a]" />
+                    className="w-full bg-transparent text-3xl sm:text-4xl font-bold font-mono focus:outline-none placeholder-[#3a3f4a]" />
                 </div>
                 <input type="text" value={txDescription} onChange={e=>setTxDescription(e.target.value)} placeholder="O que foi isso? (Descrição)" required
                   className="w-full bg-transparent text-sm border-b border-[#ffffff14] pb-2 focus:outline-none focus:border-[#5e6ad2] placeholder-[#575c66]" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Categoria</label>
                   <select value={txCategory} onChange={e=>setTxCategory(e.target.value)} className="w-full h-10 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md text-xs focus:outline-none">
@@ -990,9 +990,9 @@ export default function FinancasPage() {
                 </div>
               </div>
 
-              <div className="bg-[#16191e] p-3 rounded-lg border border-[#ffffff14] grid grid-cols-2 gap-4">
+              <div className="bg-[#16191e] p-3 rounded-lg border border-[#ffffff14] grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {txMethod === 'CRÉDITO' ? (
-                  <div className="col-span-2">
+                  <div className="col-span-1 sm:col-span-2">
                     <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Cartão de Crédito</label>
                     <select value={txCard} onChange={e=>setTxCard(e.target.value)} className="w-full h-9 px-2 bg-[#0f1115] border border-[#ffffff14] rounded text-xs focus:outline-none">
                       <option value="">Selecione o cartão...</option>
@@ -1000,7 +1000,7 @@ export default function FinancasPage() {
                     </select>
                   </div>
                 ) : (
-                  <div className="col-span-2">
+                  <div className="col-span-1 sm:col-span-2">
                     <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Conta Bancária</label>
                     <select value={txAccount} onChange={e=>setTxAccount(e.target.value)} className="w-full h-9 px-2 bg-[#0f1115] border border-[#ffffff14] rounded text-xs focus:outline-none">
                       <option value="">Selecione a conta...</option>
@@ -1020,25 +1020,25 @@ export default function FinancasPage() {
 
       {/* ACCOUNT MODAL (CREATE & EDIT) */}
       {showAccountModal && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
-            <button onClick={() => setShowAccountModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8]"><X className="w-5 h-5"/></button>
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <button onClick={() => setShowAccountModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             <h3 className="text-base font-bold mb-4">{editingAccount ? 'Editar Conta Bancária' : 'Nova Conta Bancária'}</h3>
 
             <form onSubmit={handleSaveAccount} className="space-y-3 text-xs">
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Nome da Conta</label>
-                <input type="text" value={accName} onChange={e=>setAccName(e.target.value)} placeholder="Ex: Conta Corrente Principal" required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
+                <input type="text" value={accName} onChange={e=>setAccName(e.target.value)} placeholder="Ex: Conta Corrente Principal" required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
               </div>
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Instituição / Banco</label>
-                <input type="text" value={accBank} onChange={e=>setAccBank(e.target.value)} placeholder="Ex: Nubank, Bradesco, Itaú" required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
+                <input type="text" value={accBank} onChange={e=>setAccBank(e.target.value)} placeholder="Ex: Nubank, Bradesco, Itaú" required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
               </div>
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Saldo Atual (R$)</label>
-                <input type="number" step="0.01" value={accBalance} onChange={e=>setAccBalance(e.target.value)} required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none text-[#22c55e]" />
+                <input type="number" step="0.01" value={accBalance} onChange={e=>setAccBalance(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none text-[#22c55e]" />
               </div>
-              <button type="submit" className="w-full h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">
+              <button type="submit" className="w-full h-11 sm:h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">
                 {editingAccount ? 'Atualizar Saldo e Dados' : 'Criar Conta'}
               </button>
             </form>
@@ -1048,38 +1048,38 @@ export default function FinancasPage() {
 
       {/* CREDIT CARD MODAL (CREATE & EDIT) */}
       {showCardModal && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
-            <button onClick={() => setShowCardModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8]"><X className="w-5 h-5"/></button>
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <button onClick={() => setShowCardModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             <h3 className="text-base font-bold mb-4">{editingCard ? 'Editar Cartão de Crédito' : 'Novo Cartão de Crédito'}</h3>
 
             <form onSubmit={handleSaveCard} className="space-y-3 text-xs">
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Conta Vinculada</label>
-                <select value={cardAccount} onChange={e=>setCardAccount(e.target.value)} required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none">
+                <select value={cardAccount} onChange={e=>setCardAccount(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none">
                   <option value="">Selecione...</option>
                   {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Nome do Cartão</label>
-                <input type="text" value={cardName} onChange={e=>setCardName(e.target.value)} placeholder="Ex: Nubank Violeta" required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
+                <input type="text" value={cardName} onChange={e=>setCardName(e.target.value)} placeholder="Ex: Nubank Violeta" required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
               </div>
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Limite Total (R$)</label>
-                <input type="number" step="0.01" value={cardLimit} onChange={e=>setCardLimit(e.target.value)} required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none" />
+                <input type="number" step="0.01" value={cardLimit} onChange={e=>setCardLimit(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block uppercase font-bold text-[#8a8f98] mb-1">Dia Fechamento</label>
-                  <input type="number" min="1" max="31" value={cardClosing} onChange={e=>setCardClosing(e.target.value)} required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
+                  <input type="number" min="1" max="31" value={cardClosing} onChange={e=>setCardClosing(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
                 </div>
                 <div>
-                  <label className="block uppercase font-bold text-[#8a8f98] mb-1">Dia Vencimento</label>
-                  <input type="number" min="1" max="31" value={cardDue} onChange={e=>setCardDue(e.target.value)} required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
+                  <label className="block uppercase font-[#8a8f98] mb-1">Dia Vencimento</label>
+                  <input type="number" min="1" max="31" value={cardDue} onChange={e=>setCardDue(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
                 </div>
               </div>
-              <button type="submit" className="w-full h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">
+              <button type="submit" className="w-full h-11 sm:h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">
                 {editingCard ? 'Salvar Alterações' : 'Criar Cartão'}
               </button>
             </form>
@@ -1089,23 +1089,23 @@ export default function FinancasPage() {
 
       {/* BUDGET MODAL */}
       {showBudgetModal && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
-            <button onClick={() => setShowBudgetModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8]"><X className="w-5 h-5"/></button>
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <button onClick={() => setShowBudgetModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             <h3 className="text-base font-bold mb-4">Definir Orçamento Categoria</h3>
 
             <form onSubmit={handleSaveBudget} className="space-y-3 text-xs">
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Categoria</label>
-                <select value={budCategory} onChange={e=>setBudCategory(e.target.value)} className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none">
+                <select value={budCategory} onChange={e=>setBudCategory(e.target.value)} className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none">
                   {Object.keys(categoryIcons).map(c => <option key={c} value={c}>{categoryIcons[c]} {c}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Limite Mensal (R$)</label>
-                <input type="number" step="0.01" value={budLimit} onChange={e=>setBudLimit(e.target.value)} placeholder="Ex: 1000.00" required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none" />
+                <input type="number" step="0.01" value={budLimit} onChange={e=>setBudLimit(e.target.value)} placeholder="Ex: 1000.00" required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none" />
               </div>
-              <button type="submit" className="w-full h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">Salvar Orçamento</button>
+              <button type="submit" className="w-full h-11 sm:h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">Salvar Orçamento</button>
             </form>
           </div>
         </div>
@@ -1113,34 +1113,34 @@ export default function FinancasPage() {
 
       {/* RECURRING MODAL */}
       {showRecurringModal && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
-            <button onClick={() => setShowRecurringModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8]"><X className="w-5 h-5"/></button>
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <button onClick={() => setShowRecurringModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             <h3 className="text-base font-bold mb-4">Nova Conta Recorrente</h3>
 
             <form onSubmit={handleSaveRecurring} className="space-y-3 text-xs">
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Descrição</label>
-                <input type="text" value={recDesc} onChange={e=>setRecDesc(e.target.value)} placeholder="Ex: Aluguel, Netflix, Salário" required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
+                <input type="text" value={recDesc} onChange={e=>setRecDesc(e.target.value)} placeholder="Ex: Aluguel, Netflix, Salário" required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
               </div>
               <div>
                 <label className="block uppercase font-bold text-[#8a8f98] mb-1">Valor (R$)</label>
-                <input type="number" step="0.01" value={recAmount} onChange={e=>setRecAmount(e.target.value)} required className="w-full h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none" />
+                <input type="number" step="0.01" value={recAmount} onChange={e=>setRecAmount(e.target.value)} required className="w-full h-10 sm:h-9 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md font-mono font-bold focus:outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block uppercase font-bold text-[#8a8f98] mb-1">Tipo</label>
-                  <select value={recType} onChange={e=>setRecType(e.target.value as any)} className="w-full h-9 px-2 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none">
+                  <select value={recType} onChange={e=>setRecType(e.target.value as any)} className="w-full h-10 sm:h-9 px-2 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none">
                     <option value="EXPENSE">Despesa</option>
                     <option value="INCOME">Receita</option>
                   </select>
                 </div>
                 <div>
                   <label className="block uppercase font-bold text-[#8a8f98] mb-1">Dia do Mês</label>
-                  <input type="number" min="1" max="31" value={recDay} onChange={e=>setRecDay(e.target.value)} required className="w-full h-9 px-2 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
+                  <input type="number" min="1" max="31" value={recDay} onChange={e=>setRecDay(e.target.value)} required className="w-full h-10 sm:h-9 px-2 bg-[#16191e] border border-[#ffffff14] rounded-md focus:outline-none" />
                 </div>
               </div>
-              <button type="submit" className="w-full h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">Salvar Recorrência</button>
+              <button type="submit" className="w-full h-11 sm:h-10 mt-2 bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-bold rounded-lg transition">Salvar Recorrência</button>
             </form>
           </div>
         </div>
@@ -1148,9 +1148,9 @@ export default function FinancasPage() {
 
       {/* QUICK DISCHARGE MODAL (Quitar Boleto) */}
       {showQuitarModal && selectedBoleto && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
-            <button onClick={() => setShowQuitarModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8]"><X className="w-5 h-5"/></button>
+        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-t-2xl sm:rounded-xl p-5 sm:p-6 w-full max-w-sm shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <button onClick={() => setShowQuitarModal(false)} className="absolute top-4 right-4 text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"><X className="w-5 h-5"/></button>
             
             <div className="text-center mb-6">
               <div className="w-12 h-12 rounded-full bg-[#22c55e]/20 text-[#22c55e] flex items-center justify-center mx-auto mb-2"><Check className="w-6 h-6" /></div>
@@ -1167,7 +1167,7 @@ export default function FinancasPage() {
                 <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Valor Final Pago (R$)</label>
                 <input type="number" step="0.01" value={quitarAmount} onChange={e=>setQuitarAmount(e.target.value)} required className="w-full h-10 px-3 bg-[#16191e] border border-[#ffffff14] rounded-md text-sm font-bold font-mono focus:outline-none" />
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[10px] uppercase font-bold text-[#8a8f98] mb-1">Método</label>
                   <select value={quitarMethod} onChange={e=>setQuitarMethod(e.target.value)} className="w-full h-10 px-2 bg-[#16191e] border border-[#ffffff14] rounded-md text-xs focus:outline-none">

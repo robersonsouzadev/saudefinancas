@@ -157,9 +157,9 @@ export default function FamiliaPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {members.map((m) => (
               <div key={m.id} className="p-3 bg-surface border border-subtle rounded-md flex justify-between items-center text-xs">
-                <div>
-                  <h4 className="font-medium text-primary">{m.name}</h4>
-                  <span className="text-[10px] text-secondary font-mono block">{m.email}</span>
+                <div className="min-w-0 flex-1 pr-2">
+                  <h4 className="font-medium text-primary truncate">{m.name}</h4>
+                  <span className="text-[10px] text-secondary font-mono block truncate">{m.email}</span>
                 </div>
 
                 <Button

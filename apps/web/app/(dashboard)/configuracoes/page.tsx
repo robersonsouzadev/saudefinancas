@@ -649,7 +649,7 @@ export default function ConfiguracoesPage() {
               {/* Circunferências Tronco */}
               <div className="space-y-2">
                 <span className="text-[11px] font-bold text-[#38bdf8] uppercase tracking-wider">── Circunferências Tronco (cm) ──</span>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[10px] text-[#8a8f98] uppercase mb-1">Cintura</label>
                     <input 

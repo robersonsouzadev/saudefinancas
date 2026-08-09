@@ -36,7 +36,7 @@ export const Tabs: React.FC<TabsProps> = ({
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3 py-2 sm:py-1.5 min-h-[44px] sm:min-h-[34px] text-xs font-medium rounded-md transition-all whitespace-nowrap touch-manipulation ${
                 isActive
                   ? 'bg-[#16191e] text-[#f7f8f8] shadow-sm border border-[#ffffff12]'
                   : 'text-[#8a8f98] hover:text-[#f7f8f8] hover:bg-[#ffffff08]'
@@ -61,7 +61,7 @@ export const Tabs: React.FC<TabsProps> = ({
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition-all whitespace-nowrap -mb-px ${
+            className={`flex items-center gap-2 px-4 py-2.5 min-h-[44px] sm:min-h-[38px] text-xs font-medium border-b-2 transition-all whitespace-nowrap -mb-px touch-manipulation ${
               isActive
                 ? 'border-[#5e6ad2] text-[#f7f8f8]'
                 : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8] hover:border-[#ffffff20]'

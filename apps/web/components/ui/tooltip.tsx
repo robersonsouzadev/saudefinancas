@@ -22,14 +22,15 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
   return (
     <div
-      className="relative inline-flex"
+      className="relative inline-flex cursor-pointer"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
+      onClick={() => setIsVisible((prev) => !prev)}
     >
       {children}
       {isVisible && (
         <div
-          className={`absolute z-50 px-2 py-1 text-[11px] font-medium text-[#f7f8f8] bg-[#1d2127] border border-[#ffffff18] rounded-md shadow-xl whitespace-nowrap pointer-events-none ${positions[position]}`}
+          className={`absolute z-50 px-2.5 py-1 text-[11px] font-medium text-[#f7f8f8] bg-[#1d2127] border border-[#ffffff18] rounded-md shadow-xl max-w-[220px] break-words pointer-events-none ${positions[position]}`}
         >
           {content}
         </div>

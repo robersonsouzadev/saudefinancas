@@ -765,10 +765,10 @@ export default function BodyAssessmentDashboard() {
       </div>
 
       {/* ─── TABS DE NAVEGAÇÃO INTERNA ───────────────────────────── */}
-      <div className="flex space-x-1 border-b border-[#ffffff0e] text-xs font-medium">
+      <div className="flex space-x-1 border-b border-[#ffffff0e] text-xs font-medium overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`px-4 py-2.5 border-b-2 transition flex items-center space-x-2 ${
+          className={`px-4 py-2.5 min-h-[44px] sm:min-h-[38px] border-b-2 transition flex items-center space-x-2 whitespace-nowrap ${
             activeTab === 'dashboard'
               ? 'border-[#3b82f6] text-[#3b82f6]'
               : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'
@@ -779,7 +779,7 @@ export default function BodyAssessmentDashboard() {
         </button>
         <button
           onClick={() => setActiveTab('charts')}
-          className={`px-4 py-2.5 border-b-2 transition flex items-center space-x-2 ${
+          className={`px-4 py-2.5 min-h-[44px] sm:min-h-[38px] border-b-2 transition flex items-center space-x-2 whitespace-nowrap ${
             activeTab === 'charts'
               ? 'border-[#3b82f6] text-[#3b82f6]'
               : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'
@@ -790,7 +790,7 @@ export default function BodyAssessmentDashboard() {
         </button>
         <button
           onClick={() => setActiveTab('compare')}
-          className={`px-4 py-2.5 border-b-2 transition flex items-center space-x-2 ${
+          className={`px-4 py-2.5 min-h-[44px] sm:min-h-[38px] border-b-2 transition flex items-center space-x-2 whitespace-nowrap ${
             activeTab === 'compare'
               ? 'border-[#3b82f6] text-[#3b82f6]'
               : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'
@@ -801,7 +801,7 @@ export default function BodyAssessmentDashboard() {
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`px-4 py-2.5 border-b-2 transition flex items-center space-x-2 ${
+          className={`px-4 py-2.5 min-h-[44px] sm:min-h-[38px] border-b-2 transition flex items-center space-x-2 whitespace-nowrap ${
             activeTab === 'history'
               ? 'border-[#3b82f6] text-[#3b82f6]'
               : 'border-transparent text-[#8a8f98] hover:text-[#f7f8f8]'
@@ -1241,7 +1241,7 @@ export default function BodyAssessmentDashboard() {
           </div>
 
           {compareData && compareData.current && (
-            <div className="linear-card overflow-hidden">
+            <div className="linear-card overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-[#16191e] border-b border-[#ffffff0e] text-[#8a8f98] font-medium">
                   <tr>

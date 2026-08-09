@@ -1241,7 +1241,7 @@ export default function LabExamsPage() {
                       onClick={() => setSelectedBiomarker(item.biomarkerKey)}
                       className="px-5 py-3 hover:bg-[#16191e50] cursor-pointer transition"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-xs font-medium text-[#f7f8f8]">{item.biomarkerName}</span>
@@ -1250,15 +1250,15 @@ export default function LabExamsPage() {
                             {getHealthTip(item.biomarkerKey) && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setActiveTip({ key: item.biomarkerKey, status: item.status }); }}
-                                className="p-0.5 rounded hover:bg-[#5e6ad220] text-[#575c66] hover:text-[#5e6ad2] transition"
+                                className="p-1 rounded hover:bg-[#5e6ad220] text-[#575c66] hover:text-[#5e6ad2] transition min-h-[32px] min-w-[32px] flex items-center justify-center"
                                 title="Ver dicas de saúde"
                               >
-                                <Info className="w-3 h-3" />
+                                <Info className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
                           {/* Gauge Bar */}
-                          <div className="mt-1.5 max-w-xs">
+                          <div className="mt-1.5 w-full sm:max-w-xs">
                             <BiomarkerGaugeBar
                               value={item.value}
                               refMin={item.referenceMin}
@@ -1273,7 +1273,7 @@ export default function LabExamsPage() {
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-3 shrink-0 ml-3">
+                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 sm:ml-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#ffffff08]">
                           {/* Sparkline */}
                           {sparklineMap.has(item.biomarkerKey) && (
                             <MiniSparkline
@@ -1328,11 +1328,11 @@ export default function LabExamsPage() {
 
       {/* ═══ UPLOAD MODAL ═══ */}
       {isUploadOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="w-full max-w-md bg-[#0f1115] border border-[#ffffff12] rounded-2xl p-5 space-y-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="w-full max-w-md bg-[#0f1115] border border-[#ffffff12] rounded-t-2xl sm:rounded-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-[#f7f8f8]">Upload de Laudo de Exame</h3>
-              <button onClick={() => setIsUploadOpen(false)} className="text-[#8a8f98] hover:text-[#f7f8f8]">
+              <button onClick={() => setIsUploadOpen(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1419,11 +1419,11 @@ export default function LabExamsPage() {
 
       {/* ═══ EDIT BIOMARKER MODAL ═══ */}
       {isEditModalOpen && editingResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#0f1115] border border-[#ffffff12] rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#ffffff08]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-[#0f1115] border border-[#ffffff12] rounded-t-2xl sm:rounded-2xl w-full max-w-md shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-[#ffffff08]">
               <h3 className="text-sm font-semibold text-[#f7f8f8]">Editar Biomarcador</h3>
-              <button onClick={() => { setIsEditModalOpen(false); setEditingResult(null); }} className="text-[#8a8f98] hover:text-white">
+              <button onClick={() => { setIsEditModalOpen(false); setEditingResult(null); }} className="text-[#8a8f98] hover:text-white p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1525,9 +1525,9 @@ export default function LabExamsPage() {
 
       {/* ═══ PHENOAGE INFO & MISSING BIOMARKERS MODAL ═══ */}
       {isPhenoInfoOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-[#0f1115] border border-[#5e6ad230] shadow-2xl p-6 space-y-5 text-xs text-[#c4c7cd]">
-            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="w-full max-w-lg rounded-t-2xl sm:rounded-2xl bg-[#0f1115] border border-[#5e6ad230] shadow-2xl p-5 sm:p-6 space-y-5 text-xs text-[#c4c7cd] max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-[#5e6ad215] border border-[#5e6ad230] flex items-center justify-center text-[#5e6ad2]">
                   <Activity className="w-4 h-4" />
@@ -1539,7 +1539,7 @@ export default function LabExamsPage() {
               </div>
               <button
                 onClick={() => setIsPhenoInfoOpen(false)}
-                className="text-[#8a8f98] hover:text-white transition"
+                className="text-[#8a8f98] hover:text-white transition p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>

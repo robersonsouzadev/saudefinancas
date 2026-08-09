@@ -80,7 +80,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] max-w-5xl mx-auto pb-4">
+    <div className="flex flex-col h-[calc(100dvh-75px)] sm:h-[calc(100dvh-90px)] max-w-5xl mx-auto pb-2 sm:pb-4">
       {/* Design System Page Header */}
       <PageHeader
         icon={<MessageSquare className="w-5 h-5 text-[#c084fc]" />}
@@ -90,11 +90,11 @@ export default function ChatPage() {
       />
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto py-4 space-y-3">
+      <div className="flex-1 overflow-y-auto py-2 sm:py-4 space-y-3 pr-1">
         {messages.map((m) => (
           <div
             key={m.id}
-            className={`flex items-start space-x-3 ${m.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}
+            className={`flex items-start space-x-2.5 sm:space-x-3 ${m.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}
           >
             <div
               className={`w-7 h-7 rounded flex items-center justify-center text-xs font-bold shrink-0 border ${
@@ -107,18 +107,18 @@ export default function ChatPage() {
             </div>
 
             <div
-              className={`max-w-lg p-3 rounded-lg border text-xs space-y-1.5 ${
+              className={`max-w-[85%] sm:max-w-lg p-3 rounded-lg border text-xs space-y-1.5 break-words ${
                 m.sender === 'vita'
                   ? 'bg-surface border-subtle text-primary'
                   : 'bg-elevated border-subtle text-primary'
               }`}
             >
-              <p className="leading-relaxed whitespace-pre-wrap">{m.text}</p>
+              <p className="leading-relaxed whitespace-pre-wrap break-words">{m.text}</p>
 
               {m.toolBadge && (
-                <div className="text-[10px] font-mono text-accent bg-accent-subtle px-2 py-0.5 rounded border border-[#5e6ad230] flex items-center gap-1 w-max">
-                  <Sparkles className="w-3 h-3" />
-                  <span>{m.toolBadge}</span>
+                <div className="text-[10px] font-mono text-accent bg-accent-subtle px-2 py-0.5 rounded border border-[#5e6ad230] flex items-center gap-1 w-max max-w-full truncate">
+                  <Sparkles className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{m.toolBadge}</span>
                 </div>
               )}
 

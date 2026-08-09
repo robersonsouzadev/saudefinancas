@@ -35,7 +35,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           {subtitle && <p className="text-xs text-[#8a8f98] mt-1">{subtitle}</p>}
         </div>
       </div>
-      {actions && <div className="flex items-center gap-2.5 shrink-0">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">{actions}</div>}
     </div>
   );
 };

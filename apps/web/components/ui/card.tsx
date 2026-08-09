@@ -9,9 +9,9 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ children, className = '', padding = 'standard', hoverEffect = false, ...props }, ref) => {
     const paddings = {
       none: 'p-0',
-      compact: 'p-4 space-y-2',
-      standard: 'p-5 space-y-4',
-      expanded: 'p-6 space-y-6',
+      compact: 'p-3 sm:p-4 space-y-2',
+      standard: 'p-4 sm:p-5 space-y-3 sm:space-y-4',
+      expanded: 'p-4 sm:p-6 space-y-4 sm:space-y-6',
     };
 
     return (

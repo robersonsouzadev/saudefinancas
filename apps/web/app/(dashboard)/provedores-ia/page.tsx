@@ -243,7 +243,7 @@ export default function ProvedoresIAPage() {
               </div>
 
               {/* Card Footer Actions */}
-              <div className="pt-3 border-t border-subtle flex items-center justify-between mt-3">
+              <div className="pt-3 border-t border-subtle flex flex-col xs:flex-row xs:items-center justify-between gap-2 mt-3">
                 <span className="text-[11px] font-mono text-tertiary">0 / {p.tokenLimit.toLocaleString()} tokens</span>
 
                 <Button

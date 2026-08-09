@@ -47,9 +47,10 @@ export const Alert: React.FC<AlertProps> = ({
       {onClose && (
         <button
           onClick={onClose}
-          className="text-[#8a8f98] hover:text-[#f7f8f8] p-0.5 rounded transition-colors"
+          className="text-[#8a8f98] hover:text-[#f7f8f8] p-2 sm:p-0.5 min-h-[44px] min-w-[44px] sm:min-h-[24px] sm:min-w-[24px] flex items-center justify-center rounded transition-colors -mr-1 -mt-1 shrink-0"
+          aria-label="Fechar alerta"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
         </button>
       )}
     </div>

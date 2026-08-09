@@ -660,7 +660,7 @@ export default function AgentesPage() {
             </form>
 
             {/* COLUNA DIREITA (40% / 5 COLS): SANDBOX DE TESTES REAL */}
-            <div className="lg:col-span-5 linear-card p-0 flex flex-col h-[580px] overflow-hidden border border-[#ffffff12]">
+            <div className="lg:col-span-5 linear-card p-0 flex flex-col h-[420px] lg:h-[580px] overflow-hidden border border-[#ffffff12]">
               
               {/* Sandbox Header */}
               <div className="p-4 bg-[#16191e] border-b border-[#ffffff0e] flex items-center justify-between">

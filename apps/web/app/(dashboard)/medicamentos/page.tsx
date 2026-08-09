@@ -235,13 +235,13 @@ export default function MedicamentosPage() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button 
             onClick={() => {
               setSelectedMedForDemo(medications[0]);
               setIsWhatsappDemoOpen(true);
             }}
-            className="h-8 px-3 rounded-md bg-[#16191e] border border-[#ffffff12] hover:bg-[#1d2127] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
+            className="h-9 sm:h-8 px-3 rounded-md bg-[#16191e] border border-[#ffffff12] hover:bg-[#1d2127] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
           >
             <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
             <span>📱 Testar WhatsApp</span>
@@ -610,13 +610,13 @@ export default function MedicamentosPage() {
 
       {/* 5. Modal 1: Add New Medication Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="linear-card w-full max-w-md p-6 space-y-4 border border-[#ffffff15] shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="linear-card w-full max-w-md p-5 sm:p-6 space-y-4 border border-[#ffffff15] shadow-2xl rounded-t-2xl sm:rounded-xl max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
               <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#5e6ad2]" /> Cadastrar Novo Medicamento / Vitamina
               </h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-[#8a8f98] hover:text-[#f7f8f8]">
+              <button onClick={() => setIsAddModalOpen(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center">
                 <X className="w-4 h-4" />
               </button>
             </div>
