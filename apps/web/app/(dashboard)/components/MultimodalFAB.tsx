@@ -235,8 +235,8 @@ export default function MultimodalFAB() {
                   <Mic className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#f7f8f8]">Vita IA — Registro Inteligente</h3>
-                  <p className="text-[10px] text-[#8a8f98]">Fale, fotografe ou escreva. A IA faz o resto.</p>
+                  <h3 className="text-base font-bold text-[#f7f8f8]">Vita IA — Registro Inteligente</h3>
+                  <p className="text-xs text-[#cbd5e1] font-medium">Fale, fotografe ou escreva. A IA faz o resto.</p>
                 </div>
               </div>
               <button onClick={handleClose} className="text-[#8a8f98] hover:text-[#f7f8f8] transition">
@@ -246,7 +246,7 @@ export default function MultimodalFAB() {
 
             {/* Tab Selector */}
             {status === 'idle' && (
-              <div className="px-5 pt-3 flex space-x-1 bg-[#0f1115]">
+              <div className="px-5 pt-3 flex space-x-1.5 bg-[#0f1115]">
                 {([
                   { key: 'voice' as TabType, icon: Mic, label: 'Áudio' },
                   { key: 'photo' as TabType, icon: Camera, label: 'Foto' },
@@ -255,13 +255,13 @@ export default function MultimodalFAB() {
                   <button
                     key={key}
                     onClick={() => { setActiveTab(key); resetState(); }}
-                    className={`flex-1 py-2 rounded-md text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+                    className={`flex-1 py-2.5 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition ${
                       activeTab === key
-                        ? 'bg-[#5e6ad2] text-white'
-                        : 'bg-[#16191e] text-[#8a8f98] hover:bg-[#1d2127] hover:text-[#f7f8f8]'
+                        ? 'bg-[#5e6ad2] text-white shadow-sm'
+                        : 'bg-[#16191e] text-[#cbd5e1] hover:bg-[#1d2127] hover:text-[#f7f8f8]'
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className="w-4 h-4" />
                     {label}
                   </button>
                 ))}
@@ -274,10 +274,10 @@ export default function MultimodalFAB() {
               {/* ═══ IDLE STATE: Input Forms ═══ */}
               {status === 'idle' && activeTab === 'voice' && (
                 <div className="text-center space-y-4">
-                  <p className="text-xs text-[#8a8f98]">
+                  <p className="text-xs sm:text-sm font-medium text-[#cbd5e1]">
                     Segure o botão e fale normalmente. Exemplos:
                   </p>
-                  <div className="space-y-1 text-[11px] text-[#575c66] font-mono">
+                  <div className="space-y-1.5 text-xs text-[#cbd5e1] font-mono bg-[#16191e] p-3 rounded-lg border border-[#ffffff0e]">
                     <p>&quot;Comprei pão 4 reais e carne 30 reais&quot;</p>
                     <p>&quot;Almocei arroz, feijão e frango grelhado&quot;</p>
                     <p>&quot;Dormi 7 horas, humor 8&quot;</p>

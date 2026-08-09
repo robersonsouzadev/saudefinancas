@@ -107,34 +107,34 @@ export default function FamiliaPage() {
 
       {/* Summary Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card padding="compact">
-          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">
+        <Card padding="standard">
+          <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">
             Teto Orçamentário Familiar
           </span>
-          <div className="text-3xl font-bold font-mono text-primary">
+          <div className="text-3xl sm:text-4xl font-bold font-mono text-primary">
             R$ {totalBudget.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-secondary block">Mês Vigente</span>
+          <span className="text-xs text-[#a1a1aa] font-medium block mt-1">Mês Vigente</span>
         </Card>
 
-        <Card padding="compact">
-          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">
+        <Card padding="standard">
+          <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">
             Membros no Grupo
           </span>
-          <div className="text-3xl font-bold font-mono text-[#f97316]">
+          <div className="text-3xl sm:text-4xl font-bold font-mono text-[#f97316]">
             {members.length} Integrantes
           </div>
-          <span className="text-[11px] text-secondary block">Visão financeira compartilhada</span>
+          <span className="text-xs text-[#a1a1aa] font-medium block mt-1">Visão financeira compartilhada</span>
         </Card>
 
-        <Card padding="compact">
-          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">
+        <Card padding="standard">
+          <span className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase tracking-wider block mb-1">
             Distribuição Orçamentária
           </span>
-          <div className={`text-3xl font-bold font-mono ${isPercentageValid ? 'text-success' : 'text-error'}`}>
+          <div className={`text-3xl sm:text-4xl font-bold font-mono ${isPercentageValid ? 'text-success' : 'text-error'}`}>
             {totalPercentage}% / 100%
           </div>
-          <span className="text-[11px] text-secondary block">
+          <span className="text-xs text-[#a1a1aa] font-medium block mt-1">
             {isPercentageValid ? '✓ Alocação 100% calibrada' : '⚠️ Ajuste a soma dos percentuais'}
           </span>
         </Card>
@@ -143,7 +143,7 @@ export default function FamiliaPage() {
       {/* Members Section */}
       <Card padding="standard">
         <div className="flex items-center justify-between border-b border-subtle pb-3">
-          <h3 className="text-sm font-semibold text-primary">Membros do Grupo Familiar</h3>
+          <h3 className="text-base font-bold text-primary">Membros do Grupo Familiar</h3>
           <Badge variant="neutral">{members.length} cadastrados</Badge>
         </div>
 
@@ -154,19 +154,19 @@ export default function FamiliaPage() {
             description="Clique em '+ Adicionar Membro' para convidar familiares para a gestão financeira conjunta."
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
             {members.map((m) => (
-              <div key={m.id} className="p-3 bg-surface border border-subtle rounded-md flex justify-between items-center text-xs">
-                <div className="min-w-0 flex-1 pr-2">
-                  <h4 className="font-medium text-primary truncate">{m.name}</h4>
-                  <span className="text-[10px] text-secondary font-mono block truncate">{m.email}</span>
+              <div key={m.id} className="p-3.5 bg-surface border border-subtle rounded-lg flex justify-between items-center text-xs">
+                <div className="min-w-0 flex-1 pr-2 space-y-0.5">
+                  <h4 className="font-bold text-sm text-primary truncate">{m.name}</h4>
+                  <span className="text-xs text-[#cbd5e1] font-mono block truncate font-medium">{m.email}</span>
                 </div>
 
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleRemoveMember(m.id)}
-                  className="text-error hover:text-error hover:bg-error-subtle h-6 px-2 text-[10px]"
+                  className="text-error hover:text-error hover:bg-error-subtle h-7 px-2.5 text-xs font-semibold"
                 >
                   Remover
                 </Button>
@@ -179,27 +179,27 @@ export default function FamiliaPage() {
       {/* Budget Allocation */}
       <Card padding="standard">
         <div className="flex items-center justify-between border-b border-subtle pb-3">
-          <h3 className="text-sm font-semibold text-primary">Teto por Categoria em Percentual (%)</h3>
+          <h3 className="text-base font-bold text-primary">Teto por Categoria em Percentual (%)</h3>
           <Button variant="ghost" size="sm" onClick={() => setShowBudgetModal(true)}>
             Editar Percentuais
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
           {categories.map((c) => {
             const allocated = (totalBudget * c.percentage) / 100;
             return (
-              <div key={c.categoryId} className="p-3 bg-surface border border-subtle rounded-md space-y-2 text-xs">
-                <div className="flex justify-between items-center font-medium">
+              <div key={c.categoryId} className="p-3.5 bg-surface border border-subtle rounded-lg space-y-2.5 text-xs">
+                <div className="flex justify-between items-center font-bold text-sm">
                   <span className="text-primary">{c.categoryName}</span>
-                  <span className="font-mono text-[#f97316] font-bold">{c.percentage}%</span>
+                  <span className="font-mono text-[#f97316]">{c.percentage}%</span>
                 </div>
 
-                <div className="flex justify-between text-[11px] font-mono text-secondary">
+                <div className="flex justify-between text-xs font-mono text-[#cbd5e1] font-semibold">
                   <span>Teto: R$ {allocated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
 
-                <div className="w-full bg-canvas h-1.5 rounded-full overflow-hidden border border-subtle">
+                <div className="w-full bg-canvas h-2 rounded-full overflow-hidden border border-subtle">
                   <div className="bg-[#f97316] h-full rounded-full" style={{ width: `${c.percentage}%` }} />
                 </div>
               </div>

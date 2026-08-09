@@ -278,15 +278,15 @@ export default function UsuariosPage() {
       {/* Users Table */}
       <div className="linear-card p-5 space-y-4">
         <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
-          <h3 className="text-sm font-semibold text-[#f7f8f8]">Usuários Autorizados no Sistema</h3>
-          <span className="text-[11px] font-mono text-[#8a8f98]">{users.length} e-mails autorizados</span>
+          <h3 className="text-base font-bold text-[#f7f8f8]">Usuários Autorizados no Sistema</h3>
+          <span className="text-xs font-mono font-semibold text-[#cbd5e1]">{users.length} e-mails autorizados</span>
         </div>
 
         {users.length === 0 ? (
           <div className="py-12 text-center space-y-2 border border-dashed border-[#ffffff0a] rounded-md">
-            <UserCheck className="w-8 h-8 text-[#575c66] mx-auto" />
-            <h4 className="text-xs font-semibold text-[#f7f8f8]">Nenhum usuário cadastrado além de você</h4>
-            <p className="text-[11px] text-[#8a8f98] max-w-sm mx-auto">
+            <UserCheck className="w-8 h-8 text-[#8a8f98] mx-auto" />
+            <h4 className="text-sm font-bold text-[#f7f8f8]">Nenhum usuário cadastrado além de você</h4>
+            <p className="text-xs text-[#cbd5e1] max-w-sm mx-auto">
               Clique em "+ Autorizar E-mail" para permitir que familiares ou membros acessem o sistema.
             </p>
           </div>
@@ -295,26 +295,26 @@ export default function UsuariosPage() {
             {/* Mobile Card List (< 640px) */}
             <div className="space-y-3 sm:hidden">
               {filteredUsers.map((u) => (
-                <div key={u.id} className="p-3 rounded-md bg-[#16191e] border border-[#ffffff0a] space-y-2 text-xs">
+                <div key={u.id} className="p-3.5 rounded-lg bg-[#16191e] border border-[#ffffff12] space-y-2.5 text-xs">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-semibold text-[#f7f8f8]">{u.name}</div>
-                      <div className="text-[11px] font-mono text-[#8a8f98]">{u.email}</div>
+                      <div className="font-bold text-sm text-[#f7f8f8]">{u.name}</div>
+                      <div className="text-xs font-mono text-[#cbd5e1] font-medium">{u.email}</div>
                     </div>
                     <button
                       onClick={() => handleToggleStatus(u)}
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                      className={`px-2.5 py-1 rounded text-xs font-mono font-semibold border ${
                         u.isActive 
                           ? 'bg-[#4ade8010] text-[#4ade80] border-[#4ade8025]' 
-                          : 'bg-[#16191e] text-[#575c66] border-[#ffffff0e]'
+                          : 'bg-[#16191e] text-[#a1a1aa] border-[#ffffff0e]'
                       }`}
                     >
                       {u.isActive ? 'ATIVO' : 'BLOQUEADO'}
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] font-mono border-t border-[#ffffff08] pt-2">
-                    <span className="text-[#4ade80]">📱 {u.whatsappPhone || 'Sem WhatsApp'}</span>
+                  <div className="flex items-center justify-between text-xs font-mono border-t border-[#ffffff08] pt-2">
+                    <span className="text-[#4ade80] font-semibold">📱 {u.whatsappPhone || 'Sem WhatsApp'}</span>
                     <div className="flex items-center space-x-1">
                       <button 
                         onClick={() => handleOpenInvite(u)}
@@ -338,45 +338,45 @@ export default function UsuariosPage() {
 
             {/* Desktop Table (≥ 640px) */}
             <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="text-[#575c66] border-b border-[#ffffff0e] uppercase font-semibold text-[10px]">
+              <table className="w-full text-left text-xs sm:text-sm border-collapse">
+                <thead className="text-[#cbd5e1] border-b border-[#ffffff12] uppercase font-bold text-xs sm:text-sm bg-[#0c0e12]">
                   <tr>
-                    <th className="pb-3">Usuário Autorizado</th>
-                    <th className="pb-3">Email</th>
-                    <th className="pb-3">📱 WhatsApp IA</th>
-                    <th className="pb-3">Cargo</th>
-                    <th className="pb-3">Status</th>
-                    <th className="pb-3 text-right">Ações & Convite</th>
+                    <th className="py-3 px-4">Usuário Autorizado</th>
+                    <th className="py-3 px-4">Email</th>
+                    <th className="py-3 px-4">📱 WhatsApp IA</th>
+                    <th className="py-3 px-4">Cargo</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 text-right">Ações & Convite</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#ffffff0a]">
                   {filteredUsers.map((u) => (
                     <tr key={u.id} className="hover:bg-[#16191e] transition">
-                      <td className="py-3 font-medium text-[#f7f8f8]">{u.name}</td>
-                      <td className="py-3 font-mono text-[#8a8f98]">{u.email}</td>
-                      <td className="py-3 font-mono text-[#4ade80]">{u.whatsappPhone || 'Não informado'}</td>
-                      <td className="py-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
+                      <td className="py-3.5 px-4 font-bold text-[#f7f8f8]">{u.name}</td>
+                      <td className="py-3.5 px-4 font-mono text-[#cbd5e1] font-medium">{u.email}</td>
+                      <td className="py-3.5 px-4 font-mono text-[#4ade80] font-semibold">{u.whatsappPhone || 'Não informado'}</td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2.5 py-1 rounded text-xs font-mono font-semibold bg-[#16191e] border border-[#ffffff12] text-[#cbd5e1]">
                           {u.role}
                         </span>
                       </td>
-                      <td className="py-3">
+                      <td className="py-3.5 px-4">
                         <button
                           onClick={() => handleToggleStatus(u)}
-                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition ${
+                          className={`px-2.5 py-1 rounded text-xs font-mono font-semibold border transition ${
                             u.isActive 
                               ? 'bg-[#4ade8010] text-[#4ade80] border-[#4ade8025] hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20' 
-                              : 'bg-[#16191e] text-[#575c66] border-[#ffffff0e] hover:bg-[#4ade8010] hover:text-[#4ade80]'
+                              : 'bg-[#16191e] text-[#a1a1aa] border-[#ffffff0e] hover:bg-[#4ade8010] hover:text-[#4ade80]'
                           }`}
                           title="Clique para Ativar ou Bloquear acesso"
                         >
                           {u.isActive ? 'ATIVO' : 'BLOQUEADO'}
                         </button>
                       </td>
-                      <td className="py-3 text-right space-x-1.5">
+                      <td className="py-3.5 px-4 text-right space-x-1.5">
                         <button 
                           onClick={() => handleOpenInvite(u)}
-                          className="px-2 py-1 bg-[#5e6ad2]/20 hover:bg-[#5e6ad2]/30 text-[#6e7be2] rounded text-[11px] font-medium inline-flex items-center space-x-1 transition"
+                          className="px-3 py-1.5 bg-[#5e6ad2]/20 hover:bg-[#5e6ad2]/30 text-[#818cf8] border border-[#5e6ad240] rounded-md text-xs font-semibold inline-flex items-center space-x-1.5 transition"
                           title="Enviar Convite de Acesso"
                         >
                           <Send className="w-3 h-3" />

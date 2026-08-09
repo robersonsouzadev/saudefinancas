@@ -148,27 +148,27 @@ export default function WorkoutHistoryPage() {
                 <span className="text-[10px] text-[#818cf8] font-mono">{weeklyReport.period} • {weeklyReport.userName}</span>
               </div>
             </div>
-            <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#6366f120] text-[#818cf8] border border-[#6366f140] font-mono">
+            <span className="text-xs px-3 py-1 rounded-full bg-[#6366f120] text-[#818cf8] border border-[#6366f140] font-mono font-semibold">
               Volume: {weeklyReport.totalVolumeTons} ton
             </span>
           </div>
 
-          <p className="text-xs text-[#f7f8f8] leading-relaxed bg-[#080a0c]/60 p-3 rounded-xl border border-[#ffffff08]">
+          <p className="text-xs sm:text-sm text-[#f7f8f8] leading-relaxed bg-[#080a0c]/60 p-3.5 rounded-xl border border-[#ffffff08] font-medium">
             {weeklyReport.coachVerdict}
           </p>
 
           {/* Ranking SFR dos Exercícios */}
           {weeklyReport.topExercisesSFR?.length > 0 && (
-            <div className="space-y-2 pt-1">
-              <h4 className="text-xs font-semibold text-[#8a8f98]">Seus Exercícios Mais Eficientes (Relação Estímulo / Fadiga — SFR)</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="space-y-2.5 pt-1">
+              <h4 className="text-xs sm:text-sm font-bold text-[#cbd5e1]">Seus Exercícios Mais Eficientes (Relação Estímulo / Fadiga — SFR)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {weeklyReport.topExercisesSFR.map((sfr: any, idx: number) => (
-                  <div key={idx} className="p-2.5 rounded-lg bg-[#080a0c] border border-[#ffffff08] flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-semibold text-[#f7f8f8] block">{sfr.exerciseName}</span>
-                      <span className="text-[10px] text-[#8a8f98]">{sfr.tier} • RPE Médio: {sfr.avgRpe}</span>
+                  <div key={idx} className="p-3 rounded-lg bg-[#080a0c] border border-[#ffffff08] flex items-center justify-between text-xs sm:text-sm">
+                    <div className="space-y-0.5">
+                      <span className="font-bold text-[#f7f8f8] block">{sfr.exerciseName}</span>
+                      <span className="text-xs text-[#a1a1aa] font-medium">{sfr.tier} • RPE Médio: {sfr.avgRpe}</span>
                     </div>
-                    <span className="text-xs font-bold text-[#818cf8] font-mono">SFR {sfr.sfrScore}/10</span>
+                    <span className="text-xs sm:text-sm font-bold text-[#818cf8] font-mono">SFR {sfr.sfrScore}/10</span>
                   </div>
                 ))}
               </div>
@@ -179,12 +179,12 @@ export default function WorkoutHistoryPage() {
 
       {/* Lista de Sessões Realizadas */}
       <div className="space-y-4">
-        <h2 className="text-base font-semibold">Sessões Realizadas</h2>
+        <h2 className="text-base sm:text-lg font-bold">Sessões Realizadas</h2>
 
         {sessions.length === 0 ? (
           <div className="p-12 text-center bg-[#0f1115] border border-[#ffffff0e] rounded-2xl space-y-2">
-            <Calendar className="w-8 h-8 text-[#575c66] mx-auto" />
-            <p className="text-xs text-[#8a8f98]">Nenhum treino registrado no histórico ainda.</p>
+            <Calendar className="w-8 h-8 text-[#a1a1aa] mx-auto" />
+            <p className="text-sm text-[#a1a1aa]">Nenhum treino registrado no histórico ainda.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -197,12 +197,12 @@ export default function WorkoutHistoryPage() {
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ffffff0a] pb-3">
                     <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-xl bg-[#6366f115] border border-[#6366f130] flex items-center justify-center text-[#818cf8]">
-                        <Dumbbell className="w-4 h-4" />
+                      <div className="w-10 h-10 rounded-xl bg-[#6366f115] border border-[#6366f130] flex items-center justify-center text-[#818cf8]">
+                        <Dumbbell className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-sm text-[#f7f8f8]">{sess.title || 'Treino'}</h3>
-                        <span className="text-xs text-[#8a8f98]">
+                        <h3 className="font-bold text-base sm:text-lg text-[#f7f8f8]">{sess.title || 'Treino'}</h3>
+                        <span className="text-xs sm:text-sm text-[#cbd5e1] font-medium">
                           {startDate.toLocaleDateString('pt-BR', {
                             weekday: 'long',
                             day: '2-digit',

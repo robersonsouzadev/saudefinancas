@@ -131,85 +131,85 @@ export default function WorkoutAnalyticsPage() {
       ) : (
         <div className="space-y-6">
           {/* ===== SEÇÃO 1: KPI CARDS ===== */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {/* KPI 1: Treinos */}
-            <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-2 relative overflow-hidden">
-              <div className="flex items-center justify-between text-[#8a8f98]">
-                <span className="text-[10px] font-bold uppercase tracking-wider">🏋️ Total de Treinos</span>
+            <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-2 relative overflow-hidden">
+              <div className="flex items-center justify-between text-[#cbd5e1]">
+                <span className="text-xs sm:text-sm font-bold uppercase tracking-wider">🏋️ Total de Treinos</span>
                 {analytics.kpis.workoutsChange !== 0 && (
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+                    className={`text-xs font-mono font-bold px-2 py-0.5 rounded flex items-center gap-0.5 ${
                       analytics.kpis.workoutsChange >= 0
-                        ? 'bg-emerald-500/10 text-emerald-400'
-                        : 'bg-red-500/10 text-red-400'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
                     }`}
                   >
-                    {analytics.kpis.workoutsChange >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {analytics.kpis.workoutsChange >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                     {analytics.kpis.workoutsChange > 0 ? '+' : ''}{analytics.kpis.workoutsChange}%
                   </span>
                 )}
               </div>
-              <div className="text-2xl font-bold font-mono text-[#f7f8f8]">
-                {analytics.kpis.totalWorkouts} <span className="text-xs font-normal text-[#8a8f98]">sessões</span>
+              <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f7f8f8]">
+                {analytics.kpis.totalWorkouts} <span className="text-xs font-normal text-[#a1a1aa]">sessões</span>
               </div>
-              <span className="text-[10px] text-[#575c66] block">nos últimos {analytics.rangeDays} dias</span>
+              <span className="text-xs text-[#a1a1aa] font-medium block">nos últimos {analytics.rangeDays} dias</span>
             </div>
 
             {/* KPI 2: Volume Total */}
-            <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-2 relative overflow-hidden">
-              <div className="flex items-center justify-between text-[#8a8f98]">
-                <span className="text-[10px] font-bold uppercase tracking-wider">📊 Volume Total (kg)</span>
+            <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-2 relative overflow-hidden">
+              <div className="flex items-center justify-between text-[#cbd5e1]">
+                <span className="text-xs sm:text-sm font-bold uppercase tracking-wider">📊 Volume Total (kg)</span>
                 {analytics.kpis.volumeChange !== 0 && (
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+                    className={`text-xs font-mono font-bold px-2 py-0.5 rounded flex items-center gap-0.5 ${
                       analytics.kpis.volumeChange >= 0
-                        ? 'bg-emerald-500/10 text-emerald-400'
-                        : 'bg-red-500/10 text-red-400'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
                     }`}
                   >
-                    {analytics.kpis.volumeChange >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {analytics.kpis.volumeChange >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                     {analytics.kpis.volumeChange > 0 ? '+' : ''}{analytics.kpis.volumeChange}%
                   </span>
                 )}
               </div>
-              <div className="text-2xl font-bold font-mono text-[#818cf8]">
+              <div className="text-2xl sm:text-3xl font-bold font-mono text-[#818cf8]">
                 {(analytics.kpis.totalVolume / 1000).toFixed(1)}t
               </div>
-              <span className="text-[10px] text-[#575c66] block">Carga total levantada ({analytics.kpis.totalVolume.toLocaleString('pt-BR')} kg)</span>
+              <span className="text-xs text-[#a1a1aa] font-medium block">Carga total ({analytics.kpis.totalVolume.toLocaleString('pt-BR')} kg)</span>
             </div>
 
             {/* KPI 3: Calorias Gastas */}
-            <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-2 relative overflow-hidden">
-              <div className="flex items-center justify-between text-[#8a8f98]">
-                <span className="text-[10px] font-bold uppercase tracking-wider">🔥 Calorias Burned</span>
+            <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-2 relative overflow-hidden">
+              <div className="flex items-center justify-between text-[#cbd5e1]">
+                <span className="text-xs sm:text-sm font-bold uppercase tracking-wider">🔥 Calorias Burned</span>
                 {analytics.kpis.caloriesChange !== 0 && (
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+                    className={`text-xs font-mono font-bold px-2 py-0.5 rounded flex items-center gap-0.5 ${
                       analytics.kpis.caloriesChange >= 0
-                        ? 'bg-emerald-500/10 text-emerald-400'
-                        : 'bg-red-500/10 text-red-400'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
                     }`}
                   >
-                    {analytics.kpis.caloriesChange >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {analytics.kpis.caloriesChange >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                     {analytics.kpis.caloriesChange > 0 ? '+' : ''}{analytics.kpis.caloriesChange}%
                   </span>
                 )}
               </div>
-              <div className="text-2xl font-bold font-mono text-[#f97316]">
-                {analytics.kpis.totalCalories.toLocaleString('pt-BR')} <span className="text-xs font-normal text-[#8a8f98]">kcal</span>
+              <div className="text-2xl sm:text-3xl font-bold font-mono text-[#f97316]">
+                {analytics.kpis.totalCalories.toLocaleString('pt-BR')} <span className="text-xs font-normal text-[#a1a1aa]">kcal</span>
               </div>
-              <span className="text-[10px] text-[#575c66] block">Estimativa MET metabolic fitness</span>
+              <span className="text-xs text-[#a1a1aa] font-medium block">Estimativa MET metabolic fitness</span>
             </div>
 
             {/* KPI 4: Tempo Total */}
-            <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-2 relative overflow-hidden">
-              <div className="flex items-center justify-between text-[#8a8f98]">
-                <span className="text-[10px] font-bold uppercase tracking-wider">⏱️ Duração em Treino</span>
+            <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff0e] space-y-2 relative overflow-hidden">
+              <div className="flex items-center justify-between text-[#cbd5e1]">
+                <span className="text-xs sm:text-sm font-bold uppercase tracking-wider">⏱️ Duração em Treino</span>
               </div>
-              <div className="text-2xl font-bold font-mono text-[#38bdf8]">
+              <div className="text-2xl sm:text-3xl font-bold font-mono text-[#38bdf8]">
                 {Math.floor(analytics.kpis.totalDurationMin / 60)}h {analytics.kpis.totalDurationMin % 60}m
               </div>
-              <span className="text-[10px] text-[#575c66] block">Média de {analytics.kpis.avgDurationMin} min por sessão</span>
+              <span className="text-xs text-[#a1a1aa] font-medium block">Média de {analytics.kpis.avgDurationMin} min por sessão</span>
             </div>
           </div>
 

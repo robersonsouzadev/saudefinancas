@@ -354,19 +354,19 @@ export default function AgentesPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="space-y-2">
-                <p className="font-semibold uppercase tracking-wider text-[#8a8f98] text-[10px]">System Prompt Original</p>
-                <div className="bg-[#16191e] border border-[#ffffff0e] rounded-xl p-3.5 text-[#8a8f98] font-mono leading-relaxed max-h-72 overflow-y-auto whitespace-pre-wrap">
+            <div className="flex-1 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <p className="font-bold uppercase tracking-wider text-[#cbd5e1] text-xs">System Prompt Original</p>
+                <div className="bg-[#16191e] border border-[#ffffff0e] rounded-xl p-3.5 text-[#cbd5e1] font-mono text-xs leading-relaxed max-h-72 overflow-y-auto whitespace-pre-wrap">
                   {optimizeResult.original}
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <p className="font-semibold uppercase tracking-wider text-[#4ade80] text-[10px] flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" /> Prompt Otimizado (IA)
+              <div className="space-y-1.5">
+                <p className="font-bold uppercase tracking-wider text-[#4ade80] text-xs flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5" /> Prompt Sugerido pela IA
                 </p>
-                <div className="bg-[#5e6ad210] border border-[#5e6ad230] rounded-xl p-3.5 text-[#f7f8f8] font-mono leading-relaxed max-h-72 overflow-y-auto whitespace-pre-wrap">
+                <div className="bg-[#5e6ad210] border border-[#5e6ad230] rounded-xl p-3.5 text-[#f7f8f8] font-mono text-xs leading-relaxed max-h-72 overflow-y-auto whitespace-pre-wrap">
                   {optimizeResult.optimized}
                 </div>
               </div>
@@ -520,13 +520,13 @@ export default function AgentesPage() {
               
               {/* Nome do Agente */}
               <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome do Agente</label>
+                <label className="block text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase mb-1">Nome do Agente</label>
                 <input 
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="ex: Dra. Maya — Saúde & Longevidade"
-                  className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs sm:text-sm text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
                   required
                 />
               </div>
@@ -534,14 +534,14 @@ export default function AgentesPage() {
               {/* System Prompt com Botão Otimizar com IA */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase">
+                  <label className="block text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase">
                     Contexto (System Prompt / Instruções)
                   </label>
                   <button
                     type="button"
                     onClick={handleOptimizePrompt}
                     disabled={optimizing}
-                    className="px-2.5 py-1 bg-[#5e6ad215] hover:bg-[#5e6ad225] border border-[#5e6ad240] text-[#5e6ad2] rounded-md text-[11px] font-semibold flex items-center gap-1 transition disabled:opacity-50"
+                    className="px-2.5 py-1 bg-[#5e6ad215] hover:bg-[#5e6ad225] border border-[#5e6ad240] text-[#5e6ad2] rounded-md text-xs font-semibold flex items-center gap-1 transition disabled:opacity-50"
                   >
                     {optimizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                     <span>{optimizing ? 'Otimizando...' : '✨ Otimizar com IA'}</span>
@@ -552,7 +552,7 @@ export default function AgentesPage() {
                   value={systemPrompt}
                   onChange={(e) => setSystemPrompt(e.target.value)}
                   placeholder="Instruções fundamentais para o comportamento e limites da persona..."
-                  className="w-full p-3.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] font-mono leading-relaxed focus:outline-none focus:border-[#5e6ad2] resize-none"
+                  className="w-full p-3.5 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs sm:text-sm text-[#f7f8f8] font-mono leading-relaxed focus:outline-none focus:border-[#5e6ad2] resize-none"
                   required
                 />
               </div>
@@ -560,7 +560,7 @@ export default function AgentesPage() {
               {/* Seleção de Provedor & Modelo */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Provedor de IA</label>
+                  <label className="block text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase mb-1">Provedor de IA</label>
                   <select 
                     value={providerType}
                     onChange={(e) => {
@@ -568,7 +568,7 @@ export default function AgentesPage() {
                       const defaultM = PROVIDER_MODELS[e.target.value]?.[0]?.value || 'gpt-4o-mini';
                       setModelName(defaultM);
                     }}
-                    className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                    className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs sm:text-sm text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
                   >
                     <option value="openai">OpenAI</option>
                     <option value="anthropic">Anthropic Claude</option>
@@ -578,11 +578,11 @@ export default function AgentesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Modelo LLM</label>
+                  <label className="block text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase mb-1">Modelo LLM</label>
                   <select 
                     value={modelName}
                     onChange={(e) => setModelName(e.target.value)}
-                    className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                    className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs sm:text-sm text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
                   >
                     {(PROVIDER_MODELS[providerType] || PROVIDER_MODELS.openai).map(m => (
                       <option key={m.value} value={m.value}>{m.label}</option>
@@ -595,7 +595,7 @@ export default function AgentesPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <label className="text-[11px] font-semibold text-[#8a8f98] uppercase">Temperatura (Criatividade)</label>
+                    <label className="text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase">Temperatura (Criatividade)</label>
                     <span className="text-xs font-mono font-bold text-[#5e6ad2]">{temperature}</span>
                   </div>
                   <input 
@@ -611,13 +611,13 @@ export default function AgentesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Departamento / Função</label>
+                  <label className="block text-xs sm:text-sm font-bold text-[#cbd5e1] uppercase mb-1">Departamento / Função</label>
                   <input 
                     type="text" 
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                     placeholder="ex: Saúde, Finanças, Nutrição"
-                    className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                    className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs sm:text-sm text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
                   />
                 </div>
               </div>
@@ -627,8 +627,8 @@ export default function AgentesPage() {
                 <div className="flex items-center space-x-2.5">
                   <PhoneCall className="w-4 h-4 text-[#4ade80]" />
                   <div>
-                    <h4 className="text-xs font-semibold text-[#f7f8f8]">Atendimento WhatsApp (UazAPI)</h4>
-                    <p className="text-[10px] text-[#8a8f98]">Permitir que este agente responda mensagens no canal oficial WhatsApp.</p>
+                    <h4 className="text-xs sm:text-sm font-bold text-[#f7f8f8]">Atendimento WhatsApp (UazAPI)</h4>
+                    <p className="text-xs text-[#cbd5e1]">Permitir que este agente responda mensagens no canal oficial WhatsApp.</p>
                   </div>
                 </div>
                 <input 

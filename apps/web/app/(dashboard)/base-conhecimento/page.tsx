@@ -103,8 +103,8 @@ export default function BaseConhecimentoPage() {
         title="Base de Conhecimento (RAG Vetorial)"
         subtitle="Memória semântica vetorial (pgvector) para consultas dos agentes"
         actions={
-          <label className="h-8 px-3 rounded-md bg-[#f7f8f8] hover:bg-[#e1e2e2] text-[#080a0c] font-medium text-xs flex items-center space-x-1.5 transition shadow-sm cursor-pointer">
-            <Upload className="w-3.5 h-3.5" />
+          <label className="h-9 px-4 rounded-md bg-[#f7f8f8] hover:bg-[#e1e2e2] text-[#080a0c] font-semibold text-xs sm:text-sm flex items-center space-x-1.5 transition shadow-sm cursor-pointer">
+            <Upload className="w-4 h-4" />
             <span>Upload de Documento</span>
             <input type="file" onChange={handleSimulatedUpload} className="hidden" accept=".pdf,.txt,.md" />
           </label>
@@ -112,19 +112,19 @@ export default function BaseConhecimentoPage() {
       />
 
       {/* Upload Dropzone Container */}
-      <Card padding="expanded" className="border-dashed text-center flex flex-col items-center justify-center">
-        <div className="w-10 h-10 rounded-md bg-surface border border-subtle flex items-center justify-center text-tertiary mb-1">
-          <FileText className="w-5 h-5" />
+      <Card padding="expanded" className="border-dashed text-center flex flex-col items-center justify-center space-y-2">
+        <div className="w-12 h-12 rounded-lg bg-surface border border-subtle flex items-center justify-center text-accent mb-1">
+          <FileText className="w-6 h-6" />
         </div>
 
         <div>
-          <h3 className="font-semibold text-sm text-primary">Arraste manuais, exames ou planilhas em PDF / TXT / MD</h3>
-          <p className="text-xs text-secondary mt-1 max-w-md">
+          <h3 className="font-bold text-base text-primary">Arraste manuais, exames ou planilhas em PDF / TXT / MD</h3>
+          <p className="text-sm text-[#cbd5e1] mt-1 max-w-md">
             O sistema faz a fragmentação automática em chunks e gera os embeddings vetoriais (text-embedding-3-small) no PostgreSQL.
           </p>
         </div>
 
-        <label className="mt-3 h-8 px-3 rounded-md bg-surface hover:bg-elevated border border-subtle text-xs font-medium text-primary cursor-pointer transition flex items-center space-x-1.5">
+        <label className="mt-3 h-9 px-4 rounded-md bg-surface hover:bg-elevated border border-subtle text-xs sm:text-sm font-semibold text-primary cursor-pointer transition flex items-center space-x-1.5">
           <span>{uploading ? 'Processando Embeddings...' : 'Selecionar Arquivo'}</span>
           <input type="file" onChange={handleSimulatedUpload} className="hidden" accept=".pdf,.txt,.md" />
         </label>
@@ -133,41 +133,41 @@ export default function BaseConhecimentoPage() {
       {/* Indexed Documents Table */}
       <Card padding="standard">
         <div className="flex items-center justify-between border-b border-subtle pb-3">
-          <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
-            <Database className="w-4 h-4 text-accent" />
+          <h3 className="text-base font-bold text-primary flex items-center gap-2">
+            <Database className="w-5 h-5 text-accent" />
             <span>Documentos Indexados na Memória Vetorial</span>
           </h3>
           <Badge variant="neutral">{docs.length} arquivos</Badge>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2.5 pt-2">
           {docs.map((doc) => (
             <div
               key={doc.id}
-              className="p-3 bg-surface border border-subtle rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-hover transition"
+              className="p-3.5 bg-surface border border-subtle rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-hover transition"
             >
               <div className="flex items-center space-x-3 min-w-0">
-                <div className="w-8 h-8 rounded bg-canvas border border-subtle flex items-center justify-center font-mono font-bold text-[10px] text-warning shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-canvas border border-subtle flex items-center justify-center font-mono font-bold text-xs text-warning shrink-0">
                   {doc.fileType}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-medium text-xs text-primary truncate">{doc.title}</h4>
-                  <span className="text-[11px] text-secondary block truncate">
-                    Vinculado ao Agente: <strong className="text-primary">{doc.agentName}</strong> ·{' '}
-                    <span className="font-mono text-accent">{doc.totalChunks} chunks vetoriais</span>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <h4 className="font-bold text-sm sm:text-base text-primary truncate">{doc.title}</h4>
+                  <span className="text-xs text-[#cbd5e1] block truncate font-medium">
+                    Vinculado ao Agente: <strong className="text-primary font-bold">{doc.agentName}</strong> ·{' '}
+                    <span className="font-mono text-accent font-semibold">{doc.totalChunks} chunks vetoriais</span>
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between sm:justify-end space-x-3 text-xs font-mono text-secondary pt-2 sm:pt-0 border-t sm:border-t-0 border-subtle">
+              <div className="flex items-center justify-between sm:justify-end space-x-3 text-xs font-mono text-[#a1a1aa] font-medium pt-2 sm:pt-0 border-t sm:border-t-0 border-subtle">
                 <span>{doc.createdAt}</span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleDelete(doc.id)}
-                  className="text-tertiary hover:text-error min-h-[36px] min-w-[36px] sm:h-7 sm:w-7 p-0 flex items-center justify-center"
+                  className="text-tertiary hover:text-error min-h-[36px] min-w-[36px] sm:h-8 sm:w-8 p-0 flex items-center justify-center"
                 >
-                  <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>

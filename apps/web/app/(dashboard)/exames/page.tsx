@@ -162,25 +162,24 @@ function BiomarkerGaugeBar({ value, refMin, refMax, optMin, optMax, status }: {
   const refMaxPos = refMax !== undefined ? toPercent(refMax) : 100;
   
   return (
-    <div className="w-full h-3 relative rounded-full overflow-hidden bg-[#1a1d23]">
+    <div className="w-full h-3.5 sm:h-4 relative rounded-full overflow-hidden bg-[#181b22] border border-[#ffffff15] shadow-inner">
       {/* Critical low zone */}
-      <div className="absolute h-full bg-[#f8717120] rounded-l-full" style={{ left: '0%', width: `${refMinPos}%` }} />
+      <div className="absolute h-full bg-[#f8717125] rounded-l-full" style={{ left: '0%', width: `${refMinPos}%` }} />
       {/* Normal zone */}
-      <div className="absolute h-full bg-[#4ade8018]" style={{ left: `${refMinPos}%`, width: `${refMaxPos - refMinPos}%` }} />
+      <div className="absolute h-full bg-[#4ade8030]" style={{ left: `${refMinPos}%`, width: `${refMaxPos - refMinPos}%` }} />
       {/* Critical high zone */}
-      <div className="absolute h-full bg-[#f8717120] rounded-r-full" style={{ left: `${refMaxPos}%`, width: `${100 - refMaxPos}%` }} />
+      <div className="absolute h-full bg-[#f8717125] rounded-r-full" style={{ left: `${refMaxPos}%`, width: `${100 - refMaxPos}%` }} />
       {/* Reference borders */}
-      <div className="absolute h-full w-px bg-[#4ade8040]" style={{ left: `${refMinPos}%` }} />
-      <div className="absolute h-full w-px bg-[#4ade8040]" style={{ left: `${refMaxPos}%` }} />
+      <div className="absolute h-full w-0.5 bg-[#4ade8080]" style={{ left: `${refMinPos}%` }} />
+      <div className="absolute h-full w-0.5 bg-[#4ade8080]" style={{ left: `${refMaxPos}%` }} />
       {/* Value marker */}
       <div 
-        className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 shadow-lg transition-all duration-700"
+        className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-white shadow-xl transition-all duration-700 z-10"
         style={{ 
           left: `${valuePos}%`, 
           transform: `translate(-50%, -50%)`,
-          backgroundColor: status === 'OTIMO' || status === 'NORMAL' ? '#4ade80' : status === 'ALTO' || status === 'BAIXO' ? '#fbbf24' : '#f87171',
-          borderColor: status === 'OTIMO' || status === 'NORMAL' ? '#4ade80' : status === 'ALTO' || status === 'BAIXO' ? '#fbbf24' : '#f87171',
-          boxShadow: `0 0 8px ${status === 'OTIMO' || status === 'NORMAL' ? '#4ade8060' : status === 'ALTO' || status === 'BAIXO' ? '#fbbf2460' : '#f8717160'}`,
+          backgroundColor: status === 'OTIMO' || status === 'NORMAL' ? '#4ade80' : status === 'ALTO' || status === 'BAIXO' ? '#facc15' : '#f87171',
+          boxShadow: `0 0 12px ${status === 'OTIMO' || status === 'NORMAL' ? '#4ade80' : status === 'ALTO' || status === 'BAIXO' ? '#facc15' : '#f87171'}`,
         }}
       />
     </div>
@@ -611,19 +610,19 @@ export default function LabExamsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'OTIMO':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#4ade8015] border border-[#4ade8030] text-[#4ade80]">🟢 Ótimo</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#4ade8015] border border-[#4ade8040] text-[#4ade80]">🟢 Ótimo</span>;
       case 'NORMAL':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#38bdf815] border border-[#38bdf830] text-[#38bdf8]">🔵 Normal</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#38bdf815] border border-[#38bdf840] text-[#38bdf8]">🔵 Normal</span>;
       case 'ALTO':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#fbbf2415] border border-[#fbbf2430] text-[#fbbf24]">🟡 Levemente Alto</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#fbbf2415] border border-[#fbbf2440] text-[#facc15]">🟡 Levemente Alto</span>;
       case 'CRITICO_ALTO':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#f8717115] border border-[#f8717130] text-[#f87171]">🔴 Crítico Alto</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#f8717115] border border-[#f8717140] text-[#f87171]">🔴 Crítico Alto</span>;
       case 'BAIXO':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#fbbf2415] border border-[#fbbf2430] text-[#fbbf24]">🟡 Levemente Baixo</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#fbbf2415] border border-[#fbbf2440] text-[#facc15]">🟡 Levemente Baixo</span>;
       case 'CRITICO_BAIXO':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#f8717115] border border-[#f8717130] text-[#f87171]">🔴 Crítico Baixo</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#f8717115] border border-[#f8717140] text-[#f87171]">🔴 Crítico Baixo</span>;
       default:
-        return <span className="px-2 py-0.5 rounded text-[10px] text-[#8a8f98] bg-[#16191e]">Normal</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold text-[#cbd5e1] bg-[#16191e] border border-[#ffffff12]">Normal</span>;
     }
   };
 
@@ -827,64 +826,64 @@ export default function LabExamsPage() {
         </div>
 
         {/* Total Biomarkers */}
-        <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff12]">
-          <div className="flex items-center justify-between text-xs text-[#8a8f98]">
+        <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff12]">
+          <div className="flex items-center justify-between text-xs sm:text-sm text-[#cbd5e1] font-semibold">
             <span>Biomarcadores</span>
             <BarChart3 className="w-4 h-4 text-[#38bdf8]" />
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-[#f7f8f8] font-mono">{summary?.totalBiomarkers || 0}</span>
-            <span className="text-[10px] text-[#8a8f98]">em {summary?.totalExams || 0} exames</span>
+            <span className="text-2xl sm:text-3xl font-bold text-[#f7f8f8] font-mono">{summary?.totalBiomarkers || 0}</span>
+            <span className="text-xs text-[#cbd5e1] font-medium">em {summary?.totalExams || 0} exames</span>
           </div>
           {/* Progress bar: % optimal */}
-          <div className="mt-1.5 w-full h-1.5 rounded-full bg-[#1a1d23] overflow-hidden">
+          <div className="mt-2 w-full h-2 rounded-full bg-[#1a1d23] overflow-hidden">
             <div 
               className="h-full rounded-full bg-gradient-to-r from-[#4ade80] to-[#38bdf8] transition-all duration-1000"
               style={{ width: `${summary?.totalBiomarkers ? Math.round(((summary?.optimalCount || 0) / summary.totalBiomarkers) * 100) : 0}%` }}
             />
           </div>
-          <p className="text-[10px] text-[#4ade80] mt-1">
+          <p className="text-xs font-semibold text-[#4ade80] mt-1.5">
             {summary?.optimalCount || 0} em zona ótima 🟢
           </p>
         </div>
 
         {/* Attention Items */}
-        <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff12]">
-          <div className="flex items-center justify-between text-xs text-[#8a8f98]">
+        <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff12]">
+          <div className="flex items-center justify-between text-xs sm:text-sm text-[#cbd5e1] font-semibold">
             <span>Pontos Atenção</span>
             <Zap className="w-4 h-4 text-[#fbbf24]" />
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-[#fbbf24] font-mono">{summary?.attentionCount || 0}</span>
-            <span className="text-[10px] text-[#8a8f98]">fora da zona</span>
+            <span className="text-2xl sm:text-3xl font-bold text-[#fbbf24] font-mono">{summary?.attentionCount || 0}</span>
+            <span className="text-xs text-[#cbd5e1] font-medium">fora da zona</span>
           </div>
-          <p className="text-[10px] text-[#8a8f98] mt-1">Requer ajuste de estilo de vida</p>
+          <p className="text-xs text-[#a1a1aa] mt-1">Requer ajuste de estilo de vida</p>
         </div>
 
         {/* Trend Card */}
-        <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff12]">
-          <div className="flex items-center justify-between text-xs text-[#8a8f98]">
+        <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff12]">
+          <div className="flex items-center justify-between text-xs sm:text-sm text-[#cbd5e1] font-semibold">
             <span>Tendência</span>
             <TrendingUp className="w-4 h-4 text-[#4ade80]" />
           </div>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className={`text-2xl font-bold font-mono ${String(trendValue).startsWith('-') ? 'text-[#f87171]' : 'text-[#4ade80]'}`}>
+            <span className={`text-2xl sm:text-3xl font-bold font-mono ${String(trendValue).startsWith('-') ? 'text-[#f87171]' : 'text-[#4ade80]'}`}>
               {String(trendValue).startsWith('-') || String(trendValue).startsWith('+') ? trendValue : `+${trendValue}`}
             </span>
-            <span className="text-[10px] text-[#8a8f98]">pts</span>
+            <span className="text-xs text-[#cbd5e1] font-medium">pts</span>
           </div>
-          <p className="text-[10px] text-[#8a8f98] mt-1">vs exame anterior</p>
+          <p className="text-xs text-[#a1a1aa] mt-1">vs exame anterior</p>
         </div>
 
         {/* Next Checkup */}
-        <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff12]">
-          <div className="flex items-center justify-between text-xs text-[#8a8f98]">
+        <div className="p-4 sm:p-5 rounded-xl bg-[#0f1115] border border-[#ffffff12]">
+          <div className="flex items-center justify-between text-xs sm:text-sm text-[#cbd5e1] font-semibold">
             <span>Próximo Check-up</span>
             <Calendar className="w-4 h-4 text-[#c084fc]" />
           </div>
           <div className="mt-2">
-            <span className="text-sm font-semibold text-[#f7f8f8] block">{nextCheckup}</span>
-            <span className="text-[10px] text-[#8a8f98]">{latestExam?.laboratory || 'Laboratório'}</span>
+            <span className="text-sm sm:text-base font-bold text-[#f7f8f8] block">{nextCheckup}</span>
+            <span className="text-xs text-[#a1a1aa]">{latestExam?.laboratory || 'Laboratório'}</span>
           </div>
         </div>
       </div>
@@ -900,52 +899,52 @@ export default function LabExamsPage() {
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-[#f7f8f8]">Vita IA — Seu Relatório de Saúde</h2>
-              <p className="text-[10px] text-[#8a8f98]">Resumo inteligente dos seus exames em linguagem simples</p>
+              <h2 className="text-base sm:text-lg font-bold text-[#f7f8f8]">Vita IA — Seu Relatório de Saúde</h2>
+              <p className="text-xs sm:text-sm text-[#cbd5e1] mt-0.5">Resumo inteligente dos seus exames em linguagem simples</p>
             </div>
           </div>
-          <span className="text-[10px] font-mono text-[#5e6ad2] bg-[#5e6ad215] border border-[#5e6ad230] px-2 py-0.5 rounded-full">
+          <span className="text-xs font-mono font-semibold text-[#818cf8] bg-[#5e6ad215] border border-[#5e6ad230] px-3 py-1 rounded-full">
             GPT-4o
           </span>
         </div>
 
         {/* AI Summary Text */}
-        <div className="p-4 rounded-xl bg-[#16191e80] backdrop-blur-sm border border-[#ffffff08] relative z-10">
+        <div className="p-4 sm:p-5 rounded-xl bg-[#16191e80] backdrop-blur-sm border border-[#ffffff12] relative z-10">
           {isLoadingAI ? (
-            <div className="flex items-center gap-2 text-xs text-[#8a8f98]">
-              <RefreshCw className="w-4 h-4 animate-spin text-[#5e6ad2]" />
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-[#cbd5e1]">
+              <RefreshCw className="w-4 h-4 animate-spin text-[#818cf8]" />
               <span>Vita IA analisando seus exames...</span>
             </div>
           ) : (
-            <p className="text-xs text-[#c4c7cd] leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#e2e8f0] leading-relaxed font-medium">
               {aiSummary?.summary || latestExam?.aiInsight || 'Envie um exame para receber sua análise personalizada pela Vita IA.'}
             </p>
           )}
         </div>
 
         {/* Three Columns: Good / Attention / Tips */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 relative z-10">
           {/* ✅ Good News */}
-          <div className="p-3.5 rounded-xl bg-[#4ade800a] border border-[#4ade8020] space-y-2 flex flex-col justify-between">
+          <div className="p-4 rounded-xl bg-[#4ade800a] border border-[#4ade8025] space-y-2.5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] uppercase tracking-wider text-[#4ade80] font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> O que está ótimo
+                <p className="text-xs uppercase tracking-wider text-[#4ade80] font-bold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" /> O que está ótimo
                 </p>
                 {aiSummary?.goodNews && aiSummary.goodNews.length > 0 && (
-                  <span className="text-[10px] font-semibold text-[#4ade80] bg-[#4ade8015] px-1.5 py-0.5 rounded">
+                  <span className="text-xs font-bold text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
                     {aiSummary.goodNews.length} marcadores
                   </span>
                 )}
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {(() => {
                   const items = aiSummary?.goodNews || ['Carregando marcadores em nível ótimo...'];
                   const visible = expandedGoodNews ? items : items.slice(0, 4);
                   return (
                     <>
                       {visible.map((item, i) => (
-                        <p key={i} className="text-[11px] text-[#c4c7cd] flex items-start gap-1.5 leading-snug">
+                        <p key={i} className="text-xs sm:text-sm text-[#e2e8f0] flex items-start gap-2 leading-relaxed">
                           <span className="text-[#4ade80] shrink-0 font-bold">✓</span>
                           <span>{item}</span>
                         </p>
@@ -953,7 +952,7 @@ export default function LabExamsPage() {
                       {items.length > 4 && (
                         <button
                           onClick={() => setExpandedGoodNews(!expandedGoodNews)}
-                          className="text-[10px] font-semibold text-[#4ade80] hover:underline mt-1 block"
+                          className="text-xs font-bold text-[#4ade80] hover:underline mt-2 block"
                         >
                           {expandedGoodNews ? '▲ Recolher' : `▼ Ver todos (${items.length - 4} mais)`}
                         </button>
@@ -966,26 +965,26 @@ export default function LabExamsPage() {
           </div>
 
           {/* ⚠️ Attention */}
-          <div className="p-3.5 rounded-xl bg-[#fbbf240a] border border-[#fbbf2420] space-y-2 flex flex-col justify-between">
+          <div className="p-4 rounded-xl bg-[#fbbf240a] border border-[#fbbf2425] space-y-2.5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] uppercase tracking-wider text-[#fbbf24] font-bold flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5" /> Pontos de atenção
+                <p className="text-xs uppercase tracking-wider text-[#fbbf24] font-bold flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4" /> Pontos de atenção
                 </p>
                 {aiSummary?.attentionItems && aiSummary.attentionItems.length > 0 && (
-                  <span className="text-[10px] font-semibold text-[#fbbf24] bg-[#fbbf2415] px-1.5 py-0.5 rounded">
+                  <span className="text-xs font-bold text-[#fbbf24] bg-[#fbbf2415] px-2 py-0.5 rounded border border-[#fbbf2430]">
                     {aiSummary.attentionItems.length} alertas
                   </span>
                 )}
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {(() => {
                   const items = aiSummary?.attentionItems || ['Nenhum ponto de atenção no momento'];
                   const visible = expandedAttention ? items : items.slice(0, 4);
                   return (
                     <>
                       {visible.map((item, i) => (
-                        <p key={i} className="text-[11px] text-[#c4c7cd] flex items-start gap-1.5 leading-snug">
+                        <p key={i} className="text-xs sm:text-sm text-[#e2e8f0] flex items-start gap-2 leading-relaxed">
                           <span className="text-[#fbbf24] shrink-0 font-bold">⚠</span>
                           <span>{typeof item === 'string' ? item : `${item}`}</span>
                         </p>
@@ -993,7 +992,7 @@ export default function LabExamsPage() {
                       {items.length > 4 && (
                         <button
                           onClick={() => setExpandedAttention(!expandedAttention)}
-                          className="text-[10px] font-semibold text-[#fbbf24] hover:underline mt-1 block"
+                          className="text-xs font-bold text-[#fbbf24] hover:underline mt-2 block"
                         >
                           {expandedAttention ? '▲ Recolher' : `▼ Ver todos (${items.length - 4} mais)`}
                         </button>
@@ -1006,21 +1005,21 @@ export default function LabExamsPage() {
           </div>
 
           {/* 💡 Tips */}
-          <div className="p-3.5 rounded-xl bg-[#5e6ad20a] border border-[#5e6ad220] space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-[#5e6ad2] font-bold flex items-center gap-1 mb-2">
-              <Lightbulb className="w-3.5 h-3.5" /> Dicas para melhorar
+          <div className="p-4 rounded-xl bg-[#5e6ad20a] border border-[#5e6ad225] space-y-2.5">
+            <p className="text-xs uppercase tracking-wider text-[#818cf8] font-bold flex items-center gap-1.5 mb-2">
+              <Lightbulb className="w-4 h-4" /> Dicas para melhorar
             </p>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {(aiSummary?.tips || [
                 { icon: '🥗', title: 'Alimentação', description: 'Aumente fibras e reduza açúcares' },
                 { icon: '🏋️', title: 'Exercícios', description: 'Mantenha atividade física regular' },
                 { icon: '😴', title: 'Sono', description: 'Garanta 7-8h de sono por noite' },
               ]).slice(0, 4).map((tip, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <span className="text-sm shrink-0">{tip.icon}</span>
+                <div key={i} className="flex items-start gap-2.5">
+                  <span className="text-base shrink-0">{tip.icon}</span>
                   <div>
-                    <p className="text-[11px] font-semibold text-[#f7f8f8]">{tip.title}</p>
-                    <p className="text-[10px] text-[#8a8f98] leading-tight">{tip.description}</p>
+                    <p className="text-xs sm:text-sm font-bold text-[#f7f8f8]">{tip.title}</p>
+                    <p className="text-xs text-[#cbd5e1] leading-relaxed">{tip.description}</p>
                   </div>
                 </div>
               ))}
@@ -1095,9 +1094,9 @@ export default function LabExamsPage() {
             {radarData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
-                  <PolarGrid stroke="#ffffff10" />
-                  <PolarAngleAxis dataKey="category" tick={{ fill: '#8a8f98', fontSize: 10 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#575c66', fontSize: 9 }} />
+                  <PolarGrid stroke="#ffffff20" />
+                  <PolarAngleAxis dataKey="category" tick={{ fill: '#cbd5e1', fontSize: 13, fontWeight: '600' }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 11 }} />
                   <Radar
                     name="Score (%)"
                     dataKey="score"
@@ -1125,7 +1124,7 @@ export default function LabExamsPage() {
               <TrendingUp className="w-4 h-4 text-[#5e6ad2]" />
               <span>Gráfico de Tendência Longitudinal</span>
             </h2>
-            <p className="text-[11px] text-[#8a8f98]">Evolução temporal com zonas de referência</p>
+            <p className="text-xs sm:text-sm text-[#cbd5e1] mt-0.5">Evolução temporal com zonas de referência</p>
           </div>
 
           {/* Dynamic Biomarker Selector */}
@@ -1138,10 +1137,10 @@ export default function LabExamsPage() {
               <button
                 key={item.key}
                 onClick={() => setSelectedBiomarker(item.key)}
-                className={`px-2.5 py-1 rounded-md text-[10px] font-medium transition ${
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${
                   selectedBiomarker === item.key
-                    ? 'bg-[#5e6ad2] text-white'
-                    : 'bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8]'
+                    ? 'bg-[#5e6ad2] text-white shadow-sm'
+                    : 'bg-[#16191e] text-[#cbd5e1] hover:text-[#f7f8f8] hover:bg-[#1f232b]'
                 }`}
               >
                 {item.label}
@@ -1149,7 +1148,7 @@ export default function LabExamsPage() {
             ))}
             {allBiomarkers.length > 8 && (
               <select
-                className="px-2 py-1 rounded-md text-[10px] bg-[#16191e] text-[#8a8f98] border border-[#ffffff12] focus:outline-none focus:border-[#5e6ad2]"
+                className="px-2.5 py-1.5 rounded-md text-xs font-semibold bg-[#16191e] text-[#cbd5e1] border border-[#ffffff12] focus:outline-none focus:border-[#5e6ad2]"
                 value={selectedBiomarker || ''}
                 onChange={(e) => setSelectedBiomarker(e.target.value)}
               >
@@ -1203,7 +1202,7 @@ export default function LabExamsPage() {
 
       {/* ═══ BIOMARKERS TABLE BY CATEGORY ═══ */}
       <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-[#f7f8f8]">Tabela Consolidada de Biomarcadores</h2>
+        <h2 className="text-base sm:text-lg font-bold text-[#f7f8f8]">Tabela Consolidada de Biomarcadores</h2>
 
         {Object.keys(groupedResults).map((cat) => {
           const items = groupedResults[cat];
@@ -1216,20 +1215,20 @@ export default function LabExamsPage() {
               {/* Category Header */}
               <button
                 onClick={() => toggleCategory(cat)}
-                className="w-full px-5 py-3.5 flex items-center justify-between bg-[#16191e] hover:bg-[#1d2127] transition border-b border-[#ffffff08]"
+                className="w-full px-5 py-4 flex items-center justify-between bg-[#16191e] hover:bg-[#1d2127] transition border-b border-[#ffffff08]"
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-base">{catInfo.icon}</span>
-                  <span className="text-xs font-semibold text-[#f7f8f8]">{catInfo.label}</span>
-                  <span className="text-[10px] text-[#8a8f98] font-mono bg-[#0f1115] px-2 py-0.5 rounded">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-lg">{catInfo.icon}</span>
+                  <span className="text-sm sm:text-base font-bold text-[#f7f8f8]">{catInfo.label}</span>
+                  <span className="text-xs font-mono font-semibold text-[#cbd5e1] bg-[#0f1115] px-2.5 py-1 rounded border border-[#ffffff12]">
                     {catOptimal}/{items.length} ótimos
                   </span>
                   {/* Mini category progress */}
-                  <div className="hidden sm:block w-16 h-1.5 rounded-full bg-[#1a1d23] overflow-hidden">
+                  <div className="hidden sm:block w-20 h-2 rounded-full bg-[#1a1d23] overflow-hidden border border-[#ffffff10]">
                     <div className="h-full rounded-full bg-[#4ade80]" style={{ width: `${(catOptimal / items.length) * 100}%` }} />
                   </div>
                 </div>
-                {isExpanded ? <ChevronUp className="w-4 h-4 text-[#8a8f98]" /> : <ChevronDown className="w-4 h-4 text-[#8a8f98]" />}
+                {isExpanded ? <ChevronUp className="w-5 h-5 text-[#cbd5e1]" /> : <ChevronDown className="w-5 h-5 text-[#cbd5e1]" />}
               </button>
 
               {/* Biomarkers List */}
@@ -1239,26 +1238,26 @@ export default function LabExamsPage() {
                     <div
                       key={item.id}
                       onClick={() => setSelectedBiomarker(item.biomarkerKey)}
-                      className="px-5 py-3 hover:bg-[#16191e50] cursor-pointer transition"
+                      className="px-5 py-3.5 hover:bg-[#16191e50] cursor-pointer transition"
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-medium text-[#f7f8f8]">{item.biomarkerName}</span>
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <span className="text-sm sm:text-base font-bold text-[#f7f8f8]">{item.biomarkerName}</span>
                             {getStatusBadge(item.status)}
                             {/* Health tip button */}
                             {getHealthTip(item.biomarkerKey) && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setActiveTip({ key: item.biomarkerKey, status: item.status }); }}
-                                className="p-1 rounded hover:bg-[#5e6ad220] text-[#575c66] hover:text-[#5e6ad2] transition min-h-[32px] min-w-[32px] flex items-center justify-center"
+                                className="p-1 rounded hover:bg-[#5e6ad220] text-[#8a8f98] hover:text-[#818cf8] transition min-h-[32px] min-w-[32px] flex items-center justify-center"
                                 title="Ver dicas de saúde"
                               >
-                                <Info className="w-3.5 h-3.5" />
+                                <Info className="w-4 h-4" />
                               </button>
                             )}
                           </div>
                           {/* Gauge Bar */}
-                          <div className="mt-1.5 w-full sm:max-w-xs">
+                          <div className="mt-2 w-full sm:max-w-xs">
                             <BiomarkerGaugeBar
                               value={item.value}
                               refMin={item.referenceMin}
@@ -1268,12 +1267,12 @@ export default function LabExamsPage() {
                               status={item.status}
                             />
                           </div>
-                          <p className="text-[10px] text-[#575c66] mt-1 font-mono">
+                          <p className="text-xs sm:text-sm font-mono font-semibold text-[#cbd5e1] mt-1.5">
                             Ref: {item.referenceMin ?? 0} - {item.referenceMax ?? '-'} {item.unit}
                           </p>
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 sm:ml-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#ffffff08]">
+                        <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 sm:ml-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#ffffff08]">
                           {/* Sparkline */}
                           {sparklineMap.has(item.biomarkerKey) && (
                             <MiniSparkline
@@ -1283,16 +1282,16 @@ export default function LabExamsPage() {
                           )}
 
                           <div className="text-right space-y-0.5">
-                            <div className="text-sm font-bold font-mono text-[#f7f8f8]">
-                              {item.value} <span className="text-[10px] font-normal text-[#8a8f98]">{item.unit}</span>
+                            <div className="text-base sm:text-lg font-bold font-mono text-[#f7f8f8]">
+                              {item.value} <span className="text-xs font-semibold text-[#cbd5e1]">{item.unit}</span>
                             </div>
 
                             {item.delta !== undefined && item.delta !== null && (
-                              <div className="text-[10px] font-mono flex items-center justify-end gap-1">
+                              <div className="text-xs font-mono font-semibold flex items-center justify-end gap-1">
                                 {item.delta > 0 ? (
-                                  <span className="text-[#fbbf24] flex items-center"><TrendingUp className="w-3 h-3" /> +{item.delta}%</span>
+                                  <span className="text-[#fbbf24] flex items-center"><TrendingUp className="w-3.5 h-3.5" /> +{item.delta}%</span>
                                 ) : (
-                                  <span className="text-[#4ade80] flex items-center"><TrendingDown className="w-3 h-3" /> {item.delta}%</span>
+                                  <span className="text-[#4ade80] flex items-center"><TrendingDown className="w-3.5 h-3.5" /> {item.delta}%</span>
                                 )}
                               </div>
                             )}
