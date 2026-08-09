@@ -83,16 +83,116 @@ Responda em JSON puro (sem markdown) com esta estrutura:
 
       const content = response.choices[0]?.message?.content || '{}';
       const cleanedContent = content.replace(/```json/g, '').replace(/```/g, '').trim();
-      return JSON.parse(cleanedContent);
+      const parsed = JSON.parse(cleanedContent);
+      
+      // Valida se o objeto retornado possui listas com conteúdo real
+      if (parsed && Array.isArray(parsed.goodNews) && parsed.goodNews.length > 0) {
+        return parsed;
+      }
+      return this.buildDeterministicSummary(exam);
     } catch {
+      return this.buildDeterministicSummary(exam);
+    }
+  }
+
+  /**
+   * Gera um relatório estruturado e completo extraindo 100% dos biomarcadores reais do exame
+   */
+  private buildDeterministicSummary(exam: any): any {
+    if (!exam || !exam.results || exam.results.length === 0) {
       return {
-        summary: "Seus exames mostram um quadro geral estável. Há pontos positivos na sua saúde que merecem ser celebrados, mas também algumas pequenas áreas de atenção que, com ajustes simples no dia a dia, podem melhorar.",
-        goodNews: ["Alguns de seus marcadores estão excelentes"],
-        attentionItems: ["Pequenas taxas precisam de atenção"],
-        tips: [
-          { icon: "🥗", title: "Alimentação", description: "Mantenha uma dieta equilibrada." }
-        ]
+        summary: 'Nenhum resultado de exame encontrado para análise.',
+        goodNews: ['Aguardando envio de exames'],
+        attentionItems: [],
+        tips: [{ icon: '📋', title: 'Exames', description: 'Cadastre seu primeiro exame para gerar o relatório.' }],
       };
     }
+
+    const results = exam.results;
+    const optimalItems: string[] = [];
+    const attentionItems: string[] = [];
+    const tips: Array<{ icon: string; title: string; description: string }> = [];
+
+    results.forEach((r: any) => {
+      const name = r.biomarkerName || r.biomarkerKey || 'Biomarcador';
+      const valStr = `${r.value} ${r.unit || ''}`.trim();
+
+      if (r.status === 'NORMAL' || r.status === 'OTIMO') {
+        optimalItems.push(`${name}: ${valStr} (Dentro do limite ideal)`);
+      } else if (r.status === 'ALTO' || r.status === 'CRITICO_ALTO') {
+        const refStr = r.referenceMax ? ` (ideal < ${r.referenceMax} ${r.unit || ''})` : '';
+        attentionItems.push(`${name}: ${valStr} — Elevado${refStr}`);
+      } else if (r.status === 'BAIXO' || r.status === 'CRITICO_BAIXO') {
+        const refStr = r.referenceMin ? ` (ideal > ${r.referenceMin} ${r.unit || ''})` : '';
+        attentionItems.push(`${name}: ${valStr} — Abaixo da faixa${refStr}`);
+      } else {
+        optimalItems.push(`${name}: ${valStr}`);
+      }
+    });
+
+    // Se não houver itens em atenção
+    if (attentionItems.length === 0) {
+      attentionItems.push('Nenhum biomarcador em nível crítico ou de atenção nesta medição!');
+    }
+
+    // Gerar dicas clínicas direcionadas baseadas nos marcadores reais
+    const bioKeys = new Set(results.map((r: any) => (r.biomarkerKey || r.biomarkerName || '').toUpperCase()));
+
+    if (bioKeys.has('GLUCOSE') || bioKeys.has('INSULIN') || bioKeys.has('GLICOSE')) {
+      tips.push({
+        icon: '🥗',
+        title: 'Controle Glicêmico',
+        description: 'Priorize carboidratos de baixo índice glicêmico e fibras solúveis (aveia, psyllium).',
+      });
+    }
+
+    if (bioKeys.has('TRIGLYCERIDES') || bioKeys.has('LDL') || bioKeys.has('CHOLESTEROL') || bioKeys.has('TRIGLICERIDEOS')) {
+      tips.push({
+        icon: '🏃',
+        title: 'Perfil Lipídico',
+        description: 'Pratique 150 min/semana de exercício aeróbico e reduza gorduras saturadas e açúcares.',
+      });
+    }
+
+    if (bioKeys.has('VITAMIN_D') || bioKeys.has('VITAMINA_D')) {
+      tips.push({
+        icon: '☀️',
+        title: 'Vitamina D & Imunidade',
+        description: 'Mantenha exposição solar matinal de 15 a 20 min ou avalie suplementação com médico.',
+      });
+    }
+
+    if (bioKeys.has('FERRITIN') || bioKeys.has('IRON') || bioKeys.has('FERRITINA')) {
+      tips.push({
+        icon: '🥩',
+        title: 'Reserva de Ferro',
+        description: 'Consuma fontes de ferro associadas à Vitamina C (frutas cítricas) para otimizar absorção.',
+      });
+    }
+
+    // Dicas genéricas de reforço caso faltem dicas específicas
+    if (tips.length < 3) {
+      tips.push({
+        icon: '💧',
+        title: 'Hidratação Diária',
+        description: 'Consuma de 35 a 40 ml de água por kg corporal para otimizar a filtração renal e transporte de nutrientes.',
+      });
+      tips.push({
+        icon: '😴',
+        title: 'Sono Reparador',
+        description: 'Priorize 7 a 8 horas de sono contínuo para regulação hormonal e modulação inflamatória.',
+      });
+    }
+
+    const total = results.length;
+    const optimalCount = results.filter((r: any) => r.status === 'NORMAL' || r.status === 'OTIMO').length;
+    const percentOptimal = Math.round((optimalCount / total) * 100);
+
+    return {
+      summary: `Seu laudo reúne ${total} biomarcadores analisados. Atualmente, ${percentOptimal}% dos seus indicadores (${optimalCount} de ${total}) encontram-se na faixa ideal. Acompanhe os pontos de atenção para otimizar sua saúde preventiva.`,
+      goodNews: optimalItems,
+      attentionItems,
+      tips: tips.slice(0, 4),
+    };
   }
 }

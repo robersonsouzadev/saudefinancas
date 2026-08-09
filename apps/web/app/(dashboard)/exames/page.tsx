@@ -296,6 +296,8 @@ export default function LabExamsPage() {
     HORMONIOS: false,
     VITAMINAS_MINERAIS: false,
   });
+  const [expandedGoodNews, setExpandedGoodNews] = useState(false);
+  const [expandedAttention, setExpandedAttention] = useState(false);
 
   // Tooltip state
   const [activeTip, setActiveTip] = useState<{ key: string; status: string } | null>(null);
@@ -908,41 +910,91 @@ export default function LabExamsPage() {
         {/* Three Columns: Good / Attention / Tips */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10">
           {/* ✅ Good News */}
-          <div className="p-3 rounded-xl bg-[#4ade800a] border border-[#4ade8020] space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-[#4ade80] font-semibold flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" /> O que está ótimo
-            </p>
-            <div className="space-y-1">
-              {(aiSummary?.goodNews || ['Hemograma dentro da normalidade', 'Perfil lipídico em evolução positiva', 'Vitamina D em nível ótimo']).slice(0, 5).map((item, i) => (
-                <p key={i} className="text-[11px] text-[#8a8f98] flex items-start gap-1">
-                  <span className="text-[#4ade80] mt-0.5 shrink-0">✓</span>
-                  <span>{item}</span>
+          <div className="p-3.5 rounded-xl bg-[#4ade800a] border border-[#4ade8020] space-y-2 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] uppercase tracking-wider text-[#4ade80] font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> O que está ótimo
                 </p>
-              ))}
+                {aiSummary?.goodNews && aiSummary.goodNews.length > 0 && (
+                  <span className="text-[10px] font-semibold text-[#4ade80] bg-[#4ade8015] px-1.5 py-0.5 rounded">
+                    {aiSummary.goodNews.length} marcadores
+                  </span>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                {(() => {
+                  const items = aiSummary?.goodNews || ['Carregando marcadores em nível ótimo...'];
+                  const visible = expandedGoodNews ? items : items.slice(0, 4);
+                  return (
+                    <>
+                      {visible.map((item, i) => (
+                        <p key={i} className="text-[11px] text-[#c4c7cd] flex items-start gap-1.5 leading-snug">
+                          <span className="text-[#4ade80] shrink-0 font-bold">✓</span>
+                          <span>{item}</span>
+                        </p>
+                      ))}
+                      {items.length > 4 && (
+                        <button
+                          onClick={() => setExpandedGoodNews(!expandedGoodNews)}
+                          className="text-[10px] font-semibold text-[#4ade80] hover:underline mt-1 block"
+                        >
+                          {expandedGoodNews ? '▲ Recolher' : `▼ Ver todos (${items.length - 4} mais)`}
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           </div>
 
           {/* ⚠️ Attention */}
-          <div className="p-3 rounded-xl bg-[#fbbf240a] border border-[#fbbf2420] space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-[#fbbf24] font-semibold flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3" /> Pontos de atenção
-            </p>
-            <div className="space-y-1">
-              {(aiSummary?.attentionItems || healthScore?.topAttentionItems?.map(i => `${i.biomarkerName}: ${i.value} ${i.unit}`) || ['Nenhum ponto de atenção no momento']).slice(0, 5).map((item, i) => (
-                <p key={i} className="text-[11px] text-[#8a8f98] flex items-start gap-1">
-                  <span className="text-[#fbbf24] mt-0.5 shrink-0">⚠</span>
-                  <span>{typeof item === 'string' ? item : `${item}`}</span>
+          <div className="p-3.5 rounded-xl bg-[#fbbf240a] border border-[#fbbf2420] space-y-2 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] uppercase tracking-wider text-[#fbbf24] font-bold flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Pontos de atenção
                 </p>
-              ))}
+                {aiSummary?.attentionItems && aiSummary.attentionItems.length > 0 && (
+                  <span className="text-[10px] font-semibold text-[#fbbf24] bg-[#fbbf2415] px-1.5 py-0.5 rounded">
+                    {aiSummary.attentionItems.length} alertas
+                  </span>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                {(() => {
+                  const items = aiSummary?.attentionItems || ['Nenhum ponto de atenção no momento'];
+                  const visible = expandedAttention ? items : items.slice(0, 4);
+                  return (
+                    <>
+                      {visible.map((item, i) => (
+                        <p key={i} className="text-[11px] text-[#c4c7cd] flex items-start gap-1.5 leading-snug">
+                          <span className="text-[#fbbf24] shrink-0 font-bold">⚠</span>
+                          <span>{typeof item === 'string' ? item : `${item}`}</span>
+                        </p>
+                      ))}
+                      {items.length > 4 && (
+                        <button
+                          onClick={() => setExpandedAttention(!expandedAttention)}
+                          className="text-[10px] font-semibold text-[#fbbf24] hover:underline mt-1 block"
+                        >
+                          {expandedAttention ? '▲ Recolher' : `▼ Ver todos (${items.length - 4} mais)`}
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           </div>
 
           {/* 💡 Tips */}
-          <div className="p-3 rounded-xl bg-[#5e6ad20a] border border-[#5e6ad220] space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-[#5e6ad2] font-semibold flex items-center gap-1">
-              <Lightbulb className="w-3 h-3" /> Dicas para melhorar
+          <div className="p-3.5 rounded-xl bg-[#5e6ad20a] border border-[#5e6ad220] space-y-2">
+            <p className="text-[10px] uppercase tracking-wider text-[#5e6ad2] font-bold flex items-center gap-1 mb-2">
+              <Lightbulb className="w-3.5 h-3.5" /> Dicas para melhorar
             </p>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {(aiSummary?.tips || [
                 { icon: '🥗', title: 'Alimentação', description: 'Aumente fibras e reduza açúcares' },
                 { icon: '🏋️', title: 'Exercícios', description: 'Mantenha atividade física regular' },
@@ -952,7 +1004,7 @@ export default function LabExamsPage() {
                   <span className="text-sm shrink-0">{tip.icon}</span>
                   <div>
                     <p className="text-[11px] font-semibold text-[#f7f8f8]">{tip.title}</p>
-                    <p className="text-[10px] text-[#8a8f98]">{tip.description}</p>
+                    <p className="text-[10px] text-[#8a8f98] leading-tight">{tip.description}</p>
                   </div>
                 </div>
               ))}
