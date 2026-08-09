@@ -1,10 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  TrendingUp, Plus, DollarSign, PieChart, Sparkles, 
-  ArrowUpRight, ArrowDownRight, Layers, Building2, Calculator, Check, AlertCircle, ShieldCheck, Edit3, Trash2
+import {
+  TrendingUp,
+  Plus,
+  PieChart,
+  Sparkles,
+  Building2,
+  Edit3,
+  Trash2,
 } from 'lucide-react';
+import {
+  PageHeader,
+  Card,
+  Button,
+  Input,
+  Select,
+  Modal,
+  Badge,
+  EmptyState,
+} from '../../../components/ui';
 
 interface AssetItem {
   id: string;
@@ -38,8 +53,8 @@ export default function InvestimentosPage() {
   const [targetPercent, setTargetPercent] = useState('');
 
   // Computations
-  const totalInvested = assets.reduce((s, a) => s + (a.quantity * a.averagePrice), 0);
-  const currentTotalValue = assets.reduce((s, a) => s + (a.quantity * a.currentPrice), 0);
+  const totalInvested = assets.reduce((s, a) => s + a.quantity * a.averagePrice, 0);
+  const currentTotalValue = assets.reduce((s, a) => s + a.quantity * a.currentPrice, 0);
   const totalProfit = currentTotalValue - totalInvested;
   const profitPercentage = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
 
@@ -75,20 +90,26 @@ export default function InvestimentosPage() {
 
     const qty = parseFloat(quantity);
     const avg = parseFloat(averagePrice);
-    const curr = currentPriceInput ? parseFloat(currentPriceInput) : (avg * 1.02);
+    const curr = currentPriceInput ? parseFloat(currentPriceInput) : avg * 1.02;
 
     if (editingAsset) {
-      setAssets(assets.map(a => a.id === editingAsset.id ? {
-        ...a,
-        ticker: ticker.toUpperCase(),
-        name: name || ticker.toUpperCase(),
-        type,
-        broker,
-        quantity: qty,
-        averagePrice: avg,
-        currentPrice: curr,
-        targetPercent: parseFloat(targetPercent) || 10,
-      } : a));
+      setAssets(
+        assets.map((a) =>
+          a.id === editingAsset.id
+            ? {
+                ...a,
+                ticker: ticker.toUpperCase(),
+                name: name || ticker.toUpperCase(),
+                type,
+                broker,
+                quantity: qty,
+                averagePrice: avg,
+                currentPrice: curr,
+                targetPercent: parseFloat(targetPercent) || 10,
+              }
+            : a
+        )
+      );
     } else {
       const newAsset: AssetItem = {
         id: String(Date.now()),
@@ -109,16 +130,16 @@ export default function InvestimentosPage() {
 
   const handleDeleteAsset = (id: string) => {
     if (!confirm('Deseja remover este ativo da carteira?')) return;
-    setAssets(assets.filter(a => a.id !== id));
+    setAssets(assets.filter((a) => a.id !== id));
   };
 
   // AI Rebalance Calculation Logic
   const calculateAiAdvice = () => {
-    return assets.map(a => {
+    return assets.map((a) => {
       const currentVal = a.quantity * a.currentPrice;
       const currentPercent = currentTotalValue > 0 ? (currentVal / currentTotalValue) * 100 : 0;
       const deficitPercent = Math.max(0, a.targetPercent - currentPercent);
-      const suggestedAmount = deficitPercent > 0 ? (availableContribution * (deficitPercent / 100)) : 0;
+      const suggestedAmount = deficitPercent > 0 ? availableContribution * (deficitPercent / 100) : 0;
 
       return {
         ...a,
@@ -131,91 +152,85 @@ export default function InvestimentosPage() {
   const adviceItems = calculateAiAdvice();
 
   return (
-    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
-      
-      {/* Linear Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#10b981]">
-            <TrendingUp className="w-4 h-4" />
-          </div>
-          <div>
-            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Carteira de Investimentos</h1>
-            <p className="text-xs text-[#8a8f98]">Ações, FIIs, Renda Fixa e Aportes Inteligentes com IA (XP / B3)</p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button 
-            onClick={() => setShowAdviceModal(true)}
-            className="h-8 px-3 rounded-md bg-[#16191e] hover:bg-[#1d2127] border border-[#ffffff12] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#5e6ad2]" />
-            <span>IA Dicas de Aporte</span>
-          </button>
-          <button 
-            onClick={handleOpenAdd}
-            className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Adicionar Ativo</span>
-          </button>
-        </div>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* Design System Page Header */}
+      <PageHeader
+        icon={<TrendingUp className="w-5 h-5 text-[#10b981]" />}
+        title="Carteira de Investimentos"
+        subtitle="Ações, FIIs, Renda Fixa e Aportes Inteligentes com IA (XP / B3)"
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Sparkles className="w-3.5 h-3.5 text-accent" />}
+              onClick={() => setShowAdviceModal(true)}
+            >
+              IA Dicas de Aporte
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+              onClick={handleOpenAdd}
+            >
+              Adicionar Ativo
+            </Button>
+          </>
+        }
+      />
 
       {/* Patrimony Summary Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="linear-card p-4 space-y-2">
-          <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Patrimônio Atual</span>
-          <div className="text-3xl font-bold font-mono text-[#f7f8f8]">
+        <Card padding="compact">
+          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">Patrimônio Atual</span>
+          <div className="text-3xl font-bold font-mono text-primary">
             R$ {currentTotalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-[#8a8f98] block">Avaliação a mercado</span>
-        </div>
+          <span className="text-[11px] text-secondary block">Avaliação a mercado</span>
+        </Card>
 
-        <div className="linear-card p-4 space-y-2">
-          <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Total Aportado</span>
-          <div className="text-3xl font-bold font-mono text-[#8a8f98]">
+        <Card padding="compact">
+          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">Total Aportado</span>
+          <div className="text-3xl font-bold font-mono text-secondary">
             R$ {totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-[#8a8f98] block">Custo acumulado de aquisição</span>
-        </div>
+          <span className="text-[11px] text-secondary block">Custo acumulado de aquisição</span>
+        </Card>
 
-        <div className="linear-card p-4 space-y-2">
-          <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Rentabilidade Total</span>
-          <div className={`text-3xl font-bold font-mono ${totalProfit >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+        <Card padding="compact">
+          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">Rentabilidade Total</span>
+          <div className={`text-3xl font-bold font-mono ${totalProfit >= 0 ? 'text-success' : 'text-error'}`}>
             {totalProfit >= 0 ? '+' : ''} R$ {totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-[#8a8f98] block">Lucro ou prejuízo não realizado</span>
-        </div>
+          <span className="text-[11px] text-secondary block">Lucro ou prejuízo não realizado</span>
+        </Card>
 
-        <div className="linear-card p-4 space-y-2">
-          <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Retorno (%)</span>
-          <div className={`text-3xl font-bold font-mono ${profitPercentage >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+        <Card padding="compact">
+          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">Retorno (%)</span>
+          <div className={`text-3xl font-bold font-mono ${profitPercentage >= 0 ? 'text-success' : 'text-error'}`}>
             {profitPercentage >= 0 ? '+' : ''} {profitPercentage.toFixed(2)}%
           </div>
-          <span className="text-[11px] text-[#8a8f98] block">Rentabilidade da carteira</span>
-        </div>
+          <span className="text-[11px] text-secondary block">Rentabilidade da carteira</span>
+        </Card>
       </div>
 
       {/* Portfolio Breakdown by Asset */}
-      <div className="linear-card p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
-          <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-[#5e6ad2]" />
+      <Card padding="standard">
+        <div className="flex items-center justify-between border-b border-subtle pb-3">
+          <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-accent" />
             <span>Ativos em Carteira (XP / Corretora)</span>
           </h3>
-          <span className="text-[11px] font-mono text-[#8a8f98]">{assets.length} ativos cadastrados</span>
+          <Badge variant="neutral">{assets.length} ativos cadastrados</Badge>
         </div>
 
         {assets.length === 0 ? (
-          <div className="py-12 text-center space-y-2 border border-dashed border-[#ffffff0a] rounded-md">
-            <PieChart className="w-8 h-8 text-[#575c66] mx-auto" />
-            <h4 className="text-xs font-semibold text-[#f7f8f8]">Nenhum ativo cadastrado na carteira</h4>
-            <p className="text-[11px] text-[#8a8f98] max-w-sm mx-auto">
-              Clique em "+ Adicionar Ativo" para registrar suas posições em Ações, FIIs ou Renda Fixa da XP.
-            </p>
-          </div>
+          <EmptyState
+            icon={<PieChart className="w-6 h-6 text-tertiary" />}
+            title="Nenhum ativo cadastrado na carteira"
+            description="Clique em '+ Adicionar Ativo' para registrar suas posições em Ações, FIIs ou Renda Fixa da XP."
+          />
         ) : (
           <>
             {/* Mobile Card List (< 640px) */}
@@ -227,39 +242,37 @@ export default function InvestimentosPage() {
                 const profitPct = invested > 0 ? (profit / invested) * 100 : 0;
 
                 return (
-                  <div key={a.id} className="p-3 rounded-md bg-[#16191e] border border-[#ffffff0a] space-y-2 text-xs">
+                  <div key={a.id} className="p-3 rounded-md bg-surface border border-subtle space-y-2 text-xs">
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="font-bold text-sm font-mono text-[#f7f8f8]">{a.ticker}</span>
-                        <span className="text-[10px] text-[#8a8f98] block">{a.name}</span>
+                        <span className="font-bold text-sm font-mono text-primary">{a.ticker}</span>
+                        <span className="text-[10px] text-secondary block">{a.name}</span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0f1115] border border-[#ffffff08] text-[#8a8f98]">
-                          {a.type}
-                        </span>
-                        <button onClick={() => handleOpenEdit(a)} className="text-[#8a8f98] hover:text-[#5e6ad2]">
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => handleDeleteAsset(a.id)} className="text-[#8a8f98] hover:text-[#f87171]">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="neutral" size="sm">{a.type}</Badge>
+                        <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(a)} className="h-6 w-6 p-0">
+                          <Edit3 className="w-3.5 h-3.5 text-secondary" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteAsset(a.id)} className="h-6 w-6 p-0 text-error">
                           <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 py-1 border-t border-b border-[#ffffff08] text-[11px] font-mono">
+                    <div className="grid grid-cols-2 gap-2 py-1 border-t border-b border-subtle text-[11px] font-mono">
                       <div>
-                        <span className="text-[#8a8f98] block text-[10px]">Posição Atual</span>
-                        <span className="font-bold text-[#f7f8f8]">R$ {currentVal.toFixed(2)}</span>
+                        <span className="text-secondary block text-[10px]">Posição Atual</span>
+                        <span className="font-bold text-primary">R$ {currentVal.toFixed(2)}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[#8a8f98] block text-[10px]">Resultado</span>
-                        <span className={`font-bold ${profit >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+                        <span className="text-secondary block text-[10px]">Resultado</span>
+                        <span className={`font-bold ${profit >= 0 ? 'text-success' : 'text-error'}`}>
                           {profit >= 0 ? '+' : ''} R$ {profit.toFixed(2)} ({profitPct.toFixed(1)}%)
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex justify-between text-[10px] text-[#8a8f98] font-mono">
+                    <div className="flex justify-between text-[10px] text-secondary font-mono">
                       <span>Qtd: {a.quantity}</span>
                       <span>PM: R$ {a.averagePrice.toFixed(2)}</span>
                       <span>Atual: R$ {a.currentPrice.toFixed(2)}</span>
@@ -271,21 +284,21 @@ export default function InvestimentosPage() {
 
             {/* Desktop Table (≥ 640px) */}
             <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="text-[#575c66] border-b border-[#ffffff0e] uppercase font-semibold text-[10px]">
-                  <tr>
-                    <th className="pb-3">Ativo / Ticker</th>
-                    <th className="pb-3">Tipo</th>
-                    <th className="pb-3">Corretora</th>
-                    <th className="pb-3 text-right">Qtd</th>
-                    <th className="pb-3 text-right">Preço Médio</th>
-                    <th className="pb-3 text-right">Cotação Atual</th>
-                    <th className="pb-3 text-right">Total Investido</th>
-                    <th className="pb-3 text-right">Resultado</th>
-                    <th className="pb-3 text-right">Ações</th>
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-subtle text-tertiary uppercase font-semibold text-[10px]">
+                    <th className="pb-3 px-3">Ativo / Ticker</th>
+                    <th className="pb-3 px-3">Tipo</th>
+                    <th className="pb-3 px-3">Corretora</th>
+                    <th className="pb-3 px-3 text-right">Qtd</th>
+                    <th className="pb-3 px-3 text-right">Preço Médio</th>
+                    <th className="pb-3 px-3 text-right">Cotação Atual</th>
+                    <th className="pb-3 px-3 text-right">Total Investido</th>
+                    <th className="pb-3 px-3 text-right">Resultado</th>
+                    <th className="pb-3 px-3 text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#ffffff0a]">
+                <tbody className="divide-y divide-subtle text-primary">
                   {assets.map((a) => {
                     const invested = a.quantity * a.averagePrice;
                     const currentVal = a.quantity * a.currentPrice;
@@ -293,40 +306,30 @@ export default function InvestimentosPage() {
                     const profitPct = invested > 0 ? (profit / invested) * 100 : 0;
 
                     return (
-                      <tr key={a.id} className="hover:bg-[#16191e] transition">
-                        <td className="py-3 font-medium text-[#f7f8f8]">
-                          <span className="font-bold block font-mono">{a.ticker}</span>
-                          <span className="text-[10px] text-[#8a8f98] font-sans">{a.name}</span>
+                      <tr key={a.id} className="hover:bg-elevated transition-colors">
+                        <td className="py-3 px-3 font-medium">
+                          <span className="font-bold block font-mono text-primary">{a.ticker}</span>
+                          <span className="text-[10px] text-secondary font-sans">{a.name}</span>
                         </td>
-                        <td className="py-3">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16191e] border border-[#ffffff08] text-[#8a8f98]">
-                            {a.type}
-                          </span>
+                        <td className="py-3 px-3">
+                          <Badge variant="neutral" size="sm">{a.type}</Badge>
                         </td>
-                        <td className="py-3 font-mono text-[#8a8f98]">{a.broker}</td>
-                        <td className="py-3 text-right font-mono text-[#f7f8f8]">{a.quantity}</td>
-                        <td className="py-3 text-right font-mono text-[#8a8f98]">R$ {a.averagePrice.toFixed(2)}</td>
-                        <td className="py-3 text-right font-mono text-[#f7f8f8]">R$ {a.currentPrice.toFixed(2)}</td>
-                        <td className="py-3 text-right font-mono font-bold text-[#f7f8f8]">R$ {currentVal.toFixed(2)}</td>
-                        <td className={`py-3 text-right font-mono font-bold ${profit >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+                        <td className="py-3 px-3 font-mono text-secondary">{a.broker}</td>
+                        <td className="py-3 px-3 text-right font-mono text-primary">{a.quantity}</td>
+                        <td className="py-3 px-3 text-right font-mono text-secondary">R$ {a.averagePrice.toFixed(2)}</td>
+                        <td className="py-3 px-3 text-right font-mono text-primary">R$ {a.currentPrice.toFixed(2)}</td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-primary">R$ {currentVal.toFixed(2)}</td>
+                        <td className={`py-3 px-3 text-right font-mono font-bold ${profit >= 0 ? 'text-success' : 'text-error'}`}>
                           {profit >= 0 ? '+' : ''} R$ {profit.toFixed(2)} ({profitPct.toFixed(1)}%)
                         </td>
-                        <td className="py-3 text-right">
-                          <div className="flex items-center justify-end space-x-2">
-                            <button 
-                              onClick={() => handleOpenEdit(a)}
-                              className="p-1 text-[#8a8f98] hover:text-[#5e6ad2] transition"
-                              title="Editar Ativo"
-                            >
+                        <td className="py-3 px-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(a)} className="h-7 w-7 p-0 text-secondary">
                               <Edit3 className="w-3.5 h-3.5" />
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteAsset(a.id)}
-                              className="p-1 text-[#8a8f98] hover:text-[#f87171] transition"
-                              title="Remover da Carteira"
-                            >
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteAsset(a.id)} className="h-7 w-7 p-0 text-tertiary hover:text-error">
                               <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -337,196 +340,162 @@ export default function InvestimentosPage() {
             </div>
           </>
         )}
-      </div>
+      </Card>
 
       {/* Add / Edit Asset Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-md space-y-4 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
-              <h3 className="font-semibold text-sm text-[#f7f8f8]">
-                {editingAsset ? 'Editar Ativo da Carteira' : 'Cadastrar Novo Ativo'}
-              </h3>
-              <button onClick={() => setShowModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
-            </div>
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingAsset ? 'Editar Ativo da Carteira' : 'Cadastrar Novo Ativo'}
+        description="Preencha as informações do ativo para atualizar sua carteira de investimentos."
+      >
+        <form onSubmit={handleSaveAsset} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="TICKER / CÓDIGO"
+              value={ticker}
+              onChange={(e) => setTicker(e.target.value)}
+              placeholder="ex: HGLG11, PETR4"
+              required
+              className="font-mono"
+            />
 
-            <form onSubmit={handleSaveAsset} className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Ticker / Código</label>
-                  <input 
-                    type="text" 
-                    value={ticker}
-                    onChange={(e) => setTicker(e.target.value)}
-                    placeholder="ex: HGLG11, PETR4"
-                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]" 
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Tipo de Ativo</label>
-                  <select 
-                    value={type}
-                    onChange={(e: any) => setType(e.target.value)}
-                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none"
-                  >
-                    <option value="FII">Fundos Imobiliários (FII)</option>
-                    <option value="ACAO">Ações Brasil</option>
-                    <option value="RENDA_FIXA">Renda Fixa / CDB</option>
-                    <option value="TESOURO">Tesouro Direto</option>
-                    <option value="CRIPTO">Criptoativos</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome do Ativo</label>
-                <input 
-                  type="text" 
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="ex: CSHG Logística FII"
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]" 
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Quantidade</label>
-                  <input 
-                    type="number" 
-                    step="0.01"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    placeholder="10"
-                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]" 
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Preço Médio (R$)</label>
-                  <input 
-                    type="number" 
-                    step="0.01"
-                    value={averagePrice}
-                    onChange={(e) => setAveragePrice(e.target.value)}
-                    placeholder="160.00"
-                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]" 
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Cotação Atual (R$)</label>
-                  <input 
-                    type="number" 
-                    step="0.01"
-                    value={currentPriceInput}
-                    onChange={(e) => setCurrentPriceInput(e.target.value)}
-                    placeholder="Auto (opcional)"
-                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none" 
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Meta na Carteira (%)</label>
-                  <input 
-                    type="number" 
-                    value={targetPercent}
-                    onChange={(e) => setTargetPercent(e.target.value)}
-                    placeholder="25"
-                    className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none" 
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-2">
-                <button 
-                  type="button" 
-                  onClick={() => setShowModal(false)}
-                  className="h-8 px-3 rounded bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8] border border-[#ffffff0a]"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm"
-                >
-                  {editingAsset ? 'Atualizar Ativo' : 'Salvar Ativo'}
-                </button>
-              </div>
-            </form>
+            <Select
+              label="TIPO DE ATIVO"
+              value={type}
+              onChange={(e: any) => setType(e.target.value)}
+              options={[
+                { value: 'FII', label: 'Fundos Imobiliários (FII)' },
+                { value: 'ACAO', label: 'Ações Brasil' },
+                { value: 'RENDA_FIXA', label: 'Renda Fixa / CDB' },
+                { value: 'TESOURO', label: 'Tesouro Direto' },
+                { value: 'CRIPTO', label: 'Criptoativos' },
+              ]}
+            />
           </div>
-        </div>
-      )}
+
+          <Input
+            label="NOME DO ATIVO"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="ex: CSHG Logística FII"
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="QUANTIDADE"
+              type="number"
+              step="0.01"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              placeholder="10"
+              required
+              className="font-mono"
+            />
+
+            <Input
+              label="PREÇO MÉDIO (R$)"
+              type="number"
+              step="0.01"
+              value={averagePrice}
+              onChange={(e) => setAveragePrice(e.target.value)}
+              placeholder="160.00"
+              required
+              className="font-mono"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="COTAÇÃO ATUAL (R$)"
+              type="number"
+              step="0.01"
+              value={currentPriceInput}
+              onChange={(e) => setCurrentPriceInput(e.target.value)}
+              placeholder="Auto (opcional)"
+              className="font-mono"
+            />
+
+            <Input
+              label="META NA CARTEIRA (%)"
+              type="number"
+              value={targetPercent}
+              onChange={(e) => setTargetPercent(e.target.value)}
+              placeholder="25"
+              className="font-mono"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="secondary" onClick={() => setShowModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="primary">
+              {editingAsset ? 'Atualizar Ativo' : 'Salvar Ativo'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* AI Advice Modal */}
-      {showAdviceModal && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-lg space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
-              <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-[#5e6ad2]" />
-                <h3 className="font-semibold text-sm text-[#f7f8f8]">Recomendador de Aporte Inteligente IA</h3>
-              </div>
-              <button onClick={() => setShowAdviceModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
-            </div>
+      <Modal
+        isOpen={showAdviceModal}
+        onClose={() => setShowAdviceModal(false)}
+        title={
+          <span className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-accent" />
+            <span>Recomendador de Aporte Inteligente IA</span>
+          </span>
+        }
+        description="A IA calcula o rebalanceamento ideal da sua carteira."
+        maxWidth="lg"
+      >
+        <div className="space-y-4 text-xs">
+          <Input
+            label="VALOR DISPONÍVEL PARA APORTE (R$)"
+            type="number"
+            value={availableContribution}
+            onChange={(e) => setAvailableContribution(Number(e.target.value))}
+            className="font-mono font-bold text-sm"
+          />
 
-            <div className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Valor Disponível para Aporte (R$)</label>
-                <input 
-                  type="number" 
-                  value={availableContribution}
-                  onChange={(e) => setAvailableContribution(Number(e.target.value))}
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono font-bold text-sm focus:outline-none" 
-                />
-              </div>
+          <div className="p-3 rounded bg-surface border border-subtle text-secondary space-y-1 text-[11px]">
+            <strong className="text-primary block">🤖 Diagnóstico da IA (Agente Otávio):</strong>
+            <p>
+              Com base no valor de <strong>R$ {availableContribution.toLocaleString('pt-BR')}</strong>, a IA calculou a distribuição ideal para rebalancear a sua carteira até atingir a meta estipulada de cada ativo:
+            </p>
+          </div>
 
-              <div className="p-3 rounded bg-[#16191e] border border-[#ffffff0a] text-[#8a8f98] space-y-1 text-[11px]">
-                <strong className="text-[#f7f8f8] block">🤖 Diagnóstico da IA (Agente Otávio):</strong>
-                <p>
-                  Com base no valor de <strong>R$ {availableContribution.toLocaleString('pt-BR')}</strong>, a IA calculou a distribuição ideal para rebalancear a sua carteira até atingir a meta estipulada de cada ativo:
-                </p>
-              </div>
+          <div className="space-y-2">
+            {adviceItems.length === 0 ? (
+              <p className="text-center text-secondary py-4">Nenhum ativo cadastrado para recomendar aporte.</p>
+            ) : (
+              adviceItems.map((item) => (
+                <div key={item.id} className="p-3 rounded bg-surface border border-subtle flex items-center justify-between font-mono">
+                  <div>
+                    <span className="font-bold text-primary">{item.ticker}</span>
+                    <span className="text-[10px] text-secondary block">
+                      Atual: {item.currentPercent}% (Meta: {item.targetPercent}%)
+                    </span>
+                  </div>
 
-              <div className="space-y-2">
-                {adviceItems.length === 0 ? (
-                  <p className="text-center text-[#8a8f98] py-4">Nenhum ativo cadastrado para recomendar aporte.</p>
-                ) : (
-                  adviceItems.map(item => (
-                    <div key={item.id} className="p-3 rounded bg-[#16191e] border border-[#ffffff0a] flex items-center justify-between font-mono">
-                      <div>
-                        <span className="font-bold text-[#f7f8f8]">{item.ticker}</span>
-                        <span className="text-[10px] text-[#8a8f98] block">Atual: {item.currentPercent}% (Meta: {item.targetPercent}%)</span>
-                      </div>
+                  <div className="text-right">
+                    <span className="text-success font-bold">R$ {item.suggestedAmount.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] text-secondary block">Aporte Sugerido</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
 
-                      <div className="text-right">
-                        <span className="text-[#4ade80] font-bold">R$ {item.suggestedAmount.toLocaleString('pt-BR')}</span>
-                        <span className="text-[10px] text-[#8a8f98] block">Aporte Sugerido</span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-2">
-                <button 
-                  onClick={() => setShowAdviceModal(false)}
-                  className="h-8 px-4 rounded bg-[#5e6ad2] text-white font-medium shadow-sm"
-                >
-                  Concluído
-                </button>
-              </div>
-            </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button onClick={() => setShowAdviceModal(false)} variant="primary">
+              Concluído
+            </Button>
           </div>
         </div>
-      )}
-
+      </Modal>
     </div>
   );
 }
+

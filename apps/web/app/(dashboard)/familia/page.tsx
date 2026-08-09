@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserCheck, Plus, BarChart, Users, Check, AlertCircle } from 'lucide-react';
+import { UserCheck, Plus, BarChart, Users } from 'lucide-react';
+import {
+  PageHeader,
+  Card,
+  Button,
+  Input,
+  Modal,
+  EmptyState,
+  Badge,
+} from '../../../components/ui';
 
 interface GroupMember {
   id: string;
@@ -28,7 +37,7 @@ const defaultCategories: CategoryAllocation[] = [
 ];
 
 export default function FamiliaPage() {
-  const [groupName, setGroupName] = useState('Grupo Familiar');
+  const [groupName] = useState('Grupo Familiar');
   const [totalBudget, setTotalBudget] = useState(5000);
   const [categories, setCategories] = useState<CategoryAllocation[]>(defaultCategories);
   const [members, setMembers] = useState<GroupMember[]>([]);
@@ -37,18 +46,6 @@ export default function FamiliaPage() {
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberPhone, setNewMemberPhone] = useState('');
-  const [apiBaseUrl, setApiBaseUrl] = useState('http://localhost:3001');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      if (hostname === 'app.robersonsouza.com.br' || hostname.includes('robersonsouza.com.br')) {
-        setApiBaseUrl('https://app.robersonsouza.com.br');
-      } else {
-        setApiBaseUrl(`http://${hostname}:3001`);
-      }
-    }
-  }, []);
 
   const totalPercentage = categories.reduce((sum, c) => sum + Number(c.percentage || 0), 0);
   const isPercentageValid = Math.abs(totalPercentage - 100) < 0.1;
@@ -80,258 +77,233 @@ export default function FamiliaPage() {
   };
 
   return (
-    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
-      
-      {/* Linear Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#f97316]">
-            <UserCheck className="w-4 h-4" />
-          </div>
-          <div>
-            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">{groupName}</h1>
-            <p className="text-xs text-[#8a8f98]">Orçamento familiar unificado com divisão percentual por categoria</p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button 
-            onClick={() => setShowBudgetModal(true)}
-            className="h-8 px-3 rounded-md bg-[#16191e] hover:bg-[#1d2127] border border-[#ffffff12] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
-          >
-            <BarChart className="w-3.5 h-3.5 text-[#f97316]" />
-            <span>Configurar Orçamento (%)</span>
-          </button>
-          <button 
-            onClick={() => setShowMemberModal(true)}
-            className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Adicionar Membro</span>
-          </button>
-        </div>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* Design System Page Header */}
+      <PageHeader
+        icon={<UserCheck className="w-5 h-5 text-[#f97316]" />}
+        title={groupName}
+        subtitle="Orçamento familiar unificado com divisão percentual por categoria"
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<BarChart className="w-3.5 h-3.5 text-[#f97316]" />}
+              onClick={() => setShowBudgetModal(true)}
+            >
+              Configurar Orçamento (%)
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+              onClick={() => setShowMemberModal(true)}
+            >
+              Adicionar Membro
+            </Button>
+          </>
+        }
+      />
 
       {/* Summary Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="linear-card p-4 space-y-2">
-          <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Teto Orçamentário Familiar</span>
-          <div className="text-3xl font-bold font-mono text-[#f7f8f8]">
+        <Card padding="compact">
+          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">
+            Teto Orçamentário Familiar
+          </span>
+          <div className="text-3xl font-bold font-mono text-primary">
             R$ {totalBudget.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-[#8a8f98] block">Mês Vigente</span>
-        </div>
+          <span className="text-[11px] text-secondary block">Mês Vigente</span>
+        </Card>
 
-        <div className="linear-card p-4 space-y-2">
-          <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Membros no Grupo</span>
+        <Card padding="compact">
+          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">
+            Membros no Grupo
+          </span>
           <div className="text-3xl font-bold font-mono text-[#f97316]">
             {members.length} Integrantes
           </div>
-          <span className="text-[11px] text-[#8a8f98] block">Visão financeira compartilhada</span>
-        </div>
+          <span className="text-[11px] text-secondary block">Visão financeira compartilhada</span>
+        </Card>
 
-        <div className="linear-card p-4 space-y-2">
-          <span className="text-[11px] font-semibold text-[#8a8f98] uppercase tracking-wider">Distribuição Orçamentária</span>
-          <div className={`text-3xl font-bold font-mono ${isPercentageValid ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+        <Card padding="compact">
+          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">
+            Distribuição Orçamentária
+          </span>
+          <div className={`text-3xl font-bold font-mono ${isPercentageValid ? 'text-success' : 'text-error'}`}>
             {totalPercentage}% / 100%
           </div>
-          <span className="text-[11px] text-[#8a8f98] block">
+          <span className="text-[11px] text-secondary block">
             {isPercentageValid ? '✓ Alocação 100% calibrada' : '⚠️ Ajuste a soma dos percentuais'}
           </span>
-        </div>
+        </Card>
       </div>
 
       {/* Members Section */}
-      <div className="linear-card p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
-          <h3 className="text-sm font-semibold text-[#f7f8f8]">Membros do Grupo Familiar</h3>
-          <span className="text-[11px] font-mono text-[#8a8f98]">{members.length} cadastrados</span>
+      <Card padding="standard">
+        <div className="flex items-center justify-between border-b border-subtle pb-3">
+          <h3 className="text-sm font-semibold text-primary">Membros do Grupo Familiar</h3>
+          <Badge variant="neutral">{members.length} cadastrados</Badge>
         </div>
 
         {members.length === 0 ? (
-          <div className="py-8 text-center space-y-2 border border-dashed border-[#ffffff0a] rounded-md">
-            <Users className="w-8 h-8 text-[#575c66] mx-auto" />
-            <h4 className="text-xs font-semibold text-[#f7f8f8]">Nenhum membro adicionado ao grupo</h4>
-            <p className="text-[11px] text-[#8a8f98] max-w-sm mx-auto">
-              Clique em "+ Adicionar Membro" para convidar familiares para a gestão financeira conjunta.
-            </p>
-          </div>
+          <EmptyState
+            icon={<Users className="w-6 h-6 text-tertiary" />}
+            title="Nenhum membro adicionado ao grupo"
+            description="Clique em '+ Adicionar Membro' para convidar familiares para a gestão financeira conjunta."
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {members.map((m) => (
-              <div key={m.id} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md flex justify-between items-center text-xs">
+              <div key={m.id} className="p-3 bg-surface border border-subtle rounded-md flex justify-between items-center text-xs">
                 <div>
-                  <h4 className="font-medium text-[#f7f8f8]">{m.name}</h4>
-                  <span className="text-[10px] text-[#8a8f98] font-mono block">{m.email}</span>
+                  <h4 className="font-medium text-primary">{m.name}</h4>
+                  <span className="text-[10px] text-secondary font-mono block">{m.email}</span>
                 </div>
 
-                <button 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleRemoveMember(m.id)}
-                  className="text-[10px] text-[#f87171] hover:underline"
+                  className="text-error hover:text-error hover:bg-error-subtle h-6 px-2 text-[10px]"
                 >
                   Remover
-                </button>
+                </Button>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Budget Allocation */}
-      <div className="linear-card p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
-          <h3 className="text-sm font-semibold text-[#f7f8f8]">Teto por Categoria em Percentual (%)</h3>
-          <button onClick={() => setShowBudgetModal(true)} className="text-xs text-[#5e6ad2] hover:underline">
+      <Card padding="standard">
+        <div className="flex items-center justify-between border-b border-subtle pb-3">
+          <h3 className="text-sm font-semibold text-primary">Teto por Categoria em Percentual (%)</h3>
+          <Button variant="ghost" size="sm" onClick={() => setShowBudgetModal(true)}>
             Editar Percentuais
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {categories.map((c) => {
             const allocated = (totalBudget * c.percentage) / 100;
             return (
-              <div key={c.categoryId} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md space-y-2 text-xs">
+              <div key={c.categoryId} className="p-3 bg-surface border border-subtle rounded-md space-y-2 text-xs">
                 <div className="flex justify-between items-center font-medium">
-                  <span className="text-[#f7f8f8]">{c.categoryName}</span>
-                  <span className="font-mono text-[#f97316]">{c.percentage}%</span>
+                  <span className="text-primary">{c.categoryName}</span>
+                  <span className="font-mono text-[#f97316] font-bold">{c.percentage}%</span>
                 </div>
 
-                <div className="flex justify-between text-[11px] font-mono text-[#8a8f98]">
+                <div className="flex justify-between text-[11px] font-mono text-secondary">
                   <span>Teto: R$ {allocated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
 
-                <div className="w-full bg-[#080a0c] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
-                  <div className="bg-[#f97316] h-full rounded-full" style={{ width: `${c.percentage}%` }}></div>
+                <div className="w-full bg-canvas h-1.5 rounded-full overflow-hidden border border-subtle">
+                  <div className="bg-[#f97316] h-full rounded-full" style={{ width: `${c.percentage}%` }} />
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
+      </Card>
 
-      {/* Modal */}
-      {showMemberModal && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-md space-y-4 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
-              <h3 className="font-semibold text-sm text-[#f7f8f8]">Adicionar Membro ao Grupo</h3>
-              <button onClick={() => setShowMemberModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
-            </div>
+      {/* Member Modal */}
+      <Modal
+        isOpen={showMemberModal}
+        onClose={() => setShowMemberModal(false)}
+        title="Adicionar Membro ao Grupo"
+        description="Preencha os dados do familiar para incluir na divisão orçamentária."
+      >
+        <form onSubmit={handleAddMember} className="space-y-4">
+          <Input
+            label="NOME DO MEMBRO"
+            value={newMemberName}
+            onChange={(e) => setNewMemberName(e.target.value)}
+            placeholder="ex: Carlos Souza"
+            required
+          />
 
-            <form onSubmit={handleAddMember} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Nome do Membro</label>
-                <input 
-                  type="text" 
-                  value={newMemberName}
-                  onChange={(e) => setNewMemberName(e.target.value)}
-                  placeholder="ex: Carlos Souza"
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none" 
-                  required
-                />
-              </div>
+          <Input
+            label="EMAIL"
+            type="email"
+            value={newMemberEmail}
+            onChange={(e) => setNewMemberEmail(e.target.value)}
+            placeholder="membro@email.com"
+            required
+          />
 
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Email</label>
-                <input 
-                  type="email" 
-                  value={newMemberEmail}
-                  onChange={(e) => setNewMemberEmail(e.target.value)}
-                  placeholder="membro@email.com"
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none" 
-                  required
-                />
-              </div>
+          <Input
+            label="📱 WHATSAPP DA IA"
+            value={newMemberPhone}
+            onChange={(e) => setNewMemberPhone(e.target.value)}
+            placeholder="5567999887766"
+          />
 
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">📱 WhatsApp da IA</label>
-                <input 
-                  type="text" 
-                  value={newMemberPhone}
-                  onChange={(e) => setNewMemberPhone(e.target.value)}
-                  placeholder="5567999887766"
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none" 
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-2">
-                <button 
-                  type="button" 
-                  onClick={() => setShowMemberModal(false)}
-                  className="h-8 px-3 rounded bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8] border border-[#ffffff0a]"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm"
-                >
-                  Adicionar
-                </button>
-              </div>
-            </form>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="secondary" onClick={() => setShowMemberModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="primary">
+              Adicionar
+            </Button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
 
       {/* Budget Modal */}
-      {showBudgetModal && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-lg space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
-              <h3 className="font-semibold text-sm text-[#f7f8f8]">Configurar Orçamento Familiar</h3>
-              <button onClick={() => setShowBudgetModal(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
+      <Modal
+        isOpen={showBudgetModal}
+        onClose={() => setShowBudgetModal(false)}
+        title="Configurar Orçamento Familiar"
+        description="Defina o valor mensal total e a porcentagem atribuída a cada categoria."
+        maxWidth="lg"
+      >
+        <div className="space-y-4 text-xs">
+          <Input
+            label="VALOR TOTAL MENSAL (R$)"
+            type="number"
+            value={totalBudget}
+            onChange={(e) => setTotalBudget(Number(e.target.value))}
+            className="font-mono font-bold text-sm"
+          />
+
+          <div className="space-y-2">
+            <div className="flex justify-between font-semibold">
+              <span className="text-secondary">Categorias</span>
+              <span className={isPercentageValid ? 'text-success' : 'text-error'}>
+                Soma: {totalPercentage}% {isPercentageValid ? '✓' : '(deve dar 100%)'}
+              </span>
             </div>
 
-            <div className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Valor Total Mensal (R$)</label>
-                <input 
-                  type="number" 
-                  value={totalBudget}
-                  onChange={(e) => setTotalBudget(Number(e.target.value))}
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono font-bold text-sm focus:outline-none" 
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between font-semibold">
-                  <span className="text-[#8a8f98]">Categorias</span>
-                  <span className={isPercentageValid ? 'text-[#4ade80]' : 'text-[#f87171]'}>
-                    Soma: {totalPercentage}% {isPercentageValid ? '✓' : '(deve dar 100%)'}
-                  </span>
+            {categories.map((c) => (
+              <div key={c.categoryId} className="flex items-center justify-between p-2 rounded bg-surface border border-subtle">
+                <span className="text-primary">{c.categoryName}</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={c.percentage}
+                    onChange={(e) => handlePercentageChange(c.categoryId, Number(e.target.value))}
+                    className="w-14 h-7 bg-canvas border border-subtle rounded text-center text-xs font-mono font-bold text-[#f97316] focus:outline-none focus:border-accent"
+                  />
+                  <span className="text-secondary">%</span>
                 </div>
-
-                {categories.map((c) => (
-                  <div key={c.categoryId} className="flex items-center justify-between p-2 rounded bg-[#16191e] border border-[#ffffff0a]">
-                    <span className="text-[#f7f8f8]">{c.categoryName}</span>
-                    <div className="flex items-center space-x-1">
-                      <input 
-                        type="number" 
-                        value={c.percentage}
-                        onChange={(e) => handlePercentageChange(c.categoryId, Number(e.target.value))}
-                        className="w-14 h-7 bg-[#080a0c] border border-[#ffffff10] rounded text-center text-xs font-mono font-bold text-[#f97316]"
-                      />
-                      <span className="text-[#8a8f98]">%</span>
-                    </div>
-                  </div>
-                ))}
               </div>
+            ))}
+          </div>
 
-              <div className="flex justify-end space-x-2 pt-2">
-                <button 
-                  disabled={!isPercentageValid}
-                  onClick={() => setShowBudgetModal(false)}
-                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm disabled:opacity-40"
-                >
-                  Salvar Orçamento
-                </button>
-              </div>
-            </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              disabled={!isPercentageValid}
+              onClick={() => setShowBudgetModal(false)}
+              variant="primary"
+            >
+              Salvar Orçamento
+            </Button>
           </div>
         </div>
-      )}
-
+      </Modal>
     </div>
   );
 }
+

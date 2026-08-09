@@ -1,8 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Cpu, Key, CheckCircle2, AlertTriangle, RefreshCw, Plus, ShieldCheck, Check } from 'lucide-react';
+import { Cpu, Key, AlertTriangle, RefreshCw, Plus, ShieldCheck } from 'lucide-react';
 import { authFetch } from '@/lib/api';
+import {
+  PageHeader,
+  Card,
+  Button,
+  Input,
+  Select,
+  Modal,
+  Badge,
+  Alert,
+} from '../../../components/ui';
 
 interface ProviderCard {
   id: string;
@@ -26,7 +36,7 @@ const initialProviders: ProviderCard[] = [
     models: ['GPT-4o', 'GPT-4o Mini', 'o3-mini', 'o1', 'GPT-4 Turbo'],
     tokensUsed: 0,
     tokenLimit: 500000,
-    hasKeyConfigured: false
+    hasKeyConfigured: false,
   },
   {
     id: 'anthropic',
@@ -37,7 +47,7 @@ const initialProviders: ProviderCard[] = [
     models: ['Claude 3.5 Sonnet', 'Claude 3.5 Haiku', 'Claude 3 Opus'],
     tokensUsed: 0,
     tokenLimit: 300000,
-    hasKeyConfigured: false
+    hasKeyConfigured: false,
   },
   {
     id: 'gemini',
@@ -48,7 +58,7 @@ const initialProviders: ProviderCard[] = [
     models: ['Gemini 2.0 Flash', 'Gemini 1.5 Pro', 'Gemini 1.5 Flash'],
     tokensUsed: 0,
     tokenLimit: 200000,
-    hasKeyConfigured: false
+    hasKeyConfigured: false,
   },
   {
     id: 'deepseek',
@@ -59,8 +69,8 @@ const initialProviders: ProviderCard[] = [
     models: ['DeepSeek-V3', 'DeepSeek-R1 (Reasoning)'],
     tokensUsed: 0,
     tokenLimit: 200000,
-    hasKeyConfigured: false
-  }
+    hasKeyConfigured: false,
+  },
 ];
 
 export default function ProvedoresIAPage() {
@@ -78,18 +88,20 @@ export default function ProvedoresIAPage() {
       if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setProviders(prev => prev.map(p => {
-            const found = data.find((d: any) => d.id === p.id || d.providerType === p.providerType);
-            if (found) {
-              return {
-                ...p,
-                status: found.status || (found.hasKeyConfigured ? 'CONECTADO' : 'DESCONECTADO'),
-                hasKeyConfigured: found.hasKeyConfigured,
-                statusReason: found.statusReason || p.statusReason
-              };
-            }
-            return p;
-          }));
+          setProviders((prev) =>
+            prev.map((p) => {
+              const found = data.find((d: any) => d.id === p.id || d.providerType === p.providerType);
+              if (found) {
+                return {
+                  ...p,
+                  status: found.status || (found.hasKeyConfigured ? 'CONECTADO' : 'DESCONECTADO'),
+                  hasKeyConfigured: found.hasKeyConfigured,
+                  statusReason: found.statusReason || p.statusReason,
+                };
+              }
+              return p;
+            })
+          );
         }
       }
     } catch (e) {
@@ -113,7 +125,7 @@ export default function ProvedoresIAPage() {
         body: JSON.stringify({
           provider: selectedProvider,
           key: apiKeyInput,
-        })
+        }),
       });
 
       if (res.ok) {
@@ -134,198 +146,172 @@ export default function ProvedoresIAPage() {
   };
 
   const handleTestConnection = async (providerId: string) => {
-    setTestingMap(prev => ({ ...prev, [providerId]: true }));
+    setTestingMap((prev) => ({ ...prev, [providerId]: true }));
     try {
       const res = await authFetch('/api/llm-providers/test', {
         method: 'POST',
-        body: JSON.stringify({ provider: providerId })
+        body: JSON.stringify({ provider: providerId }),
       });
       if (res.ok) {
         const data = await res.json();
-        setProviders(prev => prev.map(p => p.id === providerId ? {
-          ...p,
-          status: data.ok ? 'CONECTADO' : 'DESCONECTADO',
-          statusReason: data.reason || (data.ok ? 'Conexão ativada e validada!' : 'Falha na validação da chave API.')
-        } : p));
+        setProviders((prev) =>
+          prev.map((p) =>
+            p.id === providerId
+              ? {
+                  ...p,
+                  status: data.ok ? 'CONECTADO' : 'DESCONECTADO',
+                  statusReason:
+                    data.reason || (data.ok ? 'Conexão ativada e validada!' : 'Falha na validação da chave API.'),
+                }
+              : p
+          )
+        );
       }
     } catch (err) {
       console.error('Erro ao testar conexão:', err);
     } finally {
-      setTestingMap(prev => ({ ...prev, [providerId]: false }));
+      setTestingMap((prev) => ({ ...prev, [providerId]: false }));
     }
   };
 
   return (
-    <div className="space-y-6 text-[#f7f8f8] max-w-7xl mx-auto pb-12">
-      
-      {/* Linear Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-md bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#5e6ad2]">
-            <Cpu className="w-4 h-4" />
-          </div>
-          <div>
-            <h1 className="text-base font-semibold text-[#f7f8f8] tracking-tight">Provedores de Inteligência Artificial</h1>
-            <p className="text-xs text-[#8a8f98]">Gerenciamento de chaves API e verificação de conexões com LLMs</p>
-          </div>
-        </div>
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* Design System Page Header */}
+      <PageHeader
+        icon={<Cpu className="w-5 h-5 text-accent" />}
+        title="Provedores de Inteligência Artificial"
+        subtitle="Gerenciamento de chaves API e verificação de conexões com LLMs"
+        actions={
+          <Button
+            variant="primary"
+            size="sm"
+            leftIcon={<Plus className="w-3.5 h-3.5" />}
+            onClick={() => setModalOpen(true)}
+          >
+            Configurar Chave API
+          </Button>
+        }
+      />
 
-        <button 
-          onClick={() => setModalOpen(true)}
-          className="h-8 px-3 rounded-md bg-[#f7f8f8] hover:bg-[#e1e2e2] text-[#080a0c] font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Configurar Chave API</span>
-        </button>
-      </div>
-
-      {/* Grid of Clean Linear Provider Cards */}
+      {/* Grid of Clean Provider Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {providers.map((p) => {
           const isConnected = p.status === 'CONECTADO';
           const isTesting = testingMap[p.id];
 
           return (
-            <div key={p.id} className="linear-card p-5 space-y-4 flex flex-col justify-between">
+            <Card key={p.id} padding="standard" className="flex flex-col justify-between">
               <div className="space-y-3">
-                
-                {/* Provider Title & Status Pill */}
+                {/* Provider Title & Status Badge */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2.5">
-                    <div className="w-7 h-7 rounded bg-[#16191e] border border-[#ffffff10] flex items-center justify-center text-xs font-bold text-[#f7f8f8]">
+                    <div className="w-7 h-7 rounded bg-surface border border-subtle flex items-center justify-center text-xs font-bold text-primary">
                       {p.name.charAt(0)}
                     </div>
-                    <h3 className="font-semibold text-sm text-[#f7f8f8] tracking-tight">{p.name}</h3>
+                    <h3 className="font-semibold text-sm text-primary tracking-tight">{p.name}</h3>
                   </div>
 
-                  <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono border ${
-                    isConnected 
-                      ? 'bg-[#4ade8010] text-[#4ade80] border-[#4ade8025]' 
-                      : 'bg-[#16191e] text-[#8a8f98] border-[#ffffff0e]'
-                  }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-[#4ade80]' : 'bg-[#575c66]'}`}></span>
+                  <Badge variant={isConnected ? 'success' : 'neutral'} dot>
                     {isConnected ? 'ONLINE' : 'DESCONECTADO'}
-                  </span>
+                  </Badge>
                 </div>
 
                 {/* Status Notice */}
                 {!isConnected && (
-                  <div className="p-2.5 rounded-md bg-[#16191e] border border-[#ffffff0a] text-[11px] text-[#8a8f98] flex items-start gap-2">
-                    <AlertTriangle className="w-3.5 h-3.5 text-[#575c66] flex-shrink-0 mt-0.5" />
+                  <div className="p-2.5 rounded-md bg-surface border border-subtle text-[11px] text-secondary flex items-start gap-2">
+                    <AlertTriangle className="w-3.5 h-3.5 text-tertiary shrink-0 mt-0.5" />
                     <span>{p.statusReason}</span>
                   </div>
                 )}
 
                 {/* Models Supported Tags */}
                 <div>
-                  <span className="text-[10px] font-semibold text-[#575c66] uppercase tracking-wider block mb-1.5">
+                  <span className="text-[10px] font-semibold text-tertiary uppercase tracking-wider block mb-1.5">
                     Modelos Suportados
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {p.models.map(m => (
-                      <span key={m} className="px-2 py-0.5 rounded bg-[#16191e] border border-[#ffffff08] text-[11px] text-[#8a8f98]">
+                    {p.models.map((m) => (
+                      <span
+                        key={m}
+                        className="px-2 py-0.5 rounded bg-surface border border-subtle text-[11px] text-secondary"
+                      >
                         {m}
                       </span>
                     ))}
                   </div>
                 </div>
-
               </div>
 
               {/* Card Footer Actions */}
-              <div className="pt-3 border-t border-[#ffffff08] flex items-center justify-between">
-                <span className="text-[11px] font-mono text-[#575c66]">0 / {p.tokenLimit.toLocaleString()} tokens</span>
+              <div className="pt-3 border-t border-subtle flex items-center justify-between mt-3">
+                <span className="text-[11px] font-mono text-tertiary">0 / {p.tokenLimit.toLocaleString()} tokens</span>
 
-                <button 
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => handleTestConnection(p.id)}
                   disabled={isTesting}
-                  className="h-7 px-2.5 rounded bg-[#16191e] hover:bg-[#1d2127] border border-[#ffffff10] text-[11px] text-[#f7f8f8] font-medium flex items-center space-x-1.5 transition"
+                  isLoading={isTesting}
+                  leftIcon={!isTesting ? <RefreshCw className="w-3 h-3 text-secondary" /> : undefined}
                 >
-                  <RefreshCw className={`w-3 h-3 text-[#8a8f98] ${isTesting ? 'animate-spin' : ''}`} />
-                  <span>{isTesting ? 'Testando...' : 'Testar Conexão'}</span>
-                </button>
+                  {isTesting ? 'Testando...' : 'Testar Conexão'}
+                </Button>
               </div>
-
-            </div>
+            </Card>
           );
         })}
       </div>
 
       {/* API Key Configuration Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 bg-[#080a0c]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1115] border border-[#ffffff14] rounded-lg p-6 w-full max-w-md space-y-4 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-[#ffffff0e] pb-3">
-              <div className="flex items-center space-x-2">
-                <Key className="w-4 h-4 text-[#5e6ad2]" />
-                <h3 className="font-semibold text-sm text-[#f7f8f8]">Configurar Chave API</h3>
-              </div>
-              <button onClick={() => setModalOpen(false)} className="text-[#8a8f98] hover:text-[#f7f8f8] text-xs">✕</button>
-            </div>
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={
+          <span className="flex items-center gap-2">
+            <Key className="w-4 h-4 text-accent" />
+            <span>Configurar Chave API</span>
+          </span>
+        }
 
-            {saveSuccess && (
-              <div className="p-3 rounded bg-[#4ade8015] border border-[#4ade8030] text-[12px] text-[#4ade80]">
-                ✓ {saveSuccess}
-              </div>
-            )}
+      >
+        <form onSubmit={handleSaveKey} className="space-y-4 text-xs">
+          {saveSuccess && <Alert variant="success">{saveSuccess}</Alert>}
+          {saveError && <Alert variant="error">{saveError}</Alert>}
 
-            {saveError && (
-              <div className="p-3 rounded bg-[#f8717115] border border-[#f8717130] text-[12px] text-[#f87171]">
-                ⚠️ {saveError}
-              </div>
-            )}
+          <Select
+            label="SELECIONE O PROVEDOR"
+            value={selectedProvider}
+            onChange={(e) => setSelectedProvider(e.target.value)}
+            options={[
+              { value: 'openai', label: 'OpenAI (GPT-4o, o3-mini)' },
+              { value: 'anthropic', label: 'Anthropic (Claude 3.5 Sonnet)' },
+              { value: 'gemini', label: 'Google Gemini (Gemini 2.0 Flash)' },
+              { value: 'deepseek', label: 'DeepSeek (V3, R1)' },
+            ]}
+          />
 
-            <form onSubmit={handleSaveKey} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Selecione o Provedor</label>
-                <select 
-                  value={selectedProvider}
-                  onChange={(e) => setSelectedProvider(e.target.value)}
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
-                >
-                  <option value="openai">OpenAI (GPT-4o, o3-mini)</option>
-                  <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
-                  <option value="gemini">Google Gemini (Gemini 2.0 Flash)</option>
-                  <option value="deepseek">DeepSeek (V3, R1)</option>
-                </select>
-              </div>
+          <Input
+            label="CHAVE API (API KEY)"
+            type="password"
+            value={apiKeyInput}
+            onChange={(e) => setApiKeyInput(e.target.value)}
+            placeholder="sk-proj-..."
+            required
+            className="font-mono"
+            hint="Sua chave é armazenada de forma criptografada via AES-256 no banco de dados."
+          />
 
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8a8f98] uppercase mb-1">Chave API (API Key)</label>
-                <input 
-                  type="password"
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  placeholder="sk-proj-..."
-                  className="w-full h-9 px-3 rounded bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
-                  required
-                />
-                <p className="text-[10px] text-[#575c66] mt-1 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-[#4ade80]" />
-                  <span>Sua chave é armazenada de forma criptografada via AES-256 no banco de dados.</span>
-                </p>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-2">
-                <button 
-                  type="button" 
-                  onClick={() => setModalOpen(false)}
-                  className="h-8 px-3 rounded bg-[#16191e] text-[#8a8f98] hover:text-[#f7f8f8] border border-[#ffffff0a]"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  className="h-8 px-4 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium shadow-sm"
-                >
-                  Salvar Chave
-                </button>
-              </div>
-            </form>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="secondary" onClick={() => setModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="primary">
+              Salvar Chave
+            </Button>
           </div>
-        </div>
-      )}
-
+        </form>
+      </Modal>
     </div>
   );
 }
+

@@ -2,42 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== LINEAR-INSPIRED DESIGN SYSTEM TOKENS ===== */
+/* ===== UNIFIED DESIGN SYSTEM TOKENS (--ds-*) ===== */
 :root {
   /* Surface Layers (Near-black scale) */
-  --sf-bg-base:        #080a0c;   /* Canvas background */
-  --sf-bg-surface:     #0f1115;   /* Sidebar, panels */
-  --sf-bg-elevated:    #16191e;   /* Cards hover, modais */
-  --sf-bg-overlay:     #1d2127;   /* Dropdowns, tooltips */
+  --ds-bg-canvas:       #080a0c;   /* Canvas background */
+  --ds-bg-surface:      #0f1115;   /* Sidebar, panels, cards */
+  --ds-bg-elevated:     #16191e;   /* Hover, modals */
+  --ds-bg-overlay:      #1d2127;   /* Dropdowns, tooltips */
+  --ds-bg-input:        #0c0e12;   /* Input backgrounds */
 
   /* Text Hierarchy */
-  --sf-text-primary:   #f7f8f8;   /* Pure crisp headers */
-  --sf-text-secondary: #8a8f98;   /* Subtitles, labels */
-  --sf-text-tertiary:  #575c66;   /* Placeholders, metadata */
-  --sf-text-muted:     #3f434a;   /* Subtle accents */
+  --ds-text-primary:    #f7f8f8;   /* Pure crisp headers */
+  --ds-text-secondary:  #8a8f98;   /* Subtitles, labels */
+  --ds-text-tertiary:   #575c66;   /* Placeholders, metadata */
+  --ds-text-muted:      #3f434a;   /* Subtle accents / disabled */
+  --ds-text-inverse:    #080a0c;   /* Text on light accent */
 
   /* Linear Accent (Linear Indigo) */
-  --sf-accent:         #5e6ad2;
-  --sf-accent-hover:   #6e7be2;
-  --sf-accent-muted:   rgba(94, 106, 210, 0.12);
-  --sf-accent-glow:    rgba(94, 106, 210, 0.25);
+  --ds-accent:          #5e6ad2;
+  --ds-accent-hover:    #6e7be2;
+  --ds-accent-active:   #4f5bc3;
+  --ds-accent-subtle:   rgba(94, 106, 210, 0.12);
+  --ds-accent-glow:     rgba(94, 106, 210, 0.25);
 
   /* Status Colors */
-  --sf-success:        #4ade80;
-  --sf-warning:        #facc15;
-  --sf-error:          #f87171;
-  --sf-info:           #60a5fa;
+  --ds-success:         #4ade80;
+  --ds-success-subtle:  rgba(74, 222, 128, 0.12);
+  --ds-warning:         #fbbf24;
+  --ds-warning-subtle:  rgba(251, 191, 36, 0.12);
+  --ds-error:           #f87171;
+  --ds-error-subtle:    rgba(248, 113, 113, 0.12);
+  --ds-info:            #60a5fa;
+  --ds-info-subtle:     rgba(96, 165, 250, 0.12);
 
   /* Borders & Dividers */
-  --sf-border:         rgba(255, 255, 255, 0.07);
-  --sf-border-hover:   rgba(255, 255, 255, 0.14);
-  --sf-border-focus:   rgba(94, 106, 210, 0.6);
+  --ds-border:          rgba(255, 255, 255, 0.07);
+  --ds-border-subtle:   rgba(255, 255, 255, 0.04);
+  --ds-border-hover:    rgba(255, 255, 255, 0.14);
+  --ds-border-focus:    rgba(94, 106, 210, 0.6);
 
   /* Radii */
-  --sf-radius-sm:  4px;
-  --sf-radius-md:  6px;
-  --sf-radius-lg:  10px;
-  --sf-radius-xl:  14px;
+  --ds-radius-sm:   4px;
+  --ds-radius-md:   6px;
+  --ds-radius-lg:   10px;
+  --ds-radius-xl:   14px;
+  --ds-radius-full: 9999px;
+
+  /* Backward-compatible --sf-* Aliases */
+  --sf-bg-base:        var(--ds-bg-canvas);
+  --sf-bg-surface:     var(--ds-bg-surface);
+  --sf-bg-elevated:    var(--ds-bg-elevated);
+  --sf-bg-overlay:     var(--ds-bg-overlay);
+  --sf-text-primary:   var(--ds-text-primary);
+  --sf-text-secondary: var(--ds-text-secondary);
+  --sf-text-tertiary:  var(--ds-text-tertiary);
+  --sf-text-muted:     var(--ds-text-muted);
+  --sf-accent:         var(--ds-accent);
+  --sf-accent-hover:   var(--ds-accent-hover);
+  --sf-accent-muted:   var(--ds-accent-subtle);
+  --sf-accent-glow:    var(--ds-accent-glow);
+  --sf-success:        var(--ds-success);
+  --sf-warning:        var(--ds-warning);
+  --sf-error:          var(--ds-error);
+  --sf-info:           var(--ds-info);
+  --sf-border:         var(--ds-border);
+  --sf-border-hover:   var(--ds-border-hover);
+  --sf-border-focus:   var(--ds-border-focus);
+  --sf-radius-sm:      var(--ds-radius-sm);
+  --sf-radius-md:      var(--ds-radius-md);
+  --sf-radius-lg:      var(--ds-radius-lg);
+  --sf-radius-xl:      var(--ds-radius-xl);
 }
 
 body {
