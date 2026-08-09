@@ -198,6 +198,7 @@ function BioGaugeArc({
 // ─── DASHBOARD PRINCIPAL DE AVALIAÇÃO CORPORAL ──────────────────
 export default function BodyAssessmentDashboard() {
   const { user } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'charts' | 'compare' | 'history' | 'goals'
   >('dashboard');
@@ -206,6 +207,10 @@ export default function BodyAssessmentDashboard() {
   const [allAssessments, setAllAssessments] = useState<any[]>([]);
   const [goals, setGoals] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Modais
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
@@ -349,7 +354,7 @@ export default function BodyAssessmentDashboard() {
 
   const latest = summary?.latest;
 
-  if (isLoading) {
+  if (isLoading || !isMounted) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center space-y-3">
@@ -587,7 +592,7 @@ export default function BodyAssessmentDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <BioGaugeArc
               label="Índice de Hidratação"
-              value={latest?.hydrationIndex || 3.9}
+              value={latest?.hydrationIndex}
               min={1.9}
               max={6.2}
               statusText="Euhidratado (Saudável)"
@@ -595,7 +600,7 @@ export default function BodyAssessmentDashboard() {
             />
             <BioGaugeArc
               label="Ângulo de Fase (°)"
-              value={latest?.phaseAngle || 8.9}
+              value={latest?.phaseAngle}
               min={4.0}
               max={10.2}
               statusText="Excelente Integridade"
@@ -603,7 +608,7 @@ export default function BodyAssessmentDashboard() {
             />
             <BioGaugeArc
               label="Razão Músculo / Gordura"
-              value={latest?.muscleFatRatio || 1.9}
+              value={latest?.muscleFatRatio}
               min={0.3}
               max={4.5}
               unit="kg/kg"
@@ -612,11 +617,11 @@ export default function BodyAssessmentDashboard() {
             />
             <BioGaugeArc
               label="Relação Cintura/Estatura"
-              value={latest?.waistHeightRatio || 0.54}
+              value={latest?.waistHeightRatio}
               min={0.3}
               max={0.8}
-              statusText="Risco Aumentado (Meta: <0,50)"
-              color="#fbbf24"
+              statusText={latest?.waistHeightRatio ? (latest.waistHeightRatio >= 0.50 ? 'Risco Aumentado (Meta: <0,50)' : 'Saudável (< 0,50)') : 'Aguardando'}
+              color={latest?.waistHeightRatio && latest.waistHeightRatio >= 0.50 ? '#fbbf24' : '#4ade80'}
             />
           </div>
 
@@ -624,9 +629,9 @@ export default function BodyAssessmentDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-1">
               <CellularAgeCard
-                cronologicalAge={latest?.age || 46}
-                cellularAge={latest?.cellularAge || 40}
-                phaseAngle={latest?.phaseAngle || 8.9}
+                cronologicalAge={latest?.age}
+                cellularAge={latest?.cellularAge}
+                phaseAngle={latest?.phaseAngle}
               />
             </div>
 
@@ -637,7 +642,7 @@ export default function BodyAssessmentDashboard() {
                   <h4 className="text-sm font-semibold text-[#f7f8f8]">Análise de Água Corporal</h4>
                 </div>
                 <span className="text-xs text-[#8a8f98]">
-                  Total: <strong className="text-[#f7f8f8]">{latest?.totalBodyWaterL || 46.1} L</strong> ({latest?.totalBodyWaterPercent || 57.1}%)
+                  Total: <strong className="text-[#f7f8f8]">{latest?.totalBodyWaterL ? `${latest.totalBodyWaterL} L` : '--'}</strong> ({latest?.totalBodyWaterPercent ? `${latest.totalBodyWaterPercent}%` : '--'})
                 </span>
               </div>
 
@@ -645,35 +650,35 @@ export default function BodyAssessmentDashboard() {
                 <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a]">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-medium text-[#8a8f98]">Água Intracelular (ICW)</span>
-                    <span className="text-xs font-bold text-[#60a5fa]">{latest?.intracellularWaterPercent || 59.2}%</span>
+                    <span className="text-xs font-bold text-[#60a5fa]">{latest?.intracellularWaterPercent ? `${latest.intracellularWaterPercent}%` : '--'}</span>
                   </div>
                   <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden mb-2">
                     <div
                       className="bg-[#60a5fa] h-full rounded-full"
-                      style={{ width: `${latest?.intracellularWaterPercent || 59.2}%` }}
+                      style={{ width: `${latest?.intracellularWaterPercent || 0}%` }}
                     />
                   </div>
-                  <span className="text-xs text-[#8a8f98]">{latest?.intracellularWaterL || 27.3} Litros em células musculares e tecidos</span>
+                  <span className="text-xs text-[#8a8f98]">{latest?.intracellularWaterL ? `${latest.intracellularWaterL} Litros` : 'Sem dados'}</span>
                 </div>
 
                 <div className="p-4 rounded-lg bg-[#080a0c] border border-[#ffffff0a]">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-medium text-[#8a8f98]">Água Extracelular (ECW)</span>
-                    <span className="text-xs font-bold text-[#a78bfa]">{latest?.extracellularWaterPercent || 40.8}%</span>
+                    <span className="text-xs font-bold text-[#a78bfa]">{latest?.extracellularWaterPercent ? `${latest.extracellularWaterPercent}%` : '--'}</span>
                   </div>
                   <div className="w-full bg-[#16191e] h-2 rounded-full overflow-hidden mb-2">
                     <div
                       className="bg-[#a78bfa] h-full rounded-full"
-                      style={{ width: `${latest?.extracellularWaterPercent || 40.8}%` }}
+                      style={{ width: `${latest?.extracellularWaterPercent || 0}%` }}
                     />
                   </div>
-                  <span className="text-xs text-[#8a8f98]">{latest?.extracellularWaterL || 18.8} Litros em plasma e fluidos livres</span>
+                  <span className="text-xs text-[#8a8f98]">{latest?.extracellularWaterL ? `${latest.extracellularWaterL} Litros` : 'Sem dados'}</span>
                 </div>
               </div>
 
               <div className="mt-4 p-3 rounded-lg bg-[#3b82f60a] border border-[#3b82f620] flex items-center justify-between text-xs">
                 <span className="text-[#8a8f98]">Água na Massa Magra (FFM Hydration):</span>
-                <span className="font-bold text-[#60a5fa]">{latest?.leanMassWaterPercent || 72.9}% (Faixa Ideal: 72% - 74%)</span>
+                <span className="font-bold text-[#60a5fa]">{latest?.leanMassWaterPercent ? `${latest.leanMassWaterPercent}%` : '--'} (Faixa Ideal: 72% - 74%)</span>
               </div>
             </div>
           </div>
