@@ -15,13 +15,13 @@ export class LabOcrService {
   async parseExamImage(imageBase64: string, mimeType: string): Promise<any> {
     this.logger.log(`[LabOcrService] Iniciando parse. Base64 length: ${imageBase64?.length || 0}, MimeType: ${mimeType}`);
 
-    const prompt = `Você é um leitor óptico especialista em laudos de exames laboratoriais médicos (Sangue, Urina, Função Hepática, Função Renal, Perfil Lipídico, Hemograma, Hormônios, Vitaminas, etc.).
+    const prompt = `Você é um leitor óptico especialista em laudos de exames laboratoriais médicos brasileiros (Sangue, Urina, Função Hepática, Função Renal, Perfil Lipídico, Hemograma Completo, Hormônios, Vitaminas, Marcadores Tumorais, etc.).
 
-Extraia TODOS os biomarcadores e resultados visíveis na imagem fornecida, sem exceção.
+Extraia TODOS os biomarcadores e resultados visíveis na imagem fornecida, sem exceção. Dê atenção especial aos 9 biomarcadores do cálculo de longevidade (Albumina, Creatinina, Glicose de Jejum, Proteína C-Reativa/PCR-us, Linfócitos %, VCM, RDW, Fosfatase Alcalina e Leucócitos), além de Hemácias, Hemoglobina, Hematócrito, Plaquetas, Triglicerídeos, Colesterol HDL/LDL/VLDL, TSH, T4 Livre, T3, Ferritina, Ferro, Vitamina D, Vitamina B12, Testosterona, Cortisol, etc.
 
 Para cada biomarcador extraído:
-1. "name": Nome do biomarcador (ex: Creatinina, Glicose, Ferro, TGO, TGP, Ureia, Hemácias, Hemoglobina, Leucócitos, Plaquetas, TSH, Vitamina D, etc.).
-2. "value": Valor numérico do resultado (use ponto decimal, ex: 1.38 para 1,38 ou 76.0 para 76,0 ou 108.0 para 108,0).
+1. "name": Nome padronizado do biomarcador em português (ex: Albumina, Creatinina, Glicose de Jejum, Proteína C-Reativa, Linfócitos (%), VCM, RDW, Fosfatase Alcalina, Leucócitos, Hemácias, Hemoglobina, Plaquetas, TSH, Vitamina D, etc.).
+2. "value": Valor numérico do resultado (use ponto decimal, ex: 1.38 para 1,38 ou 76.0 para 76,0).
 3. "unit": Unidade de medida (ex: mg/dL, mcg/dL, U/L, g/dL, %, fl, pg, /mm³).
 4. "reference_min": Valor mínimo de referência se disponível (ex: 0.7 para Creatinina 0,7 a 1,3 mg/dL).
 5. "reference_max": Valor máximo de referência se disponível (ex: 1.3 para Creatinina 0,7 a 1,3 mg/dL).
