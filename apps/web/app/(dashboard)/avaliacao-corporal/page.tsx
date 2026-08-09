@@ -195,6 +195,76 @@ function BioGaugeArc({
   );
 }
 
+// ─── CARD DE IDADE CELULAR ──────────────────────────────────────
+function CellularAgeCard({
+  cronologicalAge,
+  cellularAge,
+  phaseAngle,
+}: {
+  cronologicalAge?: number | null;
+  cellularAge?: number | null;
+  phaseAngle?: number | null;
+}) {
+  const hasData = cronologicalAge != null && cellularAge != null;
+  const gap = hasData ? cronologicalAge - cellularAge : null;
+
+  let statusLabel = 'Aguardando dados';
+  let statusColor = '#8a8f98';
+  if (gap !== null) {
+    if (gap >= 5) {
+      statusLabel = `${gap} anos mais jovem 🎉`;
+      statusColor = '#4ade80';
+    } else if (gap > 0) {
+      statusLabel = `${gap} ano(s) mais jovem`;
+      statusColor = '#60a5fa';
+    } else if (gap === 0) {
+      statusLabel = 'Na média cronológica';
+      statusColor = '#fbbf24';
+    } else {
+      statusLabel = `${Math.abs(gap)} ano(s) acima`;
+      statusColor = '#f87171';
+    }
+  }
+
+  return (
+    <div className="linear-card p-5 flex flex-col justify-between h-full">
+      <div className="flex items-center space-x-2 mb-4">
+        <HeartPulse className="w-5 h-5 text-[#f472b6]" />
+        <h4 className="text-sm font-semibold text-[#f7f8f8]">Idade Celular</h4>
+      </div>
+
+      <div className="flex items-end justify-center space-x-6 my-4">
+        <div className="text-center">
+          <span className="text-3xl font-extrabold text-[#f7f8f8]">
+            {cellularAge != null ? cellularAge : '--'}
+          </span>
+          <span className="block text-[10px] text-[#8a8f98] mt-1">Idade Celular</span>
+        </div>
+        <div className="text-center opacity-60">
+          <span className="text-xl font-bold text-[#8a8f98]">
+            {cronologicalAge != null ? cronologicalAge : '--'}
+          </span>
+          <span className="block text-[10px] text-[#575c66] mt-1">Cronológica</span>
+        </div>
+      </div>
+
+      <div
+        className="text-center text-xs font-semibold px-3 py-1.5 rounded-full mx-auto"
+        style={{ color: statusColor, backgroundColor: `${statusColor}15` }}
+      >
+        {statusLabel}
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-[#ffffff0a] text-center">
+        <span className="text-[10px] text-[#575c66]">Ângulo de Fase: </span>
+        <span className="text-xs font-bold text-[#3b82f6]">
+          {phaseAngle != null ? `${phaseAngle}°` : '--'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ─── DASHBOARD PRINCIPAL DE AVALIAÇÃO CORPORAL ──────────────────
 export default function BodyAssessmentDashboard() {
   const { user } = useAuth();
