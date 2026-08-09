@@ -188,6 +188,8 @@ export class LabExamsService {
       ? Math.floor((Date.now() - new Date(user.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
       : null;
 
+    const phenoRequirements = this.phenoAgeService.getMissingBiomarkers(bioMap);
+
     return {
       phenoAge: latestExam.phenoAge || null,
       chronologicalAge: userAge,
@@ -197,6 +199,8 @@ export class LabExamsService {
       optimalCount,
       recentPatterns: patterns,
       recentExams: exams,
+      missingPhenoAgeBiomarkers: phenoRequirements.missing,
+      providedPhenoAgeBiomarkers: phenoRequirements.provided,
     };
   }
 

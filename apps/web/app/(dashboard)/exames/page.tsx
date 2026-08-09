@@ -57,6 +57,8 @@ interface DashboardSummary {
     severity: 'WARNING' | 'CRITICAL' | 'INFO';
   }>;
   recentExams: LabExamData[];
+  missingPhenoAgeBiomarkers?: string[];
+  providedPhenoAgeBiomarkers?: string[];
 }
 
 interface HealthScoreData {
@@ -298,6 +300,7 @@ export default function LabExamsPage() {
   });
   const [expandedGoodNews, setExpandedGoodNews] = useState(false);
   const [expandedAttention, setExpandedAttention] = useState(false);
+  const [isPhenoInfoOpen, setIsPhenoInfoOpen] = useState(false);
 
   // Tooltip state
   const [activeTip, setActiveTip] = useState<{ key: string; status: string } | null>(null);
@@ -780,7 +783,16 @@ export default function LabExamsPage() {
         <div className="p-4 rounded-xl bg-[#0f1115] border border-[#ffffff12] relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-20 h-20 bg-[#5e6ad210] rounded-full blur-xl group-hover:bg-[#5e6ad220] transition" />
           <div className="flex items-center justify-between text-xs text-[#8a8f98]">
-            <span>Idade Biológica</span>
+            <div className="flex items-center gap-1">
+              <span>Idade Biológica</span>
+              <button
+                onClick={() => setIsPhenoInfoOpen(true)}
+                title="O que é a Idade Biológica PhenoAge?"
+                className="text-[#8a8f98] hover:text-[#5e6ad2] transition"
+              >
+                <Info className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <Activity className="w-4 h-4 text-[#5e6ad2]" />
           </div>
           <div className="mt-2 flex items-baseline gap-1">
@@ -804,9 +816,13 @@ export default function LabExamsPage() {
               );
             })()
           ) : (
-            <span className="text-[10px] text-[#8a8f98] bg-[#ffffff0a] px-1.5 py-0.5 rounded inline-block mt-1">
-              Aguardando exames
-            </span>
+            <button
+              onClick={() => setIsPhenoInfoOpen(true)}
+              className="text-[10px] font-semibold text-[#fbbf24] bg-[#fbbf2415] border border-[#fbbf2430] hover:bg-[#fbbf2425] px-2 py-0.5 rounded inline-flex items-center gap-1 mt-1 transition"
+            >
+              <span>Faltam {summary?.missingPhenoAgeBiomarkers?.length || 9} exames</span>
+              <Info className="w-3 h-3" />
+            </button>
           )}
         </div>
 
@@ -1507,6 +1523,98 @@ export default function LabExamsPage() {
         />
       )}
 
+      {/* ═══ PHENOAGE INFO & MISSING BIOMARKERS MODAL ═══ */}
+      {isPhenoInfoOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-[#0f1115] border border-[#5e6ad230] shadow-2xl p-6 space-y-5 text-xs text-[#c4c7cd]">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[#5e6ad215] border border-[#5e6ad230] flex items-center justify-center text-[#5e6ad2]">
+                  <Activity className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#f7f8f8]">Idade Biológica (PhenoAge)</h3>
+                  <p className="text-[10px] text-[#8a8f98]">Algoritmo Científico de Yale — Dra. Morgan Levine</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsPhenoInfoOpen(false)}
+                className="text-[#8a8f98] hover:text-white transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <p className="leading-relaxed">
+                A <strong className="text-[#f7f8f8]">Idade Biológica</strong> mede o envelhecimento celular e a resiliência do seu corpo. Ao contrário da idade cronológica (da sua certidão), ela avalia o estresse imunológico, inflamatório, hepático e renal através de <strong className="text-[#5e6ad2]">9 biomarcadores de sangue essenciais</strong>.
+              </p>
+
+              <div className="p-3.5 rounded-xl bg-[#16191e] border border-[#ffffff0a] space-y-2">
+                <h4 className="text-[11px] font-bold text-[#f7f8f8] flex items-center justify-between">
+                  <span>Requisitos para o Cálculo ({summary?.providedPhenoAgeBiomarkers?.length || 0}/9)</span>
+                  <span className="text-[10px] font-semibold text-[#fbbf24]">
+                    {summary?.missingPhenoAgeBiomarkers?.length ? `Faltam ${summary.missingPhenoAgeBiomarkers.length}` : 'Completo 🎉'}
+                  </span>
+                </h4>
+
+                <div className="space-y-1 pt-1">
+                  {[
+                    { name: 'Albumina', desc: 'Reserva proteica e saúde hepática' },
+                    { name: 'Creatinina', desc: 'Função de filtração renal' },
+                    { name: 'Glicose de Jejum', desc: 'Metabolismo glicêmico' },
+                    { name: 'Proteína C-Reativa (PCR-us)', desc: 'Inflamação sistêmica de baixo grau' },
+                    { name: 'Linfócitos (%)', desc: 'Imunidade e defesa celular' },
+                    { name: 'VCM (Volume Corpuscular Médio)', desc: 'Tamanho das hemácias (Hemograma)' },
+                    { name: 'RDW (Variabilidade de Hemácias)', desc: 'Estresse oxidativo e renovação sanguínea' },
+                    { name: 'Fosfatase Alcalina', desc: 'Metabolismo ósseo e biliar' },
+                    { name: 'Leucócitos (Glóbulos Brancos)', desc: 'Contagem imunológica total' },
+                  ].map((req, idx) => {
+                    const isProvided = summary?.providedPhenoAgeBiomarkers?.some(
+                      (p) => p.toLowerCase().includes(req.name.toLowerCase().split(' ')[0])
+                    );
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`p-2 rounded-lg flex items-center justify-between text-[11px] border ${
+                          isProvided
+                            ? 'bg-[#4ade800a] border-[#4ade8020] text-[#f7f8f8]'
+                            : 'bg-[#fbbf240a] border-[#fbbf2420] text-[#8a8f98]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="shrink-0">{isProvided ? '✅' : '❌'}</span>
+                          <div>
+                            <span className="font-semibold block">{req.name}</span>
+                            <span className="text-[10px] text-[#8a8f98]">{req.desc}</span>
+                          </div>
+                        </div>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isProvided ? 'text-[#4ade80] bg-[#4ade8015]' : 'text-[#fbbf24] bg-[#fbbf2415]'}`}>
+                          {isProvided ? 'Enviado' : 'Pendente'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#5e6ad20a] border border-[#5e6ad220] text-[11px] text-[#8a8f98]">
+                💡 <strong className="text-[#f7f8f8]">Dica:</strong> Ao solicitar seu próximo exame de sangue de rotina, peça para seu médico incluir os biomarcadores pendentes para desbloquear a sua Idade Biológica PhenoAge.
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setIsPhenoInfoOpen(false)}
+                className="px-4 py-2 rounded-lg bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-xs font-semibold transition"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
