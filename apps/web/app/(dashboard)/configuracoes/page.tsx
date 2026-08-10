@@ -18,7 +18,9 @@ import {
   Cpu, 
   Calendar,
   HeartPulse,
-  ChevronRight
+  ChevronRight,
+  Copy,
+  HelpCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { authFetch } from '@/lib/api';
@@ -46,6 +48,22 @@ export default function ConfiguracoesPage() {
   const [uazapiToken, setUazapiToken] = useState('');
   const [savingUazapi, setSavingUazapi] = useState(false);
   const [uazapiSaved, setUazapiSaved] = useState(false);
+  const [copiedWebhook, setCopiedWebhook] = useState(false);
+
+  const getWebhookUrl = () => {
+    if (typeof window !== 'undefined') {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:3001`;
+      return `${apiBase.replace(/\/$/, '')}/api/whatsapp/webhook`;
+    }
+    return 'https://sua-api.com/api/whatsapp/webhook';
+  };
+
+  const handleCopyWebhook = () => {
+    const url = getWebhookUrl();
+    navigator.clipboard.writeText(url);
+    setCopiedWebhook(true);
+    setTimeout(() => setCopiedWebhook(false), 2500);
+  };
 
   // Modal Registrar Medidas
   const [showMeasurementModal, setShowMeasurementModal] = useState(false);
@@ -625,7 +643,7 @@ export default function ConfiguracoesPage() {
           </div>
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex justify-end pt-1 border-b border-[#ffffff0e] pb-4">
           <button
             type="button"
             onClick={handleSaveUazapi}
@@ -646,6 +664,68 @@ export default function ConfiguracoesPage() {
               </>
             )}
           </button>
+        </div>
+
+        {/* WEBHOOK CONFIGURATION CARD & HELP */}
+        <div className="p-4 rounded-xl bg-[#16191e] border border-[#ffffff12] space-y-3 text-xs">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-xs text-[#f7f8f8] flex items-center gap-1.5">
+              <HelpCircle className="w-4 h-4 text-[#38bdf8]" /> URL do Webhook do seu Sistema (Para colar no UazAPI)
+            </h3>
+            <span className="text-[10px] text-[#38bdf8] bg-[#38bdf815] px-2 py-0.5 rounded border border-[#38bdf830] font-mono">
+              Método POST
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              readOnly
+              value={getWebhookUrl()}
+              className="flex-1 h-9 px-3 rounded-lg bg-[#0d0f12] border border-[#ffffff15] text-[#38bdf8] font-mono text-xs focus:outline-none select-all"
+            />
+            <button
+              type="button"
+              onClick={handleCopyWebhook}
+              className="h-9 px-3.5 rounded-lg bg-[#5e6ad220] hover:bg-[#5e6ad240] border border-[#5e6ad240] text-[#818cf8] font-semibold text-xs flex items-center gap-1.5 transition shrink-0"
+            >
+              {copiedWebhook ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Copiado!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copiar URL</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="p-3.5 rounded-lg bg-[#0d0f12] border border-[#ffffff0a] space-y-2 text-[#a1a1aa]">
+            <p className="font-semibold text-[#f7f8f8] flex items-center gap-1 text-xs">
+              📋 Como preencher a janela "Webhooks" no UazAPI:
+            </p>
+            <ul className="space-y-1.5 pl-1 text-[11px]">
+              <li className="flex items-start gap-1.5">
+                <span className="text-[#4ade80] font-bold">1.</span>
+                <span><strong className="text-[#f7f8f8]">Habilitado:</strong> Ligue o interruptor (Toggle ON) na parte superior do modal do UazAPI.</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="text-[#4ade80] font-bold">2.</span>
+                <span><strong className="text-[#f7f8f8]">URL:</strong> Cole a URL copiada acima: <code className="text-[#38bdf8]">{getWebhookUrl()}</code></span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="text-[#4ade80] font-bold">3.</span>
+                <span><strong className="text-[#f7f8f8]">Escutar eventos:</strong> Digite <code className="text-[#4ade80]">messages</code></span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="text-[#4ade80] font-bold">4.</span>
+                <span><strong className="text-[#f7f8f8]">Excluir dos eventos escutados:</strong> Digite <code className="text-[#fb923c]">wasSentByApi,isGroupYes</code> <span className="text-[#a1a1aa]">(evita responder a si mesmo em loop e ignora grupos)</span>.</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
