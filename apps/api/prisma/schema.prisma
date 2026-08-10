@@ -413,6 +413,7 @@ model Medication {
   userId       String
   user         User                  @relation(fields: [userId], references: [id])
   name         String
+  brand        String?
   type         MedicationType        @default(MEDICAMENTO)
   category     MedicationCategory    @default(CONTINUO)
   priority     MedicationPriority    @default(IMPORTANTE)

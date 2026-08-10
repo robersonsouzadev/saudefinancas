@@ -1,5 +1,5 @@
 import { 
-  Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request 
+  Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, BadRequestException 
 } from '@nestjs/common';
 import { MedicationsService } from './medications.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -25,6 +25,14 @@ export class MedicationsController {
   async getMonthlyCosts(@Request() req) {
     const userId = req.user?.id || req.user?.userId;
     return this.medicationsService.getMonthlyCosts(userId);
+  }
+
+  @Post('scan')
+  async scanMedicationPhoto(@Body() body: { image: string; mimeType: string }) {
+    if (!body.image) {
+      throw new BadRequestException('Imagem é obrigatória para o escaneamento');
+    }
+    return this.medicationsService.scanMedicationImage(body.image, body.mimeType || 'image/jpeg');
   }
 
   @Get(':id')

@@ -1,9 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MedOcrService } from './services/med-ocr.service';
 
 @Injectable()
 export class MedicationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly medOcrService: MedOcrService,
+  ) {}
+
+  async scanMedicationImage(imageBase64: string, mimeType: string) {
+    const extractedData = await this.medOcrService.parseMedicationImage(imageBase64, mimeType);
+    return {
+      success: true,
+      data: extractedData,
+    };
+  }
 
   async getUserMedications(userId: string) {
     return this.prisma.medication.findMany({
@@ -30,6 +42,7 @@ export class MedicationsService {
 
   async createMedication(userId: string, data: {
     name: string;
+    brand?: string;
     type?: any;
     category?: any;
     priority?: any;
@@ -57,6 +70,7 @@ export class MedicationsService {
       data: {
         userId,
         name: data.name,
+        brand: data.brand,
         type: data.type || 'MEDICAMENTO',
         category: data.category || 'CONTINUO',
         priority: data.priority || 'IMPORTANTE',

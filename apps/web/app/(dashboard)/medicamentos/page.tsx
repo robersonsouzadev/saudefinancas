@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Pill, Plus, Clock, CheckCircle2, AlertTriangle, ShieldAlert, 
   MessageSquare, DollarSign, Calendar, TrendingUp, Sparkles, 
-  Sun, Sunset, Moon, Coffee, Edit3, Trash2, Check, X, Bell, UserCheck
+  Sun, Sunset, Moon, Coffee, Edit3, Trash2, Check, X, Bell, UserCheck,
+  Camera, Upload, FileText, Loader2
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { authFetch } from '@/lib/api';
@@ -12,7 +13,10 @@ import { authFetch } from '@/lib/api';
 interface MedicationItem {
   id: string;
   name: string;
+  brand?: string;
+  pharmacy?: string;
   type: 'MEDICAMENTO' | 'VITAMINA' | 'SUPLEMENTO' | 'FITOTERAPICO';
+  category: 'CONTINUO' | 'TEMPORARIO' | 'SOS';
   dosage: string;
   unit: string;
   time: string;
@@ -26,8 +30,6 @@ interface MedicationItem {
   escalateToFamily: boolean;
   color: string;
 }
-
-const initialMedications: MedicationItem[] = [];
 
 const adherenceTrendData = [
   { day: 'Seg', score: 100 },
@@ -50,7 +52,10 @@ const mapDbMedicationToUi = (med: any): MedicationItem => {
   return {
     id: med.id,
     name: med.name,
+    brand: med.brand || '',
+    pharmacy: med.pharmacy || '',
     type: med.type || 'MEDICAMENTO',
+    category: med.category || 'CONTINUO',
     dosage: med.dosage || '',
     unit: med.unit || 'comprimido',
     time: schedule.time || '08:00',
@@ -73,6 +78,16 @@ export default function MedicamentosPage() {
   const [isWhatsappDemoOpen, setIsWhatsappDemoOpen] = useState(false);
   const [selectedMedForDemo, setSelectedMedForDemo] = useState<MedicationItem | null>(null);
 
+  // Photo Upload & AI Scan States
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanLogs, setScanLogs] = useState<string[]>([]);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [isAiPreFilled, setIsAiPreFilled] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     fetchMedications();
   }, []);
@@ -92,22 +107,197 @@ export default function MedicamentosPage() {
   };
 
   // Form State for new medication
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    brand: string;
+    pharmacy: string;
+    type: 'MEDICAMENTO' | 'VITAMINA' | 'SUPLEMENTO' | 'FITOTERAPICO';
+    category: 'CONTINUO' | 'TEMPORARIO' | 'SOS';
+    dosage: string;
+    unit: string;
+    time: string;
+    period: 'MANHA' | 'TARDE' | 'NOITE' | 'MADRUGADA';
+    instructions: string;
+    currentStock: number;
+    stockAlertAt: number;
+    costPerUnit: number;
+    notifyWhatsapp: boolean;
+    escalateToFamily: boolean;
+  }>({
     name: '',
-    type: 'MEDICAMENTO' as const,
+    brand: '',
+    pharmacy: '',
+    type: 'MEDICAMENTO',
+    category: 'CONTINUO',
     dosage: '',
     unit: 'comprimido',
     time: '08:00',
-    period: 'MANHA' as const,
+    period: 'MANHA',
     instructions: '',
     currentStock: 30,
+    stockAlertAt: 5,
     costPerUnit: 1.0,
     notifyWhatsapp: true,
     escalateToFamily: true,
   });
 
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      brand: '',
+      pharmacy: '',
+      type: 'MEDICAMENTO',
+      category: 'CONTINUO',
+      dosage: '',
+      unit: 'comprimido',
+      time: '08:00',
+      period: 'MANHA',
+      instructions: '',
+      currentStock: 30,
+      stockAlertAt: 5,
+      costPerUnit: 1.0,
+      notifyWhatsapp: true,
+      escalateToFamily: true,
+    });
+    setIsAiPreFilled(false);
+  };
+
+  // Canvas Image Compression helper
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+            resolve(compressedBase64);
+          } else {
+            resolve(event.target?.result as string);
+          }
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setScanError('Por favor, selecione uma imagem válida (JPG, PNG, WEBP).');
+      return;
+    }
+
+    setScanError(null);
+    setUploadFile(file);
+
+    try {
+      const compressed = await compressImage(file);
+      setFilePreview(compressed);
+    } catch (err) {
+      console.error('Erro ao comprimir imagem:', err);
+      const reader = new FileReader();
+      reader.onload = () => setFilePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const processMedUpload = async () => {
+    if (!filePreview) {
+      setScanError('Selecione uma imagem da embalagem antes de prosseguir.');
+      return;
+    }
+
+    setIsScanning(true);
+    setScanError(null);
+    setScanLogs(['Iniciando leitura inteligente de embalagem...', 'Comprimindo payload base64...']);
+
+    try {
+      const base64Parts = filePreview.split(',');
+      const base64 = base64Parts.length > 1 ? base64Parts[1] : base64Parts[0];
+
+      setScanLogs((prev) => [...prev, 'Enviando imagem para GPT-4o Vision API...']);
+
+      const res = await authFetch('/api/medications/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: base64,
+          mimeType: uploadFile?.type || 'image/jpeg',
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Falha ao processar imagem de medicamento.');
+      }
+
+      const result = await res.json();
+      setScanLogs((prev) => [...prev, ' Leitura de embalagem concluída com sucesso!']);
+
+      const extracted = result.data || {};
+
+      // Pre-fill form with AI extractions
+      setFormData({
+        name: extracted.name || '',
+        brand: extracted.brand || '',
+        pharmacy: extracted.pharmacy || '',
+        type: extracted.type || 'MEDICAMENTO',
+        category: extracted.category || 'CONTINUO',
+        dosage: extracted.dosage || '',
+        unit: extracted.unit || 'comprimido',
+        time: extracted.time || '08:00',
+        period: extracted.period || 'MANHA',
+        instructions: extracted.instructions || 'Tomar conforme orientação',
+        currentStock: Number(extracted.currentStock) || 30,
+        stockAlertAt: Number(extracted.stockAlertAt) || 5,
+        costPerUnit: extracted.costPerUnit ? Number(extracted.costPerUnit) : 1.0,
+        notifyWhatsapp: true,
+        escalateToFamily: true,
+      });
+
+      setIsAiPreFilled(true);
+
+      // Close upload modal and open form modal after a brief pause
+      setTimeout(() => {
+        setIsScanning(false);
+        setIsUploadOpen(false);
+        setIsAddModalOpen(true);
+      }, 1000);
+
+    } catch (err: any) {
+      console.error('Erro no upload do medicamento:', err);
+      setScanError(err.message || 'Erro ao processar imagem.');
+      setScanLogs((prev) => [...prev, ` Erro: ${err.message || 'Falha na conexão'}`]);
+      setIsScanning(false);
+    }
+  };
+
   const handleMarkAsTaken = async (id: string) => {
-    // Optimistic UI update
     setMedications((prev) =>
       prev.map((med) => {
         if (med.id === id) {
@@ -160,11 +350,15 @@ export default function MedicamentosPage() {
       setIsSubmitting(true);
       const payload = {
         name: formData.name,
+        brand: formData.brand || undefined,
+        pharmacy: formData.pharmacy || undefined,
         type: formData.type,
+        category: formData.category,
         dosage: formData.dosage,
         unit: formData.unit,
         instructions: formData.instructions || 'Tomar conforme orientação',
         currentStock: Number(formData.currentStock) || 30,
+        stockAlertAt: Number(formData.stockAlertAt) || 5,
         costPerUnit: Number(formData.costPerUnit) || 0,
         color: formData.type === 'MEDICAMENTO' ? '#f87171' : formData.type === 'VITAMINA' ? '#facc15' : '#4ade80',
         schedules: [
@@ -186,19 +380,7 @@ export default function MedicamentosPage() {
       if (res.ok) {
         await fetchMedications();
         setIsAddModalOpen(false);
-        setFormData({
-          name: '',
-          type: 'MEDICAMENTO',
-          dosage: '',
-          unit: 'comprimido',
-          time: '08:00',
-          period: 'MANHA',
-          instructions: '',
-          currentStock: 30,
-          costPerUnit: 1.0,
-          notifyWhatsapp: true,
-          escalateToFamily: true,
-        });
+        resetForm();
       } else {
         alert('Não foi possível cadastrar o medicamento no banco de dados.');
       }
@@ -241,14 +423,31 @@ export default function MedicamentosPage() {
               setSelectedMedForDemo(medications[0]);
               setIsWhatsappDemoOpen(true);
             }}
-            className="h-9 sm:h-8 px-3 rounded-md bg-[#16191e] border border-[#ffffff12] hover:bg-[#1d2127] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
+            className="h-8 px-3 rounded-md bg-[#16191e] border border-[#ffffff12] hover:bg-[#1d2127] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
           >
             <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
             <span>📱 Testar WhatsApp</span>
           </button>
 
           <button 
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => {
+              setScanLogs([]);
+              setScanError(null);
+              setFilePreview(null);
+              setUploadFile(null);
+              setIsUploadOpen(true);
+            }}
+            className="h-8 px-3 rounded-md bg-gradient-to-r from-emerald-600 to-purple-600 hover:from-emerald-500 hover:to-purple-500 text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            <span>📷 Upload de Medicamento</span>
+          </button>
+
+          <button 
+            onClick={() => {
+              resetForm();
+              setIsAddModalOpen(true);
+            }}
             className="h-8 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -300,10 +499,10 @@ export default function MedicamentosPage() {
           </div>
 
           <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
-            <div className="bg-[#60a5fa] h-full rounded-full transition-all duration-500" style={{ width: `${(takenDosesToday / totalDosesToday) * 100}%` }}></div>
+            <div className="bg-[#60a5fa] h-full rounded-full transition-all duration-500" style={{ width: `${totalDosesToday > 0 ? (takenDosesToday / totalDosesToday) * 100 : 0}%` }}></div>
           </div>
 
-          <span className="text-xs text-[#a1a1aa] block">Próxima: Magnésio às 21:30</span>
+          <span className="text-xs text-[#a1a1aa] block">Acompanhamento diário de posologia</span>
         </div>
 
         {/* KPI 3: Estoque Baixo */}
@@ -326,12 +525,12 @@ export default function MedicamentosPage() {
               {lowStockItems.length > 0 ? lowStockItems[0].name : 'Estoque OK'}
             </div>
             <span className="text-xs text-[#facc15] block mt-0.5">
-              {lowStockItems.length > 0 ? `Restam apenas ${lowStockItems[0].currentStock} cápsulas` : 'Todos itens acima do mínimo'}
+              {lowStockItems.length > 0 ? `Restam apenas ${lowStockItems[0].currentStock} ${lowStockItems[0].unit}s (Mín: ${lowStockItems[0].stockAlertAt})` : 'Todos itens acima do estoque mínimo'}
             </span>
           </div>
 
           <div className="pt-1 border-t border-[#ffffff08] flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
-            <span>Farmácia recomendada: <strong className="text-[#f7f8f8]">Drogasil</strong></span>
+            <span>Farmácia para compra: <strong className="text-[#f7f8f8]">{lowStockItems.length > 0 && lowStockItems[0].pharmacy ? lowStockItems[0].pharmacy : 'Não informada'}</strong></span>
           </div>
         </div>
 
@@ -350,7 +549,7 @@ export default function MedicamentosPage() {
             <div className="text-3xl font-bold font-mono text-[#22c55e]">
               R$ {totalMonthlySpend.toFixed(2)}
             </div>
-            <span className="text-xs text-[#a1a1aa] block mt-0.5">Custo médio por dose: R$ {(totalMonthlySpend / 120).toFixed(2)}</span>
+            <span className="text-xs text-[#a1a1aa] block mt-0.5">Custo médio por dose: R$ {(totalMonthlySpend / (totalDosesToday * 30 || 1)).toFixed(2)}</span>
           </div>
 
           <div className="pt-1 border-t border-[#ffffff08] flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
@@ -389,7 +588,9 @@ export default function MedicamentosPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="font-semibold text-xs text-[#f7f8f8]">{m.name}</div>
-                      <div className="text-xs text-[#a1a1aa] font-mono">{m.dosage} • {m.time}</div>
+                      <div className="text-xs text-[#a1a1aa] font-mono">
+                        {m.brand ? `${m.brand} • ` : ''}{m.dosage} • {m.time}
+                      </div>
                     </div>
                     <span className={`text-xs font-mono px-2 py-0.5 rounded ${
                       m.status === 'TOMADO' 
@@ -431,7 +632,9 @@ export default function MedicamentosPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="font-semibold text-xs text-[#f7f8f8]">{m.name}</div>
-                      <div className="text-xs text-[#a1a1aa] font-mono">{m.dosage} • {m.time}</div>
+                      <div className="text-xs text-[#a1a1aa] font-mono">
+                        {m.brand ? `${m.brand} • ` : ''}{m.dosage} • {m.time}
+                      </div>
                     </div>
                     <span className="text-xs font-mono text-[#60a5fa] bg-[#60a5fa15] px-2 py-0.5 rounded border border-[#60a5fa30]">
                       Próxima
@@ -467,7 +670,9 @@ export default function MedicamentosPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="font-semibold text-xs text-[#f7f8f8]">{m.name}</div>
-                      <div className="text-xs text-[#a1a1aa] font-mono">{m.dosage} • {m.time}</div>
+                      <div className="text-xs text-[#a1a1aa] font-mono">
+                        {m.brand ? `${m.brand} • ` : ''}{m.dosage} • {m.time}
+                      </div>
                     </div>
                     <span className="text-xs font-mono text-[#a1a1aa] bg-[#16191e] px-2 py-0.5 rounded border border-[#ffffff10]">
                       Aguardando
@@ -493,7 +698,11 @@ export default function MedicamentosPage() {
                 Nenhum medicamento SOS ou analgésico cadastrado no momento.
               </p>
               <button 
-                onClick={() => setIsAddModalOpen(true)}
+                onClick={() => {
+                  resetForm();
+                  setFormData((prev) => ({ ...prev, category: 'SOS' }));
+                  setIsAddModalOpen(true);
+                }}
                 className="text-xs text-[#5e6ad2] hover:underline"
               >
                 + Cadastrar item SOS
@@ -539,7 +748,7 @@ export default function MedicamentosPage() {
           <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
             <div>
               <h3 className="text-sm font-semibold text-[#f7f8f8]">Lista de Medicamentos & Vitaminas Ativos</h3>
-              <p className="text-xs text-[#a1a1aa]">Detalhamento de posologia, estoque e custo por dose</p>
+              <p className="text-xs text-[#a1a1aa]">Detalhamento de posologia, marca, estoque e custo por dose</p>
             </div>
             <span className="text-xs font-mono text-[#a1a1aa]">{medications.length} Itens Cadastrados</span>
           </div>
@@ -549,6 +758,7 @@ export default function MedicamentosPage() {
               <thead>
                 <tr className="border-b border-[#ffffff0e] text-[#a1a1aa]">
                   <th className="pb-2 font-medium">NOME</th>
+                  <th className="pb-2 font-medium">MARCA</th>
                   <th className="pb-2 font-medium">DOSAGEM</th>
                   <th className="pb-2 font-medium">HORÁRIO</th>
                   <th className="pb-2 font-medium">ESTOQUE</th>
@@ -568,6 +778,7 @@ export default function MedicamentosPage() {
                         </span>
                       )}
                     </td>
+                    <td className="py-2.5 text-[#a1a1aa]">{m.brand || '-'}</td>
                     <td className="py-2.5 text-[#a1a1aa]">{m.dosage}</td>
                     <td className="py-2.5 text-[#f7f8f8]">{m.time}</td>
                     <td className="py-2.5">
@@ -608,10 +819,10 @@ export default function MedicamentosPage() {
 
       </div>
 
-      {/* 5. Modal 1: Add New Medication Modal */}
+      {/* 5. Modal 1: Add/Edit Medication Form Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
-          <div className="linear-card w-full max-w-md p-5 sm:p-6 space-y-4 border border-[#ffffff15] shadow-2xl rounded-t-2xl sm:rounded-xl max-h-[85vh] overflow-y-auto">
+          <div className="linear-card w-full max-w-lg p-5 sm:p-6 space-y-4 border border-[#ffffff15] shadow-2xl rounded-t-2xl sm:rounded-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
               <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#5e6ad2]" /> Cadastrar Novo Medicamento / Vitamina
@@ -620,6 +831,13 @@ export default function MedicamentosPage() {
                 <X className="w-4 h-4" />
               </button>
             </div>
+
+            {isAiPreFilled && (
+              <div className="p-2.5 bg-[#5e6ad220] border border-[#5e6ad240] rounded-md text-xs text-[#a5b4fc] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#a5b4fc] shrink-0" />
+                <span>Dados extraídos automaticamente pela IA! Verifique e ajuste antes de salvar.</span>
+              </div>
+            )}
 
             <form onSubmit={handleAddMedication} className="space-y-3 text-xs">
               <div>
@@ -632,6 +850,29 @@ export default function MedicamentosPage() {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Marca / Fabricante</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: EMS, Medley, Eurofarma"
+                    value={formData.brand}
+                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Farmácia Preferida</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Drogasil, Droga Raia"
+                    value={formData.pharmacy}
+                    onChange={(e) => setFormData({ ...formData, pharmacy: e.target.value })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -649,16 +890,15 @@ export default function MedicamentosPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[#a1a1aa] block mb-1 font-medium">Período</label>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Categoria de Uso</label>
                   <select 
-                    value={formData.period}
-                    onChange={(e) => setFormData({ ...formData, period: e.target.value as any })}
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
                     className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
                   >
-                    <option value="MANHA">Manhã</option>
-                    <option value="TARDE">Tarde</option>
-                    <option value="NOITE">Noite</option>
-                    <option value="MADRUGADA">Madrugada</option>
+                    <option value="CONTINUO">Uso Contínuo</option>
+                    <option value="TEMPORARIO">Uso Temporário</option>
+                    <option value="SOS">SOS (Se Necessário)</option>
                   </select>
                 </div>
               </div>
@@ -676,6 +916,19 @@ export default function MedicamentosPage() {
                   />
                 </div>
                 <div>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Unidade da Dose</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: comprimido, cápsula, ml"
+                    value={formData.unit}
+                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
                   <label className="text-[#a1a1aa] block mb-1 font-medium">Horário da Dose</label>
                   <input 
                     type="time" 
@@ -684,15 +937,37 @@ export default function MedicamentosPage() {
                     className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
                   />
                 </div>
+                <div>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Período do Dia</label>
+                  <select 
+                    value={formData.period}
+                    onChange={(e) => setFormData({ ...formData, period: e.target.value as any })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  >
+                    <option value="MANHA">Manhã (06:00 - 12:00)</option>
+                    <option value="TARDE">Tarde (12:00 - 18:00)</option>
+                    <option value="NOITE">Noite (18:00 - 00:00)</option>
+                    <option value="MADRUGADA">Madrugada (00:00 - 06:00)</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-[#a1a1aa] block mb-1 font-medium">Estoque Inicial</label>
                   <input 
                     type="number" 
                     value={formData.currentStock}
                     onChange={(e) => setFormData({ ...formData, currentStock: Number(e.target.value) })}
+                    className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Estoque Mínimo (Alerta)</label>
+                  <input 
+                    type="number" 
+                    value={formData.stockAlertAt}
+                    onChange={(e) => setFormData({ ...formData, stockAlertAt: Number(e.target.value) })}
                     className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
                   />
                 </div>
@@ -762,7 +1037,118 @@ export default function MedicamentosPage() {
         </div>
       )}
 
-      {/* 6. Modal 2: WhatsApp Interactive Demo Modal */}
+      {/* 6. Modal 2: Photo Upload & AI Scanner Modal */}
+      {isUploadOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="linear-card w-full max-w-lg p-5 sm:p-6 space-y-4 border border-[#ffffff15] shadow-2xl rounded-xl">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+              <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
+                <Camera className="w-4 h-4 text-[#10b981]" /> Upload de Foto do Medicamento / Caixa
+              </h3>
+              <button 
+                onClick={() => {
+                  if (!isScanning) setIsUploadOpen(false);
+                }} 
+                disabled={isScanning}
+                className="text-[#a1a1aa] hover:text-[#f7f8f8] p-1 disabled:opacity-30"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <p className="text-[#a1a1aa]">
+                Tire uma foto ou faça upload da caixa, frasco ou rótulo do medicamento. A IA identificará o nome, dosagem, marca e instruções para pré-preencher seu cadastro.
+              </p>
+
+              {/* Drag and drop / File selector area */}
+              <div 
+                onClick={() => !isScanning && fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-3 ${
+                  filePreview 
+                    ? 'border-[#10b98150] bg-[#10b98108]' 
+                    : 'border-[#ffffff18] hover:border-[#10b98180] bg-[#16191e]'
+                }`}
+              >
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileSelect} 
+                  accept="image/*" 
+                  className="hidden" 
+                  disabled={isScanning}
+                />
+
+                {filePreview ? (
+                  <div className="relative w-full max-h-48 flex justify-center overflow-hidden rounded-lg">
+                    <img src={filePreview} alt="Preview do Medicamento" className="max-h-44 object-contain rounded-md shadow-md" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-[#10b98115] flex items-center justify-center text-[#10b981]">
+                      <Upload className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="font-semibold text-[#f7f8f8] block">Clique para selecionar foto</span>
+                      <span className="text-[#71717a] block mt-0.5">ou arraste a foto do frasco / embalagem</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {scanError && (
+                <div className="p-3 bg-[#f8717115] border border-[#f8717130] rounded-md text-xs text-[#f87171] flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{scanError}</span>
+                </div>
+              )}
+
+              {/* Console de diagnóstico */}
+              {scanLogs.length > 0 && (
+                <div className="p-3 bg-[#111318] border border-[#ffffff0a] rounded-md font-mono text-[11px] space-y-1 max-h-28 overflow-y-auto">
+                  {scanLogs.map((log, index) => (
+                    <div key={index} className="text-[#a1a1aa] flex items-center gap-1.5">
+                      <span className="text-[#10b981]">›</span>
+                      <span>{log}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="pt-2 flex justify-end space-x-2 border-t border-[#ffffff0e]">
+                <button 
+                  type="button" 
+                  onClick={() => setIsUploadOpen(false)}
+                  disabled={isScanning}
+                  className="px-3 py-1.5 rounded bg-[#16191e] hover:bg-[#1d2127] text-[#a1a1aa] text-xs font-medium disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button" 
+                  onClick={processMedUpload}
+                  disabled={!filePreview || isScanning}
+                  className="px-4 py-1.5 rounded bg-gradient-to-r from-emerald-600 to-purple-600 hover:from-emerald-500 hover:to-purple-500 text-white text-xs font-medium flex items-center space-x-1.5 disabled:opacity-50 transition"
+                >
+                  {isScanning ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Processando com IA...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>🤖 Ler Foto com IA</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. Modal 3: WhatsApp Interactive Demo Modal */}
       {isWhatsappDemoOpen && selectedMedForDemo && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-sm bg-[#0b141a] rounded-2xl border border-[#ffffff15] shadow-2xl overflow-hidden text-[#e9edef] font-sans">
@@ -794,6 +1180,7 @@ export default function MedicamentosPage() {
                 </div>
                 <div className="bg-[#111b21] p-2 rounded text-xs font-mono space-y-0.5">
                   <div><strong>💊 {selectedMedForDemo.name}</strong></div>
+                  {selectedMedForDemo.brand && <div className="text-[#8696a0]">Marca: {selectedMedForDemo.brand}</div>}
                   <div className="text-[#8696a0]">Dose: {selectedMedForDemo.dosage}</div>
                   <div className="text-[#8696a0]">Horário: {selectedMedForDemo.time}</div>
                   <div className="text-[#00a884]">📝 {selectedMedForDemo.instructions}</div>
