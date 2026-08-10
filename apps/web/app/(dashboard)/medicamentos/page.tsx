@@ -172,6 +172,27 @@ export default function MedicamentosPage() {
     setIsAiPreFilled(false);
   };
 
+  const [testingReminderId, setTestingReminderId] = useState<string | null>(null);
+
+  const handleTestMedicationReminder = async (medId: string) => {
+    try {
+      setTestingReminderId(medId);
+      const res = await authFetch(`/api/medications/${medId}/test-reminder`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert('✅ Lembrete de WhatsApp enviado com sucesso! Verifique seu celular.');
+      } else {
+        alert(`⚠️ ${data.message || 'Erro ao enviar lembrete por WhatsApp. Verifique sua instância UazAPI em Configurações.'}`);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Erro ao enviar lembrete de teste.');
+    } finally {
+      setTestingReminderId(null);
+    }
+  };
+
   const handleStartEdit = (med: MedicationItem) => {
     setEditingMedication(med);
     setFormData({
@@ -541,13 +562,17 @@ export default function MedicamentosPage() {
         <div className="flex flex-wrap items-center gap-2">
           <button 
             onClick={() => {
-              setSelectedMedForDemo(medications[0]);
-              setIsWhatsappDemoOpen(true);
+              if (medications.length > 0) {
+                handleTestMedicationReminder(medications[0].id);
+              } else {
+                alert('Cadastre um medicamento primeiro para testar o envio de lembretes!');
+              }
             }}
-            className="h-8 px-3 rounded-md bg-[#16191e] border border-[#ffffff12] hover:bg-[#1d2127] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition"
+            disabled={!!testingReminderId}
+            className="h-8 px-3 rounded-md bg-[#16191e] border border-[#ffffff12] hover:bg-[#1d2127] text-xs font-medium text-[#f7f8f8] flex items-center space-x-1.5 transition disabled:opacity-50"
           >
             <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
-            <span>📱 Testar WhatsApp</span>
+            <span>{testingReminderId ? 'Disparando Lembrete...' : '📱 Testar Lembrete WhatsApp'}</span>
           </button>
 
           <button 
@@ -1042,12 +1067,10 @@ export default function MedicamentosPage() {
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button 
-                        onClick={() => {
-                          setSelectedMedForDemo(m);
-                          setIsWhatsappDemoOpen(true);
-                        }}
-                        className="p-1 hover:bg-[#1d2127] rounded text-[#a1a1aa] hover:text-[#25D366]" 
-                        title="Simular Lembrete WhatsApp"
+                        onClick={() => handleTestMedicationReminder(m.id)}
+                        disabled={testingReminderId === m.id}
+                        className="p-1 hover:bg-[#1d2127] rounded text-[#a1a1aa] hover:text-[#25D366] disabled:opacity-50" 
+                        title="Disparar Lembrete pelo WhatsApp (UazAPI)"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
                       </button>

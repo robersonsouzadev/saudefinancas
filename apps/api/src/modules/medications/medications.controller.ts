@@ -2,12 +2,16 @@ import {
   Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, BadRequestException 
 } from '@nestjs/common';
 import { MedicationsService } from './medications.service';
+import { MedicationReminderCronService } from './services/medication-reminder-cron.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('medications')
 @UseGuards(JwtAuthGuard)
 export class MedicationsController {
-  constructor(private readonly medicationsService: MedicationsService) {}
+  constructor(
+    private readonly medicationsService: MedicationsService,
+    private readonly reminderCron: MedicationReminderCronService,
+  ) {}
 
   @Get()
   async getUserMedications(@Request() req) {
@@ -63,5 +67,11 @@ export class MedicationsController {
   async logIntake(@Param('id') id: string, @Request() req, @Body() body: { status: 'TOMADO' | 'PULADO' | 'ATRASADO'; skipReason?: string }) {
     const userId = req.user?.id || req.user?.userId;
     return this.medicationsService.logIntake(id, userId, body.status || 'TOMADO', body.skipReason);
+  }
+
+  @Post(':id/test-reminder')
+  async testMedicationReminder(@Param('id') id: string, @Request() req) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.reminderCron.sendTestReminder(id, userId);
   }
 }
