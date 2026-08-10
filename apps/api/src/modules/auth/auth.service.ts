@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, ConflictException, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MessageSenderService } from '../whatsapp/services/message-sender.service';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class AuthService implements OnModuleInit {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private messageSender: MessageSenderService,
   ) {}
 
   async onModuleInit() {
@@ -55,7 +57,7 @@ export class AuthService implements OnModuleInit {
     // Check if there is a pending family invite for this email
     const pendingInvite = await this.prisma.familyInvite.findFirst({
       where: {
-        email,
+        email: { equals: email, mode: 'insensitive' },
         status: 'PENDING',
         expiresAt: { gt: new Date() },
       },
@@ -66,8 +68,8 @@ export class AuthService implements OnModuleInit {
       throw new UnauthorizedException('Cadastros públicos desativados. Solicite permissão ao administrador.');
     }
 
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
+    const existingUser = await this.prisma.user.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } },
     });
     if (existingUser) {
       throw new ConflictException('Email já está em uso no sistema.');
@@ -115,8 +117,8 @@ export class AuthService implements OnModuleInit {
     }
 
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { email },
+      const user = await this.prisma.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
       });
       if (!user || !user.isActive) {
         throw new UnauthorizedException('Credenciais inválidas ou usuário inativo');
@@ -140,7 +142,7 @@ export class AuthService implements OnModuleInit {
 
   async validateOrCreateGoogleUser(profile: any) {
     const { id, emails, displayName, photos } = profile;
-    const email = emails && emails[0] ? emails[0].value.toLowerCase() : null;
+    const email = emails && emails[0] ? emails[0].value.trim().toLowerCase() : null;
 
     if (!email) {
       throw new BadRequestException('Email não fornecido pela conta Google');
@@ -158,9 +160,11 @@ export class AuthService implements OnModuleInit {
       return this.generateToken(user);
     }
 
-    // 2. Check if user exists by email (account linking)
-    user = await this.prisma.user.findUnique({
-      where: { email },
+    // 2. Check if user exists by email (account linking - case-insensitive)
+    user = await this.prisma.user.findFirst({
+      where: {
+        email: { equals: email, mode: 'insensitive' },
+      },
     });
 
     if (user) {
@@ -182,7 +186,7 @@ export class AuthService implements OnModuleInit {
     // 3. Check if there is a pending family invite for this email
     const pendingInvite = await this.prisma.familyInvite.findFirst({
       where: {
-        email,
+        email: { equals: email, mode: 'insensitive' },
         status: 'PENDING',
         expiresAt: { gt: new Date() },
       },
@@ -232,9 +236,12 @@ export class AuthService implements OnModuleInit {
   }
 
   async forgotPassword(email: string, channel: 'email' | 'whatsapp' = 'whatsapp') {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const cleanEmail = email?.trim().toLowerCase();
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: cleanEmail, mode: 'insensitive' } },
+    });
     if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new NotFoundException('Usuário não encontrado com este e-mail');
     }
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -251,15 +258,38 @@ export class AuthService implements OnModuleInit {
 
     const destination = channel === 'whatsapp' ? (user.whatsappPhone || user.phone || user.email) : user.email;
 
+    // Disparo real via WhatsApp (UazAPI) se o canal for whatsapp
+    if (channel === 'whatsapp') {
+      const targetPhone = user.whatsappPhone || user.phone;
+      if (!targetPhone) {
+        throw new BadRequestException('Usuário não possui número de WhatsApp cadastrado. Alterne para o envio por E-mail.');
+      }
+      const messageText = `🔑 *Código de Verificação — Saúde & Finanças*\n\nOlá, *${user.name || 'Usuário'}*!\n\nSeu código de 6 dígitos para primeiro acesso / definição de senha é:\n\n👉 *${code}*\n\nEste código expira em 15 minutos. Se você não solicitou este código, ignore esta mensagem.`;
+
+      try {
+        await this.messageSender.sendMessage(
+          targetPhone,
+          messageText,
+          user.uazapiInstance || undefined,
+          user.uazapiToken || undefined,
+        );
+      } catch (err: any) {
+        console.error(`Erro ao disparar código no WhatsApp para ${targetPhone}:`, err);
+      }
+    }
+
     return {
       success: true,
       message: `Código de redefinição enviado via ${channel.toUpperCase()} para ${destination}`,
-      code, // Returned for dev testing UI
+      code, // Mantido para facilidade de testes em dev
     };
   }
 
   async resetPassword(data: { email: string; code: string; newPassword: string }) {
-    const user = await this.prisma.user.findUnique({ where: { email: data.email } });
+    const cleanEmail = data.email?.trim().toLowerCase();
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: cleanEmail, mode: 'insensitive' } },
+    });
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }
