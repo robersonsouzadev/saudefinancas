@@ -257,16 +257,23 @@ export default function MedicamentosPage() {
       }
 
       const result = await res.json();
-      setScanLogs((prev) => [...prev, ' Leitura de embalagem concluída com sucesso!']);
-
       const extracted = result.data || {};
+
+      if (extracted.aiSuccess === false) {
+        setScanError(extracted.aiMessage || 'A IA não conseguiu ler os dados desta imagem.');
+        setScanLogs((prev) => [...prev, ` Aviso: ${extracted.aiMessage || 'Falha na leitura da IA'}`]);
+        setIsScanning(false);
+        return;
+      }
+
+      setScanLogs((prev) => [...prev, ' Leitura de embalagem concluída com sucesso!']);
 
       // Pre-fill form with AI extractions
       setFormData({
         name: extracted.name || '',
         brand: extracted.brand || '',
         pharmacy: extracted.pharmacy || '',
-        type: extracted.type || 'MEDICAMENTO',
+        type: extracted.type || 'SUPLEMENTO',
         category: extracted.category || 'CONTINUO',
         dosage: extracted.dosage || '',
         unit: extracted.unit || 'comprimido',
