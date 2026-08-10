@@ -6,6 +6,7 @@
 
 export interface HealthTip {
   name: string;
+  category?: string;
   whatIs: string;
   whenHigh: string;
   whenLow: string;
@@ -445,12 +446,109 @@ export const healthTipsDictionary: Record<string, HealthTip> = {
       '🧪 Nível ideal: abaixo de 8 µmol/L',
     ],
   },
+  BLASTOS: {
+    name: 'Blastos (Células Jovens/Imaturas)',
+    whatIs: 'Células sanguíneas imaturas produzidas na medula óssea.',
+    whenHigh: 'Presença na circulação periférica exige avaliação médica para descartar estresse medular ou alterações hematológicas.',
+    whenLow: 'O valor normal em pessoas saudáveis é 0%.',
+    tips: [
+      '🩸 Nível de referência em sangue periférico é 0%',
+      '🩺 Presença acentuada exige acompanhamento com hematologista',
+      '🥗 Mantenha hábitos de vida saudáveis e suporte imunológico',
+      '🔬 Reavaliar em hemogramas de controle',
+    ],
+  },
+  PROMIELOCITOS: {
+    name: 'Promielócitos',
+    whatIs: 'Precursores jovens dos glóbulos brancos da linhagem granulocítica.',
+    whenHigh: 'Indicador de regeneração intensa da medula óssea ou resposta a infecções severas.',
+    whenLow: 'Normalmente ausentes no sangue periférico (0%).',
+    tips: [
+      '🧪 Referência normal no sangue é 0%',
+      '🩺 Consulte seu médico para avaliação em caso de presença no laudo',
+      '😴 Priorize descanso e recuperação celular',
+      '💧 Boa hidratação auxilia o transporte de células imunológicas',
+    ],
+  },
+  MIELOCITOS: {
+    name: 'Mielócitos',
+    whatIs: 'Células imaturas da linhagem dos neutrófilos produzidas na medula.',
+    whenHigh: 'Geralmente surgem em infecções bacterianas agudas (desvio à esquerda).',
+    whenLow: 'Ausentes no sangue periférico em condições normais (0%).',
+    tips: [
+      '🛡️ Podem surgir como resposta natural do corpo a infecções agudas',
+      '🧄 Alimentos imunomoduladores (alho, própolis, gengibre) suportam a imunidade',
+      '🩺 Acompanhamento médico e repetição de exame quando indicado',
+      '😴 Sono de 7-8h é crucial para o equilíbrio dos glóbulos brancos',
+    ],
+  },
+  METAMIELOCITOS: {
+    name: 'Metamielócitos',
+    whatIs: 'Células jovens da linhagem branca em fase final de maturação.',
+    whenHigh: 'Sinal de forte demanda do sistema imunológico no combate a infecções.',
+    whenLow: 'Valor normal esperado no sangue periférico é 0%.',
+    tips: [
+      '🔬 Resposta imunológica a demandas agudas do organismo',
+      '💊 Vitamina C e Zinco ajudam a proteger o sistema imune',
+      '💧 Mantenha hidratação constante',
+      '🩺 Acompanhe os demais itens da série branca no hemograma',
+    ],
+  },
+  BASOFILOS: {
+    name: 'Basófilos',
+    whatIs: 'Glóbulos brancos envolvidos em respostas alérgicas e processos inflamatórios.',
+    whenHigh: 'Processos alérgicos crônicos, inflamações ou sinusite.',
+    whenLow: 'Geralmente sem significado clínico (faixa normal muito baixa).',
+    tips: [
+      '🌿 Evite exposição a alérgenos conhecidos',
+      '🥗 Dieta rica em antioxidantes reduz a inflamação sistêmica',
+      '🩺 Em casos de elevação, consulte alergista se houver sintomas',
+      '💧 Beba água suficiente para otimizar o fluxo linfático',
+    ],
+  },
+  EOSINOFILOS: {
+    name: 'Eosinófilos',
+    whatIs: 'Células de defesa voltadas para combate a parasitas e controle de alergias.',
+    whenHigh: 'Alergias (rinite, asma, urticária) ou parasitoses intestinais.',
+    whenLow: 'Pode ocorrer sob estresse agudo ou uso de corticoides.',
+    tips: [
+      '🪱 Faça exames parasitológicos de fezes se houver suspeita de verminose',
+      '🧹 Mantenha ambientes limpos e livres de ácaros se for alérgico',
+      '🥗 Alimentos ricos em Ômega-3 ajudam a controlar episódios alérgicos',
+      '🩺 Consulte médico se houver sintomas alérgicos persistentes',
+    ],
+  },
 };
 
 /**
- * Retorna a dica de saúde para um biomarcador pelo seu key.
- * Se não encontrado, retorna null.
+ * Retorna a dica de saúde para um biomarcador pelo seu key ou nome.
+ * Se não encontrado no dicionário estático, gera uma dica dinâmica completa.
  */
-export function getHealthTip(biomarkerKey: string): HealthTip | null {
-  return healthTipsDictionary[biomarkerKey] || null;
+export function getHealthTip(biomarkerKey: string, biomarkerName?: string): HealthTip {
+  if (healthTipsDictionary[biomarkerKey]) {
+    return healthTipsDictionary[biomarkerKey];
+  }
+
+  const upperKey = (biomarkerKey || '').toUpperCase().trim();
+  for (const [k, v] of Object.entries(healthTipsDictionary)) {
+    if (k.toUpperCase() === upperKey || upperKey.includes(k.toUpperCase()) || (biomarkerName && k.toUpperCase().includes(biomarkerName.toUpperCase()))) {
+      return v;
+    }
+  }
+
+  const name = biomarkerName || biomarkerKey || 'Biomarcador';
+
+  return {
+    name: name,
+    category: 'Geral',
+    whatIs: `Indicador laboratorial de saúde avaliado em exames de sangue para acompanhamento e prevenção.`,
+    whenHigh: `Valores elevados de ${name} exigem acompanhamento profissional para avaliar causas alimentares, fisiológicas ou inflamatórias.`,
+    whenLow: `Valores reduzidos de ${name} devem ser avaliados com seu médico para suporte nutricional ou estilo de vida.`,
+    tips: [
+      `💧 Mantenha consumo adequado de água (35 a 40 ml/kg) para suporte metabólico`,
+      `🥗 Adote alimentação equilibrada rica em comida de verdade e micronutrientes`,
+      `😴 Garanta 7 a 8 horas de sono de qualidade para recuperação celular`,
+      `👨‍⚕️ Reavaliação em check-ups periódicos para acompanhar a tendência`,
+    ],
+  };
 }

@@ -237,8 +237,8 @@ function MiniSparkline({ data, color = '#5e6ad2' }: { data: number[]; color?: st
 // HEALTH TIP TOOLTIP COMPONENT
 // ═══════════════════════════════════════════════════
 
-function HealthTipTooltip({ biomarkerKey, status, onClose }: { biomarkerKey: string; status: string; onClose: () => void }) {
-  const tip = getHealthTip(biomarkerKey);
+function HealthTipTooltip({ biomarkerKey, biomarkerName, status, onClose }: { biomarkerKey: string; biomarkerName?: string; status: string; onClose: () => void }) {
+  const tip = getHealthTip(biomarkerKey, biomarkerName);
   if (!tip) return null;
 
   const isAltered = status !== 'NORMAL' && status !== 'OTIMO';
@@ -316,7 +316,7 @@ export default function LabExamsPage() {
   const [isPhenoInfoOpen, setIsPhenoInfoOpen] = useState(false);
 
   // Tooltip state
-  const [activeTip, setActiveTip] = useState<{ key: string; status: string } | null>(null);
+  const [activeTip, setActiveTip] = useState<{ key: string; name?: string; status: string } | null>(null);
 
   // Upload modal state
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -1259,16 +1259,15 @@ export default function LabExamsPage() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-xs sm:text-sm font-semibold text-[#f7f8f8]">{item.biomarkerName}</span>
                             {getStatusBadge(item.status)}
-                            {/* Health tip button */}
-                            {getHealthTip(item.biomarkerKey) && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setActiveTip({ key: item.biomarkerKey, status: item.status }); }}
-                                className="p-0.5 rounded hover:bg-[#5e6ad220] text-[#71717a] hover:text-[#818cf8] transition flex items-center justify-center"
-                                title="Ver dicas de saúde"
-                              >
-                                <Info className="w-3.5 h-3.5" />
-                              </button>
-                            )}
+                            {/* Health tip button - 100% covered for all biomarkers */}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setActiveTip({ key: item.biomarkerKey, name: item.biomarkerName, status: item.status }); }}
+                              className="px-2 py-0.5 rounded bg-[#5e6ad215] hover:bg-[#5e6ad230] border border-[#5e6ad230] text-[#818cf8] hover:text-white text-[11px] font-semibold flex items-center gap-1 transition shadow-sm"
+                              title="Ver orientação e dicas de saúde para este biomarcador"
+                            >
+                              <Lightbulb className="w-3 h-3 text-[#fbbf24]" />
+                              <span>Dicas</span>
+                            </button>
                           </div>
                           {/* Gauge Bar */}
                           <div className="mt-1.5 w-full sm:max-w-xs">
@@ -1537,6 +1536,7 @@ export default function LabExamsPage() {
       {activeTip && (
         <HealthTipTooltip
           biomarkerKey={activeTip.key}
+          biomarkerName={activeTip.name}
           status={activeTip.status}
           onClose={() => setActiveTip(null)}
         />
