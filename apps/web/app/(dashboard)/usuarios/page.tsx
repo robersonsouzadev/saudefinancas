@@ -124,6 +124,7 @@ export default function UsuariosPage() {
 
   const handleOpenInvite = (u: UserItem) => {
     setSelectedInviteUser(u);
+    setInvitePhone(u.whatsappPhone || u.phone || '');
     setCopied(false);
     setShowInviteModal(true);
   };
@@ -222,6 +223,10 @@ export default function UsuariosPage() {
     }
   };
 
+  const [invitePhone, setInvitePhone] = useState('');
+  const [sendingInviteUazapi, setSendingInviteUazapi] = useState(false);
+  const [inviteSentSuccess, setInviteSentSuccess] = useState(false);
+
   const getInviteText = (u: UserItem) => {
     return `Olá ${u.name}! Seu e-mail (${u.email}) foi autorizado a acessar o sistema Saúde & Finanças. Clique no link para entrar com sua conta Google:\nhttps://app.robersonsouza.com.br/login`;
   };
@@ -234,9 +239,39 @@ export default function UsuariosPage() {
 
   const handleSendWhatsApp = (u: UserItem) => {
     const text = encodeURIComponent(getInviteText(u));
-    const phoneNum = (u.whatsappPhone || u.phone || '').replace(/\D/g, '');
+    const phoneNum = (invitePhone || u.whatsappPhone || u.phone || '').replace(/\D/g, '');
     const waUrl = phoneNum ? `https://wa.me/${phoneNum}?text=${text}` : `https://wa.me/?text=${text}`;
     window.open(waUrl, '_blank');
+  };
+
+  const handleSendWhatsAppUazapi = async (u: UserItem) => {
+    const phone = (invitePhone || u.whatsappPhone || u.phone || '').replace(/\D/g, '');
+    if (!phone || phone.length < 8) {
+      alert('Por favor, informe o número de WhatsApp do destinatário com DDD (ex: 5567999887766).');
+      return;
+    }
+    try {
+      setSendingInviteUazapi(true);
+      const res = await authFetch('/api/whatsapp/send-invite', {
+        method: 'POST',
+        body: JSON.stringify({
+          phone,
+          name: u.name,
+          email: u.email,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setInviteSentSuccess(true);
+        setTimeout(() => setInviteSentSuccess(false), 3500);
+      } else {
+        alert(`⚠️ ${data.message || 'Erro ao enviar via UazAPI. Tente usar o botão de abrir pelo WhatsApp Web.'}`);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Erro ao enviar convite via UazAPI.');
+    } finally {
+      setSendingInviteUazapi(false);
+    }
   };
 
   return (
@@ -522,20 +557,53 @@ export default function UsuariosPage() {
               <button onClick={() => setShowInviteModal(false)} className="text-[#a1a1aa] hover:text-[#f7f8f8] text-xs">✕</button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3.5 text-xs">
               <p className="text-[#a1a1aa]">
-                O e-mail <strong className="text-[#f7f8f8]">{selectedInviteUser.email}</strong> foi autorizado no sistema. Envie o texto do convite para ele:
+                O e-mail <strong className="text-[#f7f8f8]">{selectedInviteUser.email}</strong> foi autorizado no sistema.
               </p>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">📱 WhatsApp do Destinatário</label>
+                <input
+                  type="text"
+                  value={invitePhone}
+                  onChange={(e) => setInvitePhone(e.target.value)}
+                  placeholder="ex: 5567999887766"
+                  className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
+                />
+              </div>
 
               <div className="p-3 bg-[#16191e] border border-[#ffffff12] rounded-lg text-xs font-mono text-[#f7f8f8] whitespace-pre-wrap leading-relaxed">
                 {getInviteText(selectedInviteUser)}
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-2">
+              {/* Botão Principal UazAPI */}
+              <button
+                type="button"
+                onClick={() => handleSendWhatsAppUazapi(selectedInviteUser)}
+                disabled={sendingInviteUazapi}
+                className="w-full py-2.5 px-3 rounded-lg bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-semibold flex items-center justify-center space-x-2 transition shadow-md"
+              >
+                {sendingInviteUazapi ? (
+                  <span>Enviando pelo UazAPI...</span>
+                ) : inviteSentSuccess ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-300" />
+                    <span>Convite Enviado via UazAPI!</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Enviar Direto via UazAPI (Sem abrir Web)</span>
+                  </>
+                )}
+              </button>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
                 <button
                   type="button"
                   onClick={() => handleCopyInvite(selectedInviteUser)}
-                  className="py-2.5 px-3 rounded-lg bg-[#16191e] hover:bg-[#272a30] border border-[#ffffff14] text-[#f7f8f8] font-medium flex items-center justify-center space-x-2 transition"
+                  className="py-2 px-3 rounded-lg bg-[#16191e] hover:bg-[#272a30] border border-[#ffffff14] text-[#f7f8f8] font-medium flex items-center justify-center space-x-2 transition text-xs"
                 >
                   {copied ? <Check className="w-4 h-4 text-[#4ade80]" /> : <Copy className="w-4 h-4 text-[#a1a1aa]" />}
                   <span>{copied ? 'Copiado!' : 'Copiar Texto'}</span>
@@ -544,10 +612,11 @@ export default function UsuariosPage() {
                 <button
                   type="button"
                   onClick={() => handleSendWhatsApp(selectedInviteUser)}
-                  className="py-2.5 px-3 rounded-lg bg-[#22c55e] hover:bg-[#16a34a] text-white font-medium flex items-center justify-center space-x-2 transition shadow-sm"
+                  className="py-2 px-3 rounded-lg bg-[#16191e] hover:bg-[#272a30] border border-[#ffffff14] text-[#22c55e] font-medium flex items-center justify-center space-x-1.5 transition text-xs"
+                  title="Abrir no app/web do WhatsApp"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span>Enviar WhatsApp</span>
+                  <span>Abrir App Web</span>
                 </button>
               </div>
             </div>

@@ -42,4 +42,26 @@ export class WhatsappController {
 
     return this.messageSender.sendMessage(targetPhone, testMessage, instance, token);
   }
+
+  @Post('send-invite')
+  @UseGuards(JwtAuthGuard)
+  async sendInviteMessage(@Req() req: any, @Body() body: { phone: string; name?: string; email?: string }) {
+    const sender = await this.prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!sender) return { success: false, message: 'Usuário não encontrado' };
+
+    const targetPhone = (body.phone || '').replace(/\D/g, '');
+    if (!targetPhone || targetPhone.length < 8) {
+      return { success: false, message: 'Número de WhatsApp de destino inválido' };
+    }
+
+    const instance = sender.uazapiInstance || 'Roberson';
+    const token = sender.uazapiToken || '';
+
+    const nameStr = body.name ? ` ${body.name}` : '';
+    const emailStr = body.email ? ` (${body.email})` : '';
+
+    const inviteText = `👋 Olá${nameStr}! Seu e-mail${emailStr} foi autorizado a acessar o sistema *Saúde & Finanças* por ${sender.name || 'um administrador'}.\n\nClique no link para entrar com sua conta Google:\nhttps://app.robersonsouza.com.br/login`;
+
+    return this.messageSender.sendMessage(targetPhone, inviteText, instance, token);
+  }
 }
