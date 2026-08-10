@@ -161,25 +161,39 @@ function BiomarkerGaugeBar({ value, refMin, refMax, optMin, optMax, status }: {
   const refMinPos = refMin !== undefined ? toPercent(refMin) : 0;
   const refMaxPos = refMax !== undefined ? toPercent(refMax) : 100;
   
+  const getStatusColor = (s: string) => {
+    switch (s) {
+      case 'OTIMO': return '#4ade80';
+      case 'NORMAL': return '#38bdf8';
+      case 'BAIXO': return '#38bdf8';
+      case 'ALTO': return '#fb923c';
+      case 'CRITICO_BAIXO': return '#a855f7';
+      case 'CRITICO_ALTO': return '#f87171';
+      default: return '#cbd5e1';
+    }
+  };
+
+  const color = getStatusColor(status);
+
   return (
     <div className="w-full h-3.5 sm:h-4 relative rounded-full overflow-hidden bg-[#181b22] border border-[#ffffff15] shadow-inner">
       {/* Critical low zone */}
-      <div className="absolute h-full bg-[#f8717125] rounded-l-full" style={{ left: '0%', width: `${refMinPos}%` }} />
+      <div className="absolute h-full bg-[#38bdf815] rounded-l-full" style={{ left: '0%', width: `${refMinPos}%` }} />
       {/* Normal zone */}
-      <div className="absolute h-full bg-[#4ade8030]" style={{ left: `${refMinPos}%`, width: `${refMaxPos - refMinPos}%` }} />
+      <div className="absolute h-full bg-[#4ade8020]" style={{ left: `${refMinPos}%`, width: `${refMaxPos - refMinPos}%` }} />
       {/* Critical high zone */}
-      <div className="absolute h-full bg-[#f8717125] rounded-r-full" style={{ left: `${refMaxPos}%`, width: `${100 - refMaxPos}%` }} />
+      <div className="absolute h-full bg-[#f8717115] rounded-r-full" style={{ left: `${refMaxPos}%`, width: `${100 - refMaxPos}%` }} />
       {/* Reference borders */}
-      <div className="absolute h-full w-0.5 bg-[#4ade8080]" style={{ left: `${refMinPos}%` }} />
-      <div className="absolute h-full w-0.5 bg-[#4ade8080]" style={{ left: `${refMaxPos}%` }} />
+      <div className="absolute h-full w-0.5 bg-[#4ade8060]" style={{ left: `${refMinPos}%` }} />
+      <div className="absolute h-full w-0.5 bg-[#4ade8060]" style={{ left: `${refMaxPos}%` }} />
       {/* Value marker */}
       <div 
         className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-white shadow-xl transition-all duration-700 z-10"
         style={{ 
           left: `${valuePos}%`, 
           transform: `translate(-50%, -50%)`,
-          backgroundColor: status === 'OTIMO' || status === 'NORMAL' ? '#4ade80' : status === 'ALTO' || status === 'BAIXO' ? '#facc15' : '#f87171',
-          boxShadow: `0 0 12px ${status === 'OTIMO' || status === 'NORMAL' ? '#4ade80' : status === 'ALTO' || status === 'BAIXO' ? '#facc15' : '#f87171'}`,
+          backgroundColor: color,
+          boxShadow: `0 0 12px ${color}`,
         }}
       />
     </div>
@@ -610,19 +624,19 @@ export default function LabExamsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'OTIMO':
-        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#4ade8015] border border-[#4ade8040] text-[#4ade80]">🟢 Ótimo</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#4ade8015] border border-[#4ade8040] text-[#4ade80]">🟢 Ótimo</span>;
       case 'NORMAL':
-        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#38bdf815] border border-[#38bdf840] text-[#38bdf8]">🔵 Normal</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#38bdf815] border border-[#38bdf840] text-[#38bdf8]">🔵 Normal</span>;
       case 'ALTO':
-        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#fbbf2415] border border-[#fbbf2440] text-[#facc15]">🟡 Levemente Alto</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#fb923c15] border border-[#fb923c40] text-[#fb923c]">🟧 Levemente Alto</span>;
       case 'CRITICO_ALTO':
-        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#f8717115] border border-[#f8717140] text-[#f87171]">🔴 Crítico Alto</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#f8717115] border border-[#f8717140] text-[#f87171]">🔴 Crítico Alto</span>;
       case 'BAIXO':
-        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#fbbf2415] border border-[#fbbf2440] text-[#facc15]">🟡 Levemente Baixo</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#38bdf815] border border-[#38bdf840] text-[#38bdf8]">🔷 Levemente Baixo</span>;
       case 'CRITICO_BAIXO':
-        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold bg-[#f8717115] border border-[#f8717140] text-[#f87171]">🔴 Crítico Baixo</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#a855f715] border border-[#a855f740] text-[#c084fc]">🟣 Crítico Baixo</span>;
       default:
-        return <span className="px-2.5 py-1 rounded-md text-xs sm:text-sm font-bold text-[#cbd5e1] bg-[#16191e] border border-[#ffffff12]">Normal</span>;
+        return <span className="px-2.5 py-1 rounded-md text-xs font-semibold text-[#cbd5e1] bg-[#16191e] border border-[#ffffff12]">Normal</span>;
     }
   };
 
@@ -1277,7 +1291,13 @@ export default function LabExamsPage() {
                           {sparklineMap.has(item.biomarkerKey) && (
                             <MiniSparkline
                               data={sparklineMap.get(item.biomarkerKey)!}
-                              color={item.status === 'OTIMO' || item.status === 'NORMAL' ? '#4ade80' : item.status === 'ALTO' || item.status === 'BAIXO' ? '#fbbf24' : '#f87171'}
+                              color={
+                                item.status === 'OTIMO' ? '#4ade80' :
+                                item.status === 'NORMAL' ? '#38bdf8' :
+                                item.status === 'BAIXO' ? '#38bdf8' :
+                                item.status === 'ALTO' ? '#fb923c' :
+                                item.status === 'CRITICO_BAIXO' ? '#a855f7' : '#f87171'
+                              }
                             />
                           )}
 
@@ -1488,10 +1508,10 @@ export default function LabExamsPage() {
                 >
                   <option value="NORMAL">🔵 Normal</option>
                   <option value="OTIMO">🟢 Ótimo</option>
-                  <option value="ALTO">🟡 Levemente Alto</option>
+                  <option value="BAIXO">🔷 Levemente Baixo</option>
+                  <option value="ALTO">🟧 Levemente Alto</option>
+                  <option value="CRITICO_BAIXO">🟣 Crítico Baixo</option>
                   <option value="CRITICO_ALTO">🔴 Crítico Alto</option>
-                  <option value="BAIXO">🟡 Levemente Baixo</option>
-                  <option value="CRITICO_BAIXO">🔴 Crítico Baixo</option>
                 </select>
               </div>
             </div>
