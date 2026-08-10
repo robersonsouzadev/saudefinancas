@@ -27,6 +27,7 @@ model User {
   heightCm               Float?
   uazapiInstance         String?
   uazapiToken            String?
+  timezone               String?                 @default("America/Sao_Paulo")
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   conversations          Conversation[]

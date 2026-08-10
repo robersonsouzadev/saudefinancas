@@ -33,33 +33,16 @@ export class MedicationReminderCronService implements OnModuleInit, OnModuleDest
   async checkAndSendReminders() {
     try {
       const now = new Date();
-
-      // Obter horário atual em formato HH:mm (tanto no fuso de SP quanto no fuso local do servidor)
-      const spTimeStr = new Intl.DateTimeFormat('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      }).format(now);
-
-      const localTimeStr = now.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-
       const dateKey = now.toISOString().split('T')[0];
-      const targetTimes = Array.from(new Set([spTimeStr, localTimeStr]));
 
-      // Limpar registros de dias anteriores do Set para economizar memória
+      // Limpar registros antigos do Set para economizar memória
       if (this.sentReminders.size > 5000) {
         this.sentReminders.clear();
       }
 
-      // Buscar todos os agendamentos ativos para os horários atuais
+      // Buscar todos os agendamentos ativos
       const schedules = await this.prisma.medicationSchedule.findMany({
         where: {
-          time: { in: targetTimes },
           notifyWhatsapp: true,
           medication: {
             isActive: true,
@@ -82,6 +65,30 @@ export class MedicationReminderCronService implements OnModuleInit, OnModuleDest
 
         const targetPhone = user.whatsappPhone || user.phone;
         if (!targetPhone) continue;
+
+        // Calcular horário atual no fuso horário específico do usuário
+        const userTz = user.timezone || 'America/Sao_Paulo';
+        let userCurrentHHMM = '';
+        try {
+          userCurrentHHMM = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: userTz,
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+          }).format(now);
+        } catch (e) {
+          userCurrentHHMM = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+          }).format(now);
+        }
+
+        // Se o horário agendado for diferente do horário no fuso do usuário, ignora
+        if (sched.time !== userCurrentHHMM) {
+          continue;
+        }
 
         const reminderKey = `${med.id}_${sched.time}_${dateKey}`;
         if (this.sentReminders.has(reminderKey)) {

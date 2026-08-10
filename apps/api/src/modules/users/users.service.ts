@@ -211,6 +211,9 @@ export class UsersService {
     if (data.uazapiToken !== undefined) {
       updateData.uazapiToken = data.uazapiToken ? data.uazapiToken.trim() : null;
     }
+    if (data.timezone !== undefined) {
+      updateData.timezone = data.timezone ? data.timezone.trim() : 'America/Sao_Paulo';
+    }
 
     if (data.password && typeof data.password === 'string' && data.password.trim() !== '') {
       updateData.passwordHash = await bcrypt.hash(data.password, 10);
@@ -247,6 +250,7 @@ export class UsersService {
           heightCm: true,
           uazapiInstance: true,
           uazapiToken: true,
+          timezone: true,
         },
       });
     } catch (err: any) {

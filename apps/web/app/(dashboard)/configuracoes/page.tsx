@@ -47,6 +47,12 @@ export default function ConfiguracoesPage() {
   // WhatsApp Uazapi
   const [uazapiInstance, setUazapiInstance] = useState('');
   const [uazapiToken, setUazapiToken] = useState('');
+
+  const deviceTz = typeof window !== 'undefined' && Intl?.DateTimeFormat?.().resolvedOptions?.().timeZone
+    ? Intl.DateTimeFormat().resolvedOptions().timeZone
+    : 'America/Sao_Paulo';
+
+  const [timezone, setTimezone] = useState(deviceTz);
   const [savingUazapi, setSavingUazapi] = useState(false);
   const [uazapiSaved, setUazapiSaved] = useState(false);
   const [copiedWebhook, setCopiedWebhook] = useState(false);
@@ -141,6 +147,7 @@ export default function ConfiguracoesPage() {
           setHeightCm(data.user.heightCm || '');
           setUazapiInstance(data.user.uazapiInstance || '');
           setUazapiToken(data.user.uazapiToken || '');
+          setTimezone(data.user.timezone || deviceTz);
           if (data.user.birthDate) {
             setBirthDate(new Date(data.user.birthDate).toISOString().split('T')[0]);
           }
@@ -174,6 +181,7 @@ export default function ConfiguracoesPage() {
           password: password || undefined,
           uazapiInstance,
           uazapiToken,
+          timezone,
         }),
       });
 
@@ -425,6 +433,28 @@ export default function ConfiguracoesPage() {
               onChange={(e) => setWhatsappPhone(e.target.value)}
               className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#a1a1aa] uppercase mb-1">🌐 Fuso Horário (Dispositivo)</label>
+            <select
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] text-xs focus:outline-none focus:border-[#5e6ad2]"
+            >
+              <option value="America/Campo_Grande">America/Campo_Grande (MS - GMT-4)</option>
+              <option value="America/Cuiaba">America/Cuiaba (MT - GMT-4)</option>
+              <option value="America/Manaus">America/Manaus (AM - GMT-4)</option>
+              <option value="America/Boa_Vista">America/Boa_Vista (RR - GMT-4)</option>
+              <option value="America/Porto_Velho">America/Porto_Velho (RO - GMT-4)</option>
+              <option value="America/Eirunepe">America/Eirunepe (Acre - GMT-5)</option>
+              <option value="America/Sao_Paulo">America/Sao_Paulo (SP/RJ/DF/Sul/NE - GMT-3)</option>
+              <option value="America/Fortaleza">America/Fortaleza (Nordeste - GMT-3)</option>
+              <option value="America/Belem">America/Belem (PA - GMT-3)</option>
+              <option value="America/Noronha">America/Noronha (GMT-2)</option>
+              <option value="Europe/Lisbon">Europe/Lisbon (Portugal - GMT+1)</option>
+              <option value="America/New_York">America/New_York (US East - GMT-5)</option>
+            </select>
           </div>
 
           <div className="sm:col-span-2 lg:col-span-3">

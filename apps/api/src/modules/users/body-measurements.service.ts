@@ -177,6 +177,7 @@ export class BodyMeasurementsService {
         avatarUrl: true,
         uazapiInstance: true,
         uazapiToken: true,
+        timezone: true,
       },
     });
 
