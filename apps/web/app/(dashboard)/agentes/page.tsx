@@ -623,7 +623,10 @@ export default function AgentesPage() {
               </div>
 
               {/* WhatsApp Checkbox */}
-              <div className="p-3.5 rounded-lg bg-[#16191e] border border-[#ffffff0a] flex items-center justify-between">
+              <div 
+                onClick={() => setWhatsappEnabled(!whatsappEnabled)}
+                className="p-3.5 rounded-lg bg-[#16191e] border border-[#ffffff0a] flex items-center justify-between cursor-pointer hover:border-[#5e6ad240] transition"
+              >
                 <div className="flex items-center space-x-2.5">
                   <PhoneCall className="w-4 h-4 text-[#4ade80]" />
                   <div>
@@ -635,7 +638,8 @@ export default function AgentesPage() {
                   type="checkbox"
                   checked={whatsappEnabled}
                   onChange={(e) => setWhatsappEnabled(e.target.checked)}
-                  className="w-4 h-4 rounded bg-[#080a0c] border-[#ffffff20] text-[#5e6ad2]"
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-4 h-4 rounded bg-[#080a0c] border-[#ffffff20] text-[#5e6ad2] cursor-pointer"
                 />
               </div>
 

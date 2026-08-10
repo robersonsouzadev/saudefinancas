@@ -25,6 +25,8 @@ model User {
   birthDate              DateTime?
   biologicalSex          BiologicalSex?
   heightCm               Float?
+  uazapiInstance         String?
+  uazapiToken            String?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   conversations          Conversation[]
@@ -135,6 +137,10 @@ model Agent {
   systemPrompt       String
   modelName          String              @default("gpt-4o-mini")
   temperature        Float               @default(0.7)
+  department         String?
+  whatsappEnabled    Boolean             @default(false)
+  uazapiInstanceName String?
+  uazapiToken        String?
   isDefault          Boolean             @default(false)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt

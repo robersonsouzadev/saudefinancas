@@ -42,8 +42,10 @@ export default function ConfiguracoesPage() {
   const [measurements, setMeasurements] = useState<any[]>([]);
 
   // WhatsApp Uazapi
-  const [uazapiInstance, setUazapiInstance] = useState('sf_personal_instance');
-  const [uazapiToken, setUazapiToken] = useState('uaz_token_••••••••');
+  const [uazapiInstance, setUazapiInstance] = useState('');
+  const [uazapiToken, setUazapiToken] = useState('');
+  const [savingUazapi, setSavingUazapi] = useState(false);
+  const [uazapiSaved, setUazapiSaved] = useState(false);
 
   // Modal Registrar Medidas
   const [showMeasurementModal, setShowMeasurementModal] = useState(false);
@@ -97,6 +99,8 @@ export default function ConfiguracoesPage() {
           setWhatsappPhone(data.user.whatsappPhone || data.user.phone || '');
           setBiologicalSex(data.user.biologicalSex || 'MASCULINO');
           setHeightCm(data.user.heightCm || '');
+          setUazapiInstance(data.user.uazapiInstance || '');
+          setUazapiToken(data.user.uazapiToken || '');
           if (data.user.birthDate) {
             setBirthDate(new Date(data.user.birthDate).toISOString().split('T')[0]);
           }
@@ -128,6 +132,8 @@ export default function ConfiguracoesPage() {
           biologicalSex,
           heightCm: heightCm ? Number(heightCm) : null,
           password: password || undefined,
+          uazapiInstance,
+          uazapiToken,
         }),
       });
 
@@ -142,6 +148,31 @@ export default function ConfiguracoesPage() {
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
       setError(err.message || 'Erro ao salvar perfil');
+    }
+  };
+
+  // Salvar apenas UazAPI
+  const handleSaveUazapi = async () => {
+    try {
+      setSavingUazapi(true);
+      const res = await authFetch('/api/users/me/profile', {
+        method: 'PUT',
+        body: JSON.stringify({
+          uazapiInstance,
+          uazapiToken,
+        }),
+      });
+      if (!res.ok) {
+        const data = await parseJsonResponse(res);
+        throw new Error(data.message || 'Erro ao salvar credenciais UazAPI');
+      }
+      setUazapiSaved(true);
+      await loadProfileAndMeasurements();
+      setTimeout(() => setUazapiSaved(false), 3000);
+    } catch (err: any) {
+      alert(err.message || 'Erro ao salvar UazAPI');
+    } finally {
+      setSavingUazapi(false);
     }
   };
 
@@ -588,9 +619,33 @@ export default function ConfiguracoesPage() {
               type="password" 
               value={uazapiToken}
               onChange={(e) => setUazapiToken(e.target.value)}
+              placeholder="Cole seu token UazAPI aqui"
               className="w-full h-9 px-3 rounded-lg bg-[#16191e] border border-[#ffffff12] text-[#f7f8f8] font-mono focus:outline-none focus:border-[#5e6ad2]"
             />
           </div>
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <button
+            type="button"
+            onClick={handleSaveUazapi}
+            disabled={savingUazapi}
+            className="px-4 py-2 rounded-lg bg-[#5e6ad2] hover:bg-[#6e7be2] text-white font-medium text-xs flex items-center gap-1.5 transition shadow-sm"
+          >
+            {savingUazapi ? (
+              <span>Salvando...</span>
+            ) : uazapiSaved ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Salvo com sucesso!</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span>Salvar Instância UazAPI</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 

@@ -77,6 +77,10 @@ export class AgentsService {
         modelName: data.modelName || 'gpt-4o-mini',
         temperature: data.temperature !== undefined ? parseFloat(data.temperature) : 0.7,
         isDefault: data.isDefault || false,
+        department: data.department || 'Saúde',
+        whatsappEnabled: data.whatsappEnabled !== undefined ? Boolean(data.whatsappEnabled) : false,
+        uazapiInstanceName: data.uazapiInstanceName || null,
+        uazapiToken: data.uazapiToken || null,
       },
     });
   }
@@ -93,6 +97,10 @@ export class AgentsService {
           modelName: data.modelName || 'gpt-4o-mini',
           temperature: data.temperature !== undefined ? parseFloat(data.temperature) : 0.7,
           isDefault: data.isDefault || false,
+          department: data.department || 'Saúde',
+          whatsappEnabled: data.whatsappEnabled !== undefined ? Boolean(data.whatsappEnabled) : false,
+          uazapiInstanceName: data.uazapiInstanceName || null,
+          uazapiToken: data.uazapiToken || null,
         },
       });
     }
@@ -106,6 +114,10 @@ export class AgentsService {
         ...(data.modelName !== undefined && { modelName: data.modelName }),
         ...(data.temperature !== undefined && { temperature: parseFloat(data.temperature) }),
         ...(data.isDefault !== undefined && { isDefault: data.isDefault }),
+        ...(data.department !== undefined && { department: data.department }),
+        ...(data.whatsappEnabled !== undefined && { whatsappEnabled: Boolean(data.whatsappEnabled) }),
+        ...(data.uazapiInstanceName !== undefined && { uazapiInstanceName: data.uazapiInstanceName }),
+        ...(data.uazapiToken !== undefined && { uazapiToken: data.uazapiToken }),
       },
     });
   }

@@ -175,6 +175,8 @@ export class BodyMeasurementsService {
         biologicalSex: true,
         heightCm: true,
         avatarUrl: true,
+        uazapiInstance: true,
+        uazapiToken: true,
       },
     });
 

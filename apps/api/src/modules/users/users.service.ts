@@ -159,6 +159,12 @@ export class UsersService {
     if (data.heightCm !== undefined) {
       updateData.heightCm = data.heightCm ? parseFloat(data.heightCm) : null;
     }
+    if (data.uazapiInstance !== undefined) {
+      updateData.uazapiInstance = data.uazapiInstance ? data.uazapiInstance.trim() : null;
+    }
+    if (data.uazapiToken !== undefined) {
+      updateData.uazapiToken = data.uazapiToken ? data.uazapiToken.trim() : null;
+    }
 
     if (data.password && typeof data.password === 'string' && data.password.trim() !== '') {
       updateData.passwordHash = await bcrypt.hash(data.password, 10);
@@ -179,6 +185,8 @@ export class UsersService {
         birthDate: true,
         biologicalSex: true,
         heightCm: true,
+        uazapiInstance: true,
+        uazapiToken: true,
       },
     });
   }
