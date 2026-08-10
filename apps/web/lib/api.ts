@@ -49,3 +49,12 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
     headers,
   });
 }
+
+export async function parseJsonResponse(res: Response): Promise<any> {
+  const text = await res.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch (err) {
+    return { message: text };
+  }
+}

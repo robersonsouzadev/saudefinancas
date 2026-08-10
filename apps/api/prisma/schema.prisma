@@ -32,6 +32,9 @@ model User {
   updatedAt              DateTime                @updatedAt
   conversations          Conversation[]
   healthLogs             HealthLog[]
+  dailyHealthLogs        DailyHealthLog[]
+  healthStreak           HealthStreak?
+  hydrationSetting       HydrationSetting?
   bodyMeasurements       BodyMeasurement[]
   bodyAssessments        BodyAssessment[]
   bodyAssessmentGoals    BodyAssessmentGoal[]
@@ -222,6 +225,70 @@ model HealthLog {
   unit     String
   loggedAt DateTime @default(now())
   user     User     @relation(fields: [userId], references: [id])
+}
+
+model DailyHealthLog {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date              DateTime // Truncated Date (YYYY-MM-DD)
+
+  // Sono
+  sleepHours        Float?
+  sleepQuality      Int?     // 1 a 5
+  bedTime           String?  // HH:mm
+  wakeTime          String?  // HH:mm
+  sleepFactors      String?  // CAFEINA,TELAS,ALCOOL,EXERCICIO_NOITE
+
+  // Hidratação
+  waterIntakeMl     Int      @default(0)
+  waterGoalMl       Int      @default(2500)
+
+  // Humor & Bem-Estar
+  moodScore         Int?     // 1 a 5 (emojis)
+  moodTags          String?  // ANSIOSO,MOTIVADO,ETC
+  energyLevel       Int?     // 1 a 10
+  stressLevel       Int?     // 1 a 5 (1=Nenhum, 5=Extremo)
+
+  // Exercício
+  exerciseMinutes   Int?
+  exerciseType      String?
+  exerciseIntensity String?  // LEVE, MODERADO, INTENSO
+
+  // Biometria / Saúde
+  symptoms          String?  // DOR_CABECA,FADIGA,INCHACO,ETC
+  notes             String?
+  vitalityScore     Float?   // 0 a 100
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model HealthStreak {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentStreak    Int       @default(0)
+  longestStreak    Int       @default(0)
+  lastLogDate      DateTime?
+  shieldsRemaining Int       @default(1)
+  updatedAt        DateTime  @updatedAt
+}
+
+model HydrationSetting {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyGoalMl       Int      @default(2500)
+  useOmsCalculation Boolean  @default(true) // 35ml x peso corporal
+  reminderInterval  Int      @default(90)   // minutos (60, 90, 120)
+  startHour         Int      @default(8)    // 08:00
+  endHour           Int      @default(21)   // 21:00 (limite 21h)
+  notifyWhatsapp    Boolean  @default(true)
+  updatedAt         DateTime @updatedAt
 }
 
 model BodyMeasurement {

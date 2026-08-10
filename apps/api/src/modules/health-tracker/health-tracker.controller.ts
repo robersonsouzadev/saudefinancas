@@ -1,63 +1,77 @@
-import { Controller, Get, Post, Put, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { HealthTrackerService } from './services/health-tracker.service';
 import { HealthAnalyticsService } from './services/health-analytics.service';
 
 @Controller('health-tracker')
+@UseGuards(JwtAuthGuard)
 export class HealthTrackerController {
   constructor(
     private readonly healthTrackerService: HealthTrackerService,
     private readonly healthAnalyticsService: HealthAnalyticsService,
   ) {}
 
-  @Post('logs')
-  async upsertDailyLog(
-    @Body('userId') userId: string,
-    @Body('date') date: string,
-    @Body('data') data: any,
-  ) {
-    return this.healthTrackerService.upsertDailyLog(userId, new Date(date), data);
+  @Get('daily')
+  async getDailyLog(@Request() req: any, @Query('date') date?: string) {
+    const userId = req.user.id;
+    return this.healthTrackerService.getDailyLog(userId, date);
   }
 
-  @Get('logs')
-  async getHealthLogsRange(
-    @Query('userId') userId: string,
-    @Query('startDate') startDate: string,
-    @Query('endDate') endDate: string,
-  ) {
-    return this.healthTrackerService.getHealthLogsRange(
-      userId,
-      new Date(startDate),
-      new Date(endDate)
-    );
+  @Post('daily')
+  async upsertDailyLog(@Request() req: any, @Body() body: { date?: string; data?: any }) {
+    const userId = req.user.id;
+    const dateInput = body.date || new Date().toISOString();
+    const dataPayload = body.data || body;
+    return this.healthTrackerService.upsertDailyLog(userId, dateInput, dataPayload);
   }
 
-  @Post('goals')
-  async createGoal(
-    @Body('userId') userId: string,
-    @Body() data: any,
-  ) {
-    return this.healthTrackerService.createGoal(userId, data);
+  @Post('water')
+  async addWaterIntake(@Request() req: any, @Body() body: { amountMl: number; date?: string }) {
+    const userId = req.user.id;
+    const amountMl = Number(body.amountMl || 250);
+    return this.healthTrackerService.addWaterIntake(userId, amountMl, body.date);
   }
 
-  @Get('goals')
-  async getUserGoals(@Query('userId') userId: string) {
-    return this.healthTrackerService.getUserGoals(userId);
+  @Get('streak')
+  async getStreak(@Request() req: any) {
+    const userId = req.user.id;
+    return this.healthTrackerService.getStreak(userId);
   }
 
-  @Put('goals/:id')
-  async updateGoal(
-    @Body('userId') userId: string,
-    @Param('id') goalId: string,
-    @Body() data: any,
-  ) {
-    return this.healthTrackerService.updateGoal(userId, goalId, data);
+  @Post('streak/shield')
+  async useShield(@Request() req: any) {
+    const userId = req.user.id;
+    return this.healthTrackerService.useShield(userId);
+  }
+
+  @Get('calendar')
+  async getCalendarRange(@Request() req: any, @Query('days') days?: string) {
+    const userId = req.user.id;
+    const daysCount = parseInt(days || '14', 10);
+    return this.healthTrackerService.getCalendarRange(userId, daysCount);
+  }
+
+  @Get('hydration-settings')
+  async getHydrationSettings(@Request() req: any) {
+    const userId = req.user.id;
+    return this.healthTrackerService.getHydrationSettings(userId);
+  }
+
+  @Put('hydration-settings')
+  async updateHydrationSettings(@Request() req: any, @Body() body: any) {
+    const userId = req.user.id;
+    return this.healthTrackerService.updateHydrationSettings(userId, body);
   }
 
   @Get('analytics/trends')
-  async getHealthTrends(
-    @Query('userId') userId: string,
-    @Query('days') days: string,
-  ) {
+  async getHealthTrends(@Request() req: any, @Query('days') days?: string) {
+    const userId = req.user.id;
     return this.healthAnalyticsService.getHealthTrends(userId, parseInt(days || '7', 10));
+  }
+
+  @Post('generate-story')
+  async generateStory(@Request() req: any) {
+    const userId = req.user.id;
+    return this.healthAnalyticsService.generateHealthStory(userId);
   }
 }
