@@ -8,7 +8,10 @@ export class MessageSenderService {
    * Envia mensagem de texto via UazAPI para o destinatário
    */
   async sendMessage(to: string, text: string, instanceName?: string, token?: string) {
-    const cleanPhone = (to || '').replace(/\D/g, '');
+    let cleanPhone = (to || '').replace(/\D/g, '');
+    if (cleanPhone.length >= 10 && cleanPhone.length <= 11 && !cleanPhone.startsWith('55')) {
+      cleanPhone = `55${cleanPhone}`;
+    }
     const serverUrl = process.env.UAZAPI_SERVER_URL || 'https://coliseu.uazapi.com';
     const instance = instanceName || process.env.UAZAPI_INSTANCE || 'Roberson';
     const authToken = token || process.env.UAZAPI_TOKEN || '';

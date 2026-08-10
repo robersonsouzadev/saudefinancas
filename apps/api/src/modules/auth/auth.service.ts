@@ -264,14 +264,33 @@ export class AuthService implements OnModuleInit {
       if (!targetPhone) {
         throw new BadRequestException('Usuário não possui número de WhatsApp cadastrado. Alterne para o envio por E-mail.');
       }
+
+      let instance = user.uazapiInstance;
+      let token = user.uazapiToken;
+
+      // Buscar credenciais UazAPI do Administrador se o usuário destinatário não possuir credenciais próprias
+      if (!instance || !token) {
+        const adminWithUazapi = await this.prisma.user.findFirst({
+          where: {
+            role: 'ADMIN',
+            uazapiInstance: { not: null },
+            uazapiToken: { not: null },
+          },
+        });
+        if (adminWithUazapi) {
+          instance = instance || adminWithUazapi.uazapiInstance;
+          token = token || adminWithUazapi.uazapiToken;
+        }
+      }
+
       const messageText = `🔑 *Código de Verificação — Saúde & Finanças*\n\nOlá, *${user.name || 'Usuário'}*!\n\nSeu código de 6 dígitos para primeiro acesso / definição de senha é:\n\n👉 *${code}*\n\nEste código expira em 15 minutos. Se você não solicitou este código, ignore esta mensagem.`;
 
       try {
         await this.messageSender.sendMessage(
           targetPhone,
           messageText,
-          user.uazapiInstance || undefined,
-          user.uazapiToken || undefined,
+          instance || undefined,
+          token || undefined,
         );
       } catch (err: any) {
         console.error(`Erro ao disparar código no WhatsApp para ${targetPhone}:`, err);
