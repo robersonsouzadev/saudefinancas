@@ -899,8 +899,8 @@ export default function LabExamsPage() {
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-[#f7f8f8]">Vita IA — Seu Relatório de Saúde</h2>
-              <p className="text-xs sm:text-sm text-[#cbd5e1] mt-0.5">Resumo inteligente dos seus exames em linguagem simples</p>
+              <h2 className="text-xs sm:text-sm font-semibold text-[#f7f8f8]">Vita IA — Seu Relatório de Saúde</h2>
+              <p className="text-xs text-[#a1a1aa] mt-0.5">Resumo inteligente dos seus exames em linguagem simples</p>
             </div>
           </div>
           <span className="text-xs font-mono font-semibold text-[#818cf8] bg-[#5e6ad215] border border-[#5e6ad230] px-3 py-1 rounded-full">
@@ -1201,8 +1201,8 @@ export default function LabExamsPage() {
       </div>
 
       {/* ═══ BIOMARKERS TABLE BY CATEGORY ═══ */}
-      <div className="space-y-4">
-        <h2 className="text-base sm:text-lg font-bold text-[#f7f8f8]">Tabela Consolidada de Biomarcadores</h2>
+      <div className="space-y-3">
+        <h2 className="text-xs sm:text-sm font-semibold text-[#f7f8f8]">Tabela Consolidada de Biomarcadores</h2>
 
         {Object.keys(groupedResults).map((cat) => {
           const items = groupedResults[cat];
@@ -1215,20 +1215,20 @@ export default function LabExamsPage() {
               {/* Category Header */}
               <button
                 onClick={() => toggleCategory(cat)}
-                className="w-full px-5 py-4 flex items-center justify-between bg-[#16191e] hover:bg-[#1d2127] transition border-b border-[#ffffff08]"
+                className="w-full px-4 py-3 flex items-center justify-between bg-[#16191e] hover:bg-[#1d2127] transition border-b border-[#ffffff08]"
               >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-lg">{catInfo.icon}</span>
-                  <span className="text-sm sm:text-base font-bold text-[#f7f8f8]">{catInfo.label}</span>
-                  <span className="text-xs font-mono font-semibold text-[#cbd5e1] bg-[#0f1115] px-2.5 py-1 rounded border border-[#ffffff12]">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{catInfo.icon}</span>
+                  <span className="text-xs sm:text-sm font-semibold text-[#f7f8f8]">{catInfo.label}</span>
+                  <span className="text-[11px] font-mono text-[#a1a1aa] bg-[#0f1115] px-2 py-0.5 rounded border border-[#ffffff12]">
                     {catOptimal}/{items.length} ótimos
                   </span>
                   {/* Mini category progress */}
-                  <div className="hidden sm:block w-20 h-2 rounded-full bg-[#1a1d23] overflow-hidden border border-[#ffffff10]">
+                  <div className="hidden sm:block w-16 h-1.5 rounded-full bg-[#1a1d23] overflow-hidden border border-[#ffffff10]">
                     <div className="h-full rounded-full bg-[#4ade80]" style={{ width: `${(catOptimal / items.length) * 100}%` }} />
                   </div>
                 </div>
-                {isExpanded ? <ChevronUp className="w-5 h-5 text-[#cbd5e1]" /> : <ChevronDown className="w-5 h-5 text-[#cbd5e1]" />}
+                {isExpanded ? <ChevronUp className="w-4 h-4 text-[#a1a1aa]" /> : <ChevronDown className="w-4 h-4 text-[#a1a1aa]" />}
               </button>
 
               {/* Biomarkers List */}
@@ -1238,26 +1238,26 @@ export default function LabExamsPage() {
                     <div
                       key={item.id}
                       onClick={() => setSelectedBiomarker(item.biomarkerKey)}
-                      className="px-5 py-3.5 hover:bg-[#16191e50] cursor-pointer transition"
+                      className="px-4 py-2.5 hover:bg-[#16191e50] cursor-pointer transition"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2.5 flex-wrap">
-                            <span className="text-sm sm:text-base font-bold text-[#f7f8f8]">{item.biomarkerName}</span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs sm:text-sm font-semibold text-[#f7f8f8]">{item.biomarkerName}</span>
                             {getStatusBadge(item.status)}
                             {/* Health tip button */}
                             {getHealthTip(item.biomarkerKey) && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setActiveTip({ key: item.biomarkerKey, status: item.status }); }}
-                                className="p-1 rounded hover:bg-[#5e6ad220] text-[#a1a1aa] hover:text-[#818cf8] transition min-h-[32px] min-w-[32px] flex items-center justify-center"
+                                className="p-0.5 rounded hover:bg-[#5e6ad220] text-[#71717a] hover:text-[#818cf8] transition flex items-center justify-center"
                                 title="Ver dicas de saúde"
                               >
-                                <Info className="w-4 h-4" />
+                                <Info className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
                           {/* Gauge Bar */}
-                          <div className="mt-2 w-full sm:max-w-xs">
+                          <div className="mt-1.5 w-full sm:max-w-xs">
                             <BiomarkerGaugeBar
                               value={item.value}
                               refMin={item.referenceMin}
@@ -1267,12 +1267,12 @@ export default function LabExamsPage() {
                               status={item.status}
                             />
                           </div>
-                          <p className="text-xs sm:text-sm font-mono font-semibold text-[#cbd5e1] mt-1.5">
+                          <p className="text-[11px] font-mono text-[#a1a1aa] mt-1">
                             Ref: {item.referenceMin ?? 0} - {item.referenceMax ?? '-'} {item.unit}
                           </p>
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 sm:ml-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#ffffff08]">
+                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 sm:ml-3 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[#ffffff08]">
                           {/* Sparkline */}
                           {sparklineMap.has(item.biomarkerKey) && (
                             <MiniSparkline
@@ -1282,16 +1282,16 @@ export default function LabExamsPage() {
                           )}
 
                           <div className="text-right space-y-0.5">
-                            <div className="text-base sm:text-lg font-bold font-mono text-[#f7f8f8]">
-                              {item.value} <span className="text-xs font-semibold text-[#cbd5e1]">{item.unit}</span>
+                            <div className="text-xs sm:text-sm font-bold font-mono text-[#f7f8f8]">
+                              {item.value} <span className="text-[11px] font-normal text-[#a1a1aa]">{item.unit}</span>
                             </div>
 
                             {item.delta !== undefined && item.delta !== null && (
-                              <div className="text-xs font-mono font-semibold flex items-center justify-end gap-1">
+                              <div className="text-[11px] font-mono flex items-center justify-end gap-1">
                                 {item.delta > 0 ? (
-                                  <span className="text-[#fbbf24] flex items-center"><TrendingUp className="w-3.5 h-3.5" /> +{item.delta}%</span>
+                                  <span className="text-[#fbbf24] flex items-center"><TrendingUp className="w-3 h-3" /> +{item.delta}%</span>
                                 ) : (
-                                  <span className="text-[#4ade80] flex items-center"><TrendingDown className="w-3.5 h-3.5" /> {item.delta}%</span>
+                                  <span className="text-[#4ade80] flex items-center"><TrendingDown className="w-3 h-3" /> {item.delta}%</span>
                                 )}
                               </div>
                             )}
