@@ -13,6 +13,11 @@ interface User {
   role: string;
   avatarUrl?: string;
   authProvider?: string;
+  birthDate?: string;
+  biologicalSex?: string;
+  heightCm?: number;
+  uazapiInstance?: string;
+  uazapiToken?: string;
 }
 
 interface AuthContextType {
