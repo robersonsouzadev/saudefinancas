@@ -521,34 +521,213 @@ export const healthTipsDictionary: Record<string, HealthTip> = {
 };
 
 /**
+ * Normaliza textos removendo acentos, pontuação e espaços extras para buscas insensíveis a acentuação.
+ */
+function normalizeKey(str: string): string {
+  return (str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '');
+}
+
+/**
  * Retorna a dica de saúde para um biomarcador pelo seu key ou nome.
- * Se não encontrado no dicionário estático, gera uma dica dinâmica completa.
+ * Se não encontrado no dicionário estático, gera uma explicação leiga clara e dicas focadas no biomarcador real.
  */
 export function getHealthTip(biomarkerKey: string, biomarkerName?: string): HealthTip {
+  // 1. Busca direta por chave exata
   if (healthTipsDictionary[biomarkerKey]) {
     return healthTipsDictionary[biomarkerKey];
   }
 
-  const upperKey = (biomarkerKey || '').toUpperCase().trim();
+  const normKey = normalizeKey(biomarkerKey);
+  const normName = normalizeKey(biomarkerName || '');
+
+  // 2. Busca por comparação normalizada sem acentos
   for (const [k, v] of Object.entries(healthTipsDictionary)) {
-    if (k.toUpperCase() === upperKey || upperKey.includes(k.toUpperCase()) || (biomarkerName && k.toUpperCase().includes(biomarkerName.toUpperCase()))) {
+    const normDictKey = normalizeKey(k);
+    if (
+      (normKey && normDictKey === normKey) ||
+      (normKey && normDictKey.includes(normKey)) ||
+      (normKey && normKey.includes(normDictKey)) ||
+      (normName && normDictKey === normName) ||
+      (normName && normDictKey.includes(normName)) ||
+      (normName && normName.includes(normDictKey))
+    ) {
       return v;
     }
   }
 
+  // 3. Gerador Inteligente por Categoria e Nome (Human-readable explanations for 100% of biomarkers)
   const name = biomarkerName || biomarkerKey || 'Biomarcador';
+  const combined = (normKey + ' ' + normName).toUpperCase();
 
+  // A. Série Vermelha / Hemácias / Anemia
+  if (combined.includes('HEMACI') || combined.includes('HEMOGLOBIN') || combined.includes('HEMATOCRIT') || combined.includes('VCM') || combined.includes('HCM') || combined.includes('CHCM') || combined.includes('RDW') || combined.includes('ERITROC') || combined.includes('RETICULOCIT')) {
+    return {
+      name,
+      category: 'Série Vermelha',
+      whatIs: 'Células vermelhas sanguíneas responsáveis por transportar oxigênio e nutrientes dos pulmões para todos os tecidos do corpo.',
+      whenHigh: `Elevação de ${name} pode indicar desidratação ou resposta adaptativa à falta de oxigênio.`,
+      whenLow: `Níveis reduzidos de ${name} sugerem anemia, carência de ferro ou falta de vitaminas essenciais.`,
+      tips: [
+        '🥩 Consuma alimentos ricos em ferro (carnes magras, feijão, vegetais escuros) com Vitamina C',
+        '💊 Verifique os níveis de Vitamina B12 e Ácido Fólico',
+        '💧 Mantenha boa hidratação diária para otimizar o volume plasmático',
+        '🩺 Consulte um médico se houver fadiga ou palidez constante',
+      ],
+    };
+  }
+
+  // B. Série Branca / Imunidade / Leucograma (Leucócitos, Linfócitos, Neutrófilos, Bastões, Segmentados, Eosinófilos, Basófilos, Monócitos, Mielócitos, Promielócitos, Metamielócitos, Blastos)
+  if (combined.includes('LEUCO') || combined.includes('LINFO') || combined.includes('NEUTRO') || combined.includes('BASTO') || combined.includes('SEGMENT') || combined.includes('EOSINO') || combined.includes('BASO') || combined.includes('MONO') || combined.includes('MIELO') || combined.includes('BLAST')) {
+    return {
+      name,
+      category: 'Série Branca / Imunidade',
+      whatIs: 'Células de defesa do sistema imunológico que combatem infecções, vírus, bactérias e agentes inflamatórios no organismo.',
+      whenHigh: `Valores elevados de ${name} geralmente indicam resposta ativa do corpo contra infecções, alérgenos ou inflamações.`,
+      whenLow: `Valores reduzidos de ${name} podem sinalizar baixa imunidade ou recuperação de infecção viral recente.`,
+      tips: [
+        '🧄 Alimentos fortalecedores de imunidade: alho, gengibre, cúrcuma e vegetais verdes',
+        '😴 Sono reparador de 7-8h é fundamental para regeneração das células de defesa',
+        '🧘 Gerencie o estresse crônico — o estresse elevado consome os glóbulos brancos',
+        '💊 Suporte de Vitamina C e Zinco para proteção do sistema imune',
+      ],
+    };
+  }
+
+  // C. Plaquetas / Coagulação
+  if (combined.includes('PLAQUET') || combined.includes('COAGUL') || combined.includes('FIBRINO') || combined.includes('INR') || combined.includes('TAP') || combined.includes('MPV') || combined.includes('VPM')) {
+    return {
+      name,
+      category: 'Coagulação',
+      whatIs: 'Componentes essenciais do sangue responsáveis por estancar sangramentos e promover a cicatrização de tecidos.',
+      whenHigh: `Elevação de ${name} pode surgir em processos inflamatórios agudos ou estresse físico.`,
+      whenLow: `Redução de ${name} exige atenção para evitar hematomas e sangramentos espontâneos.`,
+      tips: [
+        '🩸 Evite o uso desordenado de medicamentos anti-inflamatórios sem receita',
+        '🥗 Consuma alimentos ricos em Vitamina K (folhas verdes, brócolis)',
+        '💧 Mantenha boa hidratação para circulação fluida',
+        '🩺 Consulte um médico caso note manchas roxas frequentes na pele',
+      ],
+    };
+  }
+
+  // D. Perfil Lipídico / Colesterol
+  if (combined.includes('COLEST') || combined.includes('TRIGLIC') || combined.includes('LDL') || combined.includes('HDL') || combined.includes('VLDL') || combined.includes('APOB') || combined.includes('LPA')) {
+    return {
+      name,
+      category: 'Perfil Lipídico',
+      whatIs: 'Gorduras vitais circulantes no sangue usadas na construção celular e hormônios. Níveis desregulados impactam as artérias.',
+      whenHigh: `Elevação de ${name} pode favorecer o acúmulo de gordura nos vasos e aumentar o risco cardiovascular.`,
+      whenLow: `Níveis excessivamente baixos podem afetar a produção hormonal e absorção de vitaminas lipossolúveis.`,
+      tips: [
+        '🏃 Pratique pelo menos 150 min/semana de atividade física aeróbica',
+        '🥑 Substitua gorduras saturadas por gorduras boas (azeite, abacate, sementes)',
+        '🌾 Aumente a ingestão de fibras solúveis (aveia, psyllium)',
+        '🚫 Reduza o consumo de açúcares refinados e álcool',
+      ],
+    };
+  }
+
+  // E. Glicemia / Metabolismo
+  if (combined.includes('GLIC') || combined.includes('INSULIN') || combined.includes('HBA1C') || combined.includes('HOMA') || combined.includes('FRUTOSAMIN')) {
+    return {
+      name,
+      category: 'Metabolismo Glicêmico',
+      whatIs: 'Indicador do açúcar circulante no sangue e da eficiência do hormônio insulina na captação de energia.',
+      whenHigh: `Valores elevados de ${name} indicam resistência à insulina ou pré-diabetes.`,
+      whenLow: `Valores reduzidos (hipoglicemia) podem gerar tontura, fraqueza e suor frio.`,
+      tips: [
+        '🥗 Priorize alimentos de baixo índice glicêmico acompanhados de fibras e proteínas',
+        '🚶 Caminhe 10-15 minutos após as refeições principais',
+        '😴 Durma bem — o sono insuficiente desregula os níveis de glicose',
+        '🚫 Reduza farinhas brancas, sucos adoçados e doces',
+      ],
+    };
+  }
+
+  // F. Fígado / Hepático
+  if (combined.includes('AST') || combined.includes('ALT') || combined.includes('TGO') || combined.includes('TGP') || combined.includes('GGT') || combined.includes('GAMA') || combined.includes('BILIRRUB') || combined.includes('FOSFATASE')) {
+    return {
+      name,
+      category: 'Função Hepática',
+      whatIs: 'Enzima/marcador presente nas células do fígado. Indica o estado de saúde, filtragem e desintoxicação hepática.',
+      whenHigh: `Elevação de ${name} aponta para estresse hepático, acúmulo de gordura no fígado ou efeito de medicamentos/álcool.`,
+      whenLow: `Valores normais ou baixos geralmente indicam boa integridade do tecido do fígado.`,
+      tips: [
+        '🍷 Evite o consumo de bebidas alcoólicas e alimentos gordurosos',
+        '💊 Evite a automedicação e o uso excessivo de analgésicos',
+        '🥦 Consuma crucíferas (brócolis, couve) que auxiliam a desintoxicação',
+        '💧 Beba bastante água para auxiliar o fígado na filtragem de toxinas',
+      ],
+    };
+  }
+
+  // G. Rins / Renal
+  if (combined.includes('CREATIN') || combined.includes('UREI') || combined.includes('UREA') || combined.includes('ACIDO URICO') || combined.includes('FILTRAC') || combined.includes('CLEARANCE') || combined.includes('MICROALBUMIN')) {
+    return {
+      name,
+      category: 'Função Renal',
+      whatIs: 'Substância filtrada e eliminada pelos rins. Mede a eficiência dos rins na limpeza de impurezas do sangue.',
+      whenHigh: `Elevação de ${name} pode sinalizar sobrecarga nos rins, desidratação ou consumo elevado de proteínas.`,
+      whenLow: `Valores reduzidos costumam estar associados a menor massa muscular ou hiperidratação.`,
+      tips: [
+        '💧 Aumente a ingestão de água para 35 a 40 ml por kg de peso corporal diariamente',
+        '🧂 Reduza o excesso de sódio e temperos industrializados',
+        '🥩 Ajuste o consumo diário de proteínas com seu nutricionista/médico',
+        '🩺 Monitore sua pressão arterial com frequência',
+      ],
+    };
+  }
+
+  // H. Hormônios / Endócrino
+  if (combined.includes('TESTOSTERON') || combined.includes('ESTRADIOL') || combined.includes('PROGESTERON') || combined.includes('CORTISOL') || combined.includes('SHBG') || combined.includes('TSH') || combined.includes('T3') || combined.includes('T4') || combined.includes('PROLACTIN') || combined.includes('LH') || combined.includes('FSH') || combined.includes('DHEA')) {
+    return {
+      name,
+      category: 'Painel Hormonal',
+      whatIs: 'Mensageiro químico regulador da energia, vitalidade, massa muscular, humor, sono e metabolismo geral.',
+      whenHigh: `Níveis elevados de ${name} exigem acompanhamento endocrinológico para ajustar o equilíbrio do eixo hormonal.`,
+      whenLow: `Níveis reduzidos de ${name} podem gerar cansaço, perda de massa muscular, desânimo ou alteração de libido.`,
+      tips: [
+        '😴 Priorize 7-8 horas de sono contínuo — a produção hormonal ocorre predominantemente à noite',
+        '🏋️ Pratique exercícios de força (musculação) regularmente',
+        '🥑 Consuma gorduras saudáveis (ovos, azeite, abacate) indispensáveis para os hormônios',
+        '🧘 Controle o estresse para proteger a produção hormonal natural',
+      ],
+    };
+  }
+
+  // I. Vitaminas & Minerais
+  if (combined.includes('VITAMIN') || combined.includes('ZINC') || combined.includes('MAGNESI') || combined.includes('FERRO') || combined.includes('FERRITIN') || combined.includes('FOLAT') || combined.includes('CALCIO') || combined.includes('POTASSIO') || combined.includes('SODIO')) {
+    return {
+      name,
+      category: 'Vitaminas & Minerais',
+      whatIs: 'Micronutriente indispensável para o funcionamento das reações químicas do corpo, energia, ossos e imunidade.',
+      whenHigh: `Excesso de ${name} geralmente é causado por suplementação em doses elevadas sem supervisão.`,
+      whenLow: `Deficiência de ${name} pode prejudicar a imunidade, disposição, memória e saúde óssea/muscular.`,
+      tips: [
+        '☀️ Exposição solar matinal de 15 a 20 min reforça a absorção de nutrientes',
+        '🥗 Dieta variada e colorida rica em comida de verdade',
+        '💊 Consulte um profissional para adequar a suplementação se necessário',
+        '🧪 Acompanhe os exames periodicamente para reajustar doses',
+      ],
+    };
+  }
+
+  // Default Universal Fallback
   return {
-    name: name,
+    name,
     category: 'Geral',
-    whatIs: `Indicador laboratorial de saúde avaliado em exames de sangue para acompanhamento e prevenção.`,
-    whenHigh: `Valores elevados de ${name} exigem acompanhamento profissional para avaliar causas alimentares, fisiológicas ou inflamatórias.`,
-    whenLow: `Valores reduzidos de ${name} devem ser avaliados com seu médico para suporte nutricional ou estilo de vida.`,
+    whatIs: `Marcador biológico de acompanhamento de saúde. Exames de rotina permitem monitorar o equilíbrio funcional do organismo.`,
+    whenHigh: `Valores acima da referência para ${name} devem ser analisados pelo médico considerando seu histórico pessoal.`,
+    whenLow: `Valores abaixo da referência para ${name} devem ser avaliados com profissional para apoio nutricional ou clínico.`,
     tips: [
-      `💧 Mantenha consumo adequado de água (35 a 40 ml/kg) para suporte metabólico`,
-      `🥗 Adote alimentação equilibrada rica em comida de verdade e micronutrientes`,
-      `😴 Garanta 7 a 8 horas de sono de qualidade para recuperação celular`,
-      `👨‍⚕️ Reavaliação em check-ups periódicos para acompanhar a tendência`,
+      `💧 Mantenha hidratação diária adequada (35 a 40 ml/kg)`,
+      `🥗 Adote alimentação equilibrada com comida de verdade`,
+      `😴 Garanta 7 a 8 horas de sono restaurador por noite`,
+      `👨‍⚕️ Reavalie em seus exames periódicos de acompanhamento`,
     ],
   };
 }
