@@ -102,15 +102,52 @@ export class MedicationsService {
 
   async updateMedication(id: string, userId: string, data: Partial<{
     name: string;
+    brand: string;
+    type: any;
+    category: any;
+    priority: any;
     dosage: string;
+    unit: string;
+    instructions: string;
     currentStock: number;
+    stockAlertAt: number;
     costPerUnit: number;
+    pharmacy: string;
+    color: string;
+    notes: string;
     isActive: boolean;
+    schedules: Array<{
+      time: string;
+      windowMinutes?: number;
+      period?: any;
+      frequency?: any;
+      notifyWhatsapp?: boolean;
+      notifyPush?: boolean;
+      escalateToFamily?: boolean;
+      escalateAfterMin?: number;
+    }>;
   }>) {
     const med = await this.getMedicationById(id, userId);
+
+    if (data.schedules && data.schedules.length > 0 && med.schedules.length > 0) {
+      const sched = data.schedules[0];
+      await this.prisma.medicationSchedule.update({
+        where: { id: med.schedules[0].id },
+        data: {
+          time: sched.time,
+          period: (sched.period || 'MANHA') as any,
+          notifyWhatsapp: sched.notifyWhatsapp ?? true,
+          escalateToFamily: sched.escalateToFamily ?? false,
+        },
+      });
+    }
+
+    const { schedules, ...medData } = data;
+
     return this.prisma.medication.update({
       where: { id: med.id },
-      data,
+      data: medData as any,
+      include: { schedules: true },
     });
   }
 
@@ -124,15 +161,17 @@ export class MedicationsService {
 
   async logIntake(medicationId: string, userId: string, status: 'TOMADO' | 'PULADO' | 'ATRASADO', skipReason?: string) {
     const med = await this.getMedicationById(medicationId, userId);
+    let updatedStock = med.currentStock;
 
     if (status === 'TOMADO' && med.currentStock > 0) {
+      updatedStock = med.currentStock - 1;
       await this.prisma.medication.update({
         where: { id: medicationId },
-        data: { currentStock: med.currentStock - 1 },
+        data: { currentStock: updatedStock },
       });
     }
 
-    return this.prisma.medicationIntakeLog.create({
+    const log = await this.prisma.medicationIntakeLog.create({
       data: {
         medicationId,
         userId,
@@ -143,6 +182,18 @@ export class MedicationsService {
         respondedVia: 'app',
       },
     });
+
+    return {
+      log,
+      medication: {
+        id: med.id,
+        name: med.name,
+        unit: med.unit,
+        currentStock: updatedStock,
+        stockAlertAt: med.stockAlertAt,
+        isLowStock: updatedStock <= med.stockAlertAt,
+      },
+    };
   }
 
   async getAdherenceScore(userId: string) {

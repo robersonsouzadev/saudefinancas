@@ -5,7 +5,7 @@ import {
   Pill, Plus, Clock, CheckCircle2, AlertTriangle, ShieldAlert, 
   MessageSquare, DollarSign, Calendar, TrendingUp, Sparkles, 
   Sun, Sunset, Moon, Coffee, Edit3, Trash2, Check, X, Bell, UserCheck,
-  Camera, Upload, FileText, Loader2
+  Camera, Upload, FileText, Loader2, RefreshCw
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { authFetch } from '@/lib/api';
@@ -74,9 +74,11 @@ const mapDbMedicationToUi = (med: any): MedicationItem => {
 export default function MedicamentosPage() {
   const [medications, setMedications] = useState<MedicationItem[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingMedication, setEditingMedication] = useState<MedicationItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isWhatsappDemoOpen, setIsWhatsappDemoOpen] = useState(false);
   const [selectedMedForDemo, setSelectedMedForDemo] = useState<MedicationItem | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'info' } | null>(null);
 
   // Photo Upload & AI Scan States
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -92,6 +94,13 @@ export default function MedicamentosPage() {
     fetchMedications();
   }, []);
 
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4500);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   const fetchMedications = async () => {
     try {
       const res = await authFetch('/api/medications');
@@ -106,7 +115,7 @@ export default function MedicamentosPage() {
     }
   };
 
-  // Form State for new medication
+  // Form State for new/editing medication
   const [formData, setFormData] = useState<{
     name: string;
     brand: string;
@@ -142,6 +151,7 @@ export default function MedicamentosPage() {
   });
 
   const resetForm = () => {
+    setEditingMedication(null);
     setFormData({
       name: '',
       brand: '',
@@ -160,6 +170,29 @@ export default function MedicamentosPage() {
       escalateToFamily: true,
     });
     setIsAiPreFilled(false);
+  };
+
+  const handleStartEdit = (med: MedicationItem) => {
+    setEditingMedication(med);
+    setFormData({
+      name: med.name,
+      brand: med.brand || '',
+      pharmacy: med.pharmacy || '',
+      type: med.type,
+      category: med.category,
+      dosage: med.dosage,
+      unit: med.unit,
+      time: med.time,
+      period: med.period,
+      instructions: med.instructions,
+      currentStock: med.currentStock,
+      stockAlertAt: med.stockAlertAt,
+      costPerUnit: med.costPerUnit,
+      notifyWhatsapp: med.notifyWhatsapp,
+      escalateToFamily: med.escalateToFamily,
+    });
+    setIsAiPreFilled(false);
+    setIsAddModalOpen(true);
   };
 
   // Canvas Image Compression helper
@@ -240,7 +273,7 @@ export default function MedicamentosPage() {
       const base64Parts = filePreview.split(',');
       const base64 = base64Parts.length > 1 ? base64Parts[1] : base64Parts[0];
 
-      setScanLogs((prev) => [...prev, 'Enviando imagem para GPT-4o Vision API...']);
+      setScanLogs((prev) => [...prev, 'Enviando imagem para Visão Computacional IA...']);
 
       const res = await authFetch('/api/medications/scan', {
         method: 'POST',
@@ -269,6 +302,7 @@ export default function MedicamentosPage() {
       setScanLogs((prev) => [...prev, ' Leitura de embalagem concluída com sucesso!']);
 
       // Pre-fill form with AI extractions
+      setEditingMedication(null);
       setFormData({
         name: extracted.name || '',
         brand: extracted.brand || '',
@@ -305,6 +339,10 @@ export default function MedicamentosPage() {
   };
 
   const handleMarkAsTaken = async (id: string) => {
+    const medObj = medications.find((x) => x.id === id);
+    const medName = medObj?.name || 'Medicamento';
+
+    // Optimistic UI update
     setMedications((prev) =>
       prev.map((med) => {
         if (med.id === id) {
@@ -324,11 +362,46 @@ export default function MedicamentosPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'TOMADO' }),
       });
+
       if (res.ok) {
+        const data = await res.json();
+        const medInfo = data.medication;
+        if (medInfo) {
+          if (medInfo.isLowStock) {
+            setToast({
+              message: `✓ ${medInfo.name} tomado! ⚠️ Restam apenas ${medInfo.currentStock} ${medInfo.unit || 'cápsulas'} — hora de comprar mais!`,
+              type: 'warning',
+            });
+          } else {
+            setToast({
+              message: `✓ ${medInfo.name} tomado! Restam ${medInfo.currentStock} ${medInfo.unit || 'cápsulas'}.`,
+              type: 'success',
+            });
+          }
+        } else {
+          setToast({ message: `✓ ${medName} marcado como tomado!`, type: 'success' });
+        }
         fetchMedications();
       }
     } catch (err) {
       console.error('Erro ao marcar medicamento como tomado:', err);
+    }
+  };
+
+  const handleSkipDose = async (id: string) => {
+    const medObj = medications.find((x) => x.id === id);
+    try {
+      const res = await authFetch(`/api/medications/${id}/intake`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'PULADO', skipReason: 'Dose pulada pelo usuário' }),
+      });
+      if (res.ok) {
+        setToast({ message: `Dose de ${medObj?.name || 'medicamento'} pulada. Estoque mantido.`, type: 'info' });
+        fetchMedications();
+      }
+    } catch (err) {
+      console.error('Erro ao pular dose:', err);
     }
   };
 
@@ -341,7 +414,9 @@ export default function MedicamentosPage() {
       const res = await authFetch(`/api/medications/${id}`, {
         method: 'DELETE',
       });
-      if (!res.ok) {
+      if (res.ok) {
+        setToast({ message: 'Medicamento removido com sucesso.', type: 'info' });
+      } else {
         fetchMedications();
       }
     } catch (err) {
@@ -349,7 +424,7 @@ export default function MedicamentosPage() {
     }
   };
 
-  const handleAddMedication = async (e: React.FormEvent) => {
+  const handleSaveMedication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.dosage) return;
 
@@ -378,21 +453,37 @@ export default function MedicamentosPage() {
         ],
       };
 
-      const res = await authFetch('/api/medications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      let res: Response;
+
+      if (editingMedication) {
+        res = await authFetch(`/api/medications/${editingMedication.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await authFetch('/api/medications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
 
       if (res.ok) {
         await fetchMedications();
         setIsAddModalOpen(false);
+        setToast({
+          message: editingMedication 
+            ? `✓ '${formData.name}' atualizado com sucesso!` 
+            : `✓ '${formData.name}' cadastrado com sucesso!`,
+          type: 'success',
+        });
         resetForm();
       } else {
-        alert('Não foi possível cadastrar o medicamento no banco de dados.');
+        alert('Não foi possível salvar o medicamento no banco de dados.');
       }
     } catch (err) {
-      console.error('Erro ao cadastrar medicamento:', err);
+      console.error('Erro ao salvar medicamento:', err);
       alert('Erro de conexão ao salvar medicamento.');
     } finally {
       setIsSubmitting(false);
@@ -407,8 +498,31 @@ export default function MedicamentosPage() {
   const totalMonthlySpend = medications.reduce((acc, m) => acc + m.costPerUnit * 30, 0);
 
   return (
-    <div className="space-y-6 text-[#f7f8f8] max-w-[1400px] mx-auto pb-12">
+    <div className="space-y-6 text-[#f7f8f8] max-w-[1400px] mx-auto pb-12 relative">
       
+      {/* Toast Notification Banner */}
+      {toast && (
+        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-2xl flex items-center gap-3 text-xs font-medium backdrop-blur-md transition-all duration-300 animate-bounce-short ${
+          toast.type === 'warning' 
+            ? 'bg-[#facc1520] border-[#facc1550] text-[#fef08a]' 
+            : toast.type === 'info'
+            ? 'bg-[#60a5fa20] border-[#60a5fa50] text-[#bfdbfe]'
+            : 'bg-[#4ade8020] border-[#4ade8050] text-[#bbf7d0]'
+        }`}>
+          {toast.type === 'warning' ? (
+            <AlertTriangle className="w-4 h-4 text-[#facc15] shrink-0" />
+          ) : toast.type === 'info' ? (
+            <Clock className="w-4 h-4 text-[#60a5fa] shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-[#4ade80] shrink-0" />
+          )}
+          <span>{toast.message}</span>
+          <button onClick={() => setToast(null)} className="ml-2 text-[#a1a1aa] hover:text-white">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* 1. Header & Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div>
@@ -610,17 +724,33 @@ export default function MedicamentosPage() {
 
                   <p className="text-xs text-[#a1a1aa]">{m.instructions}</p>
 
-                  {m.status !== 'TOMADO' && (
-                    <button 
-                      onClick={() => handleMarkAsTaken(m.id)}
-                      className="w-full py-1 rounded bg-[#4ade8020] hover:bg-[#4ade8030] text-[#4ade80] text-xs font-medium flex items-center justify-center space-x-1 transition"
-                    >
-                      <Check className="w-3 h-3" />
-                      <span>Marcar como Tomado</span>
-                    </button>
+                  {m.status !== 'TOMADO' ? (
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <button 
+                        onClick={() => handleMarkAsTaken(m.id)}
+                        className="flex-1 py-1 rounded bg-[#4ade8020] hover:bg-[#4ade8030] text-[#4ade80] text-xs font-medium flex items-center justify-center space-x-1 transition"
+                      >
+                        <Check className="w-3 h-3" />
+                        <span>Marcar como Tomado</span>
+                      </button>
+                      <button 
+                        onClick={() => handleSkipDose(m.id)}
+                        className="px-2 py-1 rounded bg-[#ffffff0a] hover:bg-[#ffffff15] text-[#a1a1aa] text-xs font-medium transition"
+                        title="Pular esta dose"
+                      >
+                        Pular
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-[#4ade80] flex items-center gap-1 font-mono">
+                      <CheckCircle2 className="w-3 h-3" /> Dose do dia registrada
+                    </div>
                   )}
                 </div>
               ))}
+              {medications.filter((m) => m.period === 'MANHA').length === 0 && (
+                <p className="text-xs text-[#71717a] text-center py-2">Sem doses pela manhã</p>
+              )}
             </div>
           </div>
 
@@ -643,22 +773,44 @@ export default function MedicamentosPage() {
                         {m.brand ? `${m.brand} • ` : ''}{m.dosage} • {m.time}
                       </div>
                     </div>
-                    <span className="text-xs font-mono text-[#60a5fa] bg-[#60a5fa15] px-2 py-0.5 rounded border border-[#60a5fa30]">
-                      Próxima
+                    <span className={`text-xs font-mono px-2 py-0.5 rounded ${
+                      m.status === 'TOMADO' 
+                        ? 'text-[#4ade80] bg-[#4ade8015] border border-[#4ade8030]' 
+                        : 'text-[#60a5fa] bg-[#60a5fa15] border border-[#60a5fa30]'
+                    }`}>
+                      {m.status === 'TOMADO' ? '✓ Tomado' : 'Próxima'}
                     </span>
                   </div>
 
                   <p className="text-xs text-[#a1a1aa]">{m.instructions}</p>
 
-                  <button 
-                    onClick={() => handleMarkAsTaken(m.id)}
-                    className="w-full py-1 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-xs font-medium flex items-center justify-center space-x-1 transition"
-                  >
-                    <Check className="w-3 h-3" />
-                    <span>Marcar como Tomado</span>
-                  </button>
+                  {m.status !== 'TOMADO' ? (
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <button 
+                        onClick={() => handleMarkAsTaken(m.id)}
+                        className="flex-1 py-1 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-xs font-medium flex items-center justify-center space-x-1 transition"
+                      >
+                        <Check className="w-3 h-3" />
+                        <span>Marcar como Tomado</span>
+                      </button>
+                      <button 
+                        onClick={() => handleSkipDose(m.id)}
+                        className="px-2 py-1 rounded bg-[#ffffff0a] hover:bg-[#ffffff15] text-[#a1a1aa] text-xs font-medium transition"
+                        title="Pular esta dose"
+                      >
+                        Pular
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-[#4ade80] flex items-center gap-1 font-mono">
+                      <CheckCircle2 className="w-3 h-3" /> Dose do dia registrada
+                    </div>
+                  )}
                 </div>
               ))}
+              {medications.filter((m) => m.period === 'TARDE').length === 0 && (
+                <p className="text-xs text-[#71717a] text-center py-2">Sem doses pela tarde</p>
+              )}
             </div>
           </div>
 
@@ -681,14 +833,44 @@ export default function MedicamentosPage() {
                         {m.brand ? `${m.brand} • ` : ''}{m.dosage} • {m.time}
                       </div>
                     </div>
-                    <span className="text-xs font-mono text-[#a1a1aa] bg-[#16191e] px-2 py-0.5 rounded border border-[#ffffff10]">
-                      Aguardando
+                    <span className={`text-xs font-mono px-2 py-0.5 rounded ${
+                      m.status === 'TOMADO' 
+                        ? 'text-[#4ade80] bg-[#4ade8015] border border-[#4ade8030]' 
+                        : 'text-[#a1a1aa] bg-[#16191e] border border-[#ffffff10]'
+                    }`}>
+                      {m.status === 'TOMADO' ? '✓ Tomado' : 'Aguardando'}
                     </span>
                   </div>
 
                   <p className="text-xs text-[#a1a1aa]">{m.instructions}</p>
+
+                  {m.status !== 'TOMADO' ? (
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <button 
+                        onClick={() => handleMarkAsTaken(m.id)}
+                        className="flex-1 py-1 rounded bg-[#60a5fa20] hover:bg-[#60a5fa30] text-[#60a5fa] text-xs font-medium flex items-center justify-center space-x-1 transition border border-[#60a5fa30]"
+                      >
+                        <Check className="w-3 h-3" />
+                        <span>Marcar como Tomado</span>
+                      </button>
+                      <button 
+                        onClick={() => handleSkipDose(m.id)}
+                        className="px-2 py-1 rounded bg-[#ffffff0a] hover:bg-[#ffffff15] text-[#a1a1aa] text-xs font-medium transition"
+                        title="Pular esta dose"
+                      >
+                        Pular
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-[#4ade80] flex items-center gap-1 font-mono">
+                      <CheckCircle2 className="w-3 h-3" /> Dose do dia registrada
+                    </div>
+                  )}
                 </div>
               ))}
+              {medications.filter((m) => m.period === 'NOITE').length === 0 && (
+                <p className="text-xs text-[#71717a] text-center py-2">Sem doses pela noite</p>
+              )}
             </div>
           </div>
 
@@ -696,24 +878,61 @@ export default function MedicamentosPage() {
           <div className="linear-card p-4 space-y-3 border-t-2 border-t-[#a855f7]">
             <div className="flex items-center justify-between text-xs font-semibold border-b border-[#ffffff0e] pb-2">
               <span className="flex items-center gap-1.5 text-[#a855f7]">
-                <Coffee className="w-4 h-4" /> SOS / CONFORME NECESSIDADE
+                <Coffee className="w-4 h-4" /> MADRUGADA / SOS
               </span>
+              <span className="text-xs font-mono text-[#a1a1aa]">00:00 - 06:00</span>
             </div>
 
-            <div className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md text-center space-y-2">
-              <p className="text-xs text-[#a1a1aa]">
-                Nenhum medicamento SOS ou analgésico cadastrado no momento.
-              </p>
-              <button 
-                onClick={() => {
-                  resetForm();
-                  setFormData((prev) => ({ ...prev, category: 'SOS' }));
-                  setIsAddModalOpen(true);
-                }}
-                className="text-xs text-[#5e6ad2] hover:underline"
-              >
-                + Cadastrar item SOS
-              </button>
+            <div className="space-y-2.5">
+              {medications.filter((m) => m.period === 'MADRUGADA' || m.category === 'SOS').map((m) => (
+                <div key={m.id} className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-semibold text-xs text-[#f7f8f8]">{m.name}</div>
+                      <div className="text-xs text-[#a1a1aa] font-mono">
+                        {m.brand ? `${m.brand} • ` : ''}{m.dosage} • {m.time}
+                      </div>
+                    </div>
+                    <span className={`text-xs font-mono px-2 py-0.5 rounded ${
+                      m.status === 'TOMADO' 
+                        ? 'text-[#4ade80] bg-[#4ade8015] border border-[#4ade8030]' 
+                        : 'text-[#a855f7] bg-[#a855f715] border border-[#a855f730]'
+                    }`}>
+                      {m.status === 'TOMADO' ? '✓ Tomado' : 'SOS'}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-[#a1a1aa]">{m.instructions}</p>
+
+                  {m.status !== 'TOMADO' && (
+                    <button 
+                      onClick={() => handleMarkAsTaken(m.id)}
+                      className="w-full py-1 rounded bg-[#a855f720] hover:bg-[#a855f730] text-[#a855f7] text-xs font-medium flex items-center justify-center space-x-1 transition border border-[#a855f730]"
+                    >
+                      <Check className="w-3 h-3" />
+                      <span>Registrar Consumo SOS</span>
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              {medications.filter((m) => m.period === 'MADRUGADA' || m.category === 'SOS').length === 0 && (
+                <div className="p-3 bg-[#16191e] border border-[#ffffff0a] rounded-md text-center space-y-2">
+                  <p className="text-xs text-[#a1a1aa]">
+                    Nenhum medicamento SOS ou de madrugada cadastrado.
+                  </p>
+                  <button 
+                    onClick={() => {
+                      resetForm();
+                      setFormData((prev) => ({ ...prev, category: 'SOS', period: 'MADRUGADA' }));
+                      setIsAddModalOpen(true);
+                    }}
+                    className="text-xs text-[#5e6ad2] hover:underline block mx-auto"
+                  >
+                    + Cadastrar item SOS
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -755,7 +974,7 @@ export default function MedicamentosPage() {
           <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
             <div>
               <h3 className="text-sm font-semibold text-[#f7f8f8]">Lista de Medicamentos & Vitaminas Ativos</h3>
-              <p className="text-xs text-[#a1a1aa]">Detalhamento de posologia, marca, estoque e custo por dose</p>
+              <p className="text-xs text-[#a1a1aa]">Detalhamento de posologia, marca, estoque, consumo e custo por dose</p>
             </div>
             <span className="text-xs font-mono text-[#a1a1aa]">{medications.length} Itens Cadastrados</span>
           </div>
@@ -768,6 +987,7 @@ export default function MedicamentosPage() {
                   <th className="pb-2 font-medium">MARCA</th>
                   <th className="pb-2 font-medium">DOSAGEM</th>
                   <th className="pb-2 font-medium">HORÁRIO</th>
+                  <th className="pb-2 font-medium">STATUS HOJE</th>
                   <th className="pb-2 font-medium">ESTOQUE</th>
                   <th className="pb-2 font-medium">CUSTO/DOSE</th>
                   <th className="pb-2 font-medium text-right">AÇÕES</th>
@@ -789,6 +1009,21 @@ export default function MedicamentosPage() {
                     <td className="py-2.5 text-[#a1a1aa]">{m.dosage}</td>
                     <td className="py-2.5 text-[#f7f8f8]">{m.time}</td>
                     <td className="py-2.5">
+                      {m.status === 'TOMADO' ? (
+                        <span className="px-2 py-0.5 rounded text-xs font-mono text-[#4ade80] bg-[#4ade8015] border border-[#4ade8030]">
+                          ✓ Tomado
+                        </span>
+                      ) : (
+                        <button 
+                          onClick={() => handleMarkAsTaken(m.id)}
+                          className="px-2 py-0.5 rounded text-xs font-mono text-[#facc15] bg-[#facc1515] border border-[#facc1530] hover:bg-[#facc1525] transition"
+                          title="Clique para dar baixa / marcar como tomado"
+                        >
+                          ○ Pendente
+                        </button>
+                      )}
+                    </td>
+                    <td className="py-2.5">
                       <span className={`px-2 py-0.5 rounded text-xs ${
                         m.currentStock <= m.stockAlertAt 
                           ? 'text-[#facc15] bg-[#facc1515] border border-[#facc1530]' 
@@ -799,6 +1034,13 @@ export default function MedicamentosPage() {
                     </td>
                     <td className="py-2.5 text-[#4ade80]">R$ {m.costPerUnit.toFixed(2)}</td>
                     <td className="py-2.5 text-right space-x-1">
+                      <button 
+                        onClick={() => handleStartEdit(m)}
+                        className="p-1 hover:bg-[#1d2127] rounded text-[#a1a1aa] hover:text-[#5e6ad2]" 
+                        title="Editar Medicamento"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
                       <button 
                         onClick={() => {
                           setSelectedMedForDemo(m);
@@ -832,9 +1074,23 @@ export default function MedicamentosPage() {
           <div className="linear-card w-full max-w-lg p-5 sm:p-6 space-y-4 border border-[#ffffff15] shadow-2xl rounded-t-2xl sm:rounded-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
               <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
-                <Plus className="w-4 h-4 text-[#5e6ad2]" /> Cadastrar Novo Medicamento / Vitamina
+                {editingMedication ? (
+                  <>
+                    <Edit3 className="w-4 h-4 text-[#5e6ad2]" /> Editar Medicamento / Vitamina
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 text-[#5e6ad2]" /> Cadastrar Novo Medicamento / Vitamina
+                  </>
+                )}
               </h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center">
+              <button 
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  resetForm();
+                }} 
+                className="text-[#a1a1aa] hover:text-[#f7f8f8] p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -846,7 +1102,7 @@ export default function MedicamentosPage() {
               </div>
             )}
 
-            <form onSubmit={handleAddMedication} className="space-y-3 text-xs">
+            <form onSubmit={handleSaveMedication} className="space-y-3 text-xs">
               <div>
                 <label className="text-[#a1a1aa] block mb-1 font-medium">Nome do Medicamento ou Vitamina</label>
                 <input 
@@ -864,7 +1120,7 @@ export default function MedicamentosPage() {
                   <label className="text-[#a1a1aa] block mb-1 font-medium">Marca / Fabricante</label>
                   <input 
                     type="text" 
-                    placeholder="Ex: EMS, Medley, Eurofarma"
+                    placeholder="Ex: EMS, Medley, Eurofarma, fortalvit"
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                     className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
@@ -916,7 +1172,7 @@ export default function MedicamentosPage() {
                   <input 
                     type="text" 
                     required
-                    placeholder="Ex: 50mg, 1000 UI, 5ml"
+                    placeholder="Ex: 50mg, 600mg, 1000 UI"
                     value={formData.dosage}
                     onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
                     className="w-full bg-[#16191e] border border-[#ffffff12] rounded px-3 py-1.5 text-[#f7f8f8] focus:outline-none focus:border-[#5e6ad2]"
@@ -961,7 +1217,7 @@ export default function MedicamentosPage() {
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[#a1a1aa] block mb-1 font-medium">Estoque Inicial</label>
+                  <label className="text-[#a1a1aa] block mb-1 font-medium">Estoque Atual</label>
                   <input 
                     type="number" 
                     value={formData.currentStock}
@@ -1026,7 +1282,10 @@ export default function MedicamentosPage() {
               <div className="pt-3 flex justify-end space-x-2">
                 <button 
                   type="button" 
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={() => {
+                    setIsAddModalOpen(false);
+                    resetForm();
+                  }}
                   className="px-3 py-1.5 rounded bg-[#16191e] hover:bg-[#1d2127] text-[#a1a1aa] text-xs font-medium"
                 >
                   Cancelar
@@ -1036,7 +1295,7 @@ export default function MedicamentosPage() {
                   disabled={isSubmitting}
                   className="px-4 py-1.5 rounded bg-[#5e6ad2] hover:bg-[#6e7be2] text-white text-xs font-medium flex items-center space-x-1 disabled:opacity-50"
                 >
-                  <span>{isSubmitting ? 'Salvando...' : 'Salvar Medicamento'}</span>
+                  <span>{isSubmitting ? 'Salvando...' : editingMedication ? 'Salvar Alterações' : 'Salvar Medicamento'}</span>
                 </button>
               </div>
             </form>
@@ -1213,7 +1472,10 @@ export default function MedicamentosPage() {
                   ⏰ Adiar 30 minutos
                 </button>
                 <button 
-                  onClick={() => setIsWhatsappDemoOpen(false)}
+                  onClick={() => {
+                    handleSkipDose(selectedMedForDemo.id);
+                    setIsWhatsappDemoOpen(false);
+                  }}
                   className="w-full py-2 bg-[#202c33] hover:bg-[#f8717120] text-[#f87171] font-medium rounded text-center transition border border-[#f8717130]"
                 >
                   ❌ Pular esta dose
