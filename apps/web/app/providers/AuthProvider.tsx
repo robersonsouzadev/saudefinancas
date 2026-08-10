@@ -18,6 +18,7 @@ interface User {
   heightCm?: number;
   uazapiInstance?: string;
   uazapiToken?: string;
+  timezone?: string;
 }
 
 interface AuthContextType {
@@ -54,6 +55,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userData = await res.json();
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+
+        // Auto-sincronizar fuso horário do dispositivo se não estiver salvo
+        const deviceTz = typeof window !== 'undefined' && Intl?.DateTimeFormat?.().resolvedOptions?.().timeZone
+          ? Intl.DateTimeFormat().resolvedOptions().timeZone
+          : 'America/Sao_Paulo';
+
+        if (userData && userData.timezone !== deviceTz) {
+          authFetch('/api/users/me/profile', {
+            method: 'PUT',
+            body: JSON.stringify({ timezone: deviceTz }),
+          }).catch(() => {});
+        }
       } else {
         // Token expired or invalid
         removeAuthToken();

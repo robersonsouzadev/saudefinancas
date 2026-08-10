@@ -40,7 +40,7 @@ export class MedicationReminderCronService implements OnModuleInit, OnModuleDest
         this.sentReminders.clear();
       }
 
-      // Buscar todos os agendamentos ativos
+      // Buscar todos os agendamentos ativos com notificação de WhatsApp ativada
       const schedules = await this.prisma.medicationSchedule.findMany({
         where: {
           notifyWhatsapp: true,
@@ -66,33 +66,63 @@ export class MedicationReminderCronService implements OnModuleInit, OnModuleDest
         const targetPhone = user.whatsappPhone || user.phone;
         if (!targetPhone) continue;
 
-        // Calcular horário atual no fuso horário específico do usuário
-        const userTz = user.timezone || 'America/Sao_Paulo';
-        let userCurrentHHMM = '';
-        try {
-          userCurrentHHMM = new Intl.DateTimeFormat('pt-BR', {
-            timeZone: userTz,
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          }).format(now);
-        } catch (e) {
-          userCurrentHHMM = new Intl.DateTimeFormat('pt-BR', {
-            timeZone: 'America/Sao_Paulo',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          }).format(now);
+        // Tentar obter o horário atual no fuso horário do usuário, no fuso de SP e no fuso local do servidor
+        const timezonesToTest = Array.from(new Set([
+          user.timezone || 'America/Sao_Paulo',
+          'America/Sao_Paulo',
+          'America/Campo_Grande',
+          'America/Cuiaba',
+          'America/Manaus',
+        ]));
+
+        let matchedWindow = false;
+        let detectedUserTime = '';
+
+        for (const tz of timezonesToTest) {
+          try {
+            const timeParts = new Intl.DateTimeFormat('en-US', {
+              timeZone: tz,
+              hour: 'numeric',
+              minute: 'numeric',
+              hour12: false,
+            }).formatToParts(now);
+
+            const hourPart = timeParts.find((p) => p.type === 'hour')?.value || '0';
+            const minPart = timeParts.find((p) => p.type === 'minute')?.value || '0';
+
+            const nowHour = parseInt(hourPart, 10);
+            const nowMin = parseInt(minPart, 10);
+
+            // Parser do horário agendado "HH:mm"
+            const [schedHourStr, schedMinStr] = (sched.time || '00:00').split(':');
+            const schedHour = parseInt(schedHourStr, 10);
+            const schedMin = parseInt(schedMinStr, 10);
+
+            const nowTotalMin = nowHour * 60 + nowMin;
+            const schedTotalMin = schedHour * 60 + schedMin;
+
+            let diffMin = nowTotalMin - schedTotalMin;
+            if (diffMin < -1400) diffMin += 1440; // Virada de meia noite
+
+            // Tolera janela de 0 a 4 minutos para garantir entrega mesmo com pequenas variações de relógio
+            if (diffMin >= 0 && diffMin <= 4) {
+              matchedWindow = true;
+              detectedUserTime = `${hourPart.padStart(2, '0')}:${minPart.padStart(2, '0')}`;
+              break;
+            }
+          } catch (e) {
+            // Fuso inválido, continua testando
+          }
         }
 
-        // Se o horário agendado for diferente do horário no fuso do usuário, ignora
-        if (sched.time !== userCurrentHHMM) {
+        // Se não casar com nenhuma janela de horário nos fusos testados, pula
+        if (!matchedWindow) {
           continue;
         }
 
         const reminderKey = `${med.id}_${sched.time}_${dateKey}`;
         if (this.sentReminders.has(reminderKey)) {
-          continue; // Já enviado hoje nesta janela de minuto
+          continue; // Já enviado hoje nesta janela
         }
 
         // Verificar se já foi tomado hoje
@@ -110,14 +140,14 @@ export class MedicationReminderCronService implements OnModuleInit, OnModuleDest
           continue; // Já foi tomado hoje!
         }
 
-        // Marcar como enviado antes do disparo para evitar corrida
+        // Marcar como enviado antes do disparo para evitar corrida de execuções
         this.sentReminders.add(reminderKey);
 
         const dosageStr = med.dosage ? `${med.dosage} ${med.unit || ''}`.trim() : '';
         const brandStr = med.brand ? ` (${med.brand})` : '';
         const instructionsStr = med.instructions ? `\n📝 *Instruções*: ${med.instructions}` : '';
 
-        const textMessage = `💊 *Lembrete de Medicamento — Saúde & Finanças*\n\nOlá, *${user.name || 'Usuário'}*!\nEstá no horário de tomar o seu medicamento:\n\n🔹 *${med.name}*${brandStr}\n📏 *Dose*: ${dosageStr || '1 dose'}\n⏰ *Horário*: ${sched.time}${instructionsStr}\n\n✅ _Acesse a plataforma para marcar como tomado ou responder este aviso:_\nhttps://app.robersonsouza.com.br/medicamentos`;
+        const textMessage = `💊 *Lembrete de Medicamento — Saúde & Finanças*\n\nOlá, *${user.name || 'Usuário'}*!\nEstá no horário de tomar o seu medicamento:\n\n🔹 *${med.name}*${brandStr}\n📏 *Dose*: ${dosageStr || '1 dose'}\n⏰ *Horário Agendado*: ${sched.time} (Horário Atual: ${detectedUserTime})${instructionsStr}\n\n✅ _Acesse a plataforma para marcar como tomado ou responder este aviso:_\nhttps://app.robersonsouza.com.br/medicamentos`;
 
         this.logger.log(`Disparando lembrete de medicamento "${med.name}" para ${user.email} (${targetPhone}) no horário ${sched.time}`);
 
