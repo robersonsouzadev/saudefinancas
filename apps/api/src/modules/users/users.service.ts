@@ -142,7 +142,44 @@ export class UsersService {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    const cleanPhone = (val?: string) => (val && typeof val === 'string' && val.trim() !== '' ? val.trim() : null);
+    const cleanPhone = (val?: string) => {
+      if (!val || typeof val !== 'string' || val.trim() === '') return null;
+      const digits = val.replace(/\D/g, '');
+      return digits ? digits : null;
+    };
+
+    const parseBirthDate = (val: any): Date | null => {
+      if (!val) return null;
+      if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+      if (typeof val === 'string') {
+        const trimmed = val.trim();
+        if (!trimmed) return null;
+
+        // Formato BR: DD/MM/YYYY ou DD-MM-YYYY
+        const brMatch = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (brMatch) {
+          const day = parseInt(brMatch[1], 10);
+          const month = parseInt(brMatch[2], 10) - 1;
+          const year = parseInt(brMatch[3], 10);
+          const d = new Date(Date.UTC(year, month, day));
+          return isNaN(d.getTime()) ? null : d;
+        }
+
+        // Formato ISO: YYYY-MM-DD
+        const isoMatch = trimmed.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+        if (isoMatch) {
+          const year = parseInt(isoMatch[1], 10);
+          const month = parseInt(isoMatch[2], 10) - 1;
+          const day = parseInt(isoMatch[3], 10);
+          const d = new Date(Date.UTC(year, month, day));
+          return isNaN(d.getTime()) ? null : d;
+        }
+
+        const d = new Date(trimmed);
+        return isNaN(d.getTime()) ? null : d;
+      }
+      return null;
+    };
 
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name ? data.name.trim() : null;
@@ -151,14 +188,23 @@ export class UsersService {
     if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl;
 
     if (data.birthDate !== undefined) {
-      updateData.birthDate = data.birthDate ? new Date(data.birthDate) : null;
+      updateData.birthDate = parseBirthDate(data.birthDate);
     }
+
     if (data.biologicalSex !== undefined) {
-      updateData.biologicalSex = data.biologicalSex || null;
+      const sex = (data.biologicalSex || '').toString().toUpperCase();
+      if (sex === 'MASCULINO' || sex === 'FEMININO') {
+        updateData.biologicalSex = sex;
+      } else {
+        updateData.biologicalSex = null;
+      }
     }
+
     if (data.heightCm !== undefined) {
-      updateData.heightCm = data.heightCm ? parseFloat(data.heightCm) : null;
+      const h = parseFloat(data.heightCm);
+      updateData.heightCm = !isNaN(h) && h > 0 ? h : null;
     }
+
     if (data.uazapiInstance !== undefined) {
       updateData.uazapiInstance = data.uazapiInstance ? data.uazapiInstance.trim() : null;
     }
@@ -170,25 +216,45 @@ export class UsersService {
       updateData.passwordHash = await bcrypt.hash(data.password, 10);
     }
 
-    return this.prisma.user.update({
-      where: { id },
-      data: updateData,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        whatsappPhone: true,
-        avatarUrl: true,
-        role: true,
-        isActive: true,
-        birthDate: true,
-        biologicalSex: true,
-        heightCm: true,
-        uazapiInstance: true,
-        uazapiToken: true,
-      },
-    });
+    // Se whatsappPhone for fornecido, verificar se pertence a outro usuário para dar mensagem amigável
+    if (updateData.whatsappPhone) {
+      const otherUser = await this.prisma.user.findFirst({
+        where: {
+          whatsappPhone: updateData.whatsappPhone,
+          id: { not: id },
+        },
+      });
+      if (otherUser) {
+        throw new ConflictException('Este número de WhatsApp já está associado a outro perfil de usuário.');
+      }
+    }
+
+    try {
+      return await this.prisma.user.update({
+        where: { id },
+        data: updateData,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          phone: true,
+          whatsappPhone: true,
+          avatarUrl: true,
+          role: true,
+          isActive: true,
+          birthDate: true,
+          biologicalSex: true,
+          heightCm: true,
+          uazapiInstance: true,
+          uazapiToken: true,
+        },
+      });
+    } catch (err: any) {
+      if (err.code === 'P2002') {
+        throw new ConflictException('Erro de dados duplicados. Verifique o número de WhatsApp ou e-mail.');
+      }
+      throw new BadRequestException(`Erro ao atualizar perfil: ${err.message || 'Dados inválidos'}`);
+    }
   }
 
   async deleteUser(id: string) {
