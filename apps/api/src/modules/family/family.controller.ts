@@ -7,6 +7,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class FamilyController {
   constructor(private readonly familyService: FamilyService) {}
 
+  @Get('my-group')
+  async getOrCreateDefaultGroup(@Request() req: any) {
+    const userId = req.user.sub || req.user.id;
+    return this.familyService.getOrCreateDefaultGroup(userId);
+  }
+
   @Post('groups')
   async createGroup(@Request() req: any, @Body() body: any) {
     return this.familyService.createGroup(req.user.sub || req.user.id, body);
@@ -25,6 +31,14 @@ export class FamilyController {
   @Post('groups/:id/members')
   async addMember(@Param('id') id: string, @Body() body: { userId: string; role?: string }) {
     return this.familyService.addMember(id, body.userId, body.role);
+  }
+
+  @Post('groups/:id/members/by-email')
+  async addMemberByEmail(
+    @Param('id') id: string,
+    @Body() body: { email: string; name?: string; whatsappPhone?: string },
+  ) {
+    return this.familyService.addMemberByEmail(id, body.email, body.name, body.whatsappPhone);
   }
 
   @Delete('groups/:id/members/:userId')
