@@ -60,16 +60,14 @@ Destaque evoluções positivas, pontos de atenção e recomendações simples de
             role: 'system',
             content: `Você é a Vita IA, uma assistente de saúde acessível e carinhosa.
 Sua missão é explicar os resultados de exames de sangue para uma pessoa LEIGA, sem termos técnicos.
+REGRA CRÍTICA: As "tips" (dicas) DEVEM SER DIRETAMENTE DIRECIONADAS AOS "attentionItems" (biomarcadores que estão alterados, elevados ou abaixo da faixa ideal). NÃO crie dicas para biomarcadores que já estão ótimos/normais!
 Responda em JSON puro (sem markdown) com esta estrutura:
 {
   "summary": "Texto de 3-4 frases explicando o estado geral de saúde da pessoa de forma simples e encorajadora",
-  "goodNews": ["item1", "item2", ...],
-  "attentionItems": ["item1", "item2", ...],
+  "goodNews": ["item1", "item2"],
+  "attentionItems": ["item1", "item2"],
   "tips": [
-    { "icon": "🥗", "title": "Alimentação", "description": "dica curta" },
-    { "icon": "🏋️", "title": "Exercícios", "description": "dica curta" },
-    { "icon": "😴", "title": "Sono", "description": "dica curta" },
-    { "icon": "💊", "title": "Suplementação", "description": "dica curta se aplicável" }
+    { "icon": "💧", "title": "Título focado no ponto de atenção", "description": "dica prática curta de estilo de vida ou nutrição" }
   ]
 }`,
           },
@@ -135,52 +133,103 @@ Responda em JSON puro (sem markdown) com esta estrutura:
       attentionItems.push('Nenhum biomarcador em nível crítico ou de atenção nesta medição!');
     }
 
-    // Gerar dicas clínicas direcionadas baseadas nos marcadores reais
-    const bioKeys = new Set(results.map((r: any) => (r.biomarkerKey || r.biomarkerName || '').toUpperCase()));
+    // Filtrar especificamente os biomarcadores alterados que exigem atenção
+    const alteredResults = results.filter((r: any) => r.status && r.status !== 'NORMAL' && r.status !== 'OTIMO');
+    const alteredKeys = new Set(alteredResults.map((r: any) => (r.biomarkerKey || r.biomarkerName || '').toUpperCase()));
 
-    if (bioKeys.has('GLUCOSE') || bioKeys.has('INSULIN') || bioKeys.has('GLICOSE')) {
+    // 1. Função Renal / Creatinina / Ureia
+    if (alteredKeys.has('CREATININE') || alteredKeys.has('CREATININA') || alteredKeys.has('UREA') || alteredKeys.has('UREIA')) {
       tips.push({
-        icon: '🥗',
-        title: 'Controle Glicêmico',
-        description: 'Priorize carboidratos de baixo índice glicêmico e fibras solúveis (aveia, psyllium).',
+        icon: '💧',
+        title: 'Função Renal & Hidratação',
+        description: 'Aumente a ingestão de água para 35-40 ml/kg corporal e avalie com seu médico a dose de proteínas e creatina.',
       });
     }
 
-    if (bioKeys.has('TRIGLYCERIDES') || bioKeys.has('LDL') || bioKeys.has('CHOLESTEROL') || bioKeys.has('TRIGLICERIDEOS')) {
+    // 2. Hormônios / Testosterona / SHBG / Cortisol
+    if (alteredKeys.has('TESTOSTERONE') || alteredKeys.has('TESTOSTERONA') || alteredKeys.has('SHBG') || alteredKeys.has('CORTISOL')) {
+      tips.push({
+        icon: '⚖️',
+        title: 'Equilíbrio Hormonal & SHBG',
+        description: 'Priorize higiene do sono e ajuste o volume de treinos intensos para equilibrar a resposta hormonal e transporte no sangue.',
+      });
+    }
+
+    // 3. Imunidade / Linfócitos / Leucócitos / Segmentados / PCR
+    if (alteredKeys.has('LYMPHOCYTES') || alteredKeys.has('LINFOCITOS') || alteredKeys.has('LEUKOCYTES') || alteredKeys.has('LEUCOCITOS') || alteredKeys.has('CRP') || alteredKeys.has('PCR') || alteredKeys.has('SEGMENTADOS')) {
+      tips.push({
+        icon: '🛡️',
+        title: 'Imunidade & Inflamação',
+        description: 'Reforce o descanso, mantenha boa hidratação e investigue com seu médico possíveis focos inflamatórios ou infecciosos leves.',
+      });
+    }
+
+    // 4. Minerais / Zinco / Magnésio / Cálcio
+    if (alteredKeys.has('ZINC') || alteredKeys.has('ZINCO') || alteredKeys.has('MAGNESIUM') || alteredKeys.has('MAGNESIO')) {
+      tips.push({
+        icon: '💊',
+        title: 'Ajuste de Minerais & Suplementos',
+        description: 'Verifique se há consumo excessivo de suplementos isolados ou multivitamínicos e reavalie as doses com seu profissional.',
+      });
+    }
+
+    // 5. Perfil Lipídico / Colesterol / Triglicerídeos / Não-HDL
+    if (alteredKeys.has('TRIGLYCERIDES') || alteredKeys.has('TRIGLICERIDEOS') || alteredKeys.has('LDL') || alteredKeys.has('CHOLESTEROL') || alteredKeys.has('NON_HDL') || alteredKeys.has('COLESTEROL') || alteredKeys.has('COLESTEROL NÃO-HDL')) {
       tips.push({
         icon: '🏃',
         title: 'Perfil Lipídico',
-        description: 'Pratique 150 min/semana de exercício aeróbico e reduza gorduras saturadas e açúcares.',
+        description: 'Pratique 150 min/semana de exercício aeróbico, reduza gorduras saturadas e aumente a ingestão de fibras solúveis (aveia, psyllium).',
       });
     }
 
-    if (bioKeys.has('VITAMIN_D') || bioKeys.has('VITAMINA_D')) {
+    // 6. Glicemia / Glicose / HbA1c / Insulina
+    if (alteredKeys.has('GLUCOSE') || alteredKeys.has('GLICOSE') || alteredKeys.has('INSULIN') || alteredKeys.has('INSULINA') || alteredKeys.has('HBA1C')) {
+      tips.push({
+        icon: '🥗',
+        title: 'Controle Glicêmico',
+        description: 'Priorize refeições com fibras e proteínas antes dos carboidratos, reduzindo picos de glicose e resistência à insulina.',
+      });
+    }
+
+    // 7. Vitamina D
+    if (alteredKeys.has('VITAMIN_D') || alteredKeys.has('VITAMINA_D')) {
       tips.push({
         icon: '☀️',
         title: 'Vitamina D & Imunidade',
-        description: 'Mantenha exposição solar matinal de 15 a 20 min ou avalie suplementação com médico.',
+        description: 'Mantenha exposição solar matinal segura (15-20 min) ou ajuste a suplementação conforme orientação médica.',
       });
     }
 
-    if (bioKeys.has('FERRITIN') || bioKeys.has('IRON') || bioKeys.has('FERRITINA')) {
+    // 8. Ferro / Ferritina
+    if (alteredKeys.has('FERRITIN') || alteredKeys.has('FERRITINA') || alteredKeys.has('IRON') || alteredKeys.has('FERRO')) {
       tips.push({
         icon: '🥩',
         title: 'Reserva de Ferro',
-        description: 'Consuma fontes de ferro associadas à Vitamina C (frutas cítricas) para otimizar absorção.',
+        description: 'Consuma fontes de ferro combinadas com alimentos ricos em Vitamina C (frutas cítricas) para otimizar a absorção.',
       });
     }
 
-    // Dicas genéricas de reforço caso faltem dicas específicas
-    if (tips.length < 3) {
+    // Se nenhuma dica específica de marcador alterado foi acionada (ex: tudo normal), adicionar dicas gerais de prevenção
+    if (tips.length === 0) {
+      tips.push({
+        icon: '🥗',
+        title: 'Alimentação Balanceada',
+        description: 'Mantenha uma dieta rica em vegetais, proteínas magras e gorduras boas para preservar seus excelentes índices.',
+      });
       tips.push({
         icon: '💧',
         title: 'Hidratação Diária',
         description: 'Consuma de 35 a 40 ml de água por kg corporal para otimizar a filtração renal e transporte de nutrientes.',
       });
       tips.push({
+        icon: '🏃',
+        title: 'Atividade Física',
+        description: 'Mantenha exercícios físicos regulares para fortalecer o sistema cardiovascular e longevidade.',
+      });
+      tips.push({
         icon: '😴',
         title: 'Sono Reparador',
-        description: 'Priorize 7 a 8 horas de sono contínuo para regulação hormonal e modulação inflamatória.',
+        description: 'Priorize 7 a 8 horas de sono contínuo para regulação hormonal e recuperação celular.',
       });
     }
 
