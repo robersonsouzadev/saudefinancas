@@ -20,7 +20,8 @@ import {
   HeartPulse,
   ChevronRight,
   Copy,
-  HelpCircle
+  HelpCircle,
+  Send
 } from 'lucide-react';
 import Link from 'next/link';
 import { authFetch } from '@/lib/api';
@@ -49,6 +50,7 @@ export default function ConfiguracoesPage() {
   const [savingUazapi, setSavingUazapi] = useState(false);
   const [uazapiSaved, setUazapiSaved] = useState(false);
   const [copiedWebhook, setCopiedWebhook] = useState(false);
+  const [testingWhatsapp, setTestingWhatsapp] = useState(false);
 
   const getWebhookUrl = () => {
     if (typeof window !== 'undefined') {
@@ -63,6 +65,26 @@ export default function ConfiguracoesPage() {
     navigator.clipboard.writeText(url);
     setCopiedWebhook(true);
     setTimeout(() => setCopiedWebhook(false), 2500);
+  };
+
+  const handleTestWhatsapp = async () => {
+    try {
+      setTestingWhatsapp(true);
+      const res = await authFetch('/api/whatsapp/test', {
+        method: 'POST',
+        body: JSON.stringify({ phone: whatsappPhone }),
+      });
+      const data = await parseJsonResponse(res);
+      if (res.ok && data.success) {
+        alert('✅ Mensagem de teste enviada! Verifique seu WhatsApp.');
+      } else {
+        alert(`⚠️ ${data.message || 'Erro ao enviar mensagem de teste. Verifique a instância e o token UazAPI.'}`);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Erro ao testar envio pelo WhatsApp.');
+    } finally {
+      setTestingWhatsapp(false);
+    }
   };
 
   // Modal Registrar Medidas
@@ -643,7 +665,23 @@ export default function ConfiguracoesPage() {
           </div>
         </div>
 
-        <div className="flex justify-end pt-1 border-b border-[#ffffff0e] pb-4">
+        <div className="flex flex-wrap items-center justify-end gap-2 pt-1 border-b border-[#ffffff0e] pb-4">
+          <button
+            type="button"
+            onClick={handleTestWhatsapp}
+            disabled={testingWhatsapp}
+            className="px-4 py-2 rounded-lg bg-[#16191e] hover:bg-[#1f232b] border border-[#ffffff15] text-[#38bdf8] font-medium text-xs flex items-center gap-1.5 transition shadow-sm"
+          >
+            {testingWhatsapp ? (
+              <span>Disparando...</span>
+            ) : (
+              <>
+                <Send className="w-3.5 h-3.5" />
+                <span>Testar Envio no WhatsApp</span>
+              </>
+            )}
+          </button>
+
           <button
             type="button"
             onClick={handleSaveUazapi}

@@ -4,6 +4,7 @@ import { WebhookQueueService } from './services/webhook-queue.service';
 import { MessageSenderService } from './services/message-sender.service';
 import { MultimodalService } from './services/multimodal.service';
 import { WhisperService } from './services/whisper.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Module({
   controllers: [WhatsappController],
@@ -12,6 +13,7 @@ import { WhisperService } from './services/whisper.service';
     MessageSenderService,
     MultimodalService,
     WhisperService,
+    PrismaService,
   ],
   exports: [MessageSenderService],
 })
