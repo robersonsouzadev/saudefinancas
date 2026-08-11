@@ -848,7 +848,7 @@ export default function NutricaoPage() {
 
                     <div className="flex items-center space-x-3">
                       <span className="text-xs font-mono font-bold text-[#4ade80]">
-                        🔥 {meal.totalCalories} kcal
+                        🔥 {meal.totalCalories || meal.items?.reduce((acc, i) => acc + (i.calories || 0), 0) || 0} kcal
                       </span>
                       <button
                         type="button"
@@ -863,15 +863,15 @@ export default function NutricaoPage() {
 
                   {/* Itens da Refeição */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                    {meal.items.map((item, iIdx) => (
+                    {meal.items.map((item: any, iIdx: number) => (
                       <div key={iIdx} className="p-2 rounded bg-[#080a0c] border border-[#ffffff08] text-[11px] font-mono space-y-0.5">
                         <div className="flex justify-between font-semibold text-[#f7f8f8]">
                           <span>{item.name}</span>
-                          <span className="text-[#4ade80]">{item.calories} kcal</span>
+                          <span className="text-[#4ade80]">{item.calories || 0} kcal</span>
                         </div>
                         <div className="text-[10px] text-[#71717a] flex justify-between">
-                          <span>{item.weightG}g</span>
-                          <span>P: {item.proteinG}g | C: {item.carbsG}g</span>
+                          <span>{item.weightG ?? item.weight_g ?? 100}g</span>
+                          <span>P: {item.proteinG ?? item.protein_g ?? 0}g | C: {item.carbsG ?? item.carbs_g ?? 0}g</span>
                         </div>
                       </div>
                     ))}

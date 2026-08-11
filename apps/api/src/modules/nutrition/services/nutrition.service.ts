@@ -54,7 +54,30 @@ export class NutritionService {
       },
     });
 
-    return meals;
+    return meals.map((m) => {
+      const computedItems = m.items.map((it) => ({
+        ...it,
+        weightG: it.weightG ?? (it as any).weight_g ?? 100,
+        calories: it.calories ?? 100,
+        proteinG: it.proteinG ?? (it as any).protein_g ?? 0,
+        carbsG: it.carbsG ?? (it as any).carbs_g ?? 0,
+        fatG: it.fatG ?? (it as any).fat_g ?? 0,
+      }));
+
+      const itemCalories = computedItems.reduce((acc, i) => acc + (i.calories || 0), 0);
+      const itemProtein = computedItems.reduce((acc, i) => acc + (i.proteinG || 0), 0);
+      const itemCarbs = computedItems.reduce((acc, i) => acc + (i.carbsG || 0), 0);
+      const itemFat = computedItems.reduce((acc, i) => acc + (i.fatG || 0), 0);
+
+      return {
+        ...m,
+        totalCalories: m.totalCalories || Math.round(itemCalories),
+        totalProtein: m.totalProtein || Math.round(itemProtein * 10) / 10,
+        totalCarbs: m.totalCarbs || Math.round(itemCarbs * 10) / 10,
+        totalFat: m.totalFat || Math.round(itemFat * 10) / 10,
+        items: computedItems,
+      };
+    });
   }
 
   /**
