@@ -492,7 +492,13 @@ export default function NutricaoPage() {
             <input
               type="time"
               value={selectedMealTime}
-              onChange={(e) => setSelectedMealTime(e.target.value)}
+              onChange={(e) => {
+                const newTime = e.target.value;
+                setSelectedMealTime(newTime);
+                if (inspectionDraft) {
+                  setInspectionDraft({ ...inspectionDraft, mealTime: newTime });
+                }
+              }}
               className="px-2.5 py-1 rounded-lg bg-[#16191e] border border-[#ffffff12] text-xs font-mono text-[#f7f8f8] focus:outline-none focus:border-[#4ade80]"
             />
           </div>
@@ -509,7 +515,20 @@ export default function NutricaoPage() {
               <button
                 key={type}
                 type="button"
-                onClick={() => setSelectedMealType(type)}
+                onClick={() => {
+                  setSelectedMealType(type);
+                  const defaultTimes: Record<string, string> = {
+                    BREAKFAST: '08:00',
+                    LUNCH: '12:00',
+                    DINNER: '19:30',
+                    SNACK: '16:00',
+                  };
+                  const newTime = defaultTimes[type] || '12:00';
+                  setSelectedMealTime(newTime);
+                  if (inspectionDraft) {
+                    setInspectionDraft({ ...inspectionDraft, mealType: type, mealTime: newTime });
+                  }
+                }}
                 className={`p-3 rounded-xl border flex items-center space-x-2.5 transition text-left ${
                   isSelected
                     ? 'bg-[#4ade8010] border-[#4ade80] text-[#f7f8f8]'
@@ -523,7 +542,7 @@ export default function NutricaoPage() {
                   <div className="text-xs font-semibold">{config.label}</div>
                   <div className="text-[10px] font-mono text-[#71717a]">
                     {type === 'BREAKFAST' && '08:00'}
-                    {type === 'LUNCH' && '12:30'}
+                    {type === 'LUNCH' && '12:00'}
                     {type === 'DINNER' && '19:30'}
                     {type === 'SNACK' && '16:00'}
                   </div>
@@ -624,7 +643,23 @@ export default function NutricaoPage() {
               </div>
               <div>
                 <h3 className="font-bold text-sm text-[#f7f8f8]">Inspeção & Edição de Alimentos (Revisão Pré-Salvar)</h3>
-                <p className="text-xs text-[#a1a1aa]">Ajuste os pesos ou adicione/remova alimentos antes de confirmar no diário</p>
+                <div className="flex flex-wrap items-center gap-3 mt-1 text-xs">
+                  <span className="text-[#a1a1aa]">Refeição: <strong className="text-[#4ade80]">{mealTypeLabels[inspectionDraft.mealType]?.label || inspectionDraft.mealType}</strong></span>
+                  <div className="flex items-center space-x-1.5 text-[#a1a1aa] font-mono">
+                    <Clock className="w-3.5 h-3.5 text-[#4ade80]" />
+                    <span>Horário da Refeição:</span>
+                    <input
+                      type="time"
+                      value={inspectionDraft.mealTime || selectedMealTime}
+                      onChange={(e) => {
+                        const newTime = e.target.value;
+                        setSelectedMealTime(newTime);
+                        setInspectionDraft({ ...inspectionDraft, mealTime: newTime });
+                      }}
+                      className="px-2 py-0.5 rounded bg-[#080a0c] border border-[#4ade8040] text-xs font-mono text-[#4ade80] focus:outline-none"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
