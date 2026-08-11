@@ -11,14 +11,14 @@ export class IntakeDispatcherService {
     private labExamsService: LabExamsService,
   ) {}
 
-  async dispatch(userId: string, classifiedData: any, mediaData?: { imageBase64: string; mimeType: string }): Promise<any> {
+  async dispatch(userId: string, classifiedData: any, mediaData?: { imageBase64?: string; mimeType?: string; skipAutoSave?: boolean }): Promise<any> {
     try {
       this.logger.log(`Dispatching intent ${classifiedData.primary_intent} for user ${userId}`);
       const intent = classifiedData.primary_intent || 'GENERAL';
       const registeredItems: Array<{ type: string; id: string; description?: string }> = [];
 
       // 1. FINANCE / HYBRID
-      if (intent === 'FINANCE' || intent === 'HYBRID') {
+      if ((intent === 'FINANCE' || intent === 'HYBRID') && !mediaData?.skipAutoSave) {
         if (classifiedData.finance_data?.transactions?.length > 0) {
           let account = await this.prisma.financialAccount.findFirst({
             where: { userId },
@@ -62,7 +62,7 @@ export class IntakeDispatcherService {
       }
 
       // 2. NUTRITION / HYBRID
-      if (intent === 'NUTRITION' || intent === 'HYBRID') {
+      if ((intent === 'NUTRITION' || intent === 'HYBRID') && !mediaData?.skipAutoSave) {
         if (classifiedData.nutrition_data) {
           const nut = classifiedData.nutrition_data;
           const items = nut.items || [];

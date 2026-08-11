@@ -32,7 +32,7 @@ export class MultimodalIntakeController {
   @Post('photo')
   async processPhoto(
     @Req() req: any,
-    @Body() body: { image: string; mimeType: string; context?: string; provider?: string }
+    @Body() body: { image: string; mimeType: string; context?: string; provider?: string; skipAutoSave?: boolean }
   ) {
     if (!body.image || !body.mimeType) {
       throw new BadRequestException('Image and mimeType are required');
@@ -40,7 +40,12 @@ export class MultimodalIntakeController {
 
     const userId = req.user.id;
     const classifiedData = await this.visionProcessor.analyzeImage(body.image, body.mimeType, body.context, body.provider);
-    const dispatched = await this.intakeDispatcher.dispatch(userId, classifiedData, { imageBase64: body.image, mimeType: body.mimeType });
+    const dispatched = await this.intakeDispatcher.dispatch(userId, classifiedData, {
+      imageBase64: body.image,
+      mimeType: body.mimeType,
+      skipAutoSave: body.skipAutoSave !== undefined ? body.skipAutoSave : true,
+    });
+
     return {
       ...dispatched,
       nutrition_data: classifiedData.nutrition_data,
@@ -50,13 +55,22 @@ export class MultimodalIntakeController {
   }
 
   @Post('text')
-  async processText(@Req() req: any, @Body() body: { text: string }) {
+  async processText(@Req() req: any, @Body() body: { text: string; provider?: string; skipAutoSave?: boolean }) {
     if (!body.text) {
       throw new BadRequestException('Text is required');
     }
 
     const userId = req.user.id;
     const classifiedData = await this.intakeClassifier.classifyText(body.text);
-    return this.intakeDispatcher.dispatch(userId, classifiedData);
+    const dispatched = await this.intakeDispatcher.dispatch(userId, classifiedData, {
+      skipAutoSave: body.skipAutoSave !== undefined ? body.skipAutoSave : true,
+    });
+
+    return {
+      ...dispatched,
+      nutrition_data: classifiedData.nutrition_data,
+      items: classifiedData.nutrition_data?.items || [],
+      classifiedData,
+    };
   }
 }
