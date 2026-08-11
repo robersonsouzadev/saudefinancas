@@ -312,9 +312,19 @@ export class FinanceController {
     return this.openFinanceService.getStatus(req.user.id);
   }
 
+  @Post('open-finance/connect-token')
+  async getConnectToken(@Req() req: any, @Body('itemId') itemId?: string) {
+    return this.openFinanceService.createConnectToken(req.user.id, itemId);
+  }
+
   @Post('open-finance/connect')
   async connectOpenFinance(@Req() req: any, @Body() payload: any) {
     return this.openFinanceService.connectWidget(req.user.id, payload);
+  }
+
+  @Post('open-finance/sync/:connectionId')
+  async syncOpenFinanceItem(@Req() req: any, @Param('connectionId') connectionId: string) {
+    return this.openFinanceService.syncItem(req.user.id, connectionId);
   }
 
   @Post('open-finance/webhook')

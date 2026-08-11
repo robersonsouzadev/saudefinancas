@@ -478,6 +478,27 @@ export default function FinancasPage() {
 
         <div className="flex flex-wrap gap-2">
           <button
+            onClick={async () => {
+              try {
+                const res = await authFetch('/api/finance/open-finance/connect-token', { method: 'POST' });
+                if (res.ok) {
+                  const data = await res.json();
+                  if (data.connectToken) {
+                    const url = `https://connect.pluggy.ai?connectToken=${data.connectToken}`;
+                    window.open(url, 'PluggyConnect', 'width=500,height=700');
+                  }
+                } else {
+                  alert('Para conectar a Pluggy em produção, adicione PLUGGY_CLIENT_ID e PLUGGY_CLIENT_SECRET no arquivo .env do backend.');
+                }
+              } catch (err) {
+                console.error(err);
+              }
+            }}
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:brightness-110 transition"
+          >
+            <RefreshCw className="h-4 w-4" /> ⚡ Conectar Banco (Pluggy)
+          </button>
+          <button
             onClick={() => setShowVoiceModal(true)}
             className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:brightness-110 transition"
           >
