@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Query, Req, UseGuards, HttpCode } from '@nestjs/common';
 import { FinanceService } from './services/finance.service';
 import { PaymentAccountsService } from './services/payment-accounts.service';
 import { CreditCardsService } from './services/credit-cards.service';
@@ -328,6 +328,7 @@ export class FinanceController {
   }
 
   @Public()
+  @HttpCode(200)
   @Post('open-finance/webhook')
   async openFinanceWebhook(@Body() payload: any) {
     return this.openFinanceService.handleWebhook(payload);
