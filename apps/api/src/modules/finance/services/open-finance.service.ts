@@ -12,6 +12,10 @@ export class OpenFinanceService {
    * Obtém a API Key de autenticação da Pluggy usando CLIENT_ID e CLIENT_SECRET
    */
   private async getPluggyApiKey(): Promise<string> {
+    if (process.env.PLUGGY_API_KEY) {
+      return process.env.PLUGGY_API_KEY;
+    }
+
     const clientId = process.env.PLUGGY_CLIENT_ID;
     const clientSecret = process.env.PLUGGY_CLIENT_SECRET;
 
