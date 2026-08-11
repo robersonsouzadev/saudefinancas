@@ -192,17 +192,10 @@ export class AuthService implements OnModuleInit {
       },
     });
 
-    // 4. Check total user count (first user is created automatically as ADMIN)
+    // 4. Check total user count (first user is created automatically as ADMIN, others as MEMBER)
     const count = await this.prisma.user.count();
 
-    // If NOT first user AND NOT invited AND NOT pre-registered -> RESTRICT ACCESS
-    if (count > 0 && !pendingInvite) {
-      throw new UnauthorizedException(
-        `Acesso restrito. O e-mail (${email}) não possui permissão de acesso. Peça ao administrador para cadastrá-lo.`
-      );
-    }
-
-    // 5. Allowed to create account (Initial Admin or Invited Member)
+    // 5. Create user account
     const role = count === 0 ? 'ADMIN' : 'MEMBER';
     const avatarUrl = photos && photos[0] ? photos[0].value : null;
 
