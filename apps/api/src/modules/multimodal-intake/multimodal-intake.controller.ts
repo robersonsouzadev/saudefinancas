@@ -40,7 +40,13 @@ export class MultimodalIntakeController {
 
     const userId = req.user.id;
     const classifiedData = await this.visionProcessor.analyzeImage(body.image, body.mimeType, body.context, body.provider);
-    return this.intakeDispatcher.dispatch(userId, classifiedData, { imageBase64: body.image, mimeType: body.mimeType });
+    const dispatched = await this.intakeDispatcher.dispatch(userId, classifiedData, { imageBase64: body.image, mimeType: body.mimeType });
+    return {
+      ...dispatched,
+      nutrition_data: classifiedData.nutrition_data,
+      items: classifiedData.nutrition_data?.items || [],
+      classifiedData,
+    };
   }
 
   @Post('text')

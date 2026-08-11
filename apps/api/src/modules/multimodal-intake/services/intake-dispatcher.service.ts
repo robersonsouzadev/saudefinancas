@@ -200,6 +200,8 @@ export class IntakeDispatcherService {
       return {
         intent: classifiedData.primary_intent || 'GENERAL',
         registeredItems,
+        nutrition_data: classifiedData.nutrition_data,
+        items: classifiedData.nutrition_data?.items || [],
         vitaInsight: classifiedData.vita_insight || 'Mensagem processada com sucesso.',
       };
     } catch (error: any) {
