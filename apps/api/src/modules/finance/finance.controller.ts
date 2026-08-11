@@ -11,7 +11,7 @@ import { EntitiesService } from './services/entities.service';
 import { CostCentersService } from './services/cost-centers.service';
 import { VoiceFinanceService } from './services/voice-finance.service';
 import { ReportsService } from './services/reports.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard, Public } from '../auth/jwt-auth.guard';
 import { TitleType, TitleStatus, EntityType } from '@prisma/client';
 
 @Controller('finance')
@@ -327,6 +327,7 @@ export class FinanceController {
     return this.openFinanceService.syncItem(req.user.id, connectionId);
   }
 
+  @Public()
   @Post('open-finance/webhook')
   async openFinanceWebhook(@Body() payload: any) {
     return this.openFinanceService.handleWebhook(payload);
