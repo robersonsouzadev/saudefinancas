@@ -59,6 +59,9 @@ model User {
   installmentGroups      InstallmentGroup[]
   recurringRules         RecurringRule[]
   openFinanceConnections OpenFinanceConnection[]
+  financialTitles        FinancialTitle[]
+  financialEntities      FinancialEntity[]
+  costCenters            CostCenter[]
   customExercises        Exercise[]              @relation("CustomExercises")
   workoutTemplates       WorkoutTemplate[]
   workoutSessions        WorkoutSession[]
@@ -432,6 +435,7 @@ model TransactionCategory {
   allocations       BudgetAllocation[]
   installmentGroups InstallmentGroup[]
   recurringRules    RecurringRule[]
+  titles            FinancialTitle[]
 }
 
 model Transaction {
@@ -441,6 +445,7 @@ model Transaction {
   paymentAccountId   String?
   creditCardId       String?
   categoryId         String?
+  costCenterId       String?
   recurringId        String?
   installmentGroupId String?
   type               TransactionType @default(EXPENSE)
@@ -461,6 +466,7 @@ model Transaction {
   paymentAccount   PaymentAccount?      @relation(fields: [paymentAccountId], references: [id])
   creditCard       CreditCard?          @relation(fields: [creditCardId], references: [id])
   category         TransactionCategory? @relation(fields: [categoryId], references: [id])
+  costCenter       CostCenter?          @relation(fields: [costCenterId], references: [id])
   recurringRule    RecurringRule?       @relation(fields: [recurringId], references: [id])
   installmentGroup InstallmentGroup?    @relation(fields: [installmentGroupId], references: [id])
   boleto           BoletoPayment?
@@ -797,6 +803,8 @@ model PaymentAccount {
   creditCards    CreditCard[]
   boletos        BoletoPayment[]
   recurringRules RecurringRule[]
+  titles         FinancialTitle[]
+  titlePayments  TitlePayment[]
 }
 
 model CreditCard {
@@ -1175,6 +1183,130 @@ model BodyIndicatorReference {
   createdAt    DateTime      @default(now())
 
   @@index([indicator, sex])
+}
+
+// ==========================================
+// MÓDULO FINANCEIRO ERP (TÍTULOS, BAIXAS, ENTIDADES & CENTROS DE CUSTO)
+// ==========================================
+
+enum TitleType {
+  PAYABLE
+  RECEIVABLE
+}
+
+enum TitleStatus {
+  OPEN
+  DUE_TODAY
+  OVERDUE
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+enum EntityType {
+  SUPPLIER
+  CLIENT
+}
+
+model FinancialEntity {
+  id        String     @id @default(uuid())
+  userId    String
+  type      EntityType @default(SUPPLIER)
+  name      String
+  document  String?    // CPF ou CNPJ
+  email     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  titles FinancialTitle[]
+
+  @@index([userId, type])
+}
+
+model CostCenter {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  color     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  titles       FinancialTitle[]
+  transactions Transaction[]
+
+  @@index([userId, isActive])
+}
+
+model FinancialTitle {
+  id                String          @id @default(uuid())
+  userId            String
+  type              TitleType       @default(PAYABLE)
+  status            TitleStatus     @default(OPEN)
+  
+  documentNumber    String?
+  description       String
+  notes             String?
+  
+  originalAmount    Float
+  paidAmount        Float           @default(0)
+  discountAmount    Float?          @default(0)
+  interestAmount    Float?          @default(0)
+  finalAmount       Float?
+  
+  issueDate         DateTime        @default(now())
+  dueDate           DateTime
+  competenceDate    DateTime        // Data de competência (OBRIGATÓRIO para DRE preciso)
+  
+  entityId          String?
+  entityName        String?
+  categoryId        String?
+  costCenterId      String?
+  
+  paymentMethod     PaymentMethod?  @default(PIX)
+  paymentAccountId  String?
+  barcode           String?
+  pixKey            String?
+  
+  recurringRuleId   String?
+  installmentGroupId String?
+  installmentNumber Int?
+  totalInstallments Int?
+  
+  attachmentUrl     String?
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entity         FinancialEntity?     @relation(fields: [entityId], references: [id])
+  category       TransactionCategory? @relation(fields: [categoryId], references: [id])
+  costCenter     CostCenter?          @relation(fields: [costCenterId], references: [id])
+  paymentAccount PaymentAccount?      @relation(fields: [paymentAccountId], references: [id])
+  payments       TitlePayment[]
+  
+  @@index([userId, dueDate])
+  @@index([userId, type, status])
+}
+
+model TitlePayment {
+  id               String          @id @default(uuid())
+  titleId          String
+  paymentAccountId String?
+  amount           Float
+  paymentDate      DateTime        @default(now())
+  paymentMethod    PaymentMethod   @default(PIX)
+  discountApplied  Float?          @default(0)
+  interestApplied  Float?          @default(0)
+  proofUrl         String?
+  notes            String?
+  createdAt        DateTime        @default(now())
+  
+  title          FinancialTitle  @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  paymentAccount PaymentAccount? @relation(fields: [paymentAccountId], references: [id])
 }
 
 

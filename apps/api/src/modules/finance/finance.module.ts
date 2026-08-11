@@ -9,6 +9,11 @@ import { PaymentAccountsService } from './services/payment-accounts.service';
 import { CreditCardsService } from './services/credit-cards.service';
 import { BoletosService } from './services/boletos.service';
 import { OpenFinanceService } from './services/open-finance.service';
+import { TitlesService } from './services/titles.service';
+import { EntitiesService } from './services/entities.service';
+import { CostCentersService } from './services/cost-centers.service';
+import { VoiceFinanceService } from './services/voice-finance.service';
+import { ReportsService } from './services/reports.service';
 
 @Module({
   controllers: [FinanceController],
@@ -21,7 +26,12 @@ import { OpenFinanceService } from './services/open-finance.service';
     PaymentAccountsService,
     CreditCardsService,
     BoletosService,
-    OpenFinanceService
+    OpenFinanceService,
+    TitlesService,
+    EntitiesService,
+    CostCentersService,
+    VoiceFinanceService,
+    ReportsService,
   ],
   exports: [
     FinanceService, 
@@ -30,7 +40,12 @@ import { OpenFinanceService } from './services/open-finance.service';
     PaymentAccountsService,
     CreditCardsService,
     BoletosService,
-    OpenFinanceService
+    OpenFinanceService,
+    TitlesService,
+    EntitiesService,
+    CostCentersService,
+    VoiceFinanceService,
+    ReportsService,
   ],
 })
 export class FinanceModule {}
