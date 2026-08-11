@@ -45,6 +45,22 @@ export class NutritionController {
     return this.nutritionService.getWeeklySummary(req.user.id);
   }
 
+  @Get('calendar')
+  async getMonthlyCalendar(
+    @Req() req: any,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+  ) {
+    const y = year ? parseInt(year) : undefined;
+    const m = month ? parseInt(month) : undefined;
+    return this.nutritionService.getMonthlyCalendar(req.user.id, y, m);
+  }
+
+  @Get('ai-suggestions')
+  async getAiMealSuggestions(@Req() req: any, @Query('date') date?: string) {
+    return this.nutritionService.getAiMealSuggestions(req.user.id, date);
+  }
+
   @Get('goals')
   async getNutritionGoals(@Req() req: any) {
     return this.nutritionService.getNutritionGoals(req.user.id);

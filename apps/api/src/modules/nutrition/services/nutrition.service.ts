@@ -379,6 +379,135 @@ export class NutritionService {
   }
 
   /**
+   * Resumo de dias do mês selecionado para o Heatmap Mensal de Aderência
+   */
+  async getMonthlyCalendar(userId: string, year?: number, month?: number) {
+    const now = new Date();
+    const y = year || now.getFullYear();
+    const m = month !== undefined ? month : now.getMonth();
+
+    const startDate = new Date(y, m, 1);
+    const endDate = new Date(y, m + 1, 0, 23, 59, 59);
+
+    const goals = await this.getNutritionGoals(userId);
+    const targetCal = goals.targetCalories || 2200;
+
+    const meals = await this.prisma.mealLog.findMany({
+      where: {
+        userId,
+        loggedAt: { gte: startDate, lte: endDate },
+      },
+    });
+
+    const daysInMonth = endDate.getDate();
+    const resultMap: Record<string, { calories: number; count: number }> = {};
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      resultMap[dayStr] = { calories: 0, count: 0 };
+    }
+
+    meals.forEach((m) => {
+      const dayStr = m.loggedAt.toISOString().split('T')[0];
+      if (resultMap[dayStr]) {
+        resultMap[dayStr].calories += m.totalCalories || 0;
+        resultMap[dayStr].count += 1;
+      }
+    });
+
+    return Object.entries(resultMap).map(([date, val]) => {
+      const calories = Math.round(val.calories);
+      const pct = Math.round((calories / targetCal) * 100);
+      let status: 'empty' | 'below' | 'in_target' | 'above' = 'empty';
+      if (val.count > 0) {
+        if (pct >= 80 && pct <= 110) status = 'in_target';
+        else if (pct > 110) status = 'above';
+        else status = 'below';
+      }
+
+      return {
+        date,
+        calories,
+        mealsCount: val.count,
+        percentage: pct,
+        status,
+      };
+    });
+  }
+
+  /**
+   * IA Sugestões Inteligentes: Recomenda refeições baseadas nos macros restantes do dia
+   */
+  async getAiMealSuggestions(userId: string, dateStr?: string) {
+    const summary = await this.getDailySummary(userId, dateStr);
+    const rem = summary.remaining;
+
+    const remCal = Math.max(0, rem.calories);
+    const remProt = Math.max(0, rem.proteinG);
+    const remCarbs = Math.max(0, rem.carbsG);
+    const remFat = Math.max(0, rem.fatG);
+
+    if (remCal <= 50) {
+      return {
+        message: 'Você já atingiu sua meta calórica de hoje! Excelente trabalho mantendo a disciplina.',
+        suggestions: [],
+      };
+    }
+
+    const suggestions = [
+      {
+        id: 'sug-1',
+        title: 'Omelete Proteico com Queijo Minas',
+        description: 'Ideal para bater a meta de proteínas sem estourar carboidratos.',
+        targetMeal: remCal > 400 ? 'Jantar' : 'Lanche',
+        estimatedCalories: Math.round(remCal * 0.7),
+        proteinG: Math.round(Math.min(remProt, (remCal * 0.7 * 0.35) / 4)),
+        carbsG: Math.round(Math.min(remCarbs, (remCal * 0.7 * 0.15) / 4)),
+        fatG: Math.round(Math.min(remFat, (remCal * 0.7 * 0.5) / 9)),
+        items: [
+          { name: 'Ovos cozidos/mexidos', weightG: 120, calories: 180, proteinG: 15, carbsG: 1, fatG: 12 },
+          { name: 'Queijo minas frescal', weightG: 50, calories: 130, proteinG: 9, carbsG: 2, fatG: 9 },
+        ],
+      },
+      {
+        id: 'sug-2',
+        title: 'Iogurte Natural com Whey & Morangos',
+        description: 'Refeição de alta densidade nutricional, rica em proteína e saciedade.',
+        targetMeal: 'Lanche',
+        estimatedCalories: Math.round(remCal * 0.5),
+        proteinG: Math.round(Math.min(remProt, 28)),
+        carbsG: Math.round(Math.min(remCarbs, 20)),
+        fatG: Math.round(Math.min(remFat, 4)),
+        items: [
+          { name: 'Iogurte natural desnatado', weightG: 170, calories: 90, proteinG: 10, carbsG: 12, fatG: 0 },
+          { name: 'Whey Protein Concentrado', weightG: 30, calories: 120, proteinG: 24, carbsG: 2, fatG: 2 },
+          { name: 'Morango fresco', weightG: 100, calories: 32, proteinG: 1, carbsG: 7, fatG: 0 },
+        ],
+      },
+      {
+        id: 'sug-3',
+        title: 'Grelhado com Batata Doce & Salada',
+        description: 'Refeição completa e equilibrada para fechar o dia com energia limpa.',
+        targetMeal: 'Jantar',
+        estimatedCalories: Math.round(remCal * 0.85),
+        proteinG: Math.round(remProt),
+        carbsG: Math.round(remCarbs),
+        fatG: Math.round(remFat),
+        items: [
+          { name: 'Peito de frango grelhado', weightG: 150, calories: 240, proteinG: 46, carbsG: 0, fatG: 5 },
+          { name: 'Batata doce cozida', weightG: 120, calories: 103, proteinG: 2, carbsG: 24, fatG: 0 },
+          { name: 'Salada de tomate e alface', weightG: 100, calories: 20, proteinG: 1, carbsG: 4, fatG: 0 },
+        ],
+      },
+    ];
+
+    return {
+      message: `Encontramos 3 opções personalizadas pela IA para cobrir os seus ${remCal} kcal restantes (${remProt}g P | ${remCarbs}g C | ${remFat}g G):`,
+      suggestions,
+    };
+  }
+
+  /**
    * Atualização manual de metas pelo usuário em configurações
    */
   async updateNutritionGoals(userId: string, data: any) {

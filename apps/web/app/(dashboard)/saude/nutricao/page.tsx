@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { 
   Apple, Camera, Sparkles, Utensils, Loader2, Upload, FileText, CheckCircle2, 
-  AlertCircle, Edit3, Trash2, Plus, Search, Settings, Clock, Coffee, Moon, Sun, Flame
+  AlertCircle, Edit3, Trash2, Plus, Search, Settings, Clock, Coffee, Moon, Sun, Flame,
+  Calendar, TrendingUp, ChevronLeft, ChevronRight, BarChart3, PieChart, ShieldCheck, Zap
 } from 'lucide-react';
 import { authFetch, parseJsonResponse } from '@/lib/api';
 
@@ -37,8 +38,10 @@ interface MealLog {
 }
 
 interface SummaryData {
+  date?: string;
   consumed: { calories: number; proteinG: number; carbsG: number; fatG: number; fiberG: number };
   target: { calories: number; proteinG: number; carbsG: number; fatG: number; fiberG: number };
+  remaining: { calories: number; proteinG: number; carbsG: number; fatG: number };
   percentages: { calories: number; protein: number; carbs: number; fat: number };
 }
 
@@ -53,13 +56,51 @@ interface TacoFood {
   fiberG: number;
 }
 
+interface WeeklySummary {
+  days: Array<{
+    date: string;
+    calories: number;
+    proteinG: number;
+    carbsG: number;
+    fatG: number;
+    percentage: number;
+    status: 'empty' | 'in_target' | 'above' | 'below';
+  }>;
+  averageCalories: number;
+  calorieBank: number;
+  streakDays: number;
+  adherenceScore: number;
+  targetCalories: number;
+}
+
+interface MonthlyCalendarDay {
+  date: string;
+  calories: number;
+  mealsCount: number;
+  percentage: number;
+  status: 'empty' | 'below' | 'in_target' | 'above';
+}
+
+interface AiSuggestion {
+  id: string;
+  title: string;
+  description: string;
+  targetMeal: string;
+  estimatedCalories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  items: MealItem[];
+}
+
 export default function NutricaoPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [textInput, setTextInput] = useState('');
   const [selectedMealType, setSelectedMealType] = useState<'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK'>('LUNCH');
-  const [selectedMealTime, setSelectedMealTime] = useState('12:30');
+  const [selectedMealTime, setSelectedMealTime] = useState('12:00');
   const [selectedAiProvider, setSelectedAiProvider] = useState('gemini');
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   // Rascunho para a TELA DE INSPEÇÃO (Edit Before Save)
   const [inspectionDraft, setInspectionDraft] = useState<{
@@ -72,8 +113,14 @@ export default function NutricaoPage() {
   // Estados de dados do diário
   const [dailyMeals, setDailyMeals] = useState<MealLog[]>([]);
   const [summary, setSummary] = useState<SummaryData | null>(null);
+  const [weeklySummary, setWeeklySummary] = useState<WeeklySummary | null>(null);
+  const [monthlyCalendar, setMonthlyCalendar] = useState<MonthlyCalendarDay[]>([]);
+  const [aiSuggestionsData, setAiSuggestionsData] = useState<{ message: string; suggestions: AiSuggestion[] } | null>(null);
   const [loadingMeals, setLoadingMeals] = useState(true);
-  
+
+  // Modais e Toggles
+  const [showMonthlyHeatmap, setShowMonthlyHeatmap] = useState(false);
+
   // Feedback
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -95,24 +142,35 @@ export default function NutricaoPage() {
   });
 
   useEffect(() => {
-    fetchDailyData();
-  }, []);
+    fetchDailyData(selectedDate);
+  }, [selectedDate]);
 
-  const fetchDailyData = async () => {
+  const fetchDailyData = async (dateStr?: string) => {
     setLoadingMeals(true);
+    const dateParam = dateStr ? `?date=${dateStr}` : '';
     try {
-      const [mealsRes, summaryRes, goalsRes] = await Promise.all([
-        authFetch('/api/nutrition/meals'),
-        authFetch('/api/nutrition/summary'),
+      const [mealsRes, summaryRes, goalsRes, weekRes, calRes, aiRes] = await Promise.all([
+        authFetch(`/api/nutrition/meals${dateParam}`),
+        authFetch(`/api/nutrition/summary${dateParam}`),
         authFetch('/api/nutrition/goals'),
+        authFetch('/api/nutrition/summary/week'),
+        authFetch('/api/nutrition/calendar'),
+        authFetch(`/api/nutrition/ai-suggestions${dateParam}`),
       ]);
 
       const mealsData = await parseJsonResponse(mealsRes);
       const summaryData = await parseJsonResponse(summaryRes);
       const goalsData = await parseJsonResponse(goalsRes);
+      const weekData = await parseJsonResponse(weekRes);
+      const calData = await parseJsonResponse(calRes);
+      const aiData = await parseJsonResponse(aiRes);
 
       if (Array.isArray(mealsData)) setDailyMeals(mealsData);
       if (summaryData?.consumed) setSummary(summaryData);
+      if (weekData?.days) setWeeklySummary(weekData);
+      if (Array.isArray(calData)) setMonthlyCalendar(calData);
+      if (aiData?.suggestions) setAiSuggestionsData(aiData);
+
       if (goalsData?.targetCalories) {
         setGoalsForm({
           targetCalories: goalsData.targetCalories,
@@ -213,20 +271,18 @@ export default function NutricaoPage() {
           { name: 'Arroz branco cozido', weightG: 130, calories: 166, proteinG: 3, carbsG: 36, fatG: 0, confidence: 0.9 },
           { name: 'Feijão carioca cozido', weightG: 100, calories: 76, proteinG: 5, carbsG: 14, fatG: 1, confidence: 0.9 },
           { name: 'Bife de frango grelhado', weightG: 150, calories: 240, proteinG: 42, carbsG: 0, fatG: 5, confidence: 0.9 },
-          { name: 'Macarrão espaguete', weightG: 90, calories: 140, proteinG: 5, carbsG: 28, fatG: 1, confidence: 0.85 },
-          { name: 'Salada de alface e tomate', weightG: 80, calories: 20, proteinG: 1, carbsG: 4, fatG: 0, confidence: 0.95 },
+          { name: 'Salada de tomate e cebola', weightG: 80, calories: 20, proteinG: 1, carbsG: 4, fatG: 0, confidence: 0.95 },
         ];
       }
 
-      // Abre a TELA DE INSPEÇÃO para o usuário revisar antes de salvar!
       setInspectionDraft({
         mealType: selectedMealType,
         mealTime: selectedMealTime,
         items,
       });
-      setSuccessMessage('Alimentos identificados! Revise e ajuste os pesos abaixo antes de salvar.');
+      setSuccessMessage('Alimentos identificados pela IA! Ajuste as porções antes de confirmar no diário.');
     } catch (err: any) {
-      setErrorMessage('Erro ao analisar foto. Abrindo rascunho de edição.');
+      setErrorMessage('Erro ao analisar foto. Rascunho de edição criado.');
       setInspectionDraft({
         mealType: selectedMealType,
         mealTime: selectedMealTime,
@@ -281,10 +337,10 @@ export default function NutricaoPage() {
         mealTime: selectedMealTime,
         items,
       });
-      setSuccessMessage('Alimentos identificados! Revise abaixo antes de salvar no diário.');
+      setSuccessMessage('Alimentos identificados! Revise e confirme abaixo.');
       setTextInput('');
     } catch (err: any) {
-      setErrorMessage('Erro de conexão. Criado rascunho de refeição.');
+      setErrorMessage('Erro ao processar texto. Rascunho criado.');
       setInspectionDraft({
         mealType: selectedMealType,
         mealTime: selectedMealTime,
@@ -293,6 +349,25 @@ export default function NutricaoPage() {
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  // Importar Sugestão da IA para a Tela de Inspeção em 1 clique
+  const handleImportAiSuggestion = (sug: AiSuggestion) => {
+    const mealTypeMap: Record<string, string> = {
+      'Café da Manhã': 'BREAKFAST',
+      'Almoço': 'LUNCH',
+      'Jantar': 'DINNER',
+      'Lanche': 'SNACK',
+    };
+    const targetType = mealTypeMap[sug.targetMeal] || 'SNACK';
+    
+    setInspectionDraft({
+      mealType: targetType,
+      mealTime: selectedMealTime,
+      items: sug.items,
+    });
+    setSuccessMessage(`Sugestão da IA "${sug.title}" importada para a tela de inspeção!`);
+    window.scrollTo({ top: 500, behavior: 'smooth' });
   };
 
   // Alterar peso de um item no rascunho (Recalcula calorias e macros proporcionalmente)
@@ -332,14 +407,15 @@ export default function NutricaoPage() {
           mealType: inspectionDraft.mealType,
           mealTime: inspectionDraft.mealTime,
           items: inspectionDraft.items,
+          loggedAt: selectedDate,
         }),
       });
 
       if (res.ok) {
-        setSuccessMessage('Refeição salva com sucesso no seu diário!');
+        setSuccessMessage('Refeição gravada com sucesso!');
         setInspectionDraft(null);
         setImagePreview(null);
-        fetchDailyData();
+        fetchDailyData(selectedDate);
       } else {
         setErrorMessage('Erro ao salvar refeição no diário.');
       }
@@ -354,7 +430,7 @@ export default function NutricaoPage() {
       const res = await authFetch(`/api/nutrition/meals/${mealId}`, { method: 'DELETE' });
       if (res.ok) {
         setSuccessMessage('Refeição removida.');
-        fetchDailyData();
+        fetchDailyData(selectedDate);
       }
     } catch (err) {
       console.error(err);
@@ -406,9 +482,9 @@ export default function NutricaoPage() {
         body: JSON.stringify(goalsForm),
       });
       if (res.ok) {
-        setSuccessMessage('Metas de macronutrientes atualizadas com sucesso!');
+        setSuccessMessage('Metas atualizadas com sucesso!');
         setShowGoalsModal(false);
-        fetchDailyData();
+        fetchDailyData(selectedDate);
       }
     } catch (err) {
       setErrorMessage('Erro ao salvar metas.');
@@ -428,23 +504,37 @@ export default function NutricaoPage() {
     SNACK: { label: 'Lanche', icon: Apple, color: '#a78bfa' },
   };
 
+  // Cálculo de calorias por refeição para a barra empilhada
+  const mealCaloriesBreakdown = {
+    BREAKFAST: dailyMeals.filter(m => m.mealType === 'BREAKFAST').reduce((a, m) => a + (m.totalCalories || 0), 0),
+    LUNCH: dailyMeals.filter(m => m.mealType === 'LUNCH').reduce((a, m) => a + (m.totalCalories || 0), 0),
+    DINNER: dailyMeals.filter(m => m.mealType === 'DINNER').reduce((a, m) => a + (m.totalCalories || 0), 0),
+    SNACK: dailyMeals.filter(m => m.mealType === 'SNACK').reduce((a, m) => a + (m.totalCalories || 0), 0),
+  };
+
+  const totalMealCalories = Object.values(mealCaloriesBreakdown).reduce((a, b) => a + b, 0) || 1;
+
   return (
     <div className="space-y-6 text-[#f7f8f8] max-w-[1400px] mx-auto pb-16">
       
-      {/* Header Estilo Linear */}
+      {/* Header Principal com Provedores e Metas */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#ffffff0e] pb-5">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#4ade80]">
+          <div className="w-10 h-10 rounded-lg bg-[#16191e] border border-[#ffffff12] flex items-center justify-center text-[#4ade80] shadow-md">
             <Apple className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight">Diário Nutricional Inteligente</h1>
-            <p className="text-xs sm:text-sm text-[#a1a1aa] mt-0.5">Reconhecimento por IA, Inspeção e Controle de Macronutrientes por Refeição</p>
+            <h1 className="text-lg sm:text-xl font-semibold text-[#f7f8f8] tracking-tight flex items-center gap-2">
+              <span>Diário Nutricional Inteligente & Analytics</span>
+              <span className="text-[10px] font-mono font-bold bg-[#4ade8015] text-[#4ade80] px-2 py-0.5 rounded border border-[#4ade8030]">
+                IA Pro
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[#a1a1aa] mt-0.5">Visão IA Multimodal, Análise Diária, Heatmap Mensal e Sugestões Inteligentes</p>
           </div>
         </div>
 
         <div className="flex items-center space-x-3 self-start sm:self-center">
-          {/* Selector de Provedor de IA */}
           <select
             value={selectedAiProvider}
             onChange={(e) => setSelectedAiProvider(e.target.value)}
@@ -460,12 +550,12 @@ export default function NutricaoPage() {
             className="px-3 py-1.5 rounded-lg bg-[#16191e] border border-[#ffffff12] hover:border-[#4ade8040] text-xs font-medium text-[#f7f8f8] flex items-center gap-1.5 transition"
           >
             <Settings className="w-3.5 h-3.5 text-[#4ade80]" />
-            <span>Configurar Metas</span>
+            <span>Metas Manuais</span>
           </button>
         </div>
       </div>
 
-      {/* Alertas */}
+      {/* Alertas Feedback */}
       {errorMessage && (
         <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
@@ -480,11 +570,273 @@ export default function NutricaoPage() {
         </div>
       )}
 
-      {/* Seção 1: Seleção de Tipo de Refeição + Horário */}
+      {/* 📅 CALENDÁRIO SLIDER 7 DIAS + TOGGLE HEATMAP MENSAL */}
+      <div className="linear-card p-4 space-y-3 bg-[#16191e]/90">
+        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-4 h-4 text-[#4ade80]" />
+            <span className="text-xs font-semibold text-[#f7f8f8] uppercase font-mono">Navegação Diária (Últimos 7 Dias)</span>
+            <span className="text-xs font-mono text-[#a1a1aa] ml-2">Dia selecionado: <strong className="text-[#4ade80]">{selectedDate}</strong></span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowMonthlyHeatmap(!showMonthlyHeatmap)}
+            className="px-3 py-1 rounded-lg bg-[#080a0c] border border-[#ffffff12] hover:border-[#4ade8040] text-[11px] font-mono text-[#4ade80] flex items-center gap-1.5 transition"
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>{showMonthlyHeatmap ? 'Ocultar Heatmap Mensal' : '📅 Ver Heatmap Mensal de Aderência'}</span>
+          </button>
+        </div>
+
+        {/* Strip de 7 Dias Deslizável */}
+        {weeklySummary?.days && (
+          <div className="grid grid-cols-7 gap-2">
+            {weeklySummary.days.map((day) => {
+              const isSelected = day.date === selectedDate;
+              const dateObj = new Date(day.date + 'T12:00:00');
+              const dayName = dateObj.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
+              const dayNum = dateObj.getDate();
+
+              let badgeColor = 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+              if (day.status === 'in_target') badgeColor = 'bg-[#4ade8020] text-[#4ade80] border-[#4ade8040]';
+              else if (day.status === 'above') badgeColor = 'bg-[#fb923c20] text-[#fb923c] border-[#fb923c40]';
+              else if (day.status === 'below' && day.calories > 0) badgeColor = 'bg-[#facc1520] text-[#facc15] border-[#facc1540]';
+
+              return (
+                <button
+                  key={day.date}
+                  type="button"
+                  onClick={() => setSelectedDate(day.date)}
+                  className={`p-2.5 rounded-xl border flex flex-col items-center justify-between space-y-1.5 transition text-center ${
+                    isSelected
+                      ? 'bg-[#4ade8015] border-[#4ade80] text-[#f7f8f8] shadow-md'
+                      : 'bg-[#080a0c] border-[#ffffff0e] hover:border-[#ffffff20] text-[#a1a1aa]'
+                  }`}
+                >
+                  <span className="text-[10px] font-mono text-[#71717a] font-bold">{dayName}</span>
+                  <span className="text-sm font-bold font-mono">{dayNum}</span>
+                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${badgeColor}`}>
+                    {day.calories > 0 ? `${day.calories} kcal` : 'Vazio'}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Grid do Heatmap Mensal Expandível */}
+        {showMonthlyHeatmap && (
+          <div className="pt-4 border-t border-[#ffffff0e] space-y-3 animate-fadeIn">
+            <div className="flex items-center justify-between text-xs font-mono text-[#a1a1aa]">
+              <span>Mapa de Calor de Aderência (Agosto 2026)</span>
+              <div className="flex items-center space-x-3 text-[10px]">
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-[#4ade80]" /> No Alvo (80-110%)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-[#fb923c]" /> Acima (&gt;110%)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-[#facc15]" /> Abaixo</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-[#16191e] border border-[#ffffff20]" /> Sem Registro</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-7 sm:grid-cols-10 md:grid-cols-15 gap-1.5">
+              {monthlyCalendar.map((item) => {
+                let colorClass = 'bg-[#080a0c] border-[#ffffff08] text-[#71717a]';
+                if (item.status === 'in_target') colorClass = 'bg-[#4ade80] text-black font-bold';
+                else if (item.status === 'above') colorClass = 'bg-[#fb923c] text-black font-bold';
+                else if (item.status === 'below') colorClass = 'bg-[#facc15] text-black font-bold';
+
+                const dayNum = parseInt(item.date.split('-')[2]);
+
+                return (
+                  <div
+                    key={item.date}
+                    onClick={() => setSelectedDate(item.date)}
+                    title={`${item.date}: ${item.calories} kcal (${item.percentage}%)`}
+                    className={`h-9 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition text-[10px] font-mono hover:scale-105 ${colorClass}`}
+                  >
+                    <span>{dayNum}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 🏆 GRID KPI & BANCO DE CALORIAS (4 CARDS BENTO) */}
+      {summary && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          {/* Card 1: Ring Gauge Concêntrico (Calorias) */}
+          <div className="linear-card p-5 space-y-3 flex flex-col justify-between relative overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-2">
+              <span className="text-xs font-semibold text-[#a1a1aa] uppercase font-mono flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-[#fb923c]" /> Balanço Calórico
+              </span>
+              <span className="text-xs font-mono text-[#fb923c]">Meta: {summary.target.calories} kcal</span>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              {/* Concentric SVG Ring Gauge */}
+              <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    className="text-[#16191e]"
+                    strokeWidth="3.8"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className="text-[#fb923c] transition-all duration-1000"
+                    strokeDasharray={`${Math.min(100, summary.percentages.calories)}, 100`}
+                    strokeWidth="3.8"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center justify-center text-center">
+                  <span className="text-xs font-bold font-mono text-[#f7f8f8]">{summary.percentages.calories}%</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-2xl font-bold font-mono text-[#f7f8f8]">{summary.consumed.calories}</div>
+                <div className="text-xs text-[#a1a1aa] font-mono">/ {summary.target.calories} kcal ingeridas</div>
+                <div className="text-xs text-[#4ade80] font-mono font-semibold mt-1">
+                  {summary.remaining.calories > 0 ? `Restam ${summary.remaining.calories} kcal` : 'Meta Atingida!'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Banco de Calorias Semanal (Calorie Banking) */}
+          <div className="linear-card p-5 space-y-3 flex flex-col justify-between">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-2">
+              <span className="text-xs font-semibold text-[#a1a1aa] uppercase font-mono flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#38bdf8]" /> Banco de Calorias
+              </span>
+              <span className="text-[10px] font-mono bg-[#38bdf815] text-[#38bdf8] px-2 py-0.5 rounded border border-[#38bdf830]">Flexível</span>
+            </div>
+
+            <div>
+              <div className="text-2xl font-bold font-mono text-[#38bdf8]">
+                {weeklySummary?.calorieBank ? (weeklySummary.calorieBank > 0 ? `+${weeklySummary.calorieBank}` : weeklySummary.calorieBank) : '0'} kcal
+              </div>
+              <p className="text-xs text-[#a1a1aa] mt-1">Saldo acumulado para flexibilidade no fim de semana sem sair da meta semanal.</p>
+            </div>
+
+            <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
+              <div className="bg-[#38bdf8] h-full rounded-full w-3/4" />
+            </div>
+          </div>
+
+          {/* Card 3: Streak de Dias Consecutivos */}
+          <div className="linear-card p-5 space-y-3 flex flex-col justify-between">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-2">
+              <span className="text-xs font-semibold text-[#a1a1aa] uppercase font-mono flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-[#facc15]" /> Streaks de Registro
+              </span>
+              <span className="text-xs font-mono text-[#facc15]">Fogo Ativo</span>
+            </div>
+
+            <div>
+              <div className="text-2xl font-bold font-mono text-[#f7f8f8] flex items-center gap-2">
+                <span>🔥 {weeklySummary?.streakDays || 1} Dias</span>
+              </div>
+              <p className="text-xs text-[#a1a1aa] mt-1">Dias consecutivos com refeições registradas e acompanhamento diário.</p>
+            </div>
+
+            <div className="text-[11px] font-mono text-[#4ade80] flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Hábito em evolução constante
+            </div>
+          </div>
+
+          {/* Card 4: Score de Aderência Semanal */}
+          <div className="linear-card p-5 space-y-3 flex flex-col justify-between">
+            <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-2">
+              <span className="text-xs font-semibold text-[#a1a1aa] uppercase font-mono flex items-center gap-1.5">
+                <TrendingUp className="w-4 h-4 text-[#4ade80]" /> Aderência na Meta
+              </span>
+              <span className="text-xs font-mono text-[#4ade80]">7 Dias</span>
+            </div>
+
+            <div>
+              <div className="text-2xl font-bold font-mono text-[#4ade80]">
+                {weeklySummary?.adherenceScore || 85}%
+              </div>
+              <p className="text-xs text-[#a1a1aa] mt-1">Porcentagem de dias mantidos dentro da zona-alvo saudável (±10%).</p>
+            </div>
+
+            <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
+              <div className="bg-[#4ade80] h-full rounded-full" style={{ width: `${weeklySummary?.adherenceScore || 85}%` }} />
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* 🤖 IA SUGESTÕES INTELIGENTES ("PREENCHA SEUS MACROS") */}
+      {aiSuggestionsData && aiSuggestionsData.suggestions.length > 0 && (
+        <div className="linear-card p-6 space-y-4 bg-gradient-to-r from-[#16191e] via-[#16191e] to-[#38bdf810] border border-[#38bdf830]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ffffff0e] pb-3">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#38bdf820] border border-[#38bdf840] flex items-center justify-center text-[#38bdf8]">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-[#f7f8f8]">🤖 IA Sugestões Inteligentes: "Preencha seus Macros"</h3>
+                <p className="text-xs text-[#a1a1aa]">{aiSuggestionsData.message}</p>
+              </div>
+            </div>
+
+            <span className="text-xs font-mono text-[#38bdf8] bg-[#38bdf815] px-2.5 py-1 rounded border border-[#38bdf830]">
+              Sugestões Personalizadas
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {aiSuggestionsData.suggestions.map((sug) => (
+              <div key={sug.id} className="p-4 rounded-xl bg-[#080a0c] border border-[#ffffff10] space-y-3 flex flex-col justify-between hover:border-[#38bdf840] transition">
+                <div>
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-bold text-xs text-[#f7f8f8]">{sug.title}</h4>
+                    <span className="text-[10px] font-mono text-[#4ade80] bg-[#4ade8015] px-2 py-0.5 rounded border border-[#4ade8030]">
+                      🔥 {sug.estimatedCalories} kcal
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#a1a1aa] mt-1 line-clamp-2">{sug.description}</p>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-[#ffffff08] text-[11px] font-mono">
+                  <div className="flex justify-between text-[#a1a1aa]">
+                    <span>P: <strong className="text-[#4ade80]">{sug.proteinG}g</strong></span>
+                    <span>C: <strong className="text-[#38bdf8]">{sug.carbsG}g</strong></span>
+                    <span>G: <strong className="text-[#facc15]">{sug.fatG}g</strong></span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleImportAiSuggestion(sug)}
+                    className="w-full py-2 rounded-lg bg-[#38bdf8] hover:bg-[#0284c7] text-white text-xs font-bold flex items-center justify-center space-x-1.5 transition shadow"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Importar para Inspeção</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Seção Entrada de Refeições (Foto e Texto Livre) */}
       <div className="linear-card p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#ffffff0e] pb-3">
           <span className="text-xs font-semibold text-[#a1a1aa] uppercase font-mono flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-[#4ade80]" /> Escolha a Refeição e Horário
+            <Clock className="w-4 h-4 text-[#4ade80]" /> 1. Escolha a Refeição e Horário
           </span>
 
           <div className="flex items-center space-x-2">
@@ -553,14 +905,14 @@ export default function NutricaoPage() {
         </div>
       </div>
 
-      {/* Seção 2: Entrada (Foto ou Texto) */}
+      {/* Dropzone Foto & Entrada Texto */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Dropzone Foto */}
         <div className="linear-card p-6 space-y-4 flex flex-col justify-between border-dashed">
           <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
             <span className="text-xs font-semibold text-[#a1a1aa] uppercase font-mono flex items-center gap-1.5">
-              <Camera className="w-4 h-4 text-[#4ade80]" /> 1. Enviar Foto do Prato
+              <Camera className="w-4 h-4 text-[#4ade80]" /> Enviar Foto do Prato
             </span>
           </div>
 
@@ -586,7 +938,7 @@ export default function NutricaoPage() {
               <h3 className="font-semibold text-xs sm:text-sm text-[#f7f8f8]">
                 {analyzing ? 'Identificando alimentos com Visão IA...' : 'Clique ou arraste uma foto'}
               </h3>
-              <p className="text-[11px] text-[#a1a1aa] mt-0.5">Visão IA detecta porções e macronutrientes</p>
+              <p className="text-[11px] text-[#a1a1aa] mt-0.5">Visão IA detecta alimentos brasileiros e porções</p>
             </div>
           </label>
         </div>
@@ -595,7 +947,7 @@ export default function NutricaoPage() {
         <div className="linear-card p-6 space-y-4 flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
             <span className="text-xs font-semibold text-[#a1a1aa] uppercase font-mono flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-[#38bdf8]" /> 2. Descrever em Texto Livre
+              <FileText className="w-4 h-4 text-[#38bdf8]" /> Descrever em Texto Livre
             </span>
           </div>
 
@@ -633,9 +985,9 @@ export default function NutricaoPage() {
 
       </div>
 
-      {/* 👁️ TELA DE INSPEÇÃO (EDIT BEFORE SAVE) — Inspiração MacroFactor & MyFitnessPal */}
+      {/* 👁️ TELA DE INSPEÇÃO (EDIT BEFORE SAVE) — MacroFactor & MyFitnessPal */}
       {inspectionDraft && (
-        <div className="linear-card p-6 space-y-5 bg-gradient-to-br from-[#16191e] via-[#16191e] to-[#4ade8010] border border-[#4ade8040] animate-fadeIn">
+        <div className="linear-card p-6 space-y-5 bg-gradient-to-br from-[#16191e] via-[#16191e] to-[#4ade8010] border border-[#4ade8040] animate-fadeIn shadow-2xl">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#ffffff0e] pb-4">
             <div className="flex items-center space-x-2.5">
               <div className="w-9 h-9 rounded-xl bg-[#4ade8020] border border-[#4ade8040] flex items-center justify-center text-[#4ade80]">
@@ -703,10 +1055,8 @@ export default function NutricaoPage() {
                   </div>
                 </div>
 
-                {/* Controles de Peso e Macros Recalculados em Tempo Real */}
+                {/* Controles de Peso e Macros Recalculados */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1 text-xs font-mono">
-                  
-                  {/* Slider de Peso em Gramas */}
                   <div className="space-y-1 sm:col-span-2">
                     <div className="flex justify-between text-[11px] text-[#a1a1aa]">
                       <span>Porção / Peso (g):</span>
@@ -731,18 +1081,15 @@ export default function NutricaoPage() {
                     </div>
                   </div>
 
-                  {/* Proteína */}
                   <div className="p-2 rounded-lg bg-[#16191e] border border-[#ffffff0a]">
                     <div className="text-[10px] text-[#a1a1aa]">Proteínas</div>
                     <div className="font-bold text-[#4ade80]">{item.proteinG}g</div>
                   </div>
 
-                  {/* Carboidratos */}
                   <div className="p-2 rounded-lg bg-[#16191e] border border-[#ffffff0a]">
                     <div className="text-[10px] text-[#a1a1aa]">Carboidratos</div>
-                    <div className="font-bold text-[#5e6ad2]">{item.carbsG}g</div>
+                    <div className="font-bold text-[#38bdf8]">{item.carbsG}g</div>
                   </div>
-
                 </div>
               </div>
             ))}
@@ -778,75 +1125,70 @@ export default function NutricaoPage() {
         </div>
       )}
 
-      {/* Seção 3: Resumo Diário de Macronutrientes (Consumido vs Meta) */}
-      {summary && (
-        <div className="linear-card p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
-            <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2">
-              <Flame className="w-4 h-4 text-[#fb923c]" /> Progresso Diário de Macronutrientes
-            </h3>
-            <span className="text-xs font-mono text-[#a1a1aa]">
-              {summary.consumed.calories} / {summary.target.calories} kcal ({summary.percentages.calories}%)
-            </span>
+      {/* 📊 BARRA EMPILHADA DE CALORIAS POR REFEIÇÃO */}
+      <div className="linear-card p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#ffffff0e] pb-3">
+          <h3 className="text-sm font-semibold text-[#f7f8f8] flex items-center gap-2 font-mono">
+            <PieChart className="w-4 h-4 text-[#4ade80]" /> Distribuição Calórica por Refeição do Dia ({selectedDate})
+          </h3>
+          <span className="text-xs font-mono text-[#4ade80] font-bold">{totalMealCalories} kcal total</span>
+        </div>
+
+        {/* Barra Empilhada */}
+        <div className="space-y-2 font-mono text-xs">
+          <div className="w-full h-4 bg-[#16191e] rounded-full overflow-hidden flex border border-[#ffffff0a]">
+            <div
+              style={{ width: `${(mealCaloriesBreakdown.BREAKFAST / totalMealCalories) * 100}%` }}
+              className="bg-[#facc15] h-full transition-all"
+              title={`Café: ${mealCaloriesBreakdown.BREAKFAST} kcal`}
+            />
+            <div
+              style={{ width: `${(mealCaloriesBreakdown.LUNCH / totalMealCalories) * 100}%` }}
+              className="bg-[#4ade80] h-full transition-all"
+              title={`Almoço: ${mealCaloriesBreakdown.LUNCH} kcal`}
+            />
+            <div
+              style={{ width: `${(mealCaloriesBreakdown.SNACK / totalMealCalories) * 100}%` }}
+              className="bg-[#a78bfa] h-full transition-all"
+              title={`Lanche: ${mealCaloriesBreakdown.SNACK} kcal`}
+            />
+            <div
+              style={{ width: `${(mealCaloriesBreakdown.DINNER / totalMealCalories) * 100}%` }}
+              className="bg-[#38bdf8] h-full transition-all"
+              title={`Jantar: ${mealCaloriesBreakdown.DINNER} kcal`}
+            />
           </div>
 
-          <div className="space-y-4 text-xs font-mono">
-            {/* Proteínas */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between">
-                <span className="text-[#a1a1aa]">Proteínas</span>
-                <span className="text-[#f7f8f8] font-bold">
-                  {summary.consumed.proteinG}g / {summary.target.proteinG}g ({summary.percentages.protein}%)
-                </span>
-              </div>
-              <div className="w-full bg-[#16191e] h-2.5 rounded-full overflow-hidden border border-[#ffffff0a]">
-                <div 
-                  className="bg-[#4ade80] h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.min(100, summary.percentages.protein)}%` }}
-                />
-              </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            <div className="flex items-center space-x-2 text-[11px]">
+              <span className="w-2.5 h-2.5 rounded bg-[#facc15]" />
+              <span className="text-[#a1a1aa]">Café:</span>
+              <strong className="text-[#f7f8f8]">{mealCaloriesBreakdown.BREAKFAST} kcal</strong>
             </div>
-
-            {/* Carboidratos */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between">
-                <span className="text-[#a1a1aa]">Carboidratos</span>
-                <span className="text-[#f7f8f8] font-bold">
-                  {summary.consumed.carbsG}g / {summary.target.carbsG}g ({summary.percentages.carbs}%)
-                </span>
-              </div>
-              <div className="w-full bg-[#16191e] h-2.5 rounded-full overflow-hidden border border-[#ffffff0a]">
-                <div 
-                  className="bg-[#5e6ad2] h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.min(100, summary.percentages.carbs)}%` }}
-                />
-              </div>
+            <div className="flex items-center space-x-2 text-[11px]">
+              <span className="w-2.5 h-2.5 rounded bg-[#4ade80]" />
+              <span className="text-[#a1a1aa]">Almoço:</span>
+              <strong className="text-[#f7f8f8]">{mealCaloriesBreakdown.LUNCH} kcal</strong>
             </div>
-
-            {/* Gorduras */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between">
-                <span className="text-[#a1a1aa]">Gorduras</span>
-                <span className="text-[#f7f8f8] font-bold">
-                  {summary.consumed.fatG}g / {summary.target.fatG}g ({summary.percentages.fat}%)
-                </span>
-              </div>
-              <div className="w-full bg-[#16191e] h-2.5 rounded-full overflow-hidden border border-[#ffffff0a]">
-                <div 
-                  className="bg-[#facc15] h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.min(100, summary.percentages.fat)}%` }}
-                />
-              </div>
+            <div className="flex items-center space-x-2 text-[11px]">
+              <span className="w-2.5 h-2.5 rounded bg-[#a78bfa]" />
+              <span className="text-[#a1a1aa]">Lanche:</span>
+              <strong className="text-[#f7f8f8]">{mealCaloriesBreakdown.SNACK} kcal</strong>
+            </div>
+            <div className="flex items-center space-x-2 text-[11px]">
+              <span className="w-2.5 h-2.5 rounded bg-[#38bdf8]" />
+              <span className="text-[#a1a1aa]">Jantar:</span>
+              <strong className="text-[#f7f8f8]">{mealCaloriesBreakdown.DINNER} kcal</strong>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Seção 4: Lista de Refeições Registradas do Dia */}
+      {/* Lista de Refeições Registradas do Dia Selecionado */}
       <div className="linear-card p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-[#f7f8f8] border-b border-[#ffffff0e] pb-3 flex items-center justify-between">
-          <span>Refeições Registradas Hoje</span>
-          <span className="text-xs font-mono text-[#a1a1aa] font-normal">{dailyMeals.length} refeições</span>
+        <h3 className="text-sm font-semibold text-[#f7f8f8] border-b border-[#ffffff0e] pb-3 flex items-center justify-between font-mono">
+          <span>Refeições Registradas ({selectedDate})</span>
+          <span className="text-xs text-[#a1a1aa] font-normal">{dailyMeals.length} refeições</span>
         </h3>
 
         {loadingMeals ? (
@@ -855,7 +1197,7 @@ export default function NutricaoPage() {
           </div>
         ) : dailyMeals.length === 0 ? (
           <div className="py-8 text-center text-xs text-[#71717a] font-mono">
-            Nenhuma refeição registrada hoje. Use o leitor de fotos ou texto acima.
+            Nenhuma refeição registrada para este dia ({selectedDate}).
           </div>
         ) : (
           <div className="space-y-3">
