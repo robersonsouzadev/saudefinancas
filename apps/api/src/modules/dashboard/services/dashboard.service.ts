@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { FinanceService } from '../../finance/services/finance.service';
 import { InsightsService } from '../../insights/services/insights.service';
 import { DailySummaryService } from '../../insights/services/daily-summary.service';
@@ -6,6 +7,7 @@ import { DailySummaryService } from '../../insights/services/daily-summary.servi
 @Injectable()
 export class DashboardService {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly financeService: FinanceService,
     private readonly insightsService: InsightsService,
     private readonly dailySummaryService: DailySummaryService,
@@ -16,6 +18,34 @@ export class DashboardService {
     const recentTransactions = await this.financeService.getTransactions(userId);
     const activeInsights = await this.insightsService.getInsights(userId);
     const dailySummary = await this.dailySummaryService.generateDailySummary(userId, new Date());
+
+    // Busca refeições reais do dia no Prisma
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const mealsToday = await this.prisma.mealLog.findMany({
+      where: {
+        userId,
+        loggedAt: { gte: startOfDay, lte: endOfDay },
+      },
+    });
+
+    let consumedCalories = 0;
+    let consumedCarbs = 0;
+    let consumedProtein = 0;
+    let consumedFat = 0;
+
+    mealsToday.forEach((m) => {
+      consumedCalories += m.totalCalories || 0;
+      consumedCarbs += m.totalCarbs || 0;
+      consumedProtein += m.totalProtein || 0;
+      consumedFat += m.totalFat || 0;
+    });
+
+    // Busca meta nutricional
+    const goal = await this.prisma.nutritionGoal.findUnique({ where: { userId } });
 
     return {
       scores: {
@@ -33,9 +63,15 @@ export class DashboardService {
       health: {
         recentLogs: [],
         calorieTracker: {
-          consumed: dailySummary.metrics?.caloriesConsumed || 0,
+          consumed: Math.round(consumedCalories),
           burned: dailySummary.metrics?.caloriesBurned || 0,
-          target: 2200,
+          target: goal?.targetCalories || 2200,
+          carbsG: Math.round(consumedCarbs),
+          proteinG: Math.round(consumedProtein),
+          fatG: Math.round(consumedFat),
+          targetCarbsG: goal?.targetCarbsG || 250,
+          targetProteinG: goal?.targetProteinG || 140,
+          targetFatG: goal?.targetFatG || 65,
         },
       },
       insights: activeInsights,

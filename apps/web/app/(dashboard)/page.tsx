@@ -249,7 +249,7 @@ export default function DashboardHome() {
               <Flame className="w-4 h-4 text-[#fb923c]" /> Balanço Calórico
             </span>
             <span className="text-xs font-mono text-[#fb923c]">
-              Meta TMB: {bmr || 2200} kcal
+              Meta: {dashboardSummary?.health?.calorieTracker?.target || bmr || 2200} kcal
             </span>
           </div>
 
@@ -257,20 +257,20 @@ export default function DashboardHome() {
             <span className="text-2xl font-bold font-mono text-[#f7f8f8]">
               {dashboardSummary?.health?.calorieTracker?.consumed || 0}
             </span>
-            <span className="text-[#71717a] text-sm font-medium">/ {bmr || 2200} kcal</span>
+            <span className="text-[#71717a] text-sm font-medium">/ {dashboardSummary?.health?.calorieTracker?.target || bmr || 2200} kcal</span>
           </div>
 
           <div className="w-full bg-[#16191e] h-1.5 rounded-full overflow-hidden border border-[#ffffff0a]">
             <div 
               className="bg-[#fb923c] h-full rounded-full transition-all duration-500" 
-              style={{ width: `${Math.min(100, ((dashboardSummary?.health?.calorieTracker?.consumed || 0) / (bmr || 2200)) * 100)}%` }}
+              style={{ width: `${Math.min(100, ((dashboardSummary?.health?.calorieTracker?.consumed || 0) / (dashboardSummary?.health?.calorieTracker?.target || bmr || 2200)) * 100)}%` }}
             ></div>
           </div>
 
           <div className="pt-1 flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
-            <span>C: 0g</span>
-            <span>P: 0g</span>
-            <span>G: 0g</span>
+            <span>C: {dashboardSummary?.health?.calorieTracker?.carbsG || 0}g</span>
+            <span>P: {dashboardSummary?.health?.calorieTracker?.proteinG || 0}g</span>
+            <span>G: {dashboardSummary?.health?.calorieTracker?.fatG || 0}g</span>
           </div>
         </div>
 

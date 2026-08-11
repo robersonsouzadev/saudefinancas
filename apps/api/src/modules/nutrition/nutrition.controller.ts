@@ -1,67 +1,62 @@
-import { Controller, Get, Post, Delete, Put, Body, Param, Query } from '@nestjs/common';
-import { NutritionService, CreateMealLogDto } from './services/nutrition.service';
-import { FoodVisionService } from './services/food-vision.service';
-import { FoodDatabaseService } from './services/food-database.service';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Req } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { NutritionService, CreateMealDto } from './services/nutrition.service';
+import { TacoDatabaseService } from './services/taco-database.service';
 
 @Controller('nutrition')
+@UseGuards(JwtAuthGuard)
 export class NutritionController {
   constructor(
     private readonly nutritionService: NutritionService,
-    private readonly foodVisionService: FoodVisionService,
-    private readonly foodDatabaseService: FoodDatabaseService,
+    private readonly tacoService: TacoDatabaseService,
   ) {}
 
-  @Post('meals')
-  async createMealLog(
-    @Body('userId') userId: string,
-    @Body() data: CreateMealLogDto,
-  ) {
-    return this.nutritionService.createMealLog(userId, data);
-  }
-
   @Get('meals')
-  async getMealLogsByDate(
-    @Query('userId') userId: string,
-    @Query('date') date: string,
-  ) {
-    return this.nutritionService.getMealLogsByDate(userId, new Date(date));
+  async getDailyMeals(@Req() req: any, @Query('date') date?: string) {
+    return this.nutritionService.getDailyMeals(req.user.id, date);
   }
 
-  @Delete('meals/:id')
-  async deleteMealLog(
-    @Body('userId') userId: string,
-    @Param('id') mealLogId: string,
-  ) {
-    return this.nutritionService.deleteMealLog(userId, mealLogId);
+  @Post('meals')
+  async createMealLog(@Req() req: any, @Body() dto: CreateMealDto) {
+    return this.nutritionService.createMealLog(req.user.id, dto);
   }
 
   @Put('meals/:id/confirm')
-  async confirmMealLog(
-    @Body('userId') userId: string,
-    @Param('id') mealLogId: string,
+  async confirmMeal(
+    @Req() req: any,
+    @Param('id') mealId: string,
+    @Body() body: { items: any[] }
   ) {
-    return this.nutritionService.confirmMealLog(userId, mealLogId);
+    return this.nutritionService.confirmMeal(req.user.id, mealId, body.items || []);
+  }
+
+  @Delete('meals/:id')
+  async deleteMeal(@Req() req: any, @Param('id') mealId: string) {
+    return this.nutritionService.deleteMeal(req.user.id, mealId);
   }
 
   @Get('summary')
-  async getDailyNutritionalSummary(
-    @Query('userId') userId: string,
-    @Query('date') date: string,
-  ) {
-    return this.nutritionService.getDailyNutritionalSummary(userId, new Date(date));
+  async getDailySummary(@Req() req: any, @Query('date') date?: string) {
+    return this.nutritionService.getDailySummary(req.user.id, date);
   }
 
-  @Post('vision/analyze')
-  async analyzeFoodImage(
-    @Body('imageBufferBase64') imageBufferBase64: string,
-    @Body('mimeType') mimeType: string,
-  ) {
-    const buffer = Buffer.from(imageBufferBase64, 'base64');
-    return this.foodVisionService.analyzeFoodImage(buffer, mimeType);
+  @Get('summary/week')
+  async getWeeklySummary(@Req() req: any) {
+    return this.nutritionService.getWeeklySummary(req.user.id);
   }
 
-  @Get('database/search')
-  async searchFood(@Query('query') query: string) {
-    return this.foodDatabaseService.searchFood(query);
+  @Get('goals')
+  async getNutritionGoals(@Req() req: any) {
+    return this.nutritionService.getNutritionGoals(req.user.id);
+  }
+
+  @Put('goals')
+  async updateNutritionGoals(@Req() req: any, @Body() body: any) {
+    return this.nutritionService.updateNutritionGoals(req.user.id, body);
+  }
+
+  @Get('foods/search')
+  async searchFoods(@Query('q') query: string) {
+    return this.tacoService.searchFood(query || '');
   }
 }

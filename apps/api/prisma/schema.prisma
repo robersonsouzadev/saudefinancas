@@ -39,6 +39,7 @@ model User {
   bodyAssessments        BodyAssessment[]
   bodyAssessmentGoals    BodyAssessmentGoal[]
   mealLogs               MealLog[]
+  nutritionGoal          NutritionGoal?
   healthGoals            HealthGoal[]
   financialAccounts      FinancialAccount[]
   transactions           Transaction[]
@@ -330,19 +331,71 @@ model BodyMeasurement {
 }
 
 model MealLog {
-  id       String     @id @default(uuid())
-  userId   String
-  loggedAt DateTime   @default(now())
-  items    MealItem[]
-  user     User       @relation(fields: [userId], references: [id])
+  id             String     @id @default(uuid())
+  userId         String
+  mealType       String     @default("SNACK") // BREAKFAST, LUNCH, DINNER, SNACK
+  loggedAt       DateTime   @default(now())
+  mealTime       String?    // HH:mm (horario escolhido)
+  totalCalories  Float?
+  totalProtein   Float?
+  totalCarbs     Float?
+  totalFat       Float?
+  totalFiber     Float?
+  confirmed      Boolean    @default(true)
+  notes          String?
+  items          MealItem[]
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, loggedAt])
 }
 
 model MealItem {
-  id        String  @id @default(uuid())
-  mealLogId String
-  name      String
-  calories  Float?
-  mealLog   MealLog @relation(fields: [mealLogId], references: [id])
+  id          String  @id @default(uuid())
+  mealLogId   String
+  name        String
+  tacoId      Int?
+  weightG     Float?
+  calories    Float?
+  proteinG    Float?
+  carbsG      Float?
+  fatG        Float?
+  fiberG      Float?
+  confidence  Float?
+  isManual    Boolean @default(false)
+  mealLog     MealLog @relation(fields: [mealLogId], references: [id], onDelete: Cascade)
+}
+
+model NutritionGoal {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  objectiveType   String   @default("MAINTAIN") // LOSE, MAINTAIN, GAIN
+  targetCalories  Int      @default(2200)
+  targetProteinG  Int      @default(140)
+  targetCarbsG    Int      @default(250)
+  targetFatG      Int      @default(65)
+  targetFiberG    Int?     @default(25)
+  activityLevel   String   @default("MODERATE") // SEDENTARY, LIGHT, MODERATE, ACTIVE, VERY_ACTIVE
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TacoFood {
+  id            Int     @id
+  category      String
+  name          String
+  calories      Float
+  proteinG      Float
+  carbsG        Float
+  fatG          Float
+  fiberG        Float?
+  calciumMg     Float?
+  ironMg        Float?
+  sodiumMg      Float?
+  potassiumMg   Float?
+  vitaminCMg    Float?
+
+  @@index([name])
 }
 
 model HealthGoal {

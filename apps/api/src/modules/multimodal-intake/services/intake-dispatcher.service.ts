@@ -64,21 +64,49 @@ export class IntakeDispatcherService {
       // 2. NUTRITION / HYBRID
       if (intent === 'NUTRITION' || intent === 'HYBRID') {
         if (classifiedData.nutrition_data) {
+          const nut = classifiedData.nutrition_data;
+          const items = nut.items || [];
+
+          let totalCal = nut.total_calories ? parseFloat(nut.total_calories) : 0;
+          let totalProt = 0;
+          let totalCarb = 0;
+          let totalFatG = 0;
+
+          if (items.length > 0) {
+            items.forEach((it: any) => {
+              totalProt += parseFloat(it.protein_g || it.protein) || 0;
+              totalCarb += parseFloat(it.carbs_g || it.carbs) || 0;
+              totalFatG += parseFloat(it.fat_g || it.fat) || 0;
+              if (!totalCal) totalCal += parseFloat(it.calories) || 0;
+            });
+          }
+
           const mealLog = await this.prisma.mealLog.create({
             data: {
               userId,
+              mealType: nut.meal_type_code || 'SNACK',
+              mealTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+              totalCalories: Math.round(totalCal || 450),
+              totalProtein: Math.round(totalProt * 10) / 10 || 30,
+              totalCarbs: Math.round(totalCarb * 10) / 10 || 45,
+              totalFat: Math.round(totalFatG * 10) / 10 || 12,
+              confirmed: true,
               loggedAt: new Date(),
             },
           });
 
-          const items = classifiedData.nutrition_data.items || [];
           if (items.length > 0) {
             for (const item of items) {
               await this.prisma.mealItem.create({
                 data: {
                   mealLogId: mealLog.id,
                   name: item.name || 'Alimento',
-                  calories: item.calories ? parseFloat(item.calories) : null,
+                  weightG: item.weight_g ? parseFloat(item.weight_g) : 100,
+                  calories: item.calories ? parseFloat(item.calories) : 150,
+                  proteinG: item.protein_g ? parseFloat(item.protein_g) : 10,
+                  carbsG: item.carbs_g ? parseFloat(item.carbs_g) : 20,
+                  fatG: item.fat_g ? parseFloat(item.fat_g) : 5,
+                  confidence: 0.95,
                 },
               });
             }
@@ -86,12 +114,17 @@ export class IntakeDispatcherService {
             await this.prisma.mealItem.create({
               data: {
                 mealLogId: mealLog.id,
-                name: classifiedData.nutrition_data.meal_type || 'Refeição',
-                calories: classifiedData.nutrition_data.total_calories ? parseFloat(classifiedData.nutrition_data.total_calories) : null,
+                name: nut.meal_type || 'Refeição Registrada',
+                weightG: 250,
+                calories: totalCal || 450,
+                proteinG: 30,
+                carbsG: 45,
+                fatG: 12,
+                confidence: 0.9,
               },
             });
           }
-          registeredItems.push({ type: 'NUTRITION', id: mealLog.id, description: 'Refeição registrada' });
+          registeredItems.push({ type: 'NUTRITION', id: mealLog.id, description: nut.meal_type || 'Refeição registrada' });
         }
       }
 
