@@ -32,14 +32,14 @@ export class MultimodalIntakeController {
   @Post('photo')
   async processPhoto(
     @Req() req: any,
-    @Body() body: { image: string; mimeType: string; context?: string }
+    @Body() body: { image: string; mimeType: string; context?: string; provider?: string }
   ) {
     if (!body.image || !body.mimeType) {
       throw new BadRequestException('Image and mimeType are required');
     }
 
     const userId = req.user.id;
-    const classifiedData = await this.visionProcessor.analyzeImage(body.image, body.mimeType, body.context);
+    const classifiedData = await this.visionProcessor.analyzeImage(body.image, body.mimeType, body.context, body.provider);
     return this.intakeDispatcher.dispatch(userId, classifiedData, { imageBase64: body.image, mimeType: body.mimeType });
   }
 
