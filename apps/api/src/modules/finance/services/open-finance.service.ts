@@ -258,10 +258,12 @@ export class OpenFinanceService {
       }
       syncedAccounts.push(paymentAcc);
 
-      // 2. Busca Transações dos últimos 30 dias para essa conta
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const fromStr = thirtyDaysAgo.toISOString().split('T')[0];
+      // 2. Busca Transações dos últimos 90 dias para essa conta
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      const fromStr = ninetyDaysAgo.toISOString().split('T')[0];
+
+      this.logger.log(`Buscando transações da conta ${pAcc.id} (${pAcc.name}) desde ${fromStr}...`);
 
       const txRes = await fetch(`${this.baseUrl}/transactions?accountId=${pAcc.id}&from=${fromStr}`, {
         headers: { 'X-API-KEY': apiKey },
@@ -270,7 +272,9 @@ export class OpenFinanceService {
       if (txRes.ok) {
         const txData = await txRes.json();
         const pluggyTransactions = txData.results || [];
+        this.logger.log(`Encontradas ${pluggyTransactions.length} transações (total: ${txData.total || 0}) na conta ${pAcc.name}`);
 
+        let created = 0;
         for (const pTx of pluggyTransactions) {
           const txAmount = Math.abs(pTx.amount);
           const txType = pTx.amount < 0 ? 'EXPENSE' : 'INCOME';
@@ -295,11 +299,42 @@ export class OpenFinanceService {
                 amount: txAmount,
                 date: txDate,
                 description: pTx.description || 'Transação Pluggy',
-                paymentMethod: 'PIX',
+                paymentMethod: pTx.paymentData?.paymentMethod || 'OTHER',
               },
             });
+            created++;
           }
         }
+        this.logger.log(`Criadas ${created} novas transações para a conta ${pAcc.name}`);
+
+        // Busca próximas páginas se houver mais transações
+        let page = 2;
+        const totalPages = Math.ceil((txData.total || 0) / (txData.results?.length || 20));
+        while (page <= totalPages) {
+          const nextRes = await fetch(`${this.baseUrl}/transactions?accountId=${pAcc.id}&from=${fromStr}&page=${page}`, {
+            headers: { 'X-API-KEY': apiKey },
+          });
+          if (nextRes.ok) {
+            const nextData = await nextRes.json();
+            for (const pTx of (nextData.results || [])) {
+              const txAmount = Math.abs(pTx.amount);
+              const txType = pTx.amount < 0 ? 'EXPENSE' : 'INCOME';
+              const txDate = new Date(pTx.date);
+              const existingTx = await this.prisma.transaction.findFirst({
+                where: { userId, paymentAccountId: paymentAcc.id, amount: txAmount, date: txDate, description: pTx.description },
+              });
+              if (!existingTx) {
+                await this.prisma.transaction.create({
+                  data: { userId, paymentAccountId: paymentAcc.id, type: txType, amount: txAmount, date: txDate, description: pTx.description || 'Transação Pluggy', paymentMethod: pTx.paymentData?.paymentMethod || 'OTHER' },
+                });
+              }
+            }
+          }
+          page++;
+        }
+      } else {
+        const errText = await txRes.text();
+        this.logger.error(`Erro ao buscar transações da conta ${pAcc.id}: ${txRes.status} - ${errText}`);
       }
     }
 

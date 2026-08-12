@@ -241,4 +241,40 @@ export class ReportsService {
       },
     };
   }
+
+  async getCalendarData(userId: string, year: number, month: number) {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    const titles = await this.prisma.financialTitle.findMany({
+      where: {
+        userId,
+        dueDate: { gte: startDate, lte: endDate },
+        status: { not: 'CANCELLED' },
+      },
+    });
+
+    const dailyData: Record<string, { date: string; inflows: number; outflows: number; count: number }> = {};
+    
+    for (let i = 1; i <= endDate.getDate(); i++) {
+      const d = new Date(year, month - 1, i);
+      const dateStr = d.toISOString().split('T')[0];
+      dailyData[dateStr] = { date: dateStr, inflows: 0, outflows: 0, count: 0 };
+    }
+
+    for (const title of titles) {
+      const dateStr = new Date(title.dueDate).toISOString().split('T')[0];
+      if (!dailyData[dateStr]) continue;
+      
+      const remaining = (title.originalAmount || 0) - (title.paidAmount || 0) + (title.interestAmount || 0) - (title.discountAmount || 0);
+      dailyData[dateStr].count += 1;
+      if (title.type === 'RECEIVABLE') {
+        dailyData[dateStr].inflows += remaining;
+      } else {
+        dailyData[dateStr].outflows += remaining;
+      }
+    }
+
+    return Object.values(dailyData);
+  }
 }

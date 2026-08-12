@@ -178,6 +178,17 @@ export class FinanceController {
     return this.reportsService.getFinancialHealthScore(req.user.id);
   }
 
+  @Get('calendar')
+  async getCalendarData(
+    @Req() req: any,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+  ) {
+    const y = year ? parseInt(year) : new Date().getFullYear();
+    const m = month ? parseInt(month) : new Date().getMonth() + 1;
+    return this.reportsService.getCalendarData(req.user.id, y, m);
+  }
+
   // ----------------------------------------------------
   // TRANSAÇÕES & CONCILIAÇÃO
   // ----------------------------------------------------
