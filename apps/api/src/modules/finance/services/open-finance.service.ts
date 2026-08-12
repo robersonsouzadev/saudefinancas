@@ -356,7 +356,6 @@ export class OpenFinanceService {
 
     return { success: true, syncedAccountsCount: syncedAccounts.length, createdTransactionsCount };
   }
-  }
 
   /**
    * Sincroniza todas as conexões (bancos e cartões) do usuário de uma só vez
