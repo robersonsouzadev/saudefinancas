@@ -157,6 +157,40 @@ export default function FinancasPage() {
   const [savingPluggyKeys, setSavingPluggyKeys] = useState(false);
   const [pluggyConnectToken, setPluggyConnectToken] = useState<string | null>(null);
   const [showPluggyWidget, setShowPluggyWidget] = useState(false);
+  const [loadingCnpj, setLoadingCnpj] = useState(false);
+  const [cnpjStatus, setCnpjStatus] = useState<string | null>(null);
+
+  const handleLookupCNPJ = async (cnpjToLookup?: string) => {
+    const rawDoc = cnpjToLookup !== undefined ? cnpjToLookup : entityForm.document;
+    const cleanDoc = rawDoc.replace(/\D/g, '');
+    if (cleanDoc.length !== 14) return;
+
+    setLoadingCnpj(true);
+    setCnpjStatus(null);
+    try {
+      const res = await authFetch(`/api/finance/cnpj/${cleanDoc}`);
+      if (res.ok) {
+        const data = await res.json();
+        setEntityForm(prev => ({
+          ...prev,
+          name: data.name || prev.name,
+          document: data.formattedCnpj || prev.document,
+          email: data.email || prev.email,
+          phone: data.phone || prev.phone,
+          notes: data.address ? `Endereço: ${data.address}` : prev.notes,
+        }));
+        setCnpjStatus(`✅ ${data.status} (${data.source})`);
+      } else {
+        const err = await res.json();
+        setCnpjStatus(`⚠️ ${err.message || 'CNPJ não encontrado na Receita Federal'}`);
+      }
+    } catch (err) {
+      console.error('Erro ao consultar CNPJ:', err);
+      setCnpjStatus('⚠️ Erro ao consultar CNPJ');
+    } finally {
+      setLoadingCnpj(false);
+    }
+  };
 
   // Form States
   const [titleForm, setTitleForm] = useState({
@@ -1696,7 +1730,7 @@ export default function FinancasPage() {
           <div className="w-full max-w-md rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-slate-100">Novo Fornecedor ou Cliente</h3>
-              <button onClick={() => setShowEntityModal(false)}><X className="h-5 w-5 text-slate-400" /></button>
+              <button onClick={() => { setShowEntityModal(false); setCnpjStatus(null); }}><X className="h-5 w-5 text-slate-400" /></button>
             </div>
 
             <form onSubmit={handleSaveEntity} className="space-y-3">
@@ -1713,22 +1747,85 @@ export default function FinancasPage() {
               </div>
 
               <div>
+                <label className="text-xs text-slate-400 flex justify-between items-center mb-1">
+                  <span>CPF / CNPJ</span>
+                  {cnpjStatus && <span className="text-[10px] font-semibold text-emerald-400">{cnpjStatus}</span>}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="00.000.000/0000-00"
+                    value={entityForm.document}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setEntityForm({ ...entityForm, document: val });
+                      const clean = val.replace(/\D/g, '');
+                      if (clean.length === 14 && !loadingCnpj) {
+                        handleLookupCNPJ(val);
+                      }
+                    }}
+                    className="flex-1 rounded bg-slate-800 p-2.5 text-sm text-slate-100 border border-slate-700 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleLookupCNPJ()}
+                    disabled={loadingCnpj}
+                    title="Consultar CNPJ na Receita Federal"
+                    className="flex items-center gap-1.5 rounded bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-500 disabled:opacity-50 transition shrink-0"
+                  >
+                    {loadingCnpj ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                    Consultar
+                  </button>
+                </div>
+                {loadingCnpj && (
+                  <p className="text-[11px] text-blue-400 mt-1 flex items-center gap-1 animate-pulse">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Consultando dados na Receita Federal...
+                  </p>
+                )}
+              </div>
+
+              <div>
                 <label className="text-xs text-slate-400">Nome / Razão Social</label>
                 <input
                   type="text"
                   required
+                  placeholder="Razão Social ou Nome Fantasia"
                   value={entityForm.name}
                   onChange={(e) => setEntityForm({ ...entityForm, name: e.target.value })}
                   className="w-full rounded bg-slate-800 p-2.5 text-sm text-slate-100 border border-slate-700"
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-slate-400">E-mail</label>
+                  <input
+                    type="email"
+                    placeholder="contato@empresa.com"
+                    value={entityForm.email}
+                    onChange={(e) => setEntityForm({ ...entityForm, email: e.target.value })}
+                    className="w-full rounded bg-slate-800 p-2.5 text-sm text-slate-100 border border-slate-700"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400">Telefone</label>
+                  <input
+                    type="text"
+                    placeholder="(00) 00000-0000"
+                    value={entityForm.phone}
+                    onChange={(e) => setEntityForm({ ...entityForm, phone: e.target.value })}
+                    className="w-full rounded bg-slate-800 p-2.5 text-sm text-slate-100 border border-slate-700"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="text-xs text-slate-400">CPF / CNPJ</label>
-                <input
-                  type="text"
-                  value={entityForm.document}
-                  onChange={(e) => setEntityForm({ ...entityForm, document: e.target.value })}
+                <label className="text-xs text-slate-400">Observações / Endereço</label>
+                <textarea
+                  rows={2}
+                  placeholder="Endereço, notas ou observações..."
+                  value={entityForm.notes}
+                  onChange={(e) => setEntityForm({ ...entityForm, notes: e.target.value })}
                   className="w-full rounded bg-slate-800 p-2.5 text-sm text-slate-100 border border-slate-700"
                 />
               </div>

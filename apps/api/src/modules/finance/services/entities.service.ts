@@ -101,4 +101,77 @@ export class EntitiesService {
       },
     };
   }
+
+  /**
+   * Consulta pública de CNPJ na Receita Federal via BrasilAPI com fallback para ReceitaWS
+   */
+  async lookupCNPJ(cnpj: string) {
+    const cleanCnpj = cnpj.replace(/\D/g, '');
+    if (cleanCnpj.length !== 14) {
+      throw new BadRequestException('CNPJ deve conter exatamente 14 dígitos.');
+    }
+
+    // 1. Tenta BrasilAPI
+    try {
+      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cleanCnpj}`, {
+        headers: { 'User-Agent': 'SaudeFinancas/1.0' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const phone = data.ddd_telefone_1
+          ? `(${data.ddd_telefone_1.substring(0, 2)}) ${data.ddd_telefone_1.substring(2)}`
+          : null;
+        const address = [
+          data.logradouro,
+          data.numero ? `nº ${data.numero}` : null,
+          data.complemento,
+          data.bairro,
+          data.municipio ? `${data.municipio}/${data.uf}` : null,
+          data.cep ? `CEP ${data.cep}` : null,
+        ].filter(Boolean).join(', ');
+
+        return {
+          cnpj: cleanCnpj,
+          formattedCnpj: cleanCnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5'),
+          name: data.razao_social || data.nome_fantasia,
+          tradeName: data.nome_fantasia || data.razao_social,
+          email: data.email || null,
+          phone,
+          status: data.descricao_situacao_cadastral || 'ATIVA',
+          address,
+          legalNature: data.natureza_juridica || null,
+          source: 'BrasilAPI',
+        };
+      }
+    } catch (err) {
+      console.warn('BrasilAPI falhou, tentando ReceitaWS...', err);
+    }
+
+    // 2. Fallback para ReceitaWS
+    try {
+      const res = await fetch(`https://receitaws.com.br/v1/cnpj/${cleanCnpj}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'ERROR') {
+          throw new BadRequestException(data.message || 'CNPJ não encontrado na Receita Federal.');
+        }
+        return {
+          cnpj: cleanCnpj,
+          formattedCnpj: cleanCnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5'),
+          name: data.nome || data.fantasia,
+          tradeName: data.fantasia || data.nome,
+          email: data.email || null,
+          phone: data.telefone || null,
+          status: data.situacao || 'ATIVA',
+          address: `${data.logradouro || ''}, ${data.numero || ''} - ${data.bairro || ''}, ${data.municipio || ''}/${data.uf || ''}`,
+          source: 'ReceitaWS',
+        };
+      }
+    } catch (err) {
+      console.error('ReceitaWS também falhou:', err);
+    }
+
+    throw new BadRequestException('Não foi possível consultar os dados do CNPJ na Receita Federal. Verifique o número digitado.');
+  }
 }
+

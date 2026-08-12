@@ -99,6 +99,11 @@ export class FinanceController {
     return this.entitiesService.getEntities(req.user.id, type);
   }
 
+  @Get('cnpj/:cnpj')
+  async lookupCNPJ(@Param('cnpj') cnpj: string) {
+    return this.entitiesService.lookupCNPJ(cnpj);
+  }
+
   @Post('entities')
   async createEntity(@Req() req: any, @Body() data: any) {
     return this.entitiesService.createEntity(req.user.id, data);
