@@ -9,18 +9,28 @@ export class OpenFinanceService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Obtém a API Key de autenticação da Pluggy usando CLIENT_ID e CLIENT_SECRET
+   * Obtém a API Key de autenticação da Pluggy.
+   * Dá prioridade às credenciais individuais salvas no perfil do Usuário.
+   * Se o usuário não configurou credenciais próprias, usa as credenciais globais do .env.
    */
-  private async getPluggyApiKey(): Promise<string> {
-    if (process.env.PLUGGY_API_KEY) {
-      return process.env.PLUGGY_API_KEY;
+  private async getPluggyApiKey(userId?: string): Promise<string> {
+    let clientId = process.env.PLUGGY_CLIENT_ID;
+    let clientSecret = process.env.PLUGGY_CLIENT_SECRET;
+
+    // Se informado userId, busca se o usuário possui chaves próprias (BYOK - Bring Your Own Key)
+    if (userId) {
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (user?.pluggyClientId && user?.pluggyClientSecret) {
+        clientId = user.pluggyClientId;
+        clientSecret = user.pluggyClientSecret;
+      }
     }
 
-    const clientId = process.env.PLUGGY_CLIENT_ID;
-    const clientSecret = process.env.PLUGGY_CLIENT_SECRET;
-
     if (!clientId || !clientSecret) {
-      throw new BadRequestException('PLUGGY_CLIENT_ID e PLUGGY_CLIENT_SECRET não estão configurados no arquivo .env.');
+      if (process.env.PLUGGY_API_KEY) {
+        return process.env.PLUGGY_API_KEY;
+      }
+      throw new BadRequestException('Credenciais da Pluggy (Client ID / Client Secret) não configuradas.');
     }
 
     try {
@@ -33,7 +43,7 @@ export class OpenFinanceService {
       if (!res.ok) {
         const errText = await res.text();
         this.logger.error(`Erro ao autenticar na Pluggy: ${errText}`);
-        throw new BadRequestException('Falha ao autenticar na API da Pluggy. Verifique suas credenciais.');
+        throw new BadRequestException('Falha ao autenticar na Pluggy. Verifique o Client ID e Client Secret informados.');
       }
 
       const data = await res.json();
@@ -45,10 +55,57 @@ export class OpenFinanceService {
   }
 
   /**
+   * Retorna se o usuário tem chaves configuradas (individuais ou globais)
+   */
+  async getUserCredentials(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const hasUserKeys = !!(user?.pluggyClientId && user?.pluggyClientSecret);
+    const hasGlobalKeys = !!(process.env.PLUGGY_CLIENT_ID && process.env.PLUGGY_CLIENT_SECRET) || !!process.env.PLUGGY_API_KEY;
+
+    return {
+      configured: hasUserKeys || hasGlobalKeys,
+      hasCustomKeys: hasUserKeys,
+      pluggyClientId: user?.pluggyClientId || null,
+    };
+  }
+
+  /**
+   * Salva ou atualiza as chaves individuais da Pluggy do usuário
+   */
+  async saveUserCredentials(userId: string, clientId: string, clientSecret: string) {
+    if (!clientId || !clientSecret) {
+      throw new BadRequestException('Client ID e Client Secret são obrigatórios.');
+    }
+
+    // Salva temporariamente e valida se as chaves funcionam
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        pluggyClientId: clientId.trim(),
+        pluggyClientSecret: clientSecret.trim(),
+      },
+    });
+
+    try {
+      // Testa se a autenticação funciona com as novas chaves
+      await this.getPluggyApiKey(userId);
+    } catch (err) {
+      // Se falhar, reverte
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { pluggyClientId: null, pluggyClientSecret: null },
+      });
+      throw new BadRequestException('Chaves da Pluggy inválidas. Verifique o Client ID e Client Secret digitados.');
+    }
+
+    return { success: true, message: 'Credenciais da Pluggy salvas e validadas com sucesso!' };
+  }
+
+  /**
    * Gera um Connect Token de curta duração para o widget do frontend (Pluggy Connect)
    */
   async createConnectToken(userId: string, itemId?: string) {
-    const apiKey = await this.getPluggyApiKey();
+    const apiKey = await this.getPluggyApiKey(userId);
 
     try {
       const res = await fetch(`${this.baseUrl}/connect_token`, {
@@ -76,10 +133,10 @@ export class OpenFinanceService {
   }
 
   /**
-   * Retorna o status de integração do Open Finance
+   * Retorna o status de integração do Open Finance do usuário
    */
   async getStatus(userId: string) {
-    const hasPluggy = !!(process.env.PLUGGY_CLIENT_ID && process.env.PLUGGY_CLIENT_SECRET);
+    const creds = await this.getUserCredentials(userId);
 
     const connections = await this.prisma.openFinanceConnection.findMany({
       where: { userId },
@@ -87,7 +144,8 @@ export class OpenFinanceService {
     });
 
     return {
-      configured: hasPluggy,
+      configured: creds.configured,
+      hasCustomKeys: creds.hasCustomKeys,
       provider: 'PLUGGY',
       connections,
     };
@@ -137,7 +195,7 @@ export class OpenFinanceService {
   }
 
   /**
-   * Sincroniza contas bancárias e transações do Item Pluggy para o sistema
+   * Sincroniza contas bancárias e transações do Item Pluggy para a conta do Usuário
    */
   async syncItem(userId: string, connectionId: string) {
     const connection = await this.prisma.openFinanceConnection.findFirst({
@@ -148,7 +206,7 @@ export class OpenFinanceService {
       throw new NotFoundException('Conexão Open Finance não encontrada.');
     }
 
-    const apiKey = await this.getPluggyApiKey();
+    const apiKey = await this.getPluggyApiKey(userId);
 
     // 1. Busca Contas do Item
     const accountsRes = await fetch(`${this.baseUrl}/accounts?itemId=${connection.itemId}`, {
@@ -165,12 +223,10 @@ export class OpenFinanceService {
     const syncedAccounts = [];
 
     for (const pAcc of pluggyAccounts) {
-      // Mapeia tipo de conta
       let accType: any = 'CHECKING';
       if (pAcc.type === 'SAVINGS') accType = 'SAVINGS';
       else if (pAcc.type === 'CREDIT') accType = 'DIGITAL_WALLET';
 
-      // Upsert na tabela PaymentAccount
       const existingAcc = await this.prisma.paymentAccount.findFirst({
         where: { userId, openFinanceItemId: pAcc.id },
       });
@@ -220,7 +276,6 @@ export class OpenFinanceService {
           const txType = pTx.amount < 0 ? 'EXPENSE' : 'INCOME';
           const txDate = new Date(pTx.date);
 
-          // Verifica se a transação já foi importada
           const existingTx = await this.prisma.transaction.findFirst({
             where: {
               userId,
@@ -248,7 +303,6 @@ export class OpenFinanceService {
       }
     }
 
-    // Atualiza status da conexão
     await this.prisma.openFinanceConnection.update({
       where: { id: connection.id },
       data: { status: 'CONNECTED', lastSyncAt: new Date() },

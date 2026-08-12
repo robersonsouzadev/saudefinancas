@@ -307,6 +307,16 @@ export class FinanceController {
     return this.recurringService.deleteRecurringRule(req.user.id, id);
   }
 
+  @Get('open-finance/credentials')
+  async getUserCredentials(@Req() req: any) {
+    return this.openFinanceService.getUserCredentials(req.user.id);
+  }
+
+  @Post('open-finance/credentials')
+  async saveUserCredentials(@Req() req: any, @Body() data: { clientId: string; clientSecret: string }) {
+    return this.openFinanceService.saveUserCredentials(req.user.id, data.clientId, data.clientSecret);
+  }
+
   @Get('open-finance/status')
   async getOpenFinanceStatus(@Req() req: any) {
     return this.openFinanceService.getStatus(req.user.id);

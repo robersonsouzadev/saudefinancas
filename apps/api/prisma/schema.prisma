@@ -27,6 +27,8 @@ model User {
   heightCm               Float?
   uazapiInstance         String?
   uazapiToken            String?
+  pluggyClientId         String?
+  pluggyClientSecret     String?
   timezone               String?                 @default("America/Sao_Paulo")
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt

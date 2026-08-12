@@ -130,6 +130,9 @@ export default function FinancasPage() {
   const [showCardModal, setShowCardModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showDetailDrawer, setShowDetailDrawer] = useState<FinancialTitle | null>(null);
+  const [showPluggyKeysModal, setShowPluggyKeysModal] = useState(false);
+  const [pluggyKeysForm, setPluggyKeysForm] = useState({ clientId: '', clientSecret: '' });
+  const [savingPluggyKeys, setSavingPluggyKeys] = useState(false);
 
   // Form States
   const [titleForm, setTitleForm] = useState({
@@ -455,6 +458,39 @@ export default function FinancasPage() {
     }
   };
 
+  // Submit Chaves Individuais Pluggy (BYOK)
+  const handleSavePluggyKeys = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingPluggyKeys(true);
+    try {
+      const res = await authFetch('/api/finance/open-finance/credentials', {
+        method: 'POST',
+        body: JSON.stringify(pluggyKeysForm),
+      });
+
+      if (res.ok) {
+        setShowPluggyKeysModal(false);
+        // Tenta gerar connectToken imediatamente
+        const tokenRes = await authFetch('/api/finance/open-finance/connect-token', { method: 'POST' });
+        if (tokenRes.ok) {
+          const data = await tokenRes.json();
+          if (data.connectToken) {
+            const url = `https://connect.pluggy.ai?connectToken=${data.connectToken}`;
+            window.open(url, 'PluggyConnect', 'width=500,height=700');
+          }
+        }
+      } else {
+        const err = await res.json();
+        alert(err.message || 'Chaves da Pluggy inválidas. Verifique o Client ID e Secret.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao salvar credenciais.');
+    } finally {
+      setSavingPluggyKeys(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-96 items-center justify-center">
@@ -477,27 +513,36 @@ export default function FinancasPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={async () => {
-              try {
-                const res = await authFetch('/api/finance/open-finance/connect-token', { method: 'POST' });
-                if (res.ok) {
-                  const data = await res.json();
-                  if (data.connectToken) {
-                    const url = `https://connect.pluggy.ai?connectToken=${data.connectToken}`;
-                    window.open(url, 'PluggyConnect', 'width=500,height=700');
+          <div className="flex items-center gap-1">
+            <button
+              onClick={async () => {
+                try {
+                  const res = await authFetch('/api/finance/open-finance/connect-token', { method: 'POST' });
+                  if (res.ok) {
+                    const data = await res.json();
+                    if (data.connectToken) {
+                      const url = `https://connect.pluggy.ai?connectToken=${data.connectToken}`;
+                      window.open(url, 'PluggyConnect', 'width=500,height=700');
+                    }
+                  } else {
+                    setShowPluggyKeysModal(true);
                   }
-                } else {
-                  alert('Para conectar a Pluggy em produção, adicione PLUGGY_CLIENT_ID e PLUGGY_CLIENT_SECRET no arquivo .env do backend.');
+                } catch (err) {
+                  setShowPluggyKeysModal(true);
                 }
-              } catch (err) {
-                console.error(err);
-              }
-            }}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:brightness-110 transition"
-          >
-            <RefreshCw className="h-4 w-4" /> ⚡ Conectar Banco (Pluggy)
-          </button>
+              }}
+              className="flex items-center gap-2 rounded-l-lg bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:brightness-110 transition"
+            >
+              <RefreshCw className="h-4 w-4" /> ⚡ Conectar Banco (Pluggy)
+            </button>
+            <button
+              onClick={() => setShowPluggyKeysModal(true)}
+              title="Configurar Minhas Chaves Pluggy"
+              className="rounded-r-lg bg-teal-700 px-2.5 py-2 text-sm font-semibold text-white hover:bg-teal-600 border-l border-teal-500/30 transition"
+            >
+              ⚙️
+            </button>
+          </div>
           <button
             onClick={() => setShowVoiceModal(true)}
             className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:brightness-110 transition"
@@ -1119,6 +1164,58 @@ export default function FinancasPage() {
 
               <button type="submit" className="w-full rounded-lg bg-blue-600 p-3 font-bold text-white hover:bg-blue-500">
                 Salvar Cadastramento
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CHAVES INDIVIDUAIS PLUGGY (BYOK PER-USER) */}
+      {showPluggyKeysModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl border border-emerald-500/30 bg-slate-900 p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-emerald-300 flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-emerald-400" /> Minhas Chaves Pluggy (Gratuito)
+              </h3>
+              <button onClick={() => setShowPluggyKeysModal(false)}><X className="h-5 w-5 text-slate-400" /></button>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              Cole aqui o <strong>Client ID</strong> e <strong>Client Secret</strong> da sua conta gratuita em <a href="https://dashboard.pluggy.ai" target="_blank" rel="noreferrer" className="text-blue-400 underline">dashboard.pluggy.ai</a> para conectar seus bancos sem custo de empresa.
+            </p>
+
+            <form onSubmit={handleSavePluggyKeys} className="space-y-3">
+              <div>
+                <label className="text-xs text-slate-400">Meu Client ID</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="ex: 4bb19c37-a618-4d44-86b8-0a22246ddea2"
+                  value={pluggyKeysForm.clientId}
+                  onChange={(e) => setPluggyKeysForm({ ...pluggyKeysForm, clientId: e.target.value })}
+                  className="w-full rounded bg-slate-800 p-2.5 text-xs text-slate-100 border border-slate-700 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-400">Meu Client Secret</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="ex: Kc1ryqjZ_QNyTzZ0Cq..."
+                  value={pluggyKeysForm.clientSecret}
+                  onChange={(e) => setPluggyKeysForm({ ...pluggyKeysForm, clientSecret: e.target.value })}
+                  className="w-full rounded bg-slate-800 p-2.5 text-xs text-slate-100 border border-slate-700 font-mono"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingPluggyKeys}
+                className="w-full rounded-lg bg-emerald-600 p-3 font-bold text-white hover:bg-emerald-500 flex items-center justify-center gap-2"
+              >
+                {savingPluggyKeys ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar e Conectar Banco'}
               </button>
             </form>
           </div>
