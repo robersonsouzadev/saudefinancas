@@ -1306,7 +1306,10 @@ export default function FinancasPage() {
                 className="w-full rounded bg-slate-800 p-2.5 text-sm text-slate-100 border border-slate-700"
               >
                 <option value="">Todas</option>
-                {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                {accounts.length > 0 && <option disabled className="text-slate-500">── Contas ──</option>}
+                {accounts.map(a => <option key={a.id} value={`acc_${a.id}`}>{a.name}</option>)}
+                {creditCards.length > 0 && <option disabled className="text-slate-500">── Cartões ──</option>}
+                {creditCards.map(c => <option key={c.id} value={`cc_${c.id}`}>💳 {c.name}</option>)}
               </select>
             </div>
             <div>
@@ -1332,7 +1335,17 @@ export default function FinancasPage() {
           {transactions.filter(tx => {
             if (txSearch && !tx.description.toLowerCase().includes(txSearch.toLowerCase()) && !tx.category?.toLowerCase().includes(txSearch.toLowerCase())) return false;
             if (txTypeFilter !== 'ALL' && tx.type !== txTypeFilter) return false;
-            if (txAccountFilter && tx.paymentAccountId !== txAccountFilter && tx.paymentAccount?.id !== txAccountFilter) return false;
+            if (txAccountFilter) {
+              if (txAccountFilter.startsWith('acc_')) {
+                const accId = txAccountFilter.slice(4);
+                if (tx.paymentAccountId !== accId) return false;
+              } else if (txAccountFilter.startsWith('cc_')) {
+                const ccId = txAccountFilter.slice(3);
+                if (tx.creditCardId !== ccId) return false;
+              } else {
+                if (tx.paymentAccountId !== txAccountFilter && tx.creditCardId !== txAccountFilter) return false;
+              }
+            }
             if (txStartDate && new Date(tx.date) < new Date(txStartDate)) return false;
             if (txEndDate && new Date(tx.date) > new Date(txEndDate)) return false;
             return true;
@@ -1353,7 +1366,17 @@ export default function FinancasPage() {
                   {transactions.filter(tx => {
                     if (txSearch && !tx.description.toLowerCase().includes(txSearch.toLowerCase()) && !tx.category?.toLowerCase().includes(txSearch.toLowerCase())) return false;
                     if (txTypeFilter !== 'ALL' && tx.type !== txTypeFilter) return false;
-                    if (txAccountFilter && tx.paymentAccountId !== txAccountFilter && tx.paymentAccount?.id !== txAccountFilter) return false;
+                    if (txAccountFilter) {
+              if (txAccountFilter.startsWith('acc_')) {
+                const accId = txAccountFilter.slice(4);
+                if (tx.paymentAccountId !== accId) return false;
+              } else if (txAccountFilter.startsWith('cc_')) {
+                const ccId = txAccountFilter.slice(3);
+                if (tx.creditCardId !== ccId) return false;
+              } else {
+                if (tx.paymentAccountId !== txAccountFilter && tx.creditCardId !== txAccountFilter) return false;
+              }
+            }
                     if (txStartDate && new Date(tx.date) < new Date(txStartDate)) return false;
                     if (txEndDate && new Date(tx.date) > new Date(txEndDate)) return false;
                     return true;
