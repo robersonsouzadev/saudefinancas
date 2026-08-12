@@ -2,6 +2,45 @@ import { Injectable, BadRequestException, NotFoundException, Logger } from '@nes
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CategorizerService } from './categorizer.service';
 
+/**
+ * Mapeamento de métodos de pagamento da Pluggy para o enum PaymentMethod do Prisma.
+ * A Pluggy pode retornar valores como "TRANSFER", "pix", "CREDIT", etc.
+ * que NÃO correspondem diretamente ao enum do Prisma.
+ */
+const PLUGGY_PAYMENT_METHOD_MAP: Record<string, string> = {
+  // Mapeamentos exatos Pluggy -> Prisma
+  'CREDIT_CARD': 'CREDIT_CARD',
+  'CREDIT': 'CREDIT_CARD',
+  'CREDITO': 'CREDIT_CARD',
+  'CARTAO_CREDITO': 'CREDIT_CARD',
+  'CARTÃO_CRÉDITO': 'CREDIT_CARD',
+  'DEBIT_CARD': 'DEBIT_CARD',
+  'DEBIT': 'DEBIT_CARD',
+  'DEBITO': 'DEBIT_CARD',
+  'CARTAO_DEBITO': 'DEBIT_CARD',
+  'CARTÃO_DÉBITO': 'DEBIT_CARD',
+  'PIX': 'PIX',
+  'CASH': 'CASH',
+  'DINHEIRO': 'CASH',
+  'BANK_TRANSFER': 'BANK_TRANSFER',
+  'TRANSFER': 'BANK_TRANSFER',
+  'TRANSFERENCIA': 'BANK_TRANSFER',
+  'TRANSFERÊNCIA': 'BANK_TRANSFER',
+  'TED': 'BANK_TRANSFER',
+  'DOC': 'BANK_TRANSFER',
+  'WIRE': 'BANK_TRANSFER',
+  'BOLETO': 'BOLETO',
+  'BILLET': 'BOLETO',
+  'OTHER': 'OTHER',
+  'OUTROS': 'OTHER',
+};
+
+function normalizePluggyPaymentMethod(pluggyMethod?: string): string {
+  if (!pluggyMethod) return 'OTHER';
+  const upper = pluggyMethod.toUpperCase().trim();
+  return PLUGGY_PAYMENT_METHOD_MAP[upper] || 'OTHER';
+}
+
 @Injectable()
 export class OpenFinanceService {
   private readonly logger = new Logger(OpenFinanceService.name);
@@ -156,7 +195,8 @@ export class OpenFinanceService {
   }
 
   /**
-   * Registra a nova conexão após sucesso no Widget Pluggy Connect
+   * Registra a nova conexão após sucesso no Widget Pluggy Connect.
+   * Aguarda a sincronização inicial completar antes de retornar.
    */
   async connectWidget(userId: string, payload: { itemId: string; institutionName?: string }) {
     if (!payload.itemId) {
@@ -190,12 +230,17 @@ export class OpenFinanceService {
       });
     }
 
-    // Dispara sincronização inicial em segundo plano
-    this.syncItem(userId, connection.id).catch((err) => {
+    // Sincronização inicial - executa e aguarda (não mais fire-and-forget)
+    // para que o frontend receba os dados ao chamar fetchData() logo após
+    try {
+      const syncResult = await this.syncItem(userId, connection.id);
+      this.logger.log(`Sincronização inicial concluída para item ${payload.itemId}: ${JSON.stringify(syncResult)}`);
+      return { ...connection, syncResult };
+    } catch (err) {
       this.logger.error(`Erro na sincronização inicial do item ${payload.itemId}:`, err);
-    });
-
-    return connection;
+      // Retorna a conexão mesmo com erro na sync, para não quebrar o fluxo
+      return { ...connection, syncError: 'Sincronização inicial falhou, tente novamente.' };
+    }
   }
 
   /**
@@ -211,24 +256,33 @@ export class OpenFinanceService {
     }
 
     const apiKey = await this.getPluggyApiKey(userId);
+    this.logger.log(`[SYNC] Iniciando sync do item ${connection.itemId} para userId=${userId}`);
 
     // 1. Busca Contas do Item
+    this.logger.log(`[SYNC] Buscando contas na Pluggy para itemId=${connection.itemId}...`);
     const accountsRes = await fetch(`${this.baseUrl}/accounts?itemId=${connection.itemId}`, {
       headers: { 'X-API-KEY': apiKey },
     });
 
     if (!accountsRes.ok) {
-      throw new Error(`Erro ao buscar contas na Pluggy: ${await accountsRes.text()}`);
+      const errText = await accountsRes.text();
+      this.logger.error(`[SYNC] Erro ao buscar contas na Pluggy (status=${accountsRes.status}): ${errText}`);
+      throw new Error(`Erro ao buscar contas na Pluggy: ${errText}`);
     }
 
     const accountsData = await accountsRes.json();
     const pluggyAccounts = accountsData.results || [];
+    this.logger.log(`[SYNC] Pluggy retornou ${pluggyAccounts.length} conta(s) para o item ${connection.itemId}`);
 
     const syncedAccounts = [];
     const accountMapByPluggyId: Record<string, any> = {};
     let createdTransactionsCount = 0;
+    let skippedTransactionsCount = 0;
+    let errorTransactionsCount = 0;
 
     for (const pAcc of pluggyAccounts) {
+      this.logger.log(`[SYNC] Processando conta Pluggy: id=${pAcc.id}, name=${pAcc.name}, type=${pAcc.type}, balance=${pAcc.balance}`);
+      
       let accType: any = 'CHECKING';
       if (pAcc.type === 'SAVINGS') accType = 'SAVINGS';
       else if (pAcc.type === 'CREDIT') accType = 'DIGITAL_WALLET';
@@ -248,6 +302,7 @@ export class OpenFinanceService {
             lastSyncedAt: new Date(),
           },
         });
+        this.logger.log(`[SYNC] Conta atualizada: ${paymentAcc.id} (${paymentAcc.name})`);
       } else {
         paymentAcc = await this.prisma.paymentAccount.create({
           data: {
@@ -261,13 +316,14 @@ export class OpenFinanceService {
             lastSyncedAt: new Date(),
           },
         });
+        this.logger.log(`[SYNC] Nova conta criada: ${paymentAcc.id} (${paymentAcc.name})`);
       }
       syncedAccounts.push(paymentAcc);
       accountMapByPluggyId[pAcc.id] = paymentAcc;
     }
 
     // 2. Busca Transações por Item (todas as contas e cartões de uma só vez)
-    this.logger.log(`Buscando transações por itemId ${connection.itemId} na Pluggy...`);
+    this.logger.log(`[SYNC] Buscando transações por itemId ${connection.itemId} na Pluggy...`);
     let pluggyTransactions: any[] = [];
     
     let txRes = await fetch(`${this.baseUrl}/transactions?itemId=${connection.itemId}&pageSize=500`, {
@@ -277,37 +333,54 @@ export class OpenFinanceService {
     if (txRes.ok) {
       const txData = await txRes.json();
       pluggyTransactions = txData.results || [];
-      this.logger.log(`Pluggy retornou ${pluggyTransactions.length} transações para o item ${connection.itemId}`);
+      this.logger.log(`[SYNC] Pluggy retornou ${pluggyTransactions.length} transações para o item ${connection.itemId}`);
     } else {
-      this.logger.warn(`Busca por itemId falhou (${txRes.status}). Tentando por conta individual...`);
+      const errText = await txRes.text();
+      this.logger.warn(`[SYNC] Busca por itemId falhou (status=${txRes.status}): ${errText}. Tentando por conta individual...`);
     }
 
     // Fallback por conta individual se a busca por itemId retornar 0 ou falhar
     if (pluggyTransactions.length === 0) {
       for (const pAcc of pluggyAccounts) {
+        this.logger.log(`[SYNC] Fallback: buscando transações para accountId=${pAcc.id}...`);
         const singleTxRes = await fetch(`${this.baseUrl}/transactions?accountId=${pAcc.id}&pageSize=500`, {
           headers: { 'X-API-KEY': apiKey },
         });
         if (singleTxRes.ok) {
           const singleData = await singleTxRes.json();
           if (singleData.results && singleData.results.length > 0) {
+            this.logger.log(`[SYNC] Fallback accountId=${pAcc.id}: ${singleData.results.length} transações encontradas`);
             pluggyTransactions.push(...singleData.results);
+          } else {
+            this.logger.log(`[SYNC] Fallback accountId=${pAcc.id}: 0 transações`);
           }
+        } else {
+          const errText = await singleTxRes.text();
+          this.logger.warn(`[SYNC] Fallback accountId=${pAcc.id} falhou (status=${singleTxRes.status}): ${errText}`);
         }
       }
-      this.logger.log(`Busca fallback por conta individual retornou ${pluggyTransactions.length} transações.`);
+      this.logger.log(`[SYNC] Busca fallback total: ${pluggyTransactions.length} transações.`);
     }
 
     // 3. Processa e salva todas as transações importadas
+    this.logger.log(`[SYNC] Processando ${pluggyTransactions.length} transações...`);
     for (const pTx of pluggyTransactions) {
       try {
         const targetPaymentAcc = accountMapByPluggyId[pTx.accountId] || syncedAccounts[0];
-        if (!targetPaymentAcc) continue;
+        if (!targetPaymentAcc) {
+          this.logger.warn(`[SYNC] Transação ignorada - sem conta correspondente. accountId=${pTx.accountId}, desc="${pTx.description}"`);
+          skippedTransactionsCount++;
+          continue;
+        }
 
         const txAmount = Math.abs(pTx.amount || 0);
         const txType = (pTx.amount || 0) < 0 ? 'EXPENSE' : 'INCOME';
         const txDate = pTx.date ? new Date(pTx.date) : new Date();
         const txDescription = (pTx.description || pTx.merchant?.name || 'Transação Pluggy').trim();
+
+        // Normaliza o método de pagamento da Pluggy para o enum do Prisma
+        const rawPluggyMethod = pTx.paymentData?.paymentMethod;
+        const normalizedPaymentMethod = normalizePluggyPaymentMethod(rawPluggyMethod);
 
         const existingTx = await this.prisma.transaction.findFirst({
           where: {
@@ -319,55 +392,70 @@ export class OpenFinanceService {
           },
         });
 
-        if (!existingTx) {
-          let categoryId: string | undefined;
-          try {
-            const catResult = await this.categorizer.categorizeDescription(txDescription, userId);
-            let category = await this.prisma.transactionCategory.findFirst({
-              where: { name: catResult.category },
-            });
-            if (!category) {
-              category = await this.prisma.transactionCategory.create({
-                data: {
-                  name: catResult.category,
-                  type: txType,
-                  color: catResult.color || '#3b82f6',
-                  icon: catResult.icon || 'Tag',
-                },
-              });
-            }
-            categoryId = category.id;
-          } catch (catErr) {
-            this.logger.warn(`Erro ao categorizar '${txDescription}':`, catErr);
-          }
-
-          await this.prisma.transaction.create({
-            data: {
-              userId,
-              paymentAccountId: targetPaymentAcc.id,
-              type: txType,
-              amount: txAmount,
-              date: txDate,
-              description: txDescription,
-              paymentMethod: pTx.paymentData?.paymentMethod || 'OTHER',
-              categoryId,
-            },
-          });
-          createdTransactionsCount++;
+        if (existingTx) {
+          skippedTransactionsCount++;
+          continue;
         }
-      } catch (txErr) {
-        this.logger.error(`Erro ao salvar transação Pluggy individual:`, txErr);
+
+        let categoryId: string | undefined;
+        try {
+          const catResult = await this.categorizer.categorizeDescription(txDescription, userId);
+          let category = await this.prisma.transactionCategory.findFirst({
+            where: { name: catResult.category },
+          });
+          if (!category) {
+            category = await this.prisma.transactionCategory.create({
+              data: {
+                name: catResult.category,
+                type: txType,
+                color: catResult.color || '#3b82f6',
+                icon: catResult.icon || 'Tag',
+              },
+            });
+          }
+          categoryId = category.id;
+        } catch (catErr) {
+          this.logger.warn(`[SYNC] Erro ao categorizar '${txDescription}' (continuando sem categoria):`, catErr);
+        }
+
+        await this.prisma.transaction.create({
+          data: {
+            userId,
+            paymentAccountId: targetPaymentAcc.id,
+            type: txType,
+            amount: txAmount,
+            date: txDate,
+            description: txDescription,
+            paymentMethod: normalizedPaymentMethod as any,
+            categoryId,
+          },
+        });
+        createdTransactionsCount++;
+      } catch (txErr: any) {
+        errorTransactionsCount++;
+        this.logger.error(
+          `[SYNC] ❌ Erro ao salvar transação Pluggy: desc="${pTx.description}", amount=${pTx.amount}, date=${pTx.date}, accountId=${pTx.accountId}, paymentMethod=${pTx.paymentData?.paymentMethod}. Erro: ${txErr.message || txErr}`,
+        );
       }
     }
 
-    this.logger.log(`Criadas ${createdTransactionsCount} novas transações para o item ${connection.itemId}`);
+    this.logger.log(
+      `[SYNC] ✅ Sync concluído para item ${connection.itemId}: ` +
+      `${createdTransactionsCount} criadas, ${skippedTransactionsCount} existentes/ignoradas, ${errorTransactionsCount} erros`,
+    );
 
     await this.prisma.openFinanceConnection.update({
       where: { id: connection.id },
       data: { status: 'CONNECTED', lastSyncAt: new Date() },
     });
 
-    return { success: true, syncedAccountsCount: syncedAccounts.length, createdTransactionsCount };
+    return {
+      success: true,
+      syncedAccountsCount: syncedAccounts.length,
+      createdTransactionsCount,
+      skippedTransactionsCount,
+      errorTransactionsCount,
+    };
   }
 
   /**
@@ -378,17 +466,33 @@ export class OpenFinanceService {
       where: { userId },
     });
 
+    this.logger.log(`[SYNC-ALL] Iniciando sync de ${connections.length} conexões para userId=${userId}`);
+
     let totalSynced = 0;
+    let totalCreated = 0;
+    let totalErrors = 0;
     for (const conn of connections) {
       try {
         const res = await this.syncItem(userId, conn.id);
         if (res.syncedAccountsCount) totalSynced += res.syncedAccountsCount;
+        if (res.createdTransactionsCount) totalCreated += res.createdTransactionsCount;
+        if (res.errorTransactionsCount) totalErrors += res.errorTransactionsCount;
       } catch (err) {
-        this.logger.error(`Erro ao sincronizar conexão ${conn.itemId}:`, err);
+        this.logger.error(`[SYNC-ALL] Erro ao sincronizar conexão ${conn.itemId}:`, err);
       }
     }
 
-    return { success: true, connectionsCount: connections.length, syncedAccountsCount: totalSynced };
+    this.logger.log(
+      `[SYNC-ALL] ✅ Completo: ${connections.length} conexões, ${totalSynced} contas, ${totalCreated} transações criadas, ${totalErrors} erros`,
+    );
+
+    return {
+      success: true,
+      connectionsCount: connections.length,
+      syncedAccountsCount: totalSynced,
+      createdTransactionsCount: totalCreated,
+      errorTransactionsCount: totalErrors,
+    };
   }
 
   /**

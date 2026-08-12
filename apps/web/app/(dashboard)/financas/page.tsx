@@ -160,20 +160,34 @@ export default function FinancasPage() {
   const [loadingCnpj, setLoadingCnpj] = useState(false);
   const [cnpjStatus, setCnpjStatus] = useState<string | null>(null);
   const [syncingOpenFinance, setSyncingOpenFinance] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   const handleSyncAllOpenFinance = async () => {
     setSyncingOpenFinance(true);
+    setSyncFeedback(null);
     try {
       const res = await authFetch('/api/finance/open-finance/sync-all', { method: 'POST' });
       if (res.ok) {
-        fetchData();
+        const data = await res.json();
+        const msg = `✅ Sincronização concluída: ${data.createdTransactionsCount || 0} novas transações importadas` +
+          (data.errorTransactionsCount ? `, ${data.errorTransactionsCount} erros` : '');
+        setSyncFeedback(msg);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setSyncFeedback(`⚠️ Erro na sincronização: ${errData.message || res.statusText}`);
       }
+      // Sempre re-busca os dados, mesmo em caso de erro parcial
+      fetchData();
     } catch (err) {
       console.error('Erro ao sincronizar Open Finance:', err);
+      setSyncFeedback('⚠️ Erro de rede ao sincronizar. Verifique sua conexão.');
     } finally {
       setSyncingOpenFinance(false);
+      // Limpa o feedback após 8 segundos
+      setTimeout(() => setSyncFeedback(null), 8000);
     }
   };
+
 
   const handleLookupCNPJ = async (cnpjToLookup?: string) => {
     const rawDoc = cnpjToLookup !== undefined ? cnpjToLookup : entityForm.document;
@@ -1246,7 +1260,18 @@ export default function FinancasPage() {
             </button>
           </div>
 
+          {syncFeedback && (
+            <div className={`rounded-lg px-4 py-3 text-sm font-medium border ${
+              syncFeedback.startsWith('✅') 
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+            }`}>
+              {syncFeedback}
+            </div>
+          )}
+
           <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+
             <div className="lg:col-span-2">
               <label className="text-xs text-slate-400">Buscar</label>
               <div className="flex items-center gap-2 rounded bg-slate-800 p-2 text-sm border border-slate-700">
