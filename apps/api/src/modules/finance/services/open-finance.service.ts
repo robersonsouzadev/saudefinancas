@@ -1,12 +1,16 @@
 import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { CategorizerService } from './categorizer.service';
 
 @Injectable()
 export class OpenFinanceService {
   private readonly logger = new Logger(OpenFinanceService.name);
   private readonly baseUrl = 'https://api.pluggy.ai';
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly categorizer: CategorizerService,
+  ) {}
 
   /**
    * Obtém a API Key de autenticação da Pluggy.
@@ -291,6 +295,26 @@ export class OpenFinanceService {
           });
 
           if (!existingTx) {
+            // Categorização Automática por IA/Heurística
+            let categoryId: string | undefined;
+            if (pTx.description) {
+              const catResult = await this.categorizer.categorizeDescription(pTx.description, userId);
+              let category = await this.prisma.transactionCategory.findFirst({
+                where: { name: catResult.category },
+              });
+              if (!category) {
+                category = await this.prisma.transactionCategory.create({
+                  data: {
+                    name: catResult.category,
+                    type: txType,
+                    color: catResult.color || '#3b82f6',
+                    icon: catResult.icon || 'Tag',
+                  },
+                });
+              }
+              categoryId = category.id;
+            }
+
             await this.prisma.transaction.create({
               data: {
                 userId,
@@ -300,6 +324,7 @@ export class OpenFinanceService {
                 date: txDate,
                 description: pTx.description || 'Transação Pluggy',
                 paymentMethod: pTx.paymentData?.paymentMethod || 'OTHER',
+                categoryId,
               },
             });
             created++;
@@ -324,8 +349,17 @@ export class OpenFinanceService {
                 where: { userId, paymentAccountId: paymentAcc.id, amount: txAmount, date: txDate, description: pTx.description },
               });
               if (!existingTx) {
+                let categoryId: string | undefined;
+                if (pTx.description) {
+                  const catResult = await this.categorizer.categorizeDescription(pTx.description, userId);
+                  let category = await this.prisma.transactionCategory.findFirst({ where: { name: catResult.category } });
+                  if (!category) {
+                    category = await this.prisma.transactionCategory.create({ data: { name: catResult.category, type: txType, color: catResult.color || '#3b82f6', icon: catResult.icon || 'Tag' } });
+                  }
+                  categoryId = category.id;
+                }
                 await this.prisma.transaction.create({
-                  data: { userId, paymentAccountId: paymentAcc.id, type: txType, amount: txAmount, date: txDate, description: pTx.description || 'Transação Pluggy', paymentMethod: pTx.paymentData?.paymentMethod || 'OTHER' },
+                  data: { userId, paymentAccountId: paymentAcc.id, type: txType, amount: txAmount, date: txDate, description: pTx.description || 'Transação Pluggy', paymentMethod: pTx.paymentData?.paymentMethod || 'OTHER', categoryId },
                 });
               }
             }
