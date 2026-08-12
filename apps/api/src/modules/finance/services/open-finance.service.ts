@@ -381,6 +381,27 @@ export class OpenFinanceService {
   }
 
   /**
+   * Sincroniza todas as conexões (bancos e cartões) do usuário de uma só vez
+   */
+  async syncAllUserItems(userId: string) {
+    const connections = await this.prisma.openFinanceConnection.findMany({
+      where: { userId },
+    });
+
+    let totalSynced = 0;
+    for (const conn of connections) {
+      try {
+        const res = await this.syncItem(userId, conn.id);
+        if (res.syncedAccountsCount) totalSynced += res.syncedAccountsCount;
+      } catch (err) {
+        this.logger.error(`Erro ao sincronizar conexão ${conn.itemId}:`, err);
+      }
+    }
+
+    return { success: true, connectionsCount: connections.length, syncedAccountsCount: totalSynced };
+  }
+
+  /**
    * Processador de Webhooks da Pluggy
    */
   async handleWebhook(payload: any) {

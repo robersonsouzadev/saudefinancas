@@ -353,6 +353,11 @@ export class FinanceController {
     return this.openFinanceService.syncItem(req.user.id, connectionId);
   }
 
+  @Post('open-finance/sync-all')
+  async syncAllOpenFinanceItems(@Req() req: any) {
+    return this.openFinanceService.syncAllUserItems(req.user.id);
+  }
+
   @Public()
   @HttpCode(200)
   @Post('open-finance/webhook')

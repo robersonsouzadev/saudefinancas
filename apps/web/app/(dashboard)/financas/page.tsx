@@ -159,6 +159,21 @@ export default function FinancasPage() {
   const [showPluggyWidget, setShowPluggyWidget] = useState(false);
   const [loadingCnpj, setLoadingCnpj] = useState(false);
   const [cnpjStatus, setCnpjStatus] = useState<string | null>(null);
+  const [syncingOpenFinance, setSyncingOpenFinance] = useState(false);
+
+  const handleSyncAllOpenFinance = async () => {
+    setSyncingOpenFinance(true);
+    try {
+      const res = await authFetch('/api/finance/open-finance/sync-all', { method: 'POST' });
+      if (res.ok) {
+        fetchData();
+      }
+    } catch (err) {
+      console.error('Erro ao sincronizar Open Finance:', err);
+    } finally {
+      setSyncingOpenFinance(false);
+    }
+  };
 
   const handleLookupCNPJ = async (cnpjToLookup?: string) => {
     const rawDoc = cnpjToLookup !== undefined ? cnpjToLookup : entityForm.document;
@@ -1213,12 +1228,22 @@ export default function FinancasPage() {
 
       {/* TAB CONTENT: EXTRATO */}
       {activeTab === 'transactions' && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center bg-slate-900 p-4 rounded-xl border border-slate-800">
-            <h3 className="font-bold text-slate-100 flex items-center gap-2">
-              <Receipt className="h-5 w-5 text-blue-400" /> Extrato de Transações
-            </h3>
-            <p className="text-xs text-slate-400">{transactions.length} lançamento(s)</p>
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 className="font-bold text-slate-100 flex items-center gap-2">
+                <Receipt className="h-5 w-5 text-emerald-400" /> Extrato de Transações
+              </h3>
+              <p className="text-xs text-slate-400">{transactions.length} lançamento(s)</p>
+            </div>
+            <button
+              onClick={handleSyncAllOpenFinance}
+              disabled={syncingOpenFinance}
+              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-50 transition shadow-lg shrink-0"
+            >
+              <RefreshCw className={`h-4 w-4 ${syncingOpenFinance ? 'animate-spin' : ''}`} />
+              {syncingOpenFinance ? 'Sincronizando Transações...' : 'Sincronizar Open Finance'}
+            </button>
           </div>
 
           <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
@@ -1228,7 +1253,7 @@ export default function FinancasPage() {
                 <Search className="h-4 w-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Buscar por descrição..."
+                  placeholder="Buscar por descrição ou categoria..."
                   value={txSearch}
                   onChange={(e) => setTxSearch(e.target.value)}
                   className="bg-transparent text-slate-100 placeholder-slate-500 focus:outline-none w-full"
@@ -1249,7 +1274,7 @@ export default function FinancasPage() {
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-400">Conta</label>
+              <label className="text-xs text-slate-400">Conta / Cartão</label>
               <select
                 value={txAccountFilter}
                 onChange={(e) => setTxAccountFilter(e.target.value)}
@@ -1280,7 +1305,7 @@ export default function FinancasPage() {
           </div>
 
           {transactions.filter(tx => {
-            if (txSearch && !tx.description.toLowerCase().includes(txSearch.toLowerCase())) return false;
+            if (txSearch && !tx.description.toLowerCase().includes(txSearch.toLowerCase()) && !tx.category?.toLowerCase().includes(txSearch.toLowerCase())) return false;
             if (txTypeFilter !== 'ALL' && tx.type !== txTypeFilter) return false;
             if (txAccountFilter && tx.paymentAccountId !== txAccountFilter) return false;
             if (txStartDate && new Date(tx.date) < new Date(txStartDate)) return false;
@@ -1293,13 +1318,15 @@ export default function FinancasPage() {
                   <tr className="border-b border-slate-800 text-xs text-slate-400">
                     <th className="text-left p-3">Data</th>
                     <th className="text-left p-3">Descrição</th>
+                    <th className="text-left p-3">Categoria</th>
+                    <th className="text-left p-3">Conta / Banco</th>
                     <th className="text-left p-3">Tipo</th>
                     <th className="text-right p-3">Valor</th>
                   </tr>
                 </thead>
                 <tbody>
                   {transactions.filter(tx => {
-                    if (txSearch && !tx.description.toLowerCase().includes(txSearch.toLowerCase())) return false;
+                    if (txSearch && !tx.description.toLowerCase().includes(txSearch.toLowerCase()) && !tx.category?.toLowerCase().includes(txSearch.toLowerCase())) return false;
                     if (txTypeFilter !== 'ALL' && tx.type !== txTypeFilter) return false;
                     if (txAccountFilter && tx.paymentAccountId !== txAccountFilter) return false;
                     if (txStartDate && new Date(tx.date) < new Date(txStartDate)) return false;
@@ -1308,7 +1335,15 @@ export default function FinancasPage() {
                   }).slice(0, 100).map((tx: any) => (
                     <tr key={tx.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition">
                       <td className="p-3 text-xs text-slate-300">{new Date(tx.date).toLocaleDateString('pt-BR')}</td>
-                      <td className="p-3 text-slate-100">{tx.description}</td>
+                      <td className="p-3 text-slate-100 font-medium">{tx.description}</td>
+                      <td className="p-3">
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                          {tx.category || 'Outros'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-xs text-slate-300">
+                        {tx.bank || 'Conta Bancária'}
+                      </td>
                       <td className="p-3">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                           tx.type === 'INCOME' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
