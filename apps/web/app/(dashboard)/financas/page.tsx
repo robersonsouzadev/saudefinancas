@@ -1,12 +1,18 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import {
   Wallet, Plus, Loader2, Edit3, Trash2, Check, Landmark, Receipt, CreditCard as CreditCardIcon,
   Banknote, X, Search, Filter, PieChart, RefreshCw, Calendar, AlertTriangle,
   Mic, MicOff, DollarSign, Building2, Layers, CheckSquare, Sparkles, TrendingUp, TrendingDown, FileText, ArrowRight, ShieldCheck, ChevronRight, Download
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
+
+const PluggyConnect = dynamic(
+  () => import('react-pluggy-connect').then((mod) => mod.PluggyConnect),
+  { ssr: false }
+);
 
 // Interfaces
 interface Account {
@@ -133,6 +139,8 @@ export default function FinancasPage() {
   const [showPluggyKeysModal, setShowPluggyKeysModal] = useState(false);
   const [pluggyKeysForm, setPluggyKeysForm] = useState({ clientId: '', clientSecret: '' });
   const [savingPluggyKeys, setSavingPluggyKeys] = useState(false);
+  const [pluggyConnectToken, setPluggyConnectToken] = useState<string | null>(null);
+  const [showPluggyWidget, setShowPluggyWidget] = useState(false);
 
   // Form States
   const [titleForm, setTitleForm] = useState({
@@ -470,13 +478,13 @@ export default function FinancasPage() {
 
       if (res.ok) {
         setShowPluggyKeysModal(false);
-        // Tenta gerar connectToken imediatamente
+        // Tenta gerar connectToken imediatamente e abre o widget SDK
         const tokenRes = await authFetch('/api/finance/open-finance/connect-token', { method: 'POST' });
         if (tokenRes.ok) {
           const data = await tokenRes.json();
           if (data.connectToken) {
-            const url = `https://connect.pluggy.ai?connectToken=${data.connectToken}`;
-            window.open(url, 'PluggyConnect', 'width=500,height=700');
+            setPluggyConnectToken(data.connectToken);
+            setShowPluggyWidget(true);
           }
         }
       } else {
@@ -521,8 +529,8 @@ export default function FinancasPage() {
                   if (res.ok) {
                     const data = await res.json();
                     if (data.connectToken) {
-                      const url = `https://connect.pluggy.ai?connectToken=${data.connectToken}`;
-                      window.open(url, 'PluggyConnect', 'width=500,height=700');
+                      setPluggyConnectToken(data.connectToken);
+                      setShowPluggyWidget(true);
                     }
                   } else {
                     setShowPluggyKeysModal(true);
@@ -1220,6 +1228,34 @@ export default function FinancasPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* PLUGGY CONNECT WIDGET (SDK OFICIAL) */}
+      {showPluggyWidget && pluggyConnectToken && (
+        <PluggyConnect
+          connectToken={pluggyConnectToken}
+          includeSandbox={false}
+          onSuccess={async (data: { item: { id: string } }) => {
+            setShowPluggyWidget(false);
+            setPluggyConnectToken(null);
+            try {
+              await authFetch('/api/finance/open-finance/connect', {
+                method: 'POST',
+                body: JSON.stringify({ itemId: data.item.id }),
+              });
+              fetchData();
+            } catch (err) {
+              console.error('Erro ao registrar conexão:', err);
+            }
+          }}
+          onError={(error: { message?: string; data?: { item?: { id: string } } }) => {
+            console.error('Erro Pluggy Connect:', error);
+          }}
+          onClose={() => {
+            setShowPluggyWidget(false);
+            setPluggyConnectToken(null);
+          }}
+        />
       )}
     </div>
   );
