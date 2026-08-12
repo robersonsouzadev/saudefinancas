@@ -7,39 +7,46 @@ export class TitlesService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Garante atualização de status baseada no vencimento atual (OPEN -> OVERDUE ou DUE_TODAY)
+  /**
+   * Retorna a data no formato YYYY-MM-DD considerando o fuso horário do Brasil (America/Sao_Paulo)
+   */
+  private getBrDateString(dateInput: Date | string): string {
+    const d = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    return d.toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+  }
+
+  /**
+   * Garante atualização de status baseada no vencimento atual considerando a data brasileira (YYYY-MM-DD)
    */
   private async updateOverdueStatuses(userId: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayStr = this.getBrDateString(new Date());
 
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    // Marca como DUE_TODAY o que vence hoje e está OPEN
-    await this.prisma.financialTitle.updateMany({
+    const pendingTitles = await this.prisma.financialTitle.findMany({
       where: {
         userId,
-        status: 'OPEN',
-        dueDate: {
-          gte: today,
-          lt: tomorrow,
-        },
+        status: { in: ['OPEN', 'DUE_TODAY', 'OVERDUE'] },
       },
-      data: { status: 'DUE_TODAY' },
     });
 
-    // Marca como OVERDUE o que venceu antes de hoje e está OPEN ou DUE_TODAY
-    await this.prisma.financialTitle.updateMany({
-      where: {
-        userId,
-        status: { in: ['OPEN', 'DUE_TODAY'] },
-        dueDate: {
-          lt: today,
-        },
-      },
-      data: { status: 'OVERDUE' },
-    });
+    for (const title of pendingTitles) {
+      const titleDueStr = this.getBrDateString(title.dueDate);
+      let newStatus: TitleStatus = title.status;
+
+      if (titleDueStr < todayStr) {
+        newStatus = 'OVERDUE';
+      } else if (titleDueStr === todayStr) {
+        newStatus = 'DUE_TODAY';
+      } else {
+        newStatus = 'OPEN';
+      }
+
+      if (newStatus !== title.status) {
+        await this.prisma.financialTitle.update({
+          where: { id: title.id },
+          data: { status: newStatus },
+        });
+      }
+    }
   }
 
   async getTitles(userId: string, filters: {
@@ -119,18 +126,14 @@ export class TitlesService {
     const competenceDate = new Date(dto.competenceDate);
     const issueDate = dto.issueDate ? new Date(dto.issueDate) : new Date();
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayStr = this.getBrDateString(new Date());
+    const titleDueStr = this.getBrDateString(dto.dueDate);
 
     let initialStatus: TitleStatus = 'OPEN';
-    if (dueDate < today) {
+    if (titleDueStr < todayStr) {
       initialStatus = 'OVERDUE';
-    } else {
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      if (dueDate >= today && dueDate < tomorrow) {
-        initialStatus = 'DUE_TODAY';
-      }
+    } else if (titleDueStr === todayStr) {
+      initialStatus = 'DUE_TODAY';
     }
 
     // Tentar resolver nome da entidade se informado id
@@ -304,13 +307,30 @@ export class TitlesService {
     const title = await this.prisma.financialTitle.findFirst({ where: { id, userId } });
     if (!title) throw new NotFoundException('Título não encontrado.');
 
+    const newDueDate = dto.dueDate ? new Date(dto.dueDate) : title.dueDate;
+    let newStatus = title.status;
+
+    if (title.status !== 'PAID' && title.status !== 'CANCELLED') {
+      const todayStr = this.getBrDateString(new Date());
+      const titleDueStr = this.getBrDateString(newDueDate);
+
+      if (titleDueStr < todayStr) {
+        newStatus = 'OVERDUE';
+      } else if (titleDueStr === todayStr) {
+        newStatus = 'DUE_TODAY';
+      } else {
+        newStatus = 'OPEN';
+      }
+    }
+
     return this.prisma.financialTitle.update({
       where: { id },
       data: {
+        status: newStatus,
         description: dto.description ?? title.description,
         documentNumber: dto.documentNumber ?? title.documentNumber,
         originalAmount: dto.originalAmount ?? title.originalAmount,
-        dueDate: dto.dueDate ? new Date(dto.dueDate) : title.dueDate,
+        dueDate: newDueDate,
         competenceDate: dto.competenceDate ? new Date(dto.competenceDate) : title.competenceDate,
         entityId: dto.entityId ?? title.entityId,
         entityName: dto.entityName ?? title.entityName,
