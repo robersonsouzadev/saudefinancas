@@ -1307,7 +1307,7 @@ export default function FinancasPage() {
           {transactions.filter(tx => {
             if (txSearch && !tx.description.toLowerCase().includes(txSearch.toLowerCase()) && !tx.category?.toLowerCase().includes(txSearch.toLowerCase())) return false;
             if (txTypeFilter !== 'ALL' && tx.type !== txTypeFilter) return false;
-            if (txAccountFilter && tx.paymentAccountId !== txAccountFilter) return false;
+            if (txAccountFilter && tx.paymentAccountId !== txAccountFilter && tx.paymentAccount?.id !== txAccountFilter) return false;
             if (txStartDate && new Date(tx.date) < new Date(txStartDate)) return false;
             if (txEndDate && new Date(tx.date) > new Date(txEndDate)) return false;
             return true;
@@ -1328,7 +1328,7 @@ export default function FinancasPage() {
                   {transactions.filter(tx => {
                     if (txSearch && !tx.description.toLowerCase().includes(txSearch.toLowerCase()) && !tx.category?.toLowerCase().includes(txSearch.toLowerCase())) return false;
                     if (txTypeFilter !== 'ALL' && tx.type !== txTypeFilter) return false;
-                    if (txAccountFilter && tx.paymentAccountId !== txAccountFilter) return false;
+                    if (txAccountFilter && tx.paymentAccountId !== txAccountFilter && tx.paymentAccount?.id !== txAccountFilter) return false;
                     if (txStartDate && new Date(tx.date) < new Date(txStartDate)) return false;
                     if (txEndDate && new Date(tx.date) > new Date(txEndDate)) return false;
                     return true;

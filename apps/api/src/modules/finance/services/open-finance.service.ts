@@ -262,14 +262,14 @@ export class OpenFinanceService {
       }
       syncedAccounts.push(paymentAcc);
 
-      // 2. Busca Transações dos últimos 90 dias para essa conta
-      const ninetyDaysAgo = new Date();
-      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-      const fromStr = ninetyDaysAgo.toISOString().split('T')[0];
+      // 2. Busca Transações dos últimos 180 dias para essa conta
+      const lookbackDate = new Date();
+      lookbackDate.setDate(lookbackDate.getDate() - 180);
+      const fromStr = lookbackDate.toISOString().split('T')[0];
 
       this.logger.log(`Buscando transações da conta ${pAcc.id} (${pAcc.name}) desde ${fromStr}...`);
 
-      const txRes = await fetch(`${this.baseUrl}/transactions?accountId=${pAcc.id}&from=${fromStr}`, {
+      const txRes = await fetch(`${this.baseUrl}/transactions?accountId=${pAcc.id}&from=${fromStr}&pageSize=500`, {
         headers: { 'X-API-KEY': apiKey },
       });
 

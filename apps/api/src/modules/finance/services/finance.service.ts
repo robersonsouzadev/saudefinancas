@@ -217,6 +217,8 @@ export class FinanceService {
       type: t.type,
       paymentMethod: t.paymentMethod,
       method: t.paymentMethod,
+      paymentAccountId: t.paymentAccountId,
+      creditCardId: t.creditCardId,
       bank: t.paymentAccount?.bankName || t.creditCard?.name || t.paymentAccount?.name || '',
       paymentAccount: t.paymentAccount,
       creditCard: t.creditCard,
