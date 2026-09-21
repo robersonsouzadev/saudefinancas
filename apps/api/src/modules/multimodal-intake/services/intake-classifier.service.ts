@@ -44,19 +44,18 @@ export class IntakeClassifierService {
 
     if (openai) {
       try {
-        const systemPrompt = `Você é a Vita, uma assistente pessoal de inteligência artificial especializada em Saúde, Nutrição e Finanças Pessoais.
-Sua tarefa é analisar a mensagem do usuário e extrair dados estruturados ou responder amigavelmente.
+        const systemPrompt = `Você é a Vita, assistente de inteligência artificial de Saúde, Nutrição, Treinos e Longevidade.
+Sua tarefa é analisar a mensagem do usuário e extrair dados estruturados ou responder amigavelmente sobre bem-estar e performance física.
 Retorne um objeto JSON estrito com esta estrutura:
 {
-  "primary_intent": "FINANCE" | "NUTRITION" | "HEALTH" | "MEDICATION" | "LAB_EXAM" | "WORKOUT" | "HYBRID" | "GENERAL",
+  "primary_intent": "NUTRITION" | "HEALTH" | "MEDICATION" | "LAB_EXAM" | "WORKOUT" | "GENERAL",
   "confidence": número de 0.0 a 1.0,
   "nutrition_data": { "meal_type": string, "items": [{"name": string, "weight_g": number, "calories": number, "protein_g": number, "carbs_g": number, "fat_g": number}], "total_calories": number } | null,
-  "finance_data": { "transactions": [{"amount": number, "description": string, "category": string}] } | null,
-  "health_data": null,
-  "medication_data": null,
-  "vita_insight": string (A resposta textual amigável da Vita para o usuário em português. Se for saudação como "olá" ou "quem fala?", apresente-se calorosamente como a Vita, assistente de saúde e finanças)
-}
-Categorias financeiras permitidas: 'Alimentação', 'Transporte', 'Moradia', 'Saúde', 'Lazer', 'Educação', 'Outros'.`;
+  "health_data": { "sleep_hours": number, "water_ml": number, "mood_score": number, "stress_level": number } | null,
+  "medication_data": { "name": string, "dosage": string } | null,
+  "workout_data": { "exercise_name": string, "sets": number, "reps": number, "weight_kg": number } | null,
+  "vita_insight": string (A resposta textual amigável da Vita para o usuário em português. Se for saudação, apresente-se como a Vita, assistente de saúde e longevidade)
+}`;
 
         const response = await openai.chat.completions.create({
           model: 'gpt-4o-mini',
@@ -85,49 +84,60 @@ Categorias financeiras permitidas: 'Alimentação', 'Transporte', 'Moradia', 'Sa
         primary_intent: 'GENERAL',
         confidence: 0.95,
         nutrition_data: null,
-        finance_data: null,
         health_data: null,
         medication_data: null,
-        vita_insight: 'Olá! Sou a Vita, sua assistente pessoal de saúde e finanças integradas. Posso registrar seus gastos, refeições, biometria e responder dúvidas sobre seu bem-estar!',
+        workout_data: null,
+        vita_insight: 'Olá! Sou a Vita, sua assistente pessoal de saúde e longevidade. Posso registrar suas refeições, treinos, hidratação, sono, medicamentos e responder dúvidas sobre seu bem-estar!',
       };
     }
 
-    // Padrão de Gasto
-    const moneyMatch = lower.match(/(gastei|paguei|comprei|valor|custou|reais|r\$)\s*(\d+(?:[.,]\d+)?)/i) || lower.match(/(\d+(?:[.,]\d+)?)\s*(reais|r\$)/i);
-    let finance_data = null;
+    // Padrão de Nutrição
+    if (lower.includes('comi') || lower.includes('almocei') || lower.includes('jantei') || lower.includes('café') || lower.includes('refeição') || lower.includes('frango') || lower.includes('arroz') || lower.includes('salada')) {
+      return {
+        primary_intent: 'NUTRITION',
+        confidence: 0.85,
+        nutrition_data: { meal_type: 'Refeição Registrada', items: [{ name: cleanText, weight_g: 200, calories: 350, protein_g: 25, carbs_g: 35, fat_g: 8 }], total_calories: 350 },
+        health_data: null,
+        medication_data: null,
+        workout_data: null,
+        vita_insight: `Registrado! Anotei sua refeição: "${cleanText}". Estimativa calórica computada no seu painel nutricional.`,
+      };
+    }
 
-    if (moneyMatch) {
-      const amount = parseFloat(moneyMatch[2] || moneyMatch[1]);
-      let category = 'Outros';
-      if (lower.includes('almoço') || lower.includes('jantar') || lower.includes('comida') || lower.includes('pão') || lower.includes('restaurante')) {
-        category = 'Alimentação';
-      } else if (lower.includes('remédio') || lower.includes('farmácia') || lower.includes('médico')) {
-        category = 'Saúde';
-      } else if (lower.includes('uber') || lower.includes('gasolina') || lower.includes('ônibus')) {
-        category = 'Transporte';
-      }
+    // Padrão de Hidratação / Sono
+    if (lower.includes('água') || lower.includes('agua') || lower.includes('copo') || lower.includes('litro') || lower.includes('dormi') || lower.includes('sono') || lower.includes('acordei')) {
+      return {
+        primary_intent: 'HEALTH',
+        confidence: 0.85,
+        nutrition_data: null,
+        health_data: { sleep_hours: 7.5, water_ml: 500, mood_score: 4, stress_level: 2 },
+        medication_data: null,
+        workout_data: null,
+        vita_insight: `Excelente! Registrei seu hábito de saúde. Continue firme na sua rotina de hidratação e sono reparador.`,
+      };
+    }
 
-      finance_data = {
-        transactions: [
-          {
-            amount,
-            description: cleanText,
-            category,
-          },
-        ],
+    // Padrão de Treino
+    if (lower.includes('treino') || lower.includes('treinei') || lower.includes('musculação') || lower.includes('supino') || lower.includes('agachamento') || lower.includes('perna') || lower.includes('peito')) {
+      return {
+        primary_intent: 'WORKOUT',
+        confidence: 0.85,
+        nutrition_data: null,
+        health_data: null,
+        medication_data: null,
+        workout_data: { exercise_name: cleanText, sets: 3, reps: 10, weight_kg: 0 },
+        vita_insight: `Show de bola! Registro de treino processado. O Coach Iron computou o estímulo para sua recuperação muscular.`,
       };
     }
 
     return {
-      primary_intent: finance_data ? 'FINANCE' : 'GENERAL',
-      confidence: 0.85,
+      primary_intent: 'GENERAL',
+      confidence: 0.75,
       nutrition_data: null,
-      finance_data,
       health_data: null,
       medication_data: null,
-      vita_insight: finance_data 
-        ? `Registrado com sucesso! Despesa de R$ ${finance_data.transactions[0].amount.toFixed(2)} na categoria ${finance_data.transactions[0].category}.` 
-        : `Compreendido! Processei a mensagem: "${cleanText}". Seus dados foram sincronizados no painel Vita.`,
+      workout_data: null,
+      vita_insight: `Compreendido! Processei sua mensagem: "${cleanText}". Seus dados foram sincronizados no painel Vita Saúde.`,
     };
   }
 }

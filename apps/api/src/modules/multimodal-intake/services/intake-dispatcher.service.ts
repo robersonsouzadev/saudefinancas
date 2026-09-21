@@ -17,52 +17,8 @@ export class IntakeDispatcherService {
       const intent = classifiedData.primary_intent || 'GENERAL';
       const registeredItems: Array<{ type: string; id: string; description?: string }> = [];
 
-      // 1. FINANCE / HYBRID
-      if ((intent === 'FINANCE' || intent === 'HYBRID') && !mediaData?.skipAutoSave) {
-        if (classifiedData.finance_data?.transactions?.length > 0) {
-          let account = await this.prisma.financialAccount.findFirst({
-            where: { userId },
-          });
-
-          if (!account) {
-            account = await this.prisma.financialAccount.create({
-              data: {
-                userId,
-                name: 'Conta Principal',
-                balance: 0,
-              },
-            });
-          }
-
-          for (const tx of classifiedData.finance_data.transactions) {
-            const catName = tx.category || 'Outros';
-            let category = await this.prisma.transactionCategory.findFirst({
-              where: { name: catName },
-            });
-
-            if (!category) {
-              category = await this.prisma.transactionCategory.create({
-                data: { name: catName },
-              });
-            }
-
-            const transaction = await this.prisma.transaction.create({
-              data: {
-                userId,
-                accountId: account.id,
-                categoryId: category.id,
-                amount: Math.abs(parseFloat(tx.amount) || 0),
-                description: tx.description || 'Despesa registrada via Vita',
-                date: new Date(),
-              },
-            });
-            registeredItems.push({ type: 'FINANCE', id: transaction.id, description: tx.description });
-          }
-        }
-      }
-
-      // 2. NUTRITION / HYBRID
-      if ((intent === 'NUTRITION' || intent === 'HYBRID') && !mediaData?.skipAutoSave) {
+      // 1. NUTRITION
+      if (intent === 'NUTRITION' && !mediaData?.skipAutoSave) {
         if (classifiedData.nutrition_data) {
           const nut = classifiedData.nutrition_data;
           const items = nut.items || [];

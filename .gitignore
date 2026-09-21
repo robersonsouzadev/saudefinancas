@@ -31,3 +31,11 @@ pnpm-debug.log*
 *.db
 .DS_Store
 Thumbs.db
+
+# Test environments and local storage
+apps/api/test-pg-data/
+apps/api/storage/
+storage/
+**/test/fixtures/private/*.fit
+!**/test/fixtures/private/.gitkeep
+

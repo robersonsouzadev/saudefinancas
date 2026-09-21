@@ -199,11 +199,10 @@ export default function MultimodalFAB() {
 
   const getIntentLabel = (intent: string) => {
     const labels: Record<string, string> = {
-      FINANCE: '💰 Financeiro',
       NUTRITION: '🍽️ Nutricional',
-      HEALTH: '❤️ Saúde',
+      HEALTH: '❤️ Saúde / Vital',
       MEDICATION: '💊 Medicamento',
-      HYBRID: '🔀 Misto (Financeiro + Nutricional)',
+      WORKOUT: '🏋️ Treino',
     };
     return labels[intent] || intent;
   };
@@ -278,9 +277,9 @@ export default function MultimodalFAB() {
                     Segure o botão e fale normalmente. Exemplos:
                   </p>
                   <div className="space-y-1.5 text-xs text-[#cbd5e1] font-mono bg-[#16191e] p-3 rounded-lg border border-[#ffffff0e]">
-                    <p>&quot;Comprei pão 4 reais e carne 30 reais&quot;</p>
-                    <p>&quot;Almocei arroz, feijão e frango grelhado&quot;</p>
-                    <p>&quot;Dormi 7 horas, humor 8&quot;</p>
+                    <p>&quot;Almocei 150g de frango grelhado com arroz integral e brócolis&quot;</p>
+                    <p>&quot;Tomei 5g de creatina e 1 comprimido de multivitamínico&quot;</p>
+                    <p>&quot;Treinei 50 minutos de musculação focado em pernas&quot;</p>
                   </div>
 
                   <button
@@ -319,7 +318,7 @@ export default function MultimodalFAB() {
                   {!imagePreview ? (
                     <div className="space-y-3">
                       <p className="text-xs text-[#a1a1aa]">
-                        Tire uma foto do prato, cupom fiscal ou comprovante de pagamento.
+                        Tire uma foto do seu prato, rótulo de suplemento/remédio ou exame.
                       </p>
 
                       <div className="grid grid-cols-2 gap-2">
@@ -361,7 +360,7 @@ export default function MultimodalFAB() {
 
                       <input
                         type="text"
-                        placeholder="Contexto (opcional): ex: almoço, compras do mercado"
+                        placeholder="Contexto (opcional): ex: almoço pós-treino, suplementação"
                         value={imageContext}
                         onChange={(e) => setImageContext(e.target.value)}
                         className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-xs text-[#f7f8f8] placeholder:text-[#71717a] focus:outline-none focus:border-[#5e6ad2]"
@@ -388,16 +387,16 @@ export default function MultimodalFAB() {
                   <textarea
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
-                    placeholder="Ex: Comprei pão R$4, carne R$30 e uma coca-cola 350ml"
+                    placeholder="Ex: Almocei 180g de filé de salmão com quinoa e aspargos"
                     rows={3}
                     className="w-full bg-[#16191e] border border-[#ffffff12] rounded-md px-3 py-2 text-xs text-[#f7f8f8] placeholder:text-[#71717a] focus:outline-none focus:border-[#5e6ad2] resize-none"
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); processText(); } }}
                   />
 
                   <div className="space-y-1 text-xs text-[#71717a] font-mono">
-                    <p>💰 &quot;Gastei 50 reais no supermercado&quot;</p>
-                    <p>🍽️ &quot;Comi arroz, feijão e bife no almoço&quot;</p>
-                    <p>🔀 &quot;Almocei fora, paguei 25 reais, comi salada com frango&quot;</p>
+                    <p>🍽️ &quot;Almocei frango grelhado, salada e batata doce&quot;</p>
+                    <p>💊 &quot;Tomei 1 dose de Creatina e 2000UI Vitamina D&quot;</p>
+                    <p>🏋️ &quot;Fiz 45 min de cardio em jejum e abdominais&quot;</p>
                   </div>
 
                   <button

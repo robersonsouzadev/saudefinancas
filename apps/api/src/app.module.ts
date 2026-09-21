@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -11,22 +11,32 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 
 import { HealthTrackerModule } from './modules/health-tracker/health-tracker.module';
 import { NutritionModule } from './modules/nutrition/nutrition.module';
-import { FinanceModule } from './modules/finance/finance.module';
 import { InsightsModule } from './modules/insights/insights.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { InvestmentsModule } from './modules/investments/investments.module';
 import { MedicationsModule } from './modules/medications/medications.module';
 import { MultimodalIntakeModule } from './modules/multimodal-intake/multimodal-intake.module';
 import { LabExamsModule } from './modules/lab-exams/lab-exams.module';
 import { AgentsModule } from './modules/agents/agents.module';
 import { WorkoutsModule } from './modules/workouts/workouts.module';
 import { BodyAssessmentsModule } from './modules/body-assessments/body-assessments.module';
+import { WearablesModule } from './modules/wearables/wearables.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get<string>('REDIS_HOST', 'localhost'),
+          port: configService.get<number>('REDIS_PORT', 6379),
+          lazyConnect: true,
+        },
+      }),
     }),
     PrismaModule,
     AuthModule,
@@ -38,16 +48,15 @@ import { BodyAssessmentsModule } from './modules/body-assessments/body-assessmen
     WhatsappModule,
     HealthTrackerModule,
     NutritionModule,
-    FinanceModule,
     InsightsModule,
     DashboardModule,
-    InvestmentsModule,
     MedicationsModule,
     MultimodalIntakeModule,
     LabExamsModule,
     AgentsModule,
     WorkoutsModule,
     BodyAssessmentsModule,
+    WearablesModule,
   ],
 })
 export class AppModule {}

@@ -45,19 +45,4 @@ export class FamilyController {
   async removeMember(@Param('id') id: string, @Param('userId') userId: string) {
     return this.familyService.removeMember(id, userId);
   }
-
-  @Post('groups/:id/budget')
-  async setFamilyBudget(@Param('id') id: string, @Body() body: any) {
-    return this.familyService.setFamilyBudget(id, body);
-  }
-
-  @Get('groups/:id/finances')
-  async getGroupFinances(
-    @Request() req: any,
-    @Param('id') id: string,
-    @Query('month') month?: number,
-    @Query('year') year?: number,
-  ) {
-    return this.familyService.getGroupFinances(id, req.user.sub || req.user.id, month, year);
-  }
 }

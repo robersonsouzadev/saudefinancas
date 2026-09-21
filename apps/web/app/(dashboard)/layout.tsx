@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Bot, BookOpen, Cpu, HeartPulse, 
-  Apple, Wallet, TrendingUp, Sparkles, Users, UserCheck, MessageSquare, 
-  Settings, LogOut, ChevronDown, Search, Command, Menu, X, Pill, TestTube, Dumbbell, Ruler,
+  Apple, Sparkles, Users, UserCheck, MessageSquare, 
+  Settings, LogOut, ChevronDown, Search, Command, Menu, X, Pill, TestTube, Dumbbell, Ruler, Watch,
   PanelLeftClose, PanelLeft
 } from 'lucide-react';
 import MultimodalFAB from './components/MultimodalFAB';
@@ -171,47 +171,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Ruler className={`w-4 h-4 shrink-0 transition ${getIconColor('/avaliacao-corporal', 'text-[#71717a]', 'text-[#3b82f6]')}`} />
             {!collapsed && <span>Avaliação Corporal</span>}
           </Link>
-        </div>
-      </div>
 
-      {/* FINANÇAS & PATRIMÔNIO */}
-      <div>
-        {!collapsed && (
-          <div className="px-2 pb-1 text-xs font-bold text-[#a1a1aa] uppercase tracking-wider">
-            Finanças & Patrimônio
-          </div>
-        )}
-        <div className="space-y-0.5">
           <Link 
-            href="/financas" 
+            href="/dispositivos" 
             onClick={() => setIsMobileMenuOpen(false)}
-            title={collapsed ? 'Finanças' : undefined}
+            title={collapsed ? 'Dispositivos & Wearables' : undefined}
             className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
               collapsed ? 'justify-center' : ''
             } ${
-              isActive('/financas') 
+              isActive('/dispositivos') 
                 ? 'bg-[#16191e] text-[#f7f8f8]' 
                 : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
             }`}
           >
-            <Wallet className={`w-4 h-4 shrink-0 transition ${getIconColor('/financas', 'text-[#71717a]', 'text-[#22c55e]')}`} />
-            {!collapsed && <span>Finanças</span>}
-          </Link>
-
-          <Link 
-            href="/investimentos" 
-            onClick={() => setIsMobileMenuOpen(false)}
-            title={collapsed ? 'Investimentos' : undefined}
-            className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
-              collapsed ? 'justify-center' : ''
-            } ${
-              isActive('/investimentos') 
-                ? 'bg-[#16191e] text-[#f7f8f8]' 
-                : 'text-[#a1a1aa] hover:bg-[#16191e] hover:text-[#f7f8f8]'
-            }`}
-          >
-            <TrendingUp className={`w-4 h-4 shrink-0 transition ${getIconColor('/investimentos', 'text-[#71717a]', 'text-[#10b981]')}`} />
-            {!collapsed && <span>Investimentos</span>}
+            <Watch className={`w-4 h-4 shrink-0 transition ${getIconColor('/dispositivos', 'text-[#71717a]', 'text-[#10b981]')}`} />
+            {!collapsed && <span>Dispositivos & Garmin</span>}
           </Link>
         </div>
       </div>
@@ -227,7 +201,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link 
             href="/insights" 
             onClick={() => setIsMobileMenuOpen(false)}
-            title={collapsed ? 'Insights Bio-Financeiros' : undefined}
+            title={collapsed ? 'Insights de Longevidade' : undefined}
             className={`flex items-center space-x-2.5 px-2 py-2 rounded-md font-medium transition ${
               collapsed ? 'justify-center' : ''
             } ${
@@ -237,7 +211,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }`}
           >
             <Sparkles className={`w-4 h-4 shrink-0 transition ${getIconColor('/insights', 'text-[#71717a]', 'text-[#eab308]')}`} />
-            {!collapsed && <span>Insights Bio-Financeiros</span>}
+            {!collapsed && <span>Insights de Longevidade</span>}
           </Link>
 
           <Link 
@@ -378,11 +352,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="h-12 px-3 flex items-center justify-between border-b border-[#ffffff0e]">
           <div className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition overflow-hidden">
             <div className="w-5 h-5 rounded-md bg-[#5e6ad2] flex items-center justify-center font-bold text-white text-xs shadow-sm shrink-0">
-              SF
+              VS
             </div>
             {!isSidebarCollapsed && (
               <>
-                <span className="font-semibold text-xs text-[#f7f8f8] tracking-tight truncate">Saúde & Finanças</span>
+                <span className="font-semibold text-xs text-[#f7f8f8] tracking-tight truncate">Vita Saúde</span>
                 <ChevronDown className="w-3 h-3 text-[#a1a1aa] shrink-0" />
               </>
             )}
@@ -441,9 +415,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="h-14 px-4 flex items-center justify-between border-b border-[#ffffff0e] safe-pt">
               <div className="flex items-center space-x-2">
                 <div className="w-6 h-6 rounded-md bg-[#5e6ad2] flex items-center justify-center font-bold text-white text-xs shadow-sm">
-                  SF
+                  VS
                 </div>
-                <span className="font-semibold text-sm text-[#f7f8f8] tracking-tight">Saúde & Finanças</span>
+                <span className="font-semibold text-sm text-[#f7f8f8] tracking-tight">Vita Saúde</span>
               </div>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -494,7 +468,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <Menu className="w-4 h-4" />
             </button>
-            <span className="text-[#f7f8f8] font-semibold hidden sm:inline shrink-0">Saúde & Finanças</span>
+            <span className="text-[#f7f8f8] font-semibold hidden sm:inline shrink-0">Vita Saúde</span>
             <span className="hidden sm:inline shrink-0">/</span>
             <span className="text-[#a1a1aa] capitalize truncate min-w-0">{pathname === '/' ? 'Dashboard' : pathname.replace('/', '').replace('-', ' ')}</span>
           </div>

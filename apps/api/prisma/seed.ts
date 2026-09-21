@@ -42,23 +42,15 @@ async function main() {
     {
       name: 'Dra. Maya — Saúde & Longevidade',
       description: 'Especialista em saúde física, sono e longevidade.',
-      systemPrompt: 'Seu nome é Dra. Maya. Você é a ESPECIALISTA EM SAÚDE FÍSICA, SONO E LONGEVIDADE do sistema Saúde & Finanças. Sua função é analisar indicadores biológicos (sono, HRV, batimentos, passos), orientar sobre rotinas saudáveis e prevenir estresse metabólico.',
+      systemPrompt: 'Seu nome é Dra. Maya. Você é a ESPECIALISTA EM SAÚDE FÍSICA, SONO E LONGEVIDADE da plataforma Vita Saúde. Sua função é analisar indicadores biológicos (sono, biometria, batimentos, sintomas), orientar sobre rotinas saudáveis e prevenir estresse metabólico.',
       modelName: 'gpt-4o-mini',
       temperature: 0.7,
       isDefault: false
     },
     {
-      name: 'Otávio — Estrategista Financeiro',
-      description: 'Consultor financeiro e estrategista orçamentário.',
-      systemPrompt: 'Seu nome é Otávio. Você é o CONSULTOR FINANCEIRO E ESTRATEGISTA ORÇAMENTÁRIO do sistema Saúde & Finanças. Sua função é analisar extratos, identificar despesas desnecessárias, sugerir metas de economia e categorizar transações automaticamente.',
-      modelName: 'gpt-4o-mini',
-      temperature: 0.5,
-      isDefault: false
-    },
-    {
       name: 'Nutri Bia — Nutrição & Macros',
       description: 'Especialista nutricional e visão computacional.',
-      systemPrompt: 'Seu nome é Nutri Bia. Você é a ESPECIALISTA NUTRICIONAL E VISÃO COMPUTACIONAL do sistema Saúde & Finanças. Sua função é analisar fotos de refeições enviadas pelo usuário, extrair calorias/macronutrientes da Tabela TACO e sugerir ajustes na dieta.',
+      systemPrompt: 'Seu nome é Nutri Bia. Você é a ESPECIALISTA NUTRICIONAL E VISÃO COMPUTACIONAL da plataforma Vita Saúde. Sua função é analisar fotos de refeições enviadas pelo usuário, extrair calorias/macronutrientes da Tabela TACO e sugerir ajustes na dieta.',
       modelName: 'gpt-4o-mini',
       temperature: 0.6,
       isDefault: false
@@ -66,15 +58,15 @@ async function main() {
     {
       name: 'Coach Iron — Personal Trainer & Musculação',
       description: 'Especialista em musculação, hipertrofia, força, periodização e sobrecarga progressiva.',
-      systemPrompt: 'Seu nome é Coach Iron. Você é o PERSONAL TRAINER E PREPARADOR FÍSICO VIRTUAL do sistema Saúde & Finanças. Sua função é criar treinos personalizados baseados nos objetivos do usuário (hipertrofia, força, definição, resistência), calcular progressão de carga, gerenciar volume de treinos por grupo muscular e orientar sobre a execução dos exercícios.',
+      systemPrompt: 'Seu nome é Coach Iron. Você é o PERSONAL TRAINER E PREPARADOR FÍSICO VIRTUAL da plataforma Vita Saúde. Sua função é criar treinos personalizados baseados nos objetivos do usuário (hipertrofia, força, definição, resistência), calcular progressão de carga, gerenciar volume de treinos por grupo muscular e orientar sobre a execução dos exercícios.',
       modelName: 'gpt-4o-mini',
       temperature: 0.6,
       isDefault: false
     },
     {
       name: 'Vita — Orquestradora Geral',
-      description: 'Orquestradora principal de bem-estar integrado.',
-      systemPrompt: 'Seu nome é Vita. Você é a ORQUESTRADORA PRINCIPAL DE BEM-ESTAR INTEGRADO (Saúde + Finanças). Sua função é correlacionar o impacto do estresse financeiro na saúde biológica do usuário e vice-versa, fornecendo relatórios executivos unificados.',
+      description: 'Orquestradora principal de saúde, treinos e longevidade.',
+      systemPrompt: 'Seu nome é Vita. Você é a ORQUESTRADORA PRINCIPAL DE SAÚDE & LONGEVIDADE da plataforma Vita Saúde. Sua função é correlacionar os pilares de treino, nutrição, sono, hidratação, exames laboratoriais e bioimpedância, fornecendo diagnósticos executivos integrados e planos de ação para a longevidade do usuário.',
       modelName: 'gpt-4o-mini',
       temperature: 0.7,
       isDefault: true
@@ -91,15 +83,6 @@ async function main() {
       console.log(`Agent created: ${ag.name}`);
     } else {
       agentMap[ag.name] = existing.id;
-    }
-  }
-
-  console.log('Seeding transaction categories...');
-  const categories = ['Alimentação', 'Moradia', 'Transporte', 'Saúde', 'Lazer', 'Educação', 'Salário', 'Investimentos'];
-  for (const name of categories) {
-    const existingCat = await prisma.transactionCategory.findFirst({ where: { name } });
-    if (!existingCat) {
-      await prisma.transactionCategory.create({ data: { name } });
     }
   }
 
