@@ -6,9 +6,8 @@
  * Valida rigorosamente que os testes e execuções destrutivas NUNCA
  * atinjam os recursos ou containers de produção do Vita Saúde.
  * 
- * Retorna:
- *   Exit Code 0: Ambiente isolado de staging comprovado e seguro para testes.
- *   Exit Code 1: Falha em pré-requisito de isolamento ou detecção de recurso de produção.
+ * Bloqueia incondicionalmente com Exit Code 1 em caso de falha de inspeção
+ * ou violação de qualquer critério de isolamento.
  */
 
 import { execSync } from 'child_process';
@@ -32,6 +31,8 @@ const PRODUCTION_DB_NAMES = [
   'postgres',
 ];
 
+const FORBIDDEN_PORTS = [3001, 5432, 6379];
+
 function runGuardRail() {
   console.log('================================================================================');
   console.log('        GUARD RAIL AUTOMÁTICO DE ISOLAMENTO VPS — VITA SAÚDE (G4.2)            ');
@@ -39,6 +40,8 @@ function runGuardRail() {
 
   const errors = [];
   const warnings = [];
+
+  const isDestructiveRunner = process.argv.includes('--destructive-runner');
 
   // 1. Verificação de APP_ENV e NODE_ENV
   const nodeEnv = process.env.NODE_ENV || '';
@@ -54,38 +57,50 @@ function runGuardRail() {
 
   // 2. Verificação do Nome do Banco de Dados
   const dbUrl = process.env.DATABASE_URL || '';
-  console.log(`[Check 2] DATABASE_URL: ${dbUrl.replace(/:[^:@]+@/, ':****@')}`);
-  try {
-    const parsedUrl = new URL(dbUrl);
-    const dbName = parsedUrl.pathname.replace(/^\//, '');
-    if (!dbName.endsWith('_staging') && !dbName.endsWith('_test')) {
-      errors.push(`Nome do banco de dados deve terminar com '_staging' ou '_test'. Valor detectado: '${dbName}'`);
+  console.log(`[Check 2] DATABASE_URL: ${dbUrl ? dbUrl.replace(/:[^:@]+@/, ':****@') : '(ausente)'}`);
+  if (!dbUrl) {
+    errors.push('DATABASE_URL não informada.');
+  } else {
+    try {
+      const parsedUrl = new URL(dbUrl);
+      const dbName = parsedUrl.pathname.replace(/^\//, '');
+      if (!dbName.endsWith('_staging') && !dbName.endsWith('_test')) {
+        errors.push(`Nome do banco de dados deve terminar com '_staging' ou '_test'. Valor detectado: '${dbName}'`);
+      }
+      if (PRODUCTION_DB_NAMES.includes(dbName)) {
+        errors.push(`VIOLAÇÃO CRÍTICA: DATABASE_URL aponta para o banco de produção '${dbName}'!`);
+      }
+      const port = parseInt(parsedUrl.port || '5432', 10);
+      if (FORBIDDEN_PORTS.includes(port) && !parsedUrl.hostname.includes('staging')) {
+        errors.push(`VIOLAÇÃO CRÍTICA: Porta do banco (${port}) colide com portas de produção padrão sem host de staging!`);
+      }
+    } catch (err) {
+      errors.push(`DATABASE_URL inválida ou malformada: ${err.message}`);
     }
-    if (PRODUCTION_DB_NAMES.includes(dbName)) {
-      errors.push(`VIOLAÇÃO CRÍTICA: DATABASE_URL aponta para o banco de produção '${dbName}'!`);
-    }
-  } catch (err) {
-    errors.push(`DATABASE_URL inválida ou ausente: ${err.message}`);
   }
 
   // 3. Verificação do Diretório de Armazenamento LOCAL_SECURE
   const storagePath = process.env.LOCAL_STORAGE_BASE_PATH || process.env.STORAGE_PATH || '';
   console.log(`[Check 3] STORAGE_PATH: "${storagePath}"`);
-  if (!storagePath.toLowerCase().includes('staging')) {
-    errors.push(`STORAGE_PATH deve conter explicitamente 'staging'. Valor atual: '${storagePath}'`);
-  }
-  if (storagePath === '/data' || storagePath === '/var/lib' || storagePath === '/' || storagePath === '~') {
-    errors.push(`STORAGE_PATH aponta para caminho raiz ou genérico perigoso: '${storagePath}'`);
+  if (!storagePath) {
+    errors.push('STORAGE_PATH não configurado.');
+  } else {
+    if (!storagePath.toLowerCase().includes('staging')) {
+      errors.push(`STORAGE_PATH deve conter explicitamente 'staging'. Valor atual: '${storagePath}'`);
+    }
+    if (storagePath === '/data' || storagePath === '/var/lib' || storagePath === '/' || storagePath === '~') {
+      errors.push(`STORAGE_PATH aponta para caminho raiz ou genérico perigoso: '${storagePath}'`);
+    }
   }
 
   // 4. Verificação de Fila e Prefixo BullMQ
-  const queueName = process.env.QUEUE_NAME || 'wearables-fit-import-staging';
-  const queuePrefix = process.env.QUEUE_PREFIX || 'bull_staging';
+  const queueName = process.env.QUEUE_NAME || '';
+  const queuePrefix = process.env.QUEUE_PREFIX || '';
   console.log(`[Check 4] Fila: "${queueName}", Prefixo: "${queuePrefix}"`);
-  if (!queueName.toLowerCase().includes('staging')) {
+  if (!queueName || !queueName.toLowerCase().includes('staging')) {
     errors.push(`Nome da fila deve conter 'staging'. Valor atual: '${queueName}'`);
   }
-  if (!queuePrefix.toLowerCase().includes('staging')) {
+  if (!queuePrefix || !queuePrefix.toLowerCase().includes('staging')) {
     errors.push(`Prefixo da fila deve conter 'staging'. Valor atual: '${queuePrefix}'`);
   }
 
@@ -100,25 +115,44 @@ function runGuardRail() {
 
   // 6. Verificação de Flag Explícita de Testes Destrutivos
   const allowDestructive = process.env.ALLOW_DESTRUCTIVE_TESTS;
-  console.log(`[Check 6] ALLOW_DESTRUCTIVE_TESTS: "${allowDestructive}"`);
-  if (allowDestructive !== 'true') {
-    errors.push(`ALLOW_DESTRUCTIVE_TESTS deve estar explicitamente 'true' apenas no ambiente isolado de staging.`);
+  console.log(`[Check 6] Modo Destrutivo: isDestructiveRunner=${isDestructiveRunner}, ALLOW_DESTRUCTIVE_TESTS="${allowDestructive}"`);
+  if (isDestructiveRunner) {
+    if (allowDestructive !== 'true') {
+      errors.push(`Para runners destrutivos (--destructive-runner), ALLOW_DESTRUCTIVE_TESTS deve ser explicitamente 'true'.`);
+    }
+  } else {
+    // Para containers gerais de API e Worker, a flag destrutiva NÃO deve ser permanente
+    if (allowDestructive === 'true') {
+      warnings.push(`ALLOW_DESTRUCTIVE_TESTS está 'true' em contexto não-runner. Deve ser restrita aos runners autorizados.`);
+    }
   }
 
-  // 7. Verificação de Colisão de Containers Docker Ativos
-  console.log('[Check 7] Verificando containers Docker ativos...');
+  // 7. Verificação Efetiva de Containers Docker Ativos com Bloqueio em Caso de Falha
+  console.log('[Check 7] Inspecionando containers Docker ativos...');
   try {
-    const runningContainersRaw = execSync("docker ps --format '{{.Names}}'", { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+    const runningContainersRaw = execSync("docker ps --format '{{.Names}}'", { 
+      encoding: 'utf8', 
+      stdio: ['pipe', 'pipe', 'pipe'] 
+    });
     const runningContainers = runningContainersRaw.split('\n').map((s) => s.trim()).filter(Boolean);
 
-    const stagingApiContainer = process.env.STAGING_API_CONTAINER_NAME || 'vita_staging_api';
-    const stagingDbContainer = process.env.STAGING_DB_CONTAINER_NAME || 'vita_staging_db';
+    const stagingApiContainer = process.env.STAGING_API_CONTAINER_NAME || 'sf-api-staging';
+    const stagingDbContainer = process.env.STAGING_DB_CONTAINER_NAME || 'sf-db-staging';
+    const stagingWorkerContainer = process.env.STAGING_WORKER_CONTAINER_NAME || 'sf-worker-staging';
+    const stagingRedisContainer = process.env.STAGING_REDIS_CONTAINER_NAME || 'sf-redis-staging';
 
-    if (PRODUCTION_CONTAINERS.includes(stagingApiContainer) || PRODUCTION_CONTAINERS.includes(stagingDbContainer)) {
-      errors.push(`VIOLAÇÃO CRÍTICA: Identificador de container de staging coincide com container de produção!`);
+    const stagingNames = [stagingApiContainer, stagingDbContainer, stagingWorkerContainer, stagingRedisContainer];
+
+    for (const name of stagingNames) {
+      if (PRODUCTION_CONTAINERS.includes(name)) {
+        errors.push(`VIOLAÇÃO CRÍTICA: Identificador de container de staging '${name}' coincide com container de produção!`);
+      }
     }
+
+    console.log(`- Containers ativos detectados: ${runningContainers.length}`);
   } catch (dockerErr) {
-    warnings.push(`Não foi possível executar 'docker ps': ${dockerErr.message}`);
+    // AUDITORIA G4.2: Se a inspeção do Docker falhar, O GUARD RAIL DEVE BLOQUEAR!
+    errors.push(`FALHA CRÍTICA DE INSPEÇÃO DO ENGINE DOCKER: Não foi possível executar 'docker ps': ${dockerErr.message}. Execução bloqueada.`);
   }
 
   // 8. Relatório Final do Guard Rail
@@ -131,11 +165,11 @@ function runGuardRail() {
   if (errors.length > 0) {
     console.error('\n[BLOQUEIO DE SEGURANÇA ACIONADO] O ambiente NÃO é um staging isolado válido:');
     errors.forEach((e) => console.error(`  [X] ${e}`));
-    console.error('\nExecução abortada imediatamente com Exit Code 1. Nenhuma ação destrutiva foi executada.');
+    console.error('\nExecução abortada imediatamente com Exit Code 1. Nenhuma ação foi executada.');
     process.exit(1);
   }
 
-  console.log('[SUCESSO] Todos os 7 requisitos de isolamento foram atendidos. Ambiente de staging validado com segurança.');
+  console.log('[SUCESSO] Todos os requisitos de isolamento foram atendidos e comprovados. Ambiente de staging validado.');
   process.exit(0);
 }
 

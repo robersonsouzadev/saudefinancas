@@ -287,8 +287,11 @@ export async function runPreflight(dbUrl, options = {}) {
 
 // Execução CLI direta
 if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}` || process.argv[1]?.endsWith('preflight_temporal_check.mjs')) {
-  const PG_PORT = process.env.PG_PORT || 5434;
-  const dbUrl = process.env.DATABASE_URL || `postgresql://vita_staging_app:staging_pass@127.0.0.1:${PG_PORT}/vita_saude_staging?schema=public`;
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    console.error('[FATAL]: Variável de ambiente DATABASE_URL é estritamente obrigatória.');
+    process.exit(3);
+  }
 
   runPreflight(dbUrl).then((result) => {
     process.exit(result.exitCode);

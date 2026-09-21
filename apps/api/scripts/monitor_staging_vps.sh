@@ -5,8 +5,8 @@
 # ==============================================================================
 # Monitora a cada 10 segundos os 6 critérios de salvaguarda.
 # Se algum critério for violado:
-#   1. Cancela imediatamente os processos de build e runners informados (--build-pid, --runner-pid);
-#   2. Preserva os logs e códigos de status de interrupção;
+#   1. Cancela supervisionadamente toda a árvore de processos de build e runners (--build-pid, --runner-pid);
+#   2. Preserva os logs e códigos de status de encerramento;
 #   3. Desliga os containers de staging;
 #   4. JAMAIS toca ou reinicia a produção.
 # ==============================================================================
@@ -58,21 +58,29 @@ echo "--------------------------------------------------------------------------
 INITIAL_RESTART_COUNT=$(docker inspect --format='{{.RestartCount}}' "$PROD_CONTAINER_API" 2>/dev/null || echo "0")
 HIGH_LOAD_COUNT=0
 
-terminate_process() {
+terminate_process_tree() {
   local pid="$1"
   local proc_name="$2"
   if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-    echo "[ABORT SAFEGUARD] Enviando SIGTERM para $proc_name (PID: $pid)..."
-    kill -15 "$pid" 2>/dev/null
+    echo "[ABORT SAFEGUARD] Cancelando árvore de processos de $proc_name (PID raiz: $pid)..."
+    
+    # 1. Envia SIGTERM para os filhos e depois para o pai
+    pkill -TERM -P "$pid" 2>/dev/null || true
+    kill -15 "$pid" 2>/dev/null || true
+    
     sleep 3
+    
+    # 2. Se ainda estiver ativo, envia SIGKILL para toda a árvore
     if kill -0 "$pid" 2>/dev/null; then
-      echo "[ABORT SAFEGUARD] Processo ainda ativo. Enviando SIGKILL para $proc_name (PID: $pid)..."
-      kill -9 "$pid" 2>/dev/null
+      echo "[ABORT SAFEGUARD] Processo ainda ativo após SIGTERM. Forçando SIGKILL em toda a árvore (PID: $pid)..."
+      pkill -KILL -P "$pid" 2>/dev/null || true
+      kill -9 "$pid" 2>/dev/null || true
     fi
+    
     wait "$pid" 2>/dev/null
     local exit_code=$?
-    echo "[ABORT SAFEGUARD] $proc_name (PID: $pid) finalizado. Código de saída preservado: $exit_code"
-    echo "CANCELLED_PROCESS name=$proc_name pid=$pid exit_code=$exit_code timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$AUDIT_LOG"
+    echo "[ABORT SAFEGUARD] $proc_name finalizado. Código de saída preservado: $exit_code"
+    echo "CANCELLED_PROCESS name=\"$proc_name\" pid=$pid exit_code=$exit_code timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$AUDIT_LOG"
   fi
 }
 
@@ -88,9 +96,9 @@ trigger_safeguard_halt() {
 
   echo "HALT_TRIGGERED reason=\"$reason\" timestamp=$timestamp" >> "$AUDIT_LOG"
 
-  # 1. Cancela processos ativos de build e teste
-  terminate_process "$BUILD_PID" "Build Staging"
-  terminate_process "$RUNNER_PID" "Test Runner Staging"
+  # 1. Cancela supervisionadamente toda a árvore de build e teste
+  terminate_process_tree "$BUILD_PID" "Build Staging"
+  terminate_process_tree "$RUNNER_PID" "Test Runner Staging"
 
   # 2. Desliga os contêineres de staging com segurança
   echo "[ISOLATION HALT] Desligando contêineres de staging..."

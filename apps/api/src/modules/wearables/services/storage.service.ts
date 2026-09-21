@@ -114,15 +114,11 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
         fileHandle = await fs.promises.open(tempPath, openFlags, 0o600);
         await fileHandle.writeFile(buffer);
         await fileHandle.sync(); // fsync do arquivo
-      } finally {
-        if (fileHandle) {
-          await fileHandle.close();
-        }
-      }
+        await fileHandle.close();
+        fileHandle = null;
 
-      // Publicação atômica NO-CLOBBER via fs.promises.link
-      // Se fullPath já existir, link falha com EEXIST impedindo sobrescrita silenciosa
-      try {
+        // Publicação atômica NO-CLOBBER via fs.promises.link
+        // Se fullPath já existir, link falha com EEXIST impedindo sobrescrita silenciosa
         await fs.promises.link(tempPath, fullPath);
       } catch (linkErr: any) {
         if (linkErr.code === 'EEXIST') {
@@ -130,7 +126,10 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
         }
         throw linkErr;
       } finally {
-        // Limpeza garantida do arquivo temporário
+        if (fileHandle) {
+          await fileHandle.close().catch(() => {});
+        }
+        // Limpeza garantida do arquivo temporário mesmo em caso de erro durante writeFile ou sync
         await fs.promises.unlink(tempPath).catch(() => {});
       }
 
@@ -166,24 +165,43 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
         throw new NotFoundException(`Objeto de storage não encontrado: ${key}`);
       }
 
+      // 1. Verificação prévia de symlink na entrada via lstat
       const lstat = await fs.promises.lstat(fullPath);
       if (lstat.isSymbolicLink()) {
         throw new BadRequestException('Symlinks proibidos no storage.');
       }
 
-      const buffer = await fs.promises.readFile(fullPath);
+      // 2. Abertura do descritor de arquivo com O_NOFOLLOW para leitura imune a TOCTOU
+      const openFlags = fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0);
+      let fileHandle: fs.promises.FileHandle | null = null;
+      try {
+        fileHandle = await fs.promises.open(fullPath, openFlags);
+        const stat = await fileHandle.stat();
+        if (!stat.isFile()) {
+          throw new BadRequestException('Recurso no storage não é um arquivo regular.');
+        }
 
-      if (expectedSha256) {
-        const readSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
-        if (readSha256 !== expectedSha256) {
-          throw new BadRequestException(`Violação de integridade no storage: SHA-256 lido (${readSha256}) difere do esperado (${expectedSha256}).`);
+        const buffer = await fileHandle.readFile();
+
+        if (expectedSha256) {
+          const readSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+          if (readSha256 !== expectedSha256) {
+            throw new BadRequestException(`Violação de integridade no storage: SHA-256 lido (${readSha256}) difere do esperado (${expectedSha256}).`);
+          }
+        }
+
+        return buffer;
+      } finally {
+        if (fileHandle) {
+          await fileHandle.close().catch(() => {});
         }
       }
-
-      return buffer;
     } catch (err: any) {
       if (err instanceof NotFoundException || err instanceof BadRequestException) {
         throw err;
+      }
+      if (err.code === 'ELOOP' || err.code === 'EINVAL') {
+        throw new BadRequestException('Symlinks proibidos no storage.');
       }
       if (err.code === 'EACCES' || err.code === 'EROFS') {
         this.logger.error(`Falha crítica de leitura no storage: ${err.code} - ${err.message}`);
@@ -194,17 +212,21 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
   }
 
   async deleteObject(key: string): Promise<void> {
-    try {
-      const { fullPath } = this.validateAndResolveKey(key);
+    const { fullPath } = this.validateAndResolveKey(key);
 
-      if (fs.existsSync(fullPath)) {
-        const lstat = await fs.promises.lstat(fullPath);
-        if (!lstat.isSymbolicLink()) {
-          await fs.promises.unlink(fullPath);
+    if (fs.existsSync(fullPath)) {
+      const lstat = await fs.promises.lstat(fullPath);
+      if (lstat.isSymbolicLink()) {
+        throw new BadRequestException('Tentativa de remoção de symlink proibido no storage.');
+      }
+      try {
+        await fs.promises.unlink(fullPath);
+      } catch (unlinkErr: any) {
+        if (unlinkErr.code !== 'ENOENT') {
+          this.logger.error(`Falha ao remover arquivo do storage: ${key}. Erro: ${unlinkErr?.message}`);
+          throw unlinkErr; // Propaga a falha para que a rotina de compensação registre o alerta de órfão
         }
       }
-    } catch (err: any) {
-      this.logger.warn(`Falha ao remover arquivo do storage: ${key}. Erro: ${err?.message}`);
     }
   }
 

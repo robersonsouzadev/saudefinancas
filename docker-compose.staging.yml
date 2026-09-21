@@ -92,7 +92,6 @@ services:
       STORAGE_PATH: /data/vita-saude-staging/wearables
       JWT_SECRET: ${STAGING_JWT_SECRET:?Variavel STAGING_JWT_SECRET obrigatoria}
       AUDIT_HMAC_SECRET: ${STAGING_AUDIT_HMAC_SECRET:?Variavel STAGING_AUDIT_HMAC_SECRET obrigatoria}
-      ALLOW_DESTRUCTIVE_TESTS: 'true'
       PUBLIC_API_URL: http://127.0.0.1:3011
       PORT: 3001
     volumes:
@@ -112,7 +111,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    command: ['node', 'dist/worker.js']
+    command: ['node', 'dist/src/worker.js']
     restart: unless-stopped
     user: '1000:1000'
     depends_on:
@@ -131,7 +130,6 @@ services:
       STORAGE_PATH: /data/vita-saude-staging/wearables
       JWT_SECRET: ${STAGING_JWT_SECRET:?Variavel STAGING_JWT_SECRET obrigatoria}
       AUDIT_HMAC_SECRET: ${STAGING_AUDIT_HMAC_SECRET:?Variavel STAGING_AUDIT_HMAC_SECRET obrigatoria}
-      ALLOW_DESTRUCTIVE_TESTS: 'true'
     volumes:
       - /data/vita-saude-staging/wearables:/data/vita-saude-staging/wearables
     networks:

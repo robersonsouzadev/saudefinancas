@@ -42,7 +42,6 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
+WORKDIR /app/apps/api
 
-EXPOSE 3001
-
-CMD ["sh", "-c", "cd apps/api && (npx prisma db push --schema=prisma/schema.prisma --skip-generate --accept-data-loss || true) && (node dist/src/main.js || node dist/main.js)"]
+CMD ["node", "dist/src/main.js"]
