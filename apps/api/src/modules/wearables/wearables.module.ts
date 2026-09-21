@@ -16,6 +16,7 @@ import { FitImporterService } from './services/fit-importer.service';
 import { FitProcessingService } from './processors/fit-processing.service';
 import { FitImportProcessor } from './processors/fit-import.processor';
 import { OutboxReconciliationService } from './services/outbox-reconciliation.service';
+import { WearablesObservabilityService } from './services/wearables-observability.service';
 
 @Module({
   imports: [
@@ -47,12 +48,14 @@ import { OutboxReconciliationService } from './services/outbox-reconciliation.se
     FitProcessingService,
     FitImportProcessor,
     OutboxReconciliationService,
+    WearablesObservabilityService,
   ],
   exports: [
     FitImporterService,
     FitProcessingService,
     PrivateObjectStorageService,
     FitValidatorService,
+    WearablesObservabilityService,
   ],
 })
 export class WearablesModule {}

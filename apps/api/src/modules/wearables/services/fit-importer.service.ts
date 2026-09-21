@@ -59,8 +59,8 @@ export class FitImporterService {
     const storageUuid = crypto.randomUUID();
     const storageKey = `wearables/${userId}/${year}/${month}/${storageUuid}.fit`;
 
-    // 5. Gravação no Storage Privado
-    const storedRef = await this.storage.putObject(storageKey, fileBuffer);
+    // 5. Gravação no Storage Privado com verificação de SHA-256
+    const storedRef = await this.storage.putObject(storageKey, fileBuffer, fileSha256);
 
     // 6. Higienização do nome original para rótulo visual seguro
     const sanitizedFileName = path.basename(originalFileName).replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -95,7 +95,7 @@ export class FitImporterService {
       // 8. Compensação Imediata: se houver colisão concorrente de SHA-256 (erro P2002)
       if (err.code === 'P2002') {
         this.logger.warn(`Concorrência detectada para o arquivo SHA-256 ${fileSha256}. Acionando compensação no storage.`);
-        await this.storage.deleteObject(storageKey);
+        await this.storage.deleteObject(storageKey).catch(() => {});
 
         const winner = await this.prisma.importedFile.findUnique({
           where: { userId_fileSha256: { userId, fileSha256 } },
@@ -113,7 +113,11 @@ export class FitImporterService {
       }
 
       // Se falhar por outro motivo de banco, remove o arquivo do storage e repassa o erro
-      await this.storage.deleteObject(storageKey);
+      try {
+        await this.storage.deleteObject(storageKey);
+      } catch (delErr: any) {
+        this.logger.error(`[STORAGE_ORPHAN_ALERT] Falha na compensação de storage para chave ${storageKey}: ${delErr?.message}. Será reconciliado na rotina periódica de órfãos.`);
+      }
       throw err;
     }
   }

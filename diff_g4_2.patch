@@ -1,0 +1,727 @@
+diff --git a/apps/api/Dockerfile b/apps/api/Dockerfile
+index 992af36..053d498 100644
+--- a/apps/api/Dockerfile
++++ b/apps/api/Dockerfile
+@@ -16,7 +16,7 @@ RUN npm install --legacy-peer-deps
+ COPY apps/api ./apps/api
+ 
+ # Set dummy DATABASE_URL for Prisma Client generation during build
+-ENV DATABASE_URL="postgresql://sf_user:REDACTED_PASSWORD@sf-db:5432/saudefinancas?schema=public"
++ENV DATABASE_URL="postgresql://sf_user:build_dummy_secret@sf-db:5432/build_dummy?schema=public"
+ 
+ # Generate Prisma client and build NestJS
+ WORKDIR /app/apps/api
+diff --git a/apps/api/src/app.module.ts b/apps/api/src/app.module.ts
+index f156819..0672bfb 100644
+--- a/apps/api/src/app.module.ts
++++ b/apps/api/src/app.module.ts
+@@ -20,6 +20,7 @@ import { AgentsModule } from './modules/agents/agents.module';
+ import { WorkoutsModule } from './modules/workouts/workouts.module';
+ import { BodyAssessmentsModule } from './modules/body-assessments/body-assessments.module';
+ import { WearablesModule } from './modules/wearables/wearables.module';
++import { HealthModule } from './modules/health/health.module';
+ import { BullModule } from '@nestjs/bullmq';
+ 
+ @Module({
+@@ -57,6 +58,7 @@ import { BullModule } from '@nestjs/bullmq';
+     WorkoutsModule,
+     BodyAssessmentsModule,
+     WearablesModule,
++    HealthModule,
+   ],
+ })
+ export class AppModule {}
+diff --git a/apps/api/src/modules/wearables/interfaces/storage.interface.ts b/apps/api/src/modules/wearables/interfaces/storage.interface.ts
+index ded2a3f..3075e94 100644
+--- a/apps/api/src/modules/wearables/interfaces/storage.interface.ts
++++ b/apps/api/src/modules/wearables/interfaces/storage.interface.ts
+@@ -5,8 +5,8 @@ export interface StoredObjectRef {
+ }
+ 
+ export interface IPrivateObjectStorage {
+-  putObject(key: string, buffer: Buffer): Promise<StoredObjectRef>;
+-  getObject(key: string): Promise<Buffer>;
++  putObject(key: string, buffer: Buffer, expectedSha256?: string): Promise<StoredObjectRef>;
++  getObject(key: string, expectedSha256?: string): Promise<Buffer>;
+   deleteObject(key: string): Promise<void>;
+   reconcileOrphans(knownKeys: Set<string>): Promise<string[]>;
+ }
+diff --git a/apps/api/src/modules/wearables/processors/fit-processing.service.ts b/apps/api/src/modules/wearables/processors/fit-processing.service.ts
+index adc4624..e86ab02 100644
+--- a/apps/api/src/modules/wearables/processors/fit-processing.service.ts
++++ b/apps/api/src/modules/wearables/processors/fit-processing.service.ts
+@@ -43,6 +43,17 @@ export class FitProcessingService {
+   async processImport(importId: string): Promise<void> {
+     const startTime = Date.now();
+ 
++    // 0. Verificação preliminar de idempotência em redelivery
++    const existingCheck = await this.prisma.importedFile.findUnique({
++      where: { id: importId },
++      select: { status: true },
++    });
++
++    if (existingCheck?.status === ImportStatus.PROCESSED) {
++      this.logger.log(`[IDEMPOTENT_SKIP] Arquivo ${importId} já se encontra com status PROCESSED. Redelivery ignorado sem reprocessamento.`);
++      return;
++    }
++
+     // 1. Claim Atômico do Job com versionamento atômico e relógio do PostgreSQL
+     // Somente adquire se status for PENDING ou se for PROCESSING com lease expirado no relógio do banco
+     const claimRows = await this.prisma.$queryRaw<Array<{ id: string; leaseVersion: bigint; leaseOwner: string }>>`
+@@ -123,8 +134,8 @@ export class FitProcessingService {
+     }, 10000);
+ 
+     try {
+-      // 3. Leitura do Binário no Storage Privado
+-      const buffer = await this.storage.getObject(importedFile.storageKey);
++      // 3. Leitura do Binário no Storage Privado com conferência de SHA-256
++      const buffer = await this.storage.getObject(importedFile.storageKey, importedFile.fileSha256);
+ 
+       // 4. Execução em Worker Thread com Supervisor (Timeout de 15s e Limite de Memória 256MB)
+       const decoded = await this.supervisor.parseWithSupervisor(buffer, 15000);
+diff --git a/apps/api/src/modules/wearables/services/fit-importer.service.ts b/apps/api/src/modules/wearables/services/fit-importer.service.ts
+index 21e4c02..14e4749 100644
+--- a/apps/api/src/modules/wearables/services/fit-importer.service.ts
++++ b/apps/api/src/modules/wearables/services/fit-importer.service.ts
+@@ -59,8 +59,8 @@ export class FitImporterService {
+     const storageUuid = crypto.randomUUID();
+     const storageKey = `wearables/${userId}/${year}/${month}/${storageUuid}.fit`;
+ 
+-    // 5. Gravação no Storage Privado
+-    const storedRef = await this.storage.putObject(storageKey, fileBuffer);
++    // 5. Gravação no Storage Privado com verificação de SHA-256
++    const storedRef = await this.storage.putObject(storageKey, fileBuffer, fileSha256);
+ 
+     // 6. Higienização do nome original para rótulo visual seguro
+     const sanitizedFileName = path.basename(originalFileName).replace(/[^a-zA-Z0-9._-]/g, '_');
+@@ -95,7 +95,7 @@ export class FitImporterService {
+       // 8. Compensação Imediata: se houver colisão concorrente de SHA-256 (erro P2002)
+       if (err.code === 'P2002') {
+         this.logger.warn(`Concorrência detectada para o arquivo SHA-256 ${fileSha256}. Acionando compensação no storage.`);
+-        await this.storage.deleteObject(storageKey);
++        await this.storage.deleteObject(storageKey).catch(() => {});
+ 
+         const winner = await this.prisma.importedFile.findUnique({
+           where: { userId_fileSha256: { userId, fileSha256 } },
+@@ -113,7 +113,11 @@ export class FitImporterService {
+       }
+ 
+       // Se falhar por outro motivo de banco, remove o arquivo do storage e repassa o erro
+-      await this.storage.deleteObject(storageKey);
++      try {
++        await this.storage.deleteObject(storageKey);
++      } catch (delErr: any) {
++        this.logger.error(`[STORAGE_ORPHAN_ALERT] Falha na compensação de storage para chave ${storageKey}: ${delErr?.message}. Será reconciliado na rotina periódica de órfãos.`);
++      }
+       throw err;
+     }
+   }
+diff --git a/apps/api/src/modules/wearables/services/outbox-reconciliation.service.ts b/apps/api/src/modules/wearables/services/outbox-reconciliation.service.ts
+index 861360a..3d3ac2d 100644
+--- a/apps/api/src/modules/wearables/services/outbox-reconciliation.service.ts
++++ b/apps/api/src/modules/wearables/services/outbox-reconciliation.service.ts
+@@ -132,7 +132,7 @@ export class OutboxReconciliationService {
+     return result.count;
+   }
+ 
+-  // 4. Limpeza de Arquivos Órfãos no Storage
++  // 4. Limpeza de Arquivos Órfãos no Storage (MODO DIAGNÓSTICO ESTREITO)
+   async cleanOrphanStorageFiles(): Promise<string[]> {
+     const allFiles = await this.prisma.importedFile.findMany({
+       select: { storageKey: true },
+@@ -141,9 +141,17 @@ export class OutboxReconciliationService {
+     const knownKeys = new Set(allFiles.map((f) => f.storageKey));
+     const orphans = await this.storage.reconcileOrphans(knownKeys);
+ 
++    const allowDeletion = process.env.ORPHAN_CLEANUP_ENABLE_DELETION === 'true';
++
+     for (const orphan of orphans) {
+-      this.logger.warn(`[Storage Cleaner] Removendo arquivo órfão do storage: ${orphan}`);
+-      await this.storage.deleteObject(orphan);
++      if (allowDeletion) {
++        this.logger.warn(`[Storage Cleaner - EXECUÇÃO DELETIVA] Removendo arquivo órfão do storage: ${orphan}`);
++        await this.storage.deleteObject(orphan);
++      } else {
++        this.logger.warn(
++          `[Storage Cleaner - MODO DIAGNÓSTICO] Arquivo órfão potencial identificado no storage: ${orphan}. Remoção SUSPENSA por segurança até proteção comprovada contra concorrência.`,
++        );
++      }
+     }
+ 
+     return orphans;
+diff --git a/apps/api/src/modules/wearables/services/storage.service.ts b/apps/api/src/modules/wearables/services/storage.service.ts
+index 7fd1e66..e5b800f 100644
+--- a/apps/api/src/modules/wearables/services/storage.service.ts
++++ b/apps/api/src/modules/wearables/services/storage.service.ts
+@@ -1,7 +1,15 @@
+-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
++import {
++  Injectable,
++  Logger,
++  NotFoundException,
++  BadRequestException,
++  ConflictException,
++  ServiceUnavailableException,
++} from '@nestjs/common';
+ import { ConfigService } from '@nestjs/config';
+ import * as fs from 'fs';
+ import * as path from 'path';
++import * as crypto from 'crypto';
+ import { IPrivateObjectStorage, StoredObjectRef } from '../interfaces/storage.interface';
+ 
+ @Injectable()
+@@ -11,51 +19,189 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
+ 
+   constructor(private readonly configService: ConfigService) {
+     const customPath = this.configService.get<string>('STORAGE_PATH');
+-    this.basePath = customPath 
+-      ? path.resolve(customPath) 
++    const rawPath = customPath
++      ? path.resolve(customPath)
+       : path.resolve(process.cwd(), 'storage', 'private', 'wearables');
+ 
+-    if (!fs.existsSync(this.basePath)) {
+-      fs.mkdirSync(this.basePath, { recursive: true });
++    if (!fs.existsSync(rawPath)) {
++      fs.mkdirSync(rawPath, { recursive: true, mode: 0o700 });
+     }
++
++    try {
++      this.basePath = fs.realpathSync(rawPath);
++    } catch {
++      this.basePath = rawPath;
++    }
++  }
++
++  getBasePath(): string {
++    return this.basePath;
+   }
+ 
+-  async putObject(key: string, buffer: Buffer): Promise<StoredObjectRef> {
++  private validateAndResolveKey(key: string): { fullPath: string; dirPath: string; sanitizedKey: string } {
++    if (!key || typeof key !== 'string') {
++      throw new BadRequestException('Chave de storage inválida.');
++    }
++
++    // 1. Rejeição de bytes nulos e caracteres proibidos
++    if (key.includes('\0')) {
++      throw new BadRequestException('Chave contém bytes nulos inválidos.');
++    }
++
++    // 2. Rejeição explícita de caminhos absolutos forasteiros e ..
++    if (path.isAbsolute(key) || key.includes('..')) {
++      throw new BadRequestException('Chave contém sequências de navegação ou caminho absoluto proibido.');
++    }
++
+     const sanitizedKey = path.normalize(key).replace(/^(\.\.(\/|\\|$))+/, '');
+-    const fullPath = path.join(this.basePath, sanitizedKey);
+-    const dir = path.dirname(fullPath);
++    const fullPath = path.resolve(this.basePath, sanitizedKey);
+ 
+-    if (!fs.existsSync(dir)) {
+-      fs.mkdirSync(dir, { recursive: true });
++    // 3. Validação de contenção estrita dentro de basePath
++    if (!fullPath.startsWith(this.basePath + path.sep)) {
++      throw new BadRequestException('Tentativa de path traversal detectada: caminho fora da raiz autorizada.');
+     }
+ 
+-    await fs.promises.writeFile(fullPath, buffer, { mode: 0o600 });
++    const dirPath = path.dirname(fullPath);
++    return { fullPath, dirPath, sanitizedKey };
++  }
+ 
+-    return {
+-      storageKey: sanitizedKey.replace(/\\/g, '/'),
+-      storageDriver: 'LOCAL',
+-      fileSizeBytes: buffer.length,
+-    };
++  private validateNoSymlinksInPath(dirPath: string): void {
++    let current = path.resolve(dirPath);
++    const root = this.basePath;
++
++    while (current.length >= root.length) {
++      if (fs.existsSync(current)) {
++        const stat = fs.lstatSync(current);
++        if (stat.isSymbolicLink()) {
++          throw new BadRequestException(`Symlink proibido detectado na árvore de diretórios: ${current}`);
++        }
++      }
++      if (current === root) break;
++      const parent = path.dirname(current);
++      if (parent === current) break;
++      current = parent;
++    }
+   }
+ 
+-  async getObject(key: string): Promise<Buffer> {
+-    const sanitizedKey = path.normalize(key).replace(/^(\.\.(\/|\\|$))+/, '');
+-    const fullPath = path.join(this.basePath, sanitizedKey);
++  async putObject(key: string, buffer: Buffer, expectedSha256?: string): Promise<StoredObjectRef> {
++    const { fullPath, dirPath, sanitizedKey } = this.validateAndResolveKey(key);
++
++    try {
++      this.validateNoSymlinksInPath(dirPath);
++
++      if (!fs.existsSync(dirPath)) {
++        fs.mkdirSync(dirPath, { recursive: true, mode: 0o700 });
++      }
++
++      // Validação de integridade do payload antes da escrita
++      const calculatedSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
++      if (expectedSha256 && calculatedSha256 !== expectedSha256) {
++        throw new BadRequestException('SHA-256 do buffer não corresponde ao hash esperado antes da gravação.');
++      }
++
++      // Escrita atômica em arquivo temporário com flags exclusivas
++      const tempFileName = `.tmp_${crypto.randomBytes(16).toString('hex')}`;
++      const tempPath = path.join(dirPath, tempFileName);
++
++      const openFlags =
++        fs.constants.O_CREAT |
++        fs.constants.O_EXCL |
++        fs.constants.O_WRONLY |
++        (fs.constants.O_NOFOLLOW || 0);
++
++      let fileHandle: fs.promises.FileHandle | null = null;
++      try {
++        fileHandle = await fs.promises.open(tempPath, openFlags, 0o600);
++        await fileHandle.writeFile(buffer);
++        await fileHandle.sync(); // fsync do arquivo
++      } finally {
++        if (fileHandle) {
++          await fileHandle.close();
++        }
++      }
+ 
+-    if (!fs.existsSync(fullPath)) {
+-      throw new NotFoundException(`Objeto de storage não encontrado: ${key}`);
++      // Publicação atômica NO-CLOBBER via fs.promises.link
++      // Se fullPath já existir, link falha com EEXIST impedindo sobrescrita silenciosa
++      try {
++        await fs.promises.link(tempPath, fullPath);
++      } catch (linkErr: any) {
++        if (linkErr.code === 'EEXIST') {
++          throw new ConflictException(`Conflito de storage: arquivo já existe em destino (${sanitizedKey}). Sobrescrita proibida.`);
++        }
++        throw linkErr;
++      } finally {
++        // Limpeza garantida do arquivo temporário
++        await fs.promises.unlink(tempPath).catch(() => {});
++      }
++
++      // fsync do diretório pai para durabilidade dos metadados (onde suportado)
++      try {
++        const dirHandle = await fs.promises.open(dirPath, 'r');
++        await dirHandle.sync().catch(() => {});
++        await dirHandle.close().catch(() => {});
++      } catch {}
++
++      return {
++        storageKey: sanitizedKey.replace(/\\/g, '/'),
++        storageDriver: 'LOCAL_SECURE',
++        fileSizeBytes: buffer.length,
++      };
++    } catch (err: any) {
++      if (err instanceof BadRequestException || err instanceof ConflictException) {
++        throw err;
++      }
++      if (err.code === 'EACCES' || err.code === 'EROFS' || err.code === 'ENOSPC') {
++        this.logger.error(`Falha crítica de volume no storage: ${err.code} - ${err.message}`);
++        throw new ServiceUnavailableException(`Storage LOCAL_SECURE indisponível ou somente leitura: ${err.code}`);
++      }
++      throw err;
+     }
++  }
++
++  async getObject(key: string, expectedSha256?: string): Promise<Buffer> {
++    const { fullPath } = this.validateAndResolveKey(key);
++
++    try {
++      if (!fs.existsSync(fullPath)) {
++        throw new NotFoundException(`Objeto de storage não encontrado: ${key}`);
++      }
++
++      const lstat = await fs.promises.lstat(fullPath);
++      if (lstat.isSymbolicLink()) {
++        throw new BadRequestException('Symlinks proibidos no storage.');
++      }
++
++      const buffer = await fs.promises.readFile(fullPath);
+ 
+-    return fs.promises.readFile(fullPath);
++      if (expectedSha256) {
++        const readSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
++        if (readSha256 !== expectedSha256) {
++          throw new BadRequestException(`Violação de integridade no storage: SHA-256 lido (${readSha256}) difere do esperado (${expectedSha256}).`);
++        }
++      }
++
++      return buffer;
++    } catch (err: any) {
++      if (err instanceof NotFoundException || err instanceof BadRequestException) {
++        throw err;
++      }
++      if (err.code === 'EACCES' || err.code === 'EROFS') {
++        this.logger.error(`Falha crítica de leitura no storage: ${err.code} - ${err.message}`);
++        throw new ServiceUnavailableException(`Storage LOCAL_SECURE inacessível para leitura: ${err.code}`);
++      }
++      throw err;
++    }
+   }
+ 
+   async deleteObject(key: string): Promise<void> {
+     try {
+-      const sanitizedKey = path.normalize(key).replace(/^(\.\.(\/|\\|$))+/, '');
+-      const fullPath = path.join(this.basePath, sanitizedKey);
++      const { fullPath } = this.validateAndResolveKey(key);
+ 
+       if (fs.existsSync(fullPath)) {
+-        await fs.promises.unlink(fullPath);
++        const lstat = await fs.promises.lstat(fullPath);
++        if (!lstat.isSymbolicLink()) {
++          await fs.promises.unlink(fullPath);
++        }
+       }
+     } catch (err: any) {
+       this.logger.warn(`Falha ao remover arquivo do storage: ${key}. Erro: ${err?.message}`);
+@@ -73,6 +219,9 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
+         if (entry.isDirectory()) {
+           walk(res);
+         } else {
++          // Ignora arquivos temporários de escrita em andamento
++          if (entry.name.startsWith('.tmp_')) continue;
++
+           const relKey = path.relative(this.basePath, res).replace(/\\/g, '/');
+           if (!knownKeys.has(relKey)) {
+             orphans.push(relKey);
+@@ -84,4 +233,15 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
+     walk(this.basePath);
+     return orphans;
+   }
++
++  async isHealthy(): Promise<boolean> {
++    try {
++      await fs.promises.access(this.basePath, fs.constants.R_OK | fs.constants.W_OK);
++      const stat = await fs.promises.stat(this.basePath);
++      return stat.isDirectory();
++    } catch {
++      return false;
++    }
++  }
+ }
++
+diff --git a/apps/api/src/modules/wearables/wearables.module.ts b/apps/api/src/modules/wearables/wearables.module.ts
+index e28a740..cad4fa5 100644
+--- a/apps/api/src/modules/wearables/wearables.module.ts
++++ b/apps/api/src/modules/wearables/wearables.module.ts
+@@ -16,6 +16,7 @@ import { FitImporterService } from './services/fit-importer.service';
+ import { FitProcessingService } from './processors/fit-processing.service';
+ import { FitImportProcessor } from './processors/fit-import.processor';
+ import { OutboxReconciliationService } from './services/outbox-reconciliation.service';
++import { WearablesObservabilityService } from './services/wearables-observability.service';
+ 
+ @Module({
+   imports: [
+@@ -47,12 +48,14 @@ import { OutboxReconciliationService } from './services/outbox-reconciliation.se
+     FitProcessingService,
+     FitImportProcessor,
+     OutboxReconciliationService,
++    WearablesObservabilityService,
+   ],
+   exports: [
+     FitImporterService,
+     FitProcessingService,
+     PrivateObjectStorageService,
+     FitValidatorService,
++    WearablesObservabilityService,
+   ],
+ })
+ export class WearablesModule {}
+diff --git a/apps/api/src/prisma/prisma.service.ts b/apps/api/src/prisma/prisma.service.ts
+index bb6565f..02cec69 100644
+--- a/apps/api/src/prisma/prisma.service.ts
++++ b/apps/api/src/prisma/prisma.service.ts
+@@ -1,10 +1,28 @@
+-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
++import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+ import { PrismaClient } from '@prisma/client';
+ 
+ @Injectable()
+ export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
++  private readonly logger = new Logger(PrismaService.name);
++
+   async onModuleInit() {
+     await this.$connect();
++    try {
++      await this.$executeRawUnsafe(`SET TIME ZONE 'UTC'`);
++      const tzRows = await this.$queryRawUnsafe<Array<{ TimeZone?: string; timezone?: string }>>(`SHOW TIMEZONE`);
++      const sessionTz = tzRows[0]?.TimeZone || tzRows[0]?.timezone || 'UNKNOWN';
++
++      const telemetry = {
++        databaseTimezone: 'UTC',
++        sessionTimezone: sessionTz,
++        nodeTimezone: process.env.TZ || 'UTC',
++        utcInvariantEnabled: true,
++      };
++
++      this.logger.log(`[Database Session] Configuração UTC do pool: ${JSON.stringify(telemetry)}`);
++    } catch (err: any) {
++      this.logger.warn(`Não foi possível validar TimeZone no onModuleInit: ${err?.message}`);
++    }
+   }
+ 
+   async onModuleDestroy() {
+diff --git a/apps/api/test/infra/run_e2e_http_audit.mjs b/apps/api/test/infra/run_e2e_http_audit.mjs
+index 205156b..66a355e 100644
+--- a/apps/api/test/infra/run_e2e_http_audit.mjs
++++ b/apps/api/test/infra/run_e2e_http_audit.mjs
+@@ -382,6 +382,26 @@ async function main() {
+       throw new Error(`Esperado 400 para CRC inválido, recebido ${corruptRes.status}`);
+     }
+ 
++    // --- CASO 3B: Falso Content-Type (Payload Fake / Imagem PNG / Spoofing) ---
++    console.log('\n--- CASO 3B: Upload com Falso Content-Type (Texto / PNG disfarçado de FIT) ---');
++    const fakeBuffer = Buffer.from('NOT_A_FIT_FILE_JUST_RANDOM_TEXT_DISGUISED');
++    const formFake = new FormData();
++    formFake.append('file', new Blob([fakeBuffer], { type: 'application/vnd.ant.fit' }), 'fake_spoofed.fit');
++
++    const fakeRes = await fetch(`http://127.0.0.1:${API_PORT}/api/integrations/wearables/fit/import`, {
++      method: 'POST',
++      headers: { Authorization: `Bearer ${token1}` },
++      body: formFake,
++    });
++    console.log(`- Status HTTP Recebido: ${fakeRes.status} (Esperado: 400 Bad Request)`);
++    const fakeJson = await fakeRes.json();
++    console.log('- Resposta JSON:', JSON.stringify(fakeJson, null, 2));
++    if (fakeRes.status !== 400) {
++      throw new Error(`Esperado 400 para conteúdo falso/spoofing, recebido ${fakeRes.status}`);
++    }
++    console.log('[OK] CASO 3B Aprovado: Falso content-type detectado e rejeitado com HTTP 400.');
++
++
+     // --- CASO 4: Consulta de Importação com status FAILED e Mensagem Pública Segura ---
+     console.log('\n--- CASO 4: Consulta de Importação FAILED com Mensagem Pública Segura ---');
+     const failedImport = await prisma.importedFile.create({
+@@ -474,6 +494,33 @@ async function main() {
+       throw new Error('Alerta de segurança: campo de senha Garmin encontrado!');
+     }
+ 
++    // --- CASO 7: Auditoria de Health, Readiness e Métricas Prometheus ---
++    console.log('\n--- CASO 7: Verificação de Health Probes (/api/health/liveness, /api/health/readiness) ---');
++    const livenessRes = await fetch(`http://127.0.0.1:${API_PORT}/api/health/liveness`);
++    const livenessJson = await livenessRes.json();
++    console.log('- Endpoint /api/health/liveness:', JSON.stringify(livenessJson, null, 2));
++    if (livenessRes.status !== 200 || livenessJson.status !== 'UP') {
++      throw new Error(`Liveness falhou: status ${livenessRes.status}`);
++    }
++
++    const readinessRes = await fetch(`http://127.0.0.1:${API_PORT}/api/health/readiness`);
++    const readinessJson = await readinessRes.json();
++    console.log('- Endpoint /api/health/readiness:', JSON.stringify(readinessJson, null, 2));
++    if (readinessRes.status !== 200 || readinessJson.status !== 'UP') {
++      throw new Error(`Readiness falhou: status ${readinessRes.status}`);
++    }
++    if (readinessJson.checks.timezone !== 'UTC') {
++      throw new Error(`Readiness timezone falhou: esperado UTC, recebido ${readinessJson.checks.timezone}`);
++    }
++
++    const metricsRes = await fetch(`http://127.0.0.1:${API_PORT}/api/health/metrics`);
++    const metricsText = await metricsRes.text();
++    console.log('- Endpoint /api/health/metrics (primeiras 5 linhas):\n', metricsText.split('\n').slice(0, 5).join('\n'));
++    if (metricsRes.status !== 200 || !metricsText.includes('wearables_')) {
++      throw new Error(`Metrics endpoint falhou: status ${metricsRes.status}`);
++    }
++    console.log('[OK] CASO 7 Aprovado: Liveness, Readiness (com validação estrita de timezone UTC) e Metrics operacionais.');
++
+     console.log('\n[7/7] TODOS OS CASOS DE TESTE HTTP E2E FORAM CONCLUÍDOS COM SUCESSO!');
+   } finally {
+     // Encerramento limpo de todos os subprocessos
+diff --git a/apps/api/test/infra/run_migrations_test.mjs b/apps/api/test/infra/run_migrations_test.mjs
+index c6a62ce..4624f37 100644
+--- a/apps/api/test/infra/run_migrations_test.mjs
++++ b/apps/api/test/infra/run_migrations_test.mjs
+@@ -34,10 +34,14 @@ async function main() {
+ 
+     const testDbUrl = 'postgresql://postgres:password@127.0.0.1:5433/saudefinancas_test?schema=public';
+ 
+-    // 2. Executa npx prisma migrate deploy em banco totalmente vazio
+-    console.log('\n[Executando] npx prisma migrate deploy...');
++    // 2. Executa npx prisma migrate deploy com PGOPTIONS de lock_timeout e statement_timeout
++    console.log('\n[Executando] npx prisma migrate deploy com PGOPTIONS lock/statement timeout...');
+     const deployOutput = execSync('npx prisma migrate deploy', {
+-      env: { ...process.env, DATABASE_URL: testDbUrl },
++      env: { 
++        ...process.env, 
++        DATABASE_URL: testDbUrl,
++        PGOPTIONS: '-c lock_timeout=5000 -c statement_timeout=30000'
++      },
+       encoding: 'utf8',
+     });
+     console.log(deployOutput);
+@@ -105,24 +109,56 @@ async function main() {
+       throw new Error(`Índices esperados não encontrados. Total: ${indexesRes.rows.length}`);
+     }
+ 
+-    // 5.1 Validação de Constraints de Invariantes Temporais
++    // 5.1 Validação de Constraints de Invariantes Temporais e convalidated = true
+     const constraintsRes = await client.query(`
+-      SELECT conname, pg_get_constraintdef(oid) as condef
++      SELECT conname, convalidated, pg_get_constraintdef(oid) as condef
+       FROM pg_constraint
+       WHERE conname LIKE 'chk_%'
+       ORDER BY conname
+     `);
+-    console.log('\n=== CHECK CONSTRAINTS DE INVARIANTES TEMPORAIS CONFIRMADAS NO POSTGRESQL ===');
++    console.log('\n=== CHECK CONSTRAINTS DE INVARIANTES TEMPORAIS (VALIDAÇÃO CONVALIDATED) ===');
+     console.table(constraintsRes.rows);
+ 
+     if (constraintsRes.rows.length !== 5) {
+       throw new Error(`Esperado 5 CHECK constraints temporais, encontrado: ${constraintsRes.rows.length}`);
+     }
+ 
+-    // 6. Teste de Idempotência: Executar npx prisma migrate deploy novamente
+-    console.log('\n[Executando Novamente] npx prisma migrate deploy para provar idempotência...');
++    for (const c of constraintsRes.rows) {
++      if (!c.convalidated) {
++        throw new Error(`Constraint ${c.conname} não está validada (convalidated=false)`);
++      }
++    }
++    console.log('[OK] Todas as 5 CHECK constraints temporais possuem convalidated = true.');
++
++    // 5.2 Validação em Banco Preenchido (Simula Deploy em Banco com Dados Existentes)
++    console.log('\n=== SIMULAÇÃO DE DEPLOY EM BANCO PREENCHIDO ===');
++    const userRes = await client.query(`
++      INSERT INTO "User" (id, email, name, "createdAt", "updatedAt")
++      VALUES (gen_random_uuid()::text, 'migration_filled_db@vitasatude.com', 'Filled DB User', timezone('UTC', NOW()), timezone('UTC', NOW()))
++      RETURNING id
++    `);
++    const filledUserId = userRes.rows[0].id;
++
++    await client.query(`
++      INSERT INTO "ImportedFile" (
++        id, "userId", "storageKey", "fileSha256", "originalFileName", "fileSizeBytes", status,
++        "createdAt", "updatedAt", "processingStartedAt", "processedAt", "processingDurationMs"
++      ) VALUES (
++        gen_random_uuid()::text, $1, 'wearables/filled/test.fit', repeat('a', 64), 'test.fit', 4096, 'PROCESSED',
++        timezone('UTC', NOW()) - INTERVAL '10 seconds', timezone('UTC', NOW()),
++        timezone('UTC', NOW()) - INTERVAL '8 seconds', timezone('UTC', NOW()) - INTERVAL '2 seconds', 6000
++      )
++    `, [filledUserId]);
++    console.log('[OK] Registro válido inserido no banco populado.');
++
++    // 6. Teste de Idempotência: Executar npx prisma migrate deploy novamente com PGOPTIONS
++    console.log('\n[Executando Novamente] npx prisma migrate deploy em banco populado para provar idempotência...');
+     const reDeployOutput = execSync('npx prisma migrate deploy', {
+-      env: { ...process.env, DATABASE_URL: testDbUrl },
++      env: { 
++        ...process.env, 
++        DATABASE_URL: testDbUrl,
++        PGOPTIONS: '-c lock_timeout=5000 -c statement_timeout=30000'
++      },
+       encoding: 'utf8',
+     });
+     console.log(reDeployOutput);
+diff --git a/apps/api/test/wearables/storage.spec.ts b/apps/api/test/wearables/storage.spec.ts
+index 7042cb3..ce240b9 100644
+--- a/apps/api/test/wearables/storage.spec.ts
++++ b/apps/api/test/wearables/storage.spec.ts
+@@ -1,10 +1,12 @@
+ import { describe, it, expect, afterEach } from 'vitest';
+ import { PrivateObjectStorageService } from '../../src/modules/wearables/services/storage.service';
+ import { ConfigService } from '@nestjs/config';
++import { BadRequestException, ConflictException } from '@nestjs/common';
+ import * as fs from 'fs';
+ import * as path from 'path';
++import * as crypto from 'crypto';
+ 
+-describe('PrivateObjectStorageService', () => {
++describe('PrivateObjectStorageService (LOCAL_SECURE Hardening)', () => {
+   const testStoragePath = path.resolve(__dirname, '../../test-storage-tmp');
+ 
+   const configMock = {
+@@ -22,18 +24,60 @@ describe('PrivateObjectStorageService', () => {
+     }
+   });
+ 
+-  it('deve salvar e ler um objeto com exatidão de bytes', async () => {
++  it('deve salvar e ler um objeto com exatidão de bytes e driver LOCAL_SECURE', async () => {
+     const key = 'user1/2026/09/test-file.fit';
+     const originalBuffer = Buffer.from('TEST_FIT_PAYLOAD_BUFFER_123');
++    const sha256 = crypto.createHash('sha256').update(originalBuffer).digest('hex');
+ 
+-    const ref = await storage.putObject(key, originalBuffer);
++    const ref = await storage.putObject(key, originalBuffer, sha256);
+     expect(ref.fileSizeBytes).toBe(originalBuffer.length);
+-    expect(ref.storageDriver).toBe('LOCAL');
++    expect(ref.storageDriver).toBe('LOCAL_SECURE');
+ 
+-    const retrieved = await storage.getObject(key);
++    const retrieved = await storage.getObject(key, sha256);
+     expect(retrieved.equals(originalBuffer)).toBe(true);
+   });
+ 
++  it('deve falhar atomicamente na escrita concorrente para a mesma chave (NO-CLOBBER) sem sobrescrever', async () => {
++    const key = 'user1/2026/09/race-file.fit';
++    const payloadA = Buffer.from('FIRST_WINNING_PAYLOAD');
++    const payloadB = Buffer.from('SECOND_LOSING_PAYLOAD');
++
++    // Executa putObject concorrente para a mesma chave
++    const results = await Promise.allSettled([
++      storage.putObject(key, payloadA),
++      storage.putObject(key, payloadB),
++    ]);
++
++    const fulfilled = results.filter((r) => r.status === 'fulfilled');
++    const rejected = results.filter((r) => r.status === 'rejected');
++
++    // Exatamente uma operação deve vencer, a outra deve ser rejeitada com ConflictException
++    expect(fulfilled.length).toBe(1);
++    expect(rejected.length).toBe(1);
++    expect((rejected[0] as PromiseRejectedResult).reason).toBeInstanceOf(ConflictException);
++
++    // O arquivo gravado no destino não deve ter sido corrompido nem sobrescrito
++    const finalContent = await storage.getObject(key);
++    expect(finalContent.equals(payloadA) || finalContent.equals(payloadB)).toBe(true);
++  });
++
++  it('deve rejeitar tentativas de path traversal e bytes nulos', async () => {
++    const buffer = Buffer.from('ATTACK_PAYLOAD');
++
++    await expect(storage.putObject('../../etc/passwd', buffer)).rejects.toThrow(BadRequestException);
++    await expect(storage.putObject('user1/../../../shadow', buffer)).rejects.toThrow(BadRequestException);
++    await expect(storage.putObject('user1/test\0file.fit', buffer)).rejects.toThrow(BadRequestException);
++  });
++
++  it('deve rejeitar leitura com SHA-256 divergente (detecção de corrupção)', async () => {
++    const key = 'user1/2026/09/integrity-check.fit';
++    const originalBuffer = Buffer.from('CORRECT_PAYLOAD');
++    await storage.putObject(key, originalBuffer);
++
++    const wrongSha256 = '0000000000000000000000000000000000000000000000000000000000000000';
++    await expect(storage.getObject(key, wrongSha256)).rejects.toThrow(BadRequestException);
++  });
++
+   it('deve excluir um objeto com sucesso', async () => {
+     const key = 'user1/2026/09/delete-me.fit';
+     await storage.putObject(key, Buffer.from('DELETE_ME'));
+@@ -43,14 +87,19 @@ describe('PrivateObjectStorageService', () => {
+     await expect(storage.getObject(key)).rejects.toThrow();
+   });
+ 
+-  it('deve identificar arquivos órfãos não presentes no conjunto de chaves conhecidas do banco', async () => {
++  it('deve identificar arquivos órfãos ignorando arquivos temporários .tmp_', async () => {
+     await storage.putObject('user1/known.fit', Buffer.from('KNOWN'));
+     await storage.putObject('user1/orphan.fit', Buffer.from('ORPHAN'));
+ 
++    // Cria arquivo temporário solto simulando escrita em andamento
++    const fullDir = path.dirname(path.join(testStoragePath, 'user1/known.fit'));
++    fs.writeFileSync(path.join(fullDir, '.tmp_in_progress'), 'IN_PROGRESS');
++
+     const knownKeys = new Set(['user1/known.fit']);
+     const orphans = await storage.reconcileOrphans(knownKeys);
+ 
+     expect(orphans).toContain('user1/orphan.fit');
+     expect(orphans).not.toContain('user1/known.fit');
++    expect(orphans).not.toContain('user1/.tmp_in_progress');
+   });
+ });

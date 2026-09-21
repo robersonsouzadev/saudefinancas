@@ -1,0 +1,145 @@
+version: '3.8'
+
+# ==============================================================================
+# AMBIENTE ISOLADO DE STAGING — VITA SAÚDE (G4.2)
+# ATENÇÃO: Totalmente segregado de produção. Jamais compartilhe portas ou volumes.
+# Todos os segredos devem ser providos via arquivo .env.staging externo.
+# ==============================================================================
+
+networks:
+  vita_staging_net:
+    driver: bridge
+
+volumes:
+  sf_db_staging_data:
+  sf_redis_staging_data:
+
+services:
+  sf-db-staging:
+    container_name: sf-db-staging
+    image: ankane/pgvector:v0.5.1
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${STAGING_DB_NAME:-vita_saude_staging}
+      POSTGRES_USER: ${STAGING_DB_USER:-vita_staging_admin}
+      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD:?Variavel STAGING_DB_PASSWORD obrigatoria}
+      TZ: UTC
+    ports:
+      - '127.0.0.1:5434:5432'
+    volumes:
+      - sf_db_staging_data:/var/lib/postgresql/data
+    networks:
+      - vita_staging_net
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${STAGING_DB_USER:-vita_staging_admin} -d ${STAGING_DB_NAME:-vita_saude_staging}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+    mem_limit: 512m
+    cpus: 0.75
+
+  sf-redis-staging:
+    container_name: sf-redis-staging
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no
+    ports:
+      - '127.0.0.1:6381:6379'
+    volumes:
+      - sf_redis_staging_data:/data
+    networks:
+      - vita_staging_net
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    mem_limit: 128m
+    cpus: 0.25
+
+  sf-api-staging:
+    container_name: sf-api-staging
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    user: '1000:1000'
+    depends_on:
+      sf-db-staging:
+        condition: service_healthy
+      sf-redis-staging:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:3011:3001'
+    environment:
+      NODE_ENV: staging
+      APP_ENV: staging
+      DATABASE_URL: postgresql://${STAGING_APP_USER:-vita_staging_app}:${STAGING_APP_PASSWORD:?Variavel STAGING_APP_PASSWORD obrigatoria}@sf-db-staging:5432/${STAGING_DB_NAME:-vita_saude_staging}?schema=public
+      REDIS_HOST: sf-redis-staging
+      REDIS_PORT: 6379
+      QUEUE_NAME: wearables-fit-import-staging
+      QUEUE_PREFIX: bull_staging
+      STORAGE_PATH: /data/vita-saude-staging/wearables
+      JWT_SECRET: ${STAGING_JWT_SECRET:?Variavel STAGING_JWT_SECRET obrigatoria}
+      AUDIT_HMAC_SECRET: ${STAGING_AUDIT_HMAC_SECRET:?Variavel STAGING_AUDIT_HMAC_SECRET obrigatoria}
+      ALLOW_DESTRUCTIVE_TESTS: 'true'
+      PUBLIC_API_URL: http://127.0.0.1:3011
+      PORT: 3001
+    volumes:
+      - /data/vita-saude-staging/wearables:/data/vita-saude-staging/wearables
+    networks:
+      - vita_staging_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+    mem_limit: 512m
+    cpus: 0.75
+
+  sf-worker-staging:
+    container_name: sf-worker-staging
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: ['node', 'dist/worker.js']
+    restart: unless-stopped
+    user: '1000:1000'
+    depends_on:
+      sf-db-staging:
+        condition: service_healthy
+      sf-redis-staging:
+        condition: service_healthy
+    environment:
+      NODE_ENV: staging
+      APP_ENV: staging
+      DATABASE_URL: postgresql://${STAGING_APP_USER:-vita_staging_app}:${STAGING_APP_PASSWORD:?Variavel STAGING_APP_PASSWORD obrigatoria}@sf-db-staging:5432/${STAGING_DB_NAME:-vita_saude_staging}?schema=public
+      REDIS_HOST: sf-redis-staging
+      REDIS_PORT: 6379
+      QUEUE_NAME: wearables-fit-import-staging
+      QUEUE_PREFIX: bull_staging
+      STORAGE_PATH: /data/vita-saude-staging/wearables
+      JWT_SECRET: ${STAGING_JWT_SECRET:?Variavel STAGING_JWT_SECRET obrigatoria}
+      AUDIT_HMAC_SECRET: ${STAGING_AUDIT_HMAC_SECRET:?Variavel STAGING_AUDIT_HMAC_SECRET obrigatoria}
+      ALLOW_DESTRUCTIVE_TESTS: 'true'
+    volumes:
+      - /data/vita-saude-staging/wearables:/data/vita-saude-staging/wearables
+    networks:
+      - vita_staging_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 384M
+    mem_limit: 384m
+    cpus: 0.75

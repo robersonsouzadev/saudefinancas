@@ -5,8 +5,8 @@ export interface StoredObjectRef {
 }
 
 export interface IPrivateObjectStorage {
-  putObject(key: string, buffer: Buffer): Promise<StoredObjectRef>;
-  getObject(key: string): Promise<Buffer>;
+  putObject(key: string, buffer: Buffer, expectedSha256?: string): Promise<StoredObjectRef>;
+  getObject(key: string, expectedSha256?: string): Promise<Buffer>;
   deleteObject(key: string): Promise<void>;
   reconcileOrphans(knownKeys: Set<string>): Promise<string[]>;
 }

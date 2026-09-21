@@ -18,6 +18,8 @@ apps/api/dist/
 .env.local
 .env.production
 .env.development
+.env.staging
+.env*.local
 
 # Logs
 *.log

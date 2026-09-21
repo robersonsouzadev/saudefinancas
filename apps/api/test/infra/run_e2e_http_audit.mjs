@@ -382,6 +382,26 @@ async function main() {
       throw new Error(`Esperado 400 para CRC inválido, recebido ${corruptRes.status}`);
     }
 
+    // --- CASO 3B: Falso Content-Type (Payload Fake / Imagem PNG / Spoofing) ---
+    console.log('\n--- CASO 3B: Upload com Falso Content-Type (Texto / PNG disfarçado de FIT) ---');
+    const fakeBuffer = Buffer.from('NOT_A_FIT_FILE_JUST_RANDOM_TEXT_DISGUISED');
+    const formFake = new FormData();
+    formFake.append('file', new Blob([fakeBuffer], { type: 'application/vnd.ant.fit' }), 'fake_spoofed.fit');
+
+    const fakeRes = await fetch(`http://127.0.0.1:${API_PORT}/api/integrations/wearables/fit/import`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token1}` },
+      body: formFake,
+    });
+    console.log(`- Status HTTP Recebido: ${fakeRes.status} (Esperado: 400 Bad Request)`);
+    const fakeJson = await fakeRes.json();
+    console.log('- Resposta JSON:', JSON.stringify(fakeJson, null, 2));
+    if (fakeRes.status !== 400) {
+      throw new Error(`Esperado 400 para conteúdo falso/spoofing, recebido ${fakeRes.status}`);
+    }
+    console.log('[OK] CASO 3B Aprovado: Falso content-type detectado e rejeitado com HTTP 400.');
+
+
     // --- CASO 4: Consulta de Importação com status FAILED e Mensagem Pública Segura ---
     console.log('\n--- CASO 4: Consulta de Importação FAILED com Mensagem Pública Segura ---');
     const failedImport = await prisma.importedFile.create({
@@ -473,6 +493,33 @@ async function main() {
     if (hasPasswordField) {
       throw new Error('Alerta de segurança: campo de senha Garmin encontrado!');
     }
+
+    // --- CASO 7: Auditoria de Health, Readiness e Métricas Prometheus ---
+    console.log('\n--- CASO 7: Verificação de Health Probes (/api/health/liveness, /api/health/readiness) ---');
+    const livenessRes = await fetch(`http://127.0.0.1:${API_PORT}/api/health/liveness`);
+    const livenessJson = await livenessRes.json();
+    console.log('- Endpoint /api/health/liveness:', JSON.stringify(livenessJson, null, 2));
+    if (livenessRes.status !== 200 || livenessJson.status !== 'UP') {
+      throw new Error(`Liveness falhou: status ${livenessRes.status}`);
+    }
+
+    const readinessRes = await fetch(`http://127.0.0.1:${API_PORT}/api/health/readiness`);
+    const readinessJson = await readinessRes.json();
+    console.log('- Endpoint /api/health/readiness:', JSON.stringify(readinessJson, null, 2));
+    if (readinessRes.status !== 200 || readinessJson.status !== 'UP') {
+      throw new Error(`Readiness falhou: status ${readinessRes.status}`);
+    }
+    if (readinessJson.checks.timezone !== 'UTC') {
+      throw new Error(`Readiness timezone falhou: esperado UTC, recebido ${readinessJson.checks.timezone}`);
+    }
+
+    const metricsRes = await fetch(`http://127.0.0.1:${API_PORT}/api/health/metrics`);
+    const metricsText = await metricsRes.text();
+    console.log('- Endpoint /api/health/metrics (primeiras 5 linhas):\n', metricsText.split('\n').slice(0, 5).join('\n'));
+    if (metricsRes.status !== 200 || !metricsText.includes('wearables_')) {
+      throw new Error(`Metrics endpoint falhou: status ${metricsRes.status}`);
+    }
+    console.log('[OK] CASO 7 Aprovado: Liveness, Readiness (com validação estrita de timezone UTC) e Metrics operacionais.');
 
     console.log('\n[7/7] TODOS OS CASOS DE TESTE HTTP E2E FORAM CONCLUÍDOS COM SUCESSO!');
   } finally {

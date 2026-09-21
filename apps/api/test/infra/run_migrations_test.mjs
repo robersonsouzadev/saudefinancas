@@ -34,10 +34,14 @@ async function main() {
 
     const testDbUrl = 'postgresql://postgres:password@127.0.0.1:5433/saudefinancas_test?schema=public';
 
-    // 2. Executa npx prisma migrate deploy em banco totalmente vazio
-    console.log('\n[Executando] npx prisma migrate deploy...');
+    // 2. Executa npx prisma migrate deploy com PGOPTIONS de lock_timeout e statement_timeout
+    console.log('\n[Executando] npx prisma migrate deploy com PGOPTIONS lock/statement timeout...');
     const deployOutput = execSync('npx prisma migrate deploy', {
-      env: { ...process.env, DATABASE_URL: testDbUrl },
+      env: { 
+        ...process.env, 
+        DATABASE_URL: testDbUrl,
+        PGOPTIONS: '-c lock_timeout=5000 -c statement_timeout=30000'
+      },
       encoding: 'utf8',
     });
     console.log(deployOutput);
@@ -105,24 +109,56 @@ async function main() {
       throw new Error(`Índices esperados não encontrados. Total: ${indexesRes.rows.length}`);
     }
 
-    // 5.1 Validação de Constraints de Invariantes Temporais
+    // 5.1 Validação de Constraints de Invariantes Temporais e convalidated = true
     const constraintsRes = await client.query(`
-      SELECT conname, pg_get_constraintdef(oid) as condef
+      SELECT conname, convalidated, pg_get_constraintdef(oid) as condef
       FROM pg_constraint
       WHERE conname LIKE 'chk_%'
       ORDER BY conname
     `);
-    console.log('\n=== CHECK CONSTRAINTS DE INVARIANTES TEMPORAIS CONFIRMADAS NO POSTGRESQL ===');
+    console.log('\n=== CHECK CONSTRAINTS DE INVARIANTES TEMPORAIS (VALIDAÇÃO CONVALIDATED) ===');
     console.table(constraintsRes.rows);
 
     if (constraintsRes.rows.length !== 5) {
       throw new Error(`Esperado 5 CHECK constraints temporais, encontrado: ${constraintsRes.rows.length}`);
     }
 
-    // 6. Teste de Idempotência: Executar npx prisma migrate deploy novamente
-    console.log('\n[Executando Novamente] npx prisma migrate deploy para provar idempotência...');
+    for (const c of constraintsRes.rows) {
+      if (!c.convalidated) {
+        throw new Error(`Constraint ${c.conname} não está validada (convalidated=false)`);
+      }
+    }
+    console.log('[OK] Todas as 5 CHECK constraints temporais possuem convalidated = true.');
+
+    // 5.2 Validação em Banco Preenchido (Simula Deploy em Banco com Dados Existentes)
+    console.log('\n=== SIMULAÇÃO DE DEPLOY EM BANCO PREENCHIDO ===');
+    const userRes = await client.query(`
+      INSERT INTO "User" (id, email, name, "createdAt", "updatedAt")
+      VALUES (gen_random_uuid()::text, 'migration_filled_db@vitasatude.com', 'Filled DB User', timezone('UTC', NOW()), timezone('UTC', NOW()))
+      RETURNING id
+    `);
+    const filledUserId = userRes.rows[0].id;
+
+    await client.query(`
+      INSERT INTO "ImportedFile" (
+        id, "userId", "storageKey", "fileSha256", "originalFileName", "fileSizeBytes", status,
+        "createdAt", "updatedAt", "processingStartedAt", "processedAt", "processingDurationMs"
+      ) VALUES (
+        gen_random_uuid()::text, $1, 'wearables/filled/test.fit', repeat('a', 64), 'test.fit', 4096, 'PROCESSED',
+        timezone('UTC', NOW()) - INTERVAL '10 seconds', timezone('UTC', NOW()),
+        timezone('UTC', NOW()) - INTERVAL '8 seconds', timezone('UTC', NOW()) - INTERVAL '2 seconds', 6000
+      )
+    `, [filledUserId]);
+    console.log('[OK] Registro válido inserido no banco populado.');
+
+    // 6. Teste de Idempotência: Executar npx prisma migrate deploy novamente com PGOPTIONS
+    console.log('\n[Executando Novamente] npx prisma migrate deploy em banco populado para provar idempotência...');
     const reDeployOutput = execSync('npx prisma migrate deploy', {
-      env: { ...process.env, DATABASE_URL: testDbUrl },
+      env: { 
+        ...process.env, 
+        DATABASE_URL: testDbUrl,
+        PGOPTIONS: '-c lock_timeout=5000 -c statement_timeout=30000'
+      },
       encoding: 'utf8',
     });
     console.log(reDeployOutput);

@@ -20,6 +20,7 @@ import { AgentsModule } from './modules/agents/agents.module';
 import { WorkoutsModule } from './modules/workouts/workouts.module';
 import { BodyAssessmentsModule } from './modules/body-assessments/body-assessments.module';
 import { WearablesModule } from './modules/wearables/wearables.module';
+import { HealthModule } from './modules/health/health.module';
 import { BullModule } from '@nestjs/bullmq';
 
 @Module({
@@ -57,6 +58,7 @@ import { BullModule } from '@nestjs/bullmq';
     WorkoutsModule,
     BodyAssessmentsModule,
     WearablesModule,
+    HealthModule,
   ],
 })
 export class AppModule {}

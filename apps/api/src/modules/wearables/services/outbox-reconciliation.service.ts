@@ -132,7 +132,7 @@ export class OutboxReconciliationService {
     return result.count;
   }
 
-  // 4. Limpeza de Arquivos Órfãos no Storage
+  // 4. Limpeza de Arquivos Órfãos no Storage (MODO DIAGNÓSTICO ESTREITO)
   async cleanOrphanStorageFiles(): Promise<string[]> {
     const allFiles = await this.prisma.importedFile.findMany({
       select: { storageKey: true },
@@ -141,9 +141,17 @@ export class OutboxReconciliationService {
     const knownKeys = new Set(allFiles.map((f) => f.storageKey));
     const orphans = await this.storage.reconcileOrphans(knownKeys);
 
+    const allowDeletion = process.env.ORPHAN_CLEANUP_ENABLE_DELETION === 'true';
+
     for (const orphan of orphans) {
-      this.logger.warn(`[Storage Cleaner] Removendo arquivo órfão do storage: ${orphan}`);
-      await this.storage.deleteObject(orphan);
+      if (allowDeletion) {
+        this.logger.warn(`[Storage Cleaner - EXECUÇÃO DELETIVA] Removendo arquivo órfão do storage: ${orphan}`);
+        await this.storage.deleteObject(orphan);
+      } else {
+        this.logger.warn(
+          `[Storage Cleaner - MODO DIAGNÓSTICO] Arquivo órfão potencial identificado no storage: ${orphan}. Remoção SUSPENSA por segurança até proteção comprovada contra concorrência.`,
+        );
+      }
     }
 
     return orphans;

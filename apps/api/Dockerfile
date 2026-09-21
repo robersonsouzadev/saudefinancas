@@ -16,7 +16,7 @@ RUN npm install --legacy-peer-deps
 COPY apps/api ./apps/api
 
 # Set dummy DATABASE_URL for Prisma Client generation during build
-ENV DATABASE_URL="postgresql://sf_user:sf_password_secure_2026@sf-db:5432/saudefinancas?schema=public"
+ENV DATABASE_URL="postgresql://sf_user:build_dummy_secret@sf-db:5432/build_dummy?schema=public"
 
 # Generate Prisma client and build NestJS
 WORKDIR /app/apps/api

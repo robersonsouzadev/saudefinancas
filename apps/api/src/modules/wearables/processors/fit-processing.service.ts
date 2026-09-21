@@ -43,6 +43,17 @@ export class FitProcessingService {
   async processImport(importId: string): Promise<void> {
     const startTime = Date.now();
 
+    // 0. Verificação preliminar de idempotência em redelivery
+    const existingCheck = await this.prisma.importedFile.findUnique({
+      where: { id: importId },
+      select: { status: true },
+    });
+
+    if (existingCheck?.status === ImportStatus.PROCESSED) {
+      this.logger.log(`[IDEMPOTENT_SKIP] Arquivo ${importId} já se encontra com status PROCESSED. Redelivery ignorado sem reprocessamento.`);
+      return;
+    }
+
     // 1. Claim Atômico do Job com versionamento atômico e relógio do PostgreSQL
     // Somente adquire se status for PENDING ou se for PROCESSING com lease expirado no relógio do banco
     const claimRows = await this.prisma.$queryRaw<Array<{ id: string; leaseVersion: bigint; leaseOwner: string }>>`
@@ -123,8 +134,8 @@ export class FitProcessingService {
     }, 10000);
 
     try {
-      // 3. Leitura do Binário no Storage Privado
-      const buffer = await this.storage.getObject(importedFile.storageKey);
+      // 3. Leitura do Binário no Storage Privado com conferência de SHA-256
+      const buffer = await this.storage.getObject(importedFile.storageKey, importedFile.fileSha256);
 
       // 4. Execução em Worker Thread com Supervisor (Timeout de 15s e Limite de Memória 256MB)
       const decoded = await this.supervisor.parseWithSupervisor(buffer, 15000);
