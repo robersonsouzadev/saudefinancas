@@ -64,6 +64,7 @@ describe('Testes de Regressão HTTP e Contrato DTO (G4.1.1)', () => {
   });
 
   it('2. GET /imports/:id deve retornar 200 com DTO estrito e ser serializável em JSON sem BigInt', async () => {
+    const now = new Date();
     const sha256 = crypto.randomBytes(32).toString('hex');
     const created = await prisma.importedFile.create({
       data: {
@@ -76,8 +77,10 @@ describe('Testes de Regressão HTTP e Contrato DTO (G4.1.1)', () => {
         leaseOwner: 'test-worker-uuid',
         leaseVersion: BigInt(5),
         workerPid: 99999,
+        createdAt: now,
+        processingStartedAt: now,
         processingDurationMs: 120,
-        processedAt: new Date(),
+        processedAt: new Date(now.getTime() + 120),
       },
     });
 

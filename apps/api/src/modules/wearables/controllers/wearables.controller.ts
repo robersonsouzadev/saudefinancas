@@ -83,7 +83,10 @@ export class WearablesController {
   // 1. Upload de Arquivo FIT (Retorna HTTP 202 Accepted para novos arquivos)
   @Post('fit/import')
   @UseInterceptors(FileInterceptor('file', {
-    limits: { fileSize: FitUploadConfig.MAX_UPLOAD_SIZE_BYTES },
+    // Busboy corta e emite limit quando fileSize === fileSizeLimit.
+    // Usar MAX_UPLOAD_SIZE_BYTES + 1 permite exatamente 15 MB (15728640 bytes) inclusivos
+    // e rejeita com HTTP 413 (LIMIT_FILE_SIZE) qualquer arquivo com 15 MB + 1 byte (15728641 bytes).
+    limits: { fileSize: FitUploadConfig.MAX_UPLOAD_SIZE_BYTES + 1 },
   }))
   async importFitFile(
     @Req() req: any,

@@ -51,13 +51,13 @@ export class FitProcessingService {
         status = 'PROCESSING',
         "leaseOwner" = ${this.workerInstanceId},
         "leaseVersion" = "leaseVersion" + 1,
-        "leaseExpiresAt" = NOW() + (${this.LEASE_DURATION_SECONDS} * INTERVAL '1 second'),
-        "processingStartedAt" = NOW(),
+        "leaseExpiresAt" = timezone('UTC', NOW()) + (${this.LEASE_DURATION_SECONDS} * INTERVAL '1 second'),
+        "processingStartedAt" = timezone('UTC', NOW()),
         "workerPid" = ${process.pid}
       WHERE id = ${importId}
         AND (
           status = 'PENDING'
-          OR (status = 'PROCESSING' AND "leaseExpiresAt" < NOW())
+          OR (status = 'PROCESSING' AND "leaseExpiresAt" < timezone('UTC', NOW()))
         )
       RETURNING id, "leaseVersion", "leaseOwner";
     `;
@@ -106,7 +106,7 @@ export class FitProcessingService {
       try {
         const updated = await this.prisma.$executeRaw`
           UPDATE "ImportedFile"
-          SET "leaseExpiresAt" = NOW() + (${this.LEASE_DURATION_SECONDS} * INTERVAL '1 second')
+          SET "leaseExpiresAt" = timezone('UTC', NOW()) + (${this.LEASE_DURATION_SECONDS} * INTERVAL '1 second')
           WHERE id = ${importId}
             AND "leaseOwner" = ${this.workerInstanceId}
             AND "leaseVersion" = ${myLeaseVersion}
@@ -159,7 +159,7 @@ export class FitProcessingService {
             status,
             "leaseOwner", 
             "leaseVersion", 
-            ("leaseExpiresAt" < NOW()) as "isExpired"
+            ("leaseExpiresAt" < timezone('UTC', NOW())) as "isExpired"
           FROM "ImportedFile"
           WHERE id = ${importId}
           FOR UPDATE
@@ -268,7 +268,7 @@ export class FitProcessingService {
           UPDATE "ImportedFile"
           SET 
             status = 'PROCESSED',
-            "processedAt" = NOW(),
+            "processedAt" = timezone('UTC', NOW()),
             "processingDurationMs" = ${durationMs},
             "leaseOwner" = NULL,
             "leaseExpiresAt" = NULL
@@ -306,7 +306,7 @@ export class FitProcessingService {
       }
 
       const durationMs = Date.now() - startTime;
-      let errorCode = 'PARSER_ERROR';
+      let errorCode = 'FIT_PARSE_ERROR';
 
       if (err instanceof FitParserTimeoutError) {
         errorCode = 'PARSER_TIMEOUT';
@@ -321,6 +321,7 @@ export class FitProcessingService {
         UPDATE "ImportedFile"
         SET 
           status = 'FAILED',
+          "processedAt" = timezone('UTC', NOW()),
           "errorCode" = ${errorCode},
           "errorMessage" = ${err?.message || 'Falha no processamento do arquivo'},
           "processingDurationMs" = ${durationMs},

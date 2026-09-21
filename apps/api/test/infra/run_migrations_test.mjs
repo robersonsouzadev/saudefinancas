@@ -28,8 +28,9 @@ async function main() {
     await rootClient.connect();
     await rootClient.query('DROP DATABASE IF EXISTS saudefinancas_test WITH (FORCE)');
     await rootClient.query("CREATE DATABASE saudefinancas_test WITH TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'");
+    await rootClient.query("ALTER DATABASE saudefinancas_test SET timezone TO 'UTC'");
     await rootClient.end();
-    console.log('[OK] Banco isolado saudefinancas_test criado limpo e vazio com ENCODING UTF8.');
+    console.log('[OK] Banco isolado saudefinancas_test criado limpo e vazio com ENCODING UTF8 e TIMEZONE UTC.');
 
     const testDbUrl = 'postgresql://postgres:password@127.0.0.1:5433/saudefinancas_test?schema=public';
 
@@ -45,6 +46,19 @@ async function main() {
     const client = pg.getPgClient('saudefinancas_test');
     await client.connect();
 
+    const tzCheck = await client.query('SHOW TIMEZONE');
+    const tsCheck = await client.query('SELECT NOW() as now, CURRENT_TIMESTAMP as current_timestamp, LOCALTIMESTAMP as localtimestamp');
+    console.log('\n=== AUDITORIA DE TIMEZONE E TIMESTAMPS NO POSTGRESQL ===');
+    console.log('- SHOW TIMEZONE:', tzCheck.rows[0].TimeZone);
+    console.log('- SELECT NOW():', tsCheck.rows[0].now);
+    console.log('- SELECT CURRENT_TIMESTAMP:', tsCheck.rows[0].current_timestamp);
+    console.log('- SELECT LOCALTIMESTAMP:', tsCheck.rows[0].localtimestamp);
+    console.log('- new Date().toISOString():', new Date().toISOString());
+
+    if (tzCheck.rows[0].TimeZone !== 'UTC') {
+      throw new Error(`Timezone do PostgreSQL deveria ser UTC, mas retornou: ${tzCheck.rows[0].TimeZone}`);
+    }
+
     const migrationsRes = await client.query(`
       SELECT migration_name, finished_at, rolled_back_at 
       FROM "_prisma_migrations" 
@@ -53,8 +67,8 @@ async function main() {
     console.log('\n=== REGISTRO OFICIAL EM _prisma_migrations ===');
     console.table(migrationsRes.rows);
 
-    if (migrationsRes.rows.length !== 3) {
-      throw new Error(`Esperado 3 migrations aplicadas, encontrado ${migrationsRes.rows.length}`);
+    if (migrationsRes.rows.length !== 4) {
+      throw new Error(`Esperado 4 migrations aplicadas, encontrado ${migrationsRes.rows.length}`);
     }
 
     // 4. Validação de colunas de lease e tipos no ImportedFile
@@ -91,6 +105,20 @@ async function main() {
       throw new Error(`Índices esperados não encontrados. Total: ${indexesRes.rows.length}`);
     }
 
+    // 5.1 Validação de Constraints de Invariantes Temporais
+    const constraintsRes = await client.query(`
+      SELECT conname, pg_get_constraintdef(oid) as condef
+      FROM pg_constraint
+      WHERE conname LIKE 'chk_%'
+      ORDER BY conname
+    `);
+    console.log('\n=== CHECK CONSTRAINTS DE INVARIANTES TEMPORAIS CONFIRMADAS NO POSTGRESQL ===');
+    console.table(constraintsRes.rows);
+
+    if (constraintsRes.rows.length !== 5) {
+      throw new Error(`Esperado 5 CHECK constraints temporais, encontrado: ${constraintsRes.rows.length}`);
+    }
+
     // 6. Teste de Idempotência: Executar npx prisma migrate deploy novamente
     console.log('\n[Executando Novamente] npx prisma migrate deploy para provar idempotência...');
     const reDeployOutput = execSync('npx prisma migrate deploy', {
@@ -102,8 +130,8 @@ async function main() {
     // Fecha conexão do client antes de clonar o template
     await client.end();
 
-    // 7. Teste de Rollback da nova migration de lease em banco descartável
-    console.log('\n=== TESTE DE ROLLBACK DA MIGRATION DE LEASE (BANCO DESCARTÁVEL) ===');
+    // 7. Teste de Rollback das novas migrations em banco descartável
+    console.log('\n=== TESTE DE ROLLBACK DAS MIGRATIONS (BANCO DESCARTÁVEL) ===');
     const rootClient2 = pg.getPgClient('postgres');
     await rootClient2.connect();
     await rootClient2.query('DROP DATABASE IF EXISTS saudefinancas_rollback_test WITH (FORCE)');
@@ -114,12 +142,21 @@ async function main() {
     const rollbackClient = pg.getPgClient('saudefinancas_rollback_test');
     await rollbackClient.connect();
 
-    const rollbackSql = fs.readFileSync(
+    // Rollback 1: Temporal invariants
+    const rollbackSqlTemporal = fs.readFileSync(
+      path.resolve('prisma/migrations/20260921220000_temporal_invariants_and_utc_fencing/rollback.sql'),
+      'utf8'
+    );
+    await rollbackClient.query(rollbackSqlTemporal);
+    console.log('[OK] 20260921220000 rollback.sql executado com sucesso no banco descartável.');
+
+    // Rollback 2: Lease fencing
+    const rollbackSqlLease = fs.readFileSync(
       path.resolve('prisma/migrations/20260921200000_imported_file_lease_fencing/rollback.sql'),
       'utf8'
     );
-    await rollbackClient.query(rollbackSql);
-    console.log('[OK] rollback.sql executado com sucesso no banco descartável.');
+    await rollbackClient.query(rollbackSqlLease);
+    console.log('[OK] 20260921200000 rollback.sql executado com sucesso no banco descartável.');
 
     // Confirma que as colunas foram removidas
     const checkColumnsAfterRollback = await rollbackClient.query(`

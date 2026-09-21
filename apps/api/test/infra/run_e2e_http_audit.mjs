@@ -5,6 +5,7 @@ import net from 'net';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import EmbeddedPostgres from 'embedded-postgres';
+import { CrcCalculator } from '@garmin/fitsdk';
 
 const JWT_SECRET = 'super-secret-e2e-audit-key-2026';
 const AUDIT_HMAC_SECRET = 'super-secret-hmac-key-2026';
@@ -13,6 +14,26 @@ const PG_PORT = 5433;
 const REDIS_PORT = 6380;
 const REDIS_EXE_PATH = 'C:\\Users\\rober\\AppData\\Local\\Microsoft\\WinGet\\Packages\\taizod1024.redis-windows-fork_Microsoft.Winget.Source_8wekyb3d8bbwe\\Redis-8.10.1-Windows-x64-msys2\\redis-server.exe';
 const DB_URL = `postgresql://postgres:password@127.0.0.1:${PG_PORT}/saudefinancas_test?schema=public`;
+
+function createExactSizedFitBuffer(totalBytes) {
+  const buf = Buffer.alloc(totalBytes);
+  const headerSize = 14;
+  const dataSize = totalBytes - headerSize - 2;
+
+  buf.writeUInt8(headerSize, 0);
+  buf.writeUInt8(0x20, 1); // protocol version
+  buf.writeUInt16LE(2100, 2); // profile version
+  buf.writeUInt32LE(dataSize, 4); // data size
+  buf.write('.FIT', 8, 4, 'ascii'); // signature
+
+  const headerCrc = CrcCalculator.calculateCRC(buf, 0, 12);
+  buf.writeUInt16LE(headerCrc, 12);
+
+  const fileCrc = CrcCalculator.calculateCRC(buf, 0, totalBytes - 2);
+  buf.writeUInt16LE(fileCrc, totalBytes - 2);
+
+  return buf;
+}
 
 function isPortOpen(port, host = '127.0.0.1') {
   return new Promise((resolve) => {
@@ -64,6 +85,26 @@ async function main() {
   console.log(`- PostgreSQL Banco: saudefinancas_test`);
   console.log(`- PostgreSQL Connection: postgresql://postgres:*****@127.0.0.1:${PG_PORT}/saudefinancas_test?schema=public`);
   console.log(`- PostgreSQL Healthcheck: ${pgHealthy ? 'HEALTHY (Porta aberta e aceitando conexões)' : 'FAILED'}`);
+
+  // Auditoria de Timezone e Timestamps do PostgreSQL
+  const pgClient = pg.getPgClient('postgres');
+  await pgClient.connect();
+  try {
+    await pgClient.query("ALTER DATABASE saudefinancas_test SET timezone TO 'UTC'");
+  } catch {}
+  await pgClient.end();
+
+  const testDbClient = pg.getPgClient('saudefinancas_test');
+  await testDbClient.connect();
+  const tzRes = await testDbClient.query('SHOW TIMEZONE');
+  const tsRes = await testDbClient.query('SELECT NOW() as now, CURRENT_TIMESTAMP as current_timestamp, LOCALTIMESTAMP as localtimestamp');
+  console.log('\n--- AUDITORIA DE TIMEZONE DO POSTGRESQL ---');
+  console.log(`  * SHOW TIMEZONE:           ${tzRes.rows[0].TimeZone}`);
+  console.log(`  * SELECT NOW():            ${tsRes.rows[0].now}`);
+  console.log(`  * SELECT CURRENT_TIMESTAMP:${tsRes.rows[0].current_timestamp}`);
+  console.log(`  * SELECT LOCALTIMESTAMP:   ${tsRes.rows[0].localtimestamp}`);
+  console.log(`  * Node new Date().toISOString(): ${new Date().toISOString()}`);
+  await testDbClient.end();
 
   // 2. Inicialização do Redis 8.10.1
   console.log('\n[2/7] Inicializando Redis 8.10.1 isolado...');
@@ -189,6 +230,8 @@ async function main() {
 
     // --- CASO 1: Upload de Arquivo FIT Válido (Usuário 1) ---
     console.log('\n--- CASO 1: Upload de Arquivo FIT Válido (Usuário 1) e Polling HTTP 200 ---');
+    const requestStart = new Date();
+    console.log(`- Request Start Time: ${requestStart.toISOString()}`);
     const formData = new FormData();
     formData.append('file', new Blob([validFitBuffer], { type: 'application/vnd.ant.fit' }), 'synthetic_running.fit');
 
@@ -249,6 +292,41 @@ async function main() {
       throw new Error(`Arquivo ${importId} não atingiu status PROCESSED a tempo.`);
     }
 
+    const requestEnd = new Date();
+    console.log(`- Request End Time: ${requestEnd.toISOString()}`);
+
+    // Auditoria rigorosa de Invariantes Temporais (G4.1.2)
+    console.log('\n--- AUDITORIA DE INVARIANTES TEMPORAIS (G4.1.2) ---');
+    console.log(`  * requestStart:         ${requestStart.toISOString()} (${requestStart.getTime()} ms)`);
+    console.log(`  * createdAt:            ${processedFile.createdAt.toISOString()} (${processedFile.createdAt.getTime()} ms)`);
+    console.log(`  * processingStartedAt:  ${processedFile.processingStartedAt.toISOString()} (${processedFile.processingStartedAt.getTime()} ms)`);
+    console.log(`  * processedAt:          ${processedFile.processedAt.toISOString()} (${processedFile.processedAt.getTime()} ms)`);
+    console.log(`  * requestEnd:           ${requestEnd.toISOString()} (${requestEnd.getTime()} ms)`);
+    console.log(`  * processingDurationMs: ${processedFile.processingDurationMs} ms`);
+
+    // Invariante 1: requestStart <= createdAt (tolerância de 1000ms para clocks de SO/DB)
+    if (processedFile.createdAt.getTime() < requestStart.getTime() - 1000) {
+      throw new Error(`Violação temporal: createdAt (${processedFile.createdAt.toISOString()}) é anterior a requestStart (${requestStart.toISOString()})`);
+    }
+    // Invariante 2: createdAt <= processingStartedAt
+    if (processedFile.processingStartedAt.getTime() < processedFile.createdAt.getTime()) {
+      throw new Error(`Violação temporal: processingStartedAt (${processedFile.processingStartedAt.toISOString()}) é anterior a createdAt (${processedFile.createdAt.toISOString()})`);
+    }
+    // Invariante 3: processingStartedAt <= processedAt
+    if (processedFile.processedAt.getTime() < processedFile.processingStartedAt.getTime()) {
+      throw new Error(`Violação temporal: processedAt (${processedFile.processedAt.toISOString()}) é anterior a processingStartedAt (${processedFile.processingStartedAt.toISOString()})`);
+    }
+    // Invariante 4: processedAt <= requestEnd
+    if (processedFile.processedAt.getTime() > requestEnd.getTime() + 1000) {
+      throw new Error(`Violação temporal: processedAt (${processedFile.processedAt.toISOString()}) é posterior a requestEnd (${requestEnd.toISOString()})`);
+    }
+    // Invariante 5: processingDurationMs >= 0
+    if (processedFile.processingDurationMs < 0) {
+      throw new Error(`Violação temporal: processingDurationMs negativo (${processedFile.processingDurationMs})`);
+    }
+    console.log('[OK] Invariante Temporal Comprovado: requestStart <= createdAt <= processingStartedAt <= processedAt <= requestEnd');
+    console.log('[OK] processingDurationMs >= 0 comprovado.');
+
     // Valida persistência da atividade canônica no banco com Timezone correto
     const activity = await prisma.workoutActivity.findFirst({
       where: { userId: user1.id },
@@ -259,6 +337,17 @@ async function main() {
     console.log(`  * ID: ${activity.id}`);
     console.log(`  * Categoria: ${activity.sportCategory}`);
     console.log(`  * Timezone: ${activity.timezone} (Esperado: America/Campo_Grande do perfil)`);
+    console.log(`  * StartedAt (UTC): ${activity.startedAt.toISOString()}`);
+    if (activity.finishedAt) {
+      console.log(`  * FinishedAt (UTC): ${activity.finishedAt.toISOString()}`);
+      if (activity.finishedAt.getTime() < activity.startedAt.getTime()) {
+        throw new Error(`Violação temporal: WorkoutActivity.finishedAt < startedAt`);
+      }
+    }
+    console.log(`  * LocalDate (Projeção local): ${activity.localDate} (Esperado: 2026-09-21)`);
+    if (activity.localDate !== '2026-09-21') {
+      throw new Error(`LocalDate inconsistente: esperado 2026-09-21, recebido ${activity.localDate}`);
+    }
     console.log(`  * Duração: ${activity.durationSeconds}s`);
     console.log(`  * Projeção WorkoutSession ID: ${activity.sessionProjection?.id || 'Nenhuma'}`);
     console.log(`  * Duração Projeção: ${activity.sessionProjection?.durationMinutes} min`);
@@ -325,23 +414,52 @@ async function main() {
     }
     console.log('[OK] Mensagem pública segura e DTO allowlist verificados com sucesso.');
 
-    // --- CASO 5: Arquivo Acima do Limite Máximo (16 MB gerado em memória, limite é 15 MB) ---
-    console.log('\n--- CASO 5: Upload de Arquivo Acima do Limite (16 MB enviado, limite configurado: 15 MB) ---');
-    const oversizedBuffer = Buffer.alloc(16 * 1024 * 1024); // 16 MB
-    const formOversized = new FormData();
-    formOversized.append('file', new Blob([oversizedBuffer], { type: 'application/vnd.ant.fit' }), 'oversized.fit');
+    // --- CASO 5: Fronteira Proxy vs Aplicação (15 MB Exato vs 15 MB + 1 byte) ---
+    console.log('\n--- CASO 5: Testes de Fronteira: Limite Máximo de Upload (15 MB) ---');
+    console.log('NOTA ARQUITETURAL / PROXY REVERSO:');
+    console.log('  O upload de 15 MB via multipart/form-data adiciona overhead de fronteira HTTP (~300-500 bytes).');
+    console.log('  O proxy reverso (Nginx/Coolify/Traefik) DEVE ser configurado com:');
+    console.log('    client_max_body_size 20M;');
+    console.log('  Isso garante que a requisição completa atinja o NestJS, onde o Multer e o FitValidator');
+    console.log('  aplicam com rigor absoluto o limite contratual de 15.728.640 bytes.\n');
+
+    // CASO 5A: Arquivo de EXATAMENTE 15 MB (15 * 1024 * 1024 = 15.728.640 bytes) com binário e CRC válidos
+    console.log('--- CASO 5A: Upload de Arquivo com EXATAMENTE 15 MB (15.728.640 bytes) com CRC válido ---');
+    const exact15MbBuffer = createExactSizedFitBuffer(15 * 1024 * 1024);
+    const formExact = new FormData();
+    formExact.append('file', new Blob([exact15MbBuffer], { type: 'application/vnd.ant.fit' }), 'exact_15mb.fit');
+
+    const exactRes = await fetch(`http://127.0.0.1:${API_PORT}/api/integrations/wearables/fit/import`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token1}` },
+      body: formExact,
+    });
+    console.log(`- Status HTTP Recebido: ${exactRes.status} (Esperado: 202 Accepted)`);
+    const exactJson = await exactRes.json();
+    console.log('- Resposta JSON:', JSON.stringify(exactJson, null, 2));
+    if (exactRes.status !== 202) {
+      throw new Error(`Esperado 202 para arquivo de exatamente 15 MB, recebido ${exactRes.status}`);
+    }
+    console.log('[OK] CASO 5A Aprovado: Arquivo no limite exato de 15 MB aceito com sucesso pela aplicação (HTTP 202).');
+
+    // CASO 5B: Arquivo com 15 MB + 1 byte (15.728.641 bytes)
+    console.log('\n--- CASO 5B: Upload de Arquivo com 15 MB + 1 byte (15.728.641 bytes) ---');
+    const overBuffer = Buffer.alloc(15 * 1024 * 1024 + 1);
+    const formOver = new FormData();
+    formOver.append('file', new Blob([overBuffer], { type: 'application/vnd.ant.fit' }), 'over_15mb_plus_1.fit');
 
     const overRes = await fetch(`http://127.0.0.1:${API_PORT}/api/integrations/wearables/fit/import`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token1}` },
-      body: formOversized,
+      body: formOver,
     });
-    console.log(`- Status HTTP Recebido: ${overRes.status} (Esperado: 400 ou 413 do Multer)`);
+    console.log(`- Status HTTP Recebido: ${overRes.status} (Esperado: 413 ou 400 do Multer)`);
     const overJson = await overRes.json().catch(() => ({ message: 'Payload Too Large' }));
     console.log('- Resposta:', JSON.stringify(overJson, null, 2));
-    if (overRes.status !== 400 && overRes.status !== 413) {
-      throw new Error(`Esperado 400/413 para arquivo oversized, recebido ${overRes.status}`);
+    if (overRes.status !== 413 && overRes.status !== 400) {
+      throw new Error(`Esperado 413/400 para arquivo de 15 MB + 1 byte, recebido ${overRes.status}`);
     }
+    console.log('[OK] CASO 5B Aprovado: Arquivo excedendo 1 byte rejeitado estritamente pelo Multer (HTTP ' + overRes.status + ').');
 
     // --- CASO 6: Auditoria de Ausência de Credenciais Garmin ---
     console.log('\n--- CASO 6: Verificação de Ausência de Credenciais Garmin ---');

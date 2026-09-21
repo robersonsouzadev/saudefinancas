@@ -21,7 +21,7 @@ export class OutboxReconciliationService {
         SELECT id
         FROM "ImportedFile"
         WHERE status = 'PENDING'
-          AND "createdAt" < NOW() - INTERVAL '30 seconds'
+          AND "createdAt" < timezone('UTC', NOW()) - INTERVAL '30 seconds'
         LIMIT 20
         FOR UPDATE SKIP LOCKED
       )
@@ -58,7 +58,7 @@ export class OutboxReconciliationService {
         SELECT id
         FROM "ImportedFile"
         WHERE status = 'PROCESSING'
-          AND "leaseExpiresAt" < NOW()
+          AND "leaseExpiresAt" < timezone('UTC', NOW())
         LIMIT 20
         FOR UPDATE SKIP LOCKED
       )
@@ -78,6 +78,10 @@ export class OutboxReconciliationService {
         END,
         "retryCount" = f."retryCount" + 1,
         "recoverySequence" = f."recoverySequence" + 1,
+        "processedAt" = CASE 
+          WHEN f."retryCount" >= 3 THEN timezone('UTC', NOW()) 
+          ELSE NULL 
+        END,
         "leaseOwner" = NULL,
         "leaseExpiresAt" = NULL
       FROM expired_candidates c

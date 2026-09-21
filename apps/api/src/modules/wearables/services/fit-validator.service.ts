@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { Decoder, Stream } from '@garmin/fitsdk';
+import { FitUploadConfig } from '../config/fit-upload.config';
 
 export interface FitHeaderInfo {
   headerSize: number;
@@ -12,15 +13,13 @@ export interface FitHeaderInfo {
 
 @Injectable()
 export class FitValidatorService {
-  private static readonly MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
-
   validateBinary(buffer: Buffer): FitHeaderInfo {
     if (!buffer || buffer.length < 12) {
       throw new BadRequestException('Arquivo truncado ou menor que o cabeçalho mínimo FIT (12 bytes).');
     }
 
-    if (buffer.length > FitValidatorService.MAX_FILE_SIZE) {
-      throw new BadRequestException(`Arquivo excede o limite máximo permitido de ${FitValidatorService.MAX_FILE_SIZE / (1024 * 1024)} MB.`);
+    if (buffer.length > FitUploadConfig.MAX_UPLOAD_SIZE_BYTES) {
+      throw new BadRequestException(`Arquivo excede o limite máximo permitido de ${FitUploadConfig.MAX_UPLOAD_SIZE_MB} MB.`);
     }
 
     // 1. Tamanho do cabeçalho (byte 0): deve ser 12 (legado) ou 14 (padrão)

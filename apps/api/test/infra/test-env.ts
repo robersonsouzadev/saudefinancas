@@ -57,6 +57,13 @@ export async function setupTestEnvironment(): Promise<TestEnvironment> {
   }
   await pg.start();
 
+  try {
+    const rootClient = pg.getPgClient('postgres');
+    await rootClient.connect();
+    await rootClient.query("ALTER DATABASE saudefinancas_test SET timezone TO 'UTC'");
+    await rootClient.end();
+  } catch {}
+
   const databaseUrl = 'postgresql://postgres:password@127.0.0.1:5433/saudefinancas_test?schema=public';
   const prisma = new PrismaClient({
     datasources: { db: { url: databaseUrl } },

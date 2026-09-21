@@ -115,10 +115,10 @@ describe('Testes com Redis e BullMQ Reais (G4.1)', () => {
       },
     });
 
-    // Expira lease usando o relógio do PostgreSQL
+    // Expira lease usando o relógio UTC do PostgreSQL
     await prisma.$executeRaw`
       UPDATE "ImportedFile"
-      SET "leaseExpiresAt" = NOW() - (60 * INTERVAL '1 second')
+      SET "leaseExpiresAt" = timezone('UTC', NOW()) - (60 * INTERVAL '1 second')
       WHERE id = ${file.id}
     `;
 
