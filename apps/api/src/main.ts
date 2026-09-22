@@ -8,8 +8,9 @@ async function bootstrap() {
   
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ extended: true, limit: '50mb' }));
-  app.enableCors();
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', {
+    exclude: ['health', 'health/(.*)'],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

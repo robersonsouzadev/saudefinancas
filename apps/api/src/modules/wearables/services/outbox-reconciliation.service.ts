@@ -34,7 +34,7 @@ export class OutboxReconciliationService {
     `;
 
     for (const file of recoveredPending) {
-      const jobId = `${file.id}:recovery:${file.recoverySequence}`;
+      const jobId = `${file.id}-recovery-${file.recoverySequence}`;
       try {
         await this.fitQueue.add(
           'process-fit',
@@ -92,7 +92,7 @@ export class OutboxReconciliationService {
     let reEnqueued = 0;
     for (const file of recoveredFiles) {
       if (file.status === 'PENDING') {
-        const jobId = `${file.id}:recovery:${file.recoverySequence}`;
+        const jobId = `${file.id}-recovery-${file.recoverySequence}`;
         try {
           await this.fitQueue.add(
             'process-fit',

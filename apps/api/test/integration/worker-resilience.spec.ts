@@ -99,7 +99,7 @@ describe('Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)', () => {
       { connection: redisConnection },
     );
 
-    await queue.add('process-fit', { importId }, { jobId: `${importId}:dispatch:0` });
+    await queue.add('process-fit', { importId }, { jobId: `${importId}-dispatch-0` });
 
     // Aguarda o job iniciar
     for (let i = 0; i < 20; i++) {
@@ -150,8 +150,8 @@ describe('Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)', () => {
     expect(updated?.leaseExpiresAt).toBeNull();
     expect(updated?.recoverySequence).toBe(1);
 
-    // O BullMQ recebeu o job com o ID determinístico `${file.id}:recovery:1`
-    const recoveryJobId = `${file.id}:recovery:1`;
+    // O BullMQ recebeu o job com o ID determinístico `${file.id}-recovery-1`
+    const recoveryJobId = `${file.id}-recovery-1`;
     const enqueuedJob = await queue.getJob(recoveryJobId);
     expect(enqueuedJob).not.toBeNull();
     expect(enqueuedJob?.id).toBe(recoveryJobId);
@@ -302,7 +302,7 @@ describe('Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)', () => {
     const recoveredCount = await reconciler.reconcilePendingImports();
     expect(recoveredCount).toBeGreaterThanOrEqual(1);
 
-    const reEnqueuedJob = await queue.getJob(`${importedFile.id}:recovery:1`);
+    const reEnqueuedJob = await queue.getJob(`${importedFile.id}-recovery-1`);
     expect(reEnqueuedJob).not.toBeNull();
   });
 

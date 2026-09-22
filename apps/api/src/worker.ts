@@ -11,7 +11,13 @@ async function bootstrapWorker() {
 
   const reconciler = app.get(OutboxReconciliationService);
 
-  // Intervalo de Reconciliação Outbox: a cada 30 segundos
+  // Intervalo de Reconciliação Outbox: 10s em staging, 30s em produção (ou configurável via RECONCILIATION_INTERVAL_MS)
+  const reconciliationIntervalMs = parseInt(
+    process.env.RECONCILIATION_INTERVAL_MS || (process.env.APP_ENV === 'staging' ? '10000' : '30000'),
+    10,
+  );
+  logger.log(`Loop do OutboxReconciliationService configurado para ${reconciliationIntervalMs} ms (Ambiente: ${process.env.APP_ENV || 'production'}).`);
+
   setInterval(async () => {
     try {
       await reconciler.reconcilePendingImports();
@@ -19,7 +25,7 @@ async function bootstrapWorker() {
     } catch (err: any) {
       logger.error(`Erro na rotina de reconciliação outbox: ${err?.message}`);
     }
-  }, 30 * 1000);
+  }, reconciliationIntervalMs);
 
   // Intervalo de Limpeza de Telemetria e Arquivos Órfãos: a cada 24 horas
   setInterval(async () => {

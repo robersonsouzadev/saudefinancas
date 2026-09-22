@@ -116,7 +116,7 @@ export class WearablesController {
         await this.fitQueue.add(
           'process-fit',
           { importId: result.importId, sequence: 0 },
-          { jobId: `${result.importId}:dispatch:0`, removeOnComplete: true, removeOnFail: false },
+          { jobId: `${result.importId}-dispatch-0`, removeOnComplete: true, removeOnFail: false },
         );
       } catch (queueErr: any) {
         // Se o Redis falhar temporariamente, o OutboxReconciliationService irá recuperar

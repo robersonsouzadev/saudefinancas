@@ -36,7 +36,7 @@ Durante as auditorias das fases G4.1 e G4.1.1, identificou-se uma anomalia crít
 - Workers zumbis ou com leases expirados são abortados com `FencingViolationError` e rollback transacional total no commit.
 
 ### 4. Readiness Probe e Falha Rápida
-- O endpoint de prontidão (`/health/readiness`) executa `SELECT current_setting('timezone')` a cada verificação. Se qualquer conexão do pool reportar timezone diferente de `UTC`, o serviço retorna imediatamente HTTP 503 Service Unavailable.
+- O endpoint de prontidão (`/api/health/readiness`, com alias `/health/readiness`) executa `SELECT current_setting('timezone')` a cada verificação. Se qualquer conexão do pool reportar timezone diferente de `UTC`, o serviço retorna imediatamente HTTP 503 Service Unavailable.
 
 ## Consequências
 - Imutabilidade e consistência causal garantida entre eventos de ingestão, fila e projeção canônica.

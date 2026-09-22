@@ -290,13 +290,13 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}` || proc
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl) {
     console.error('[FATAL]: Variável de ambiente DATABASE_URL é estritamente obrigatória.');
-    process.exit(3);
+    process.exitCode = 3;
+  } else {
+    runPreflight(dbUrl).then((result) => {
+      process.exitCode = result.exitCode;
+    }).catch((err) => {
+      console.error('Erro fatal inesperado no CLI:', err);
+      process.exitCode = 3;
+    });
   }
-
-  runPreflight(dbUrl).then((result) => {
-    process.exit(result.exitCode);
-  }).catch((err) => {
-    console.error('Erro fatal inesperado no CLI:', err);
-    process.exit(3);
-  });
 }

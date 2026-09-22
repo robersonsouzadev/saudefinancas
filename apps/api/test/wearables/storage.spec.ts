@@ -87,9 +87,15 @@ describe('PrivateObjectStorageService (LOCAL_SECURE Hardening)', () => {
     await expect(storage.getObject(key)).rejects.toThrow();
   });
 
-  it('deve identificar arquivos órfãos ignorando arquivos temporários .tmp_', async () => {
+  it('deve identificar arquivos órfãos respeitando grace period e ignorando arquivos temporários .tmp_', async () => {
     await storage.putObject('user1/known.fit', Buffer.from('KNOWN'));
-    await storage.putObject('user1/orphan.fit', Buffer.from('ORPHAN'));
+    await storage.putObject('user1/recent_orphan.fit', Buffer.from('RECENT_ORPHAN'));
+    await storage.putObject('user1/old_orphan.fit', Buffer.from('OLD_ORPHAN'));
+
+    // Modifica mtime de old_orphan.fit para 2 horas atrás (> 1h grace period)
+    const oldOrphanPath = path.join(testStoragePath, 'user1/old_orphan.fit');
+    const twoHoursAgo = new Date(Date.now() - 7200 * 1000);
+    fs.utimesSync(oldOrphanPath, twoHoursAgo, twoHoursAgo);
 
     // Cria arquivo temporário solto simulando escrita em andamento
     const fullDir = path.dirname(path.join(testStoragePath, 'user1/known.fit'));
@@ -98,8 +104,13 @@ describe('PrivateObjectStorageService (LOCAL_SECURE Hardening)', () => {
     const knownKeys = new Set(['user1/known.fit']);
     const orphans = await storage.reconcileOrphans(knownKeys);
 
-    expect(orphans).toContain('user1/orphan.fit');
+    // O arquivo recente deve ser preservado pelo grace period de 1h
+    expect(orphans).not.toContain('user1/recent_orphan.fit');
+    // O arquivo com mais de 1h de idade deve ser identificado como órfão
+    expect(orphans).toContain('user1/old_orphan.fit');
+    // Arquivo conhecido não é órfão
     expect(orphans).not.toContain('user1/known.fit');
+    // Temporários nunca são órfãos
     expect(orphans).not.toContain('user1/.tmp_in_progress');
   });
 });

@@ -40,9 +40,9 @@ describe('Testes com Redis e BullMQ Reais (G4.1)', () => {
     await teardownTestEnvironment();
   });
 
-  it('1. Deve enfileirar job com jobId = `${importId}:dispatch:0` no Redis real', async () => {
+  it('1. Deve enfileirar job com jobId = `${importId}-dispatch-0` no Redis real', async () => {
     const importId = crypto.randomUUID();
-    const jobId = `${importId}:dispatch:0`;
+    const jobId = `${importId}-dispatch-0`;
 
     const job = await queue.add(
       'process-fit',
@@ -61,7 +61,7 @@ describe('Testes com Redis e BullMQ Reais (G4.1)', () => {
 
   it('2. Deve ignorar enfileiramento duplicado com o mesmo jobId (Deduplicação nativa do BullMQ)', async () => {
     const importId = crypto.randomUUID();
-    const jobId = `${importId}:dispatch:0`;
+    const jobId = `${importId}-dispatch-0`;
 
     const job1 = await queue.add(
       'process-fit',
@@ -82,10 +82,10 @@ describe('Testes com Redis e BullMQ Reais (G4.1)', () => {
     expect(counts.waiting).toBeGreaterThanOrEqual(1);
   });
 
-  it('3. Deve aceitar enfileiramento de recuperação com jobId único `${importId}:recovery:1` sem conflito', async () => {
+  it('3. Deve aceitar enfileiramento de recuperação com jobId único `${importId}-recovery-1` sem conflito', async () => {
     const importId = crypto.randomUUID();
-    const initialJobId = `${importId}:dispatch:0`;
-    const recoveryJobId = `${importId}:recovery:1`;
+    const initialJobId = `${importId}-dispatch-0`;
+    const recoveryJobId = `${importId}-recovery-1`;
 
     await queue.add('process-fit', { importId, sequence: 0 }, { jobId: initialJobId });
 
@@ -134,7 +134,7 @@ describe('Testes com Redis e BullMQ Reais (G4.1)', () => {
     expect(updated?.recoverySequence).toBe(1);
 
     // Valida que o job de recuperação foi postado no BullMQ com jobId determinístico
-    const expectedRecoveryJobId = `${file.id}:recovery:1`;
+    const expectedRecoveryJobId = `${file.id}-recovery-1`;
     const recoveryJob = await queue.getJob(expectedRecoveryJobId);
     expect(recoveryJob).not.toBeNull();
     expect(recoveryJob?.id).toBe(expectedRecoveryJobId);
@@ -144,7 +144,7 @@ describe('Testes com Redis e BullMQ Reais (G4.1)', () => {
 
   it('5. Worker BullMQ em processo de escuta deve consumir e processar job', async () => {
     const importId = crypto.randomUUID();
-    const jobId = `${importId}:dispatch:0`;
+    const jobId = `${importId}-dispatch-0`;
 
     // Registra arquivo PENDING no banco
     await prisma.importedFile.create({

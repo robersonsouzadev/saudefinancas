@@ -15,36 +15,44 @@ Este runbook descreve os procedimentos operacionais para provisionamento, valida
 
 | Recurso | Produção (Ativo) | Staging (Isolado) | Status de Isolamento |
 | :--- | :--- | :--- | :--- |
-| **API Container** | `sf-api-qo40k8o4g8owcoww0s4sccog-213922545655` | `sf-api-staging` (porta 3011) | Segregação total |
-| **Worker Container** | Integrado na API prod | `sf-worker-staging` | Container dedicado (UID 1000) |
-| **PostgreSQL Container** | `sf-db-qo40k8o4g8owcoww0s4sccog-213922496244` | `sf-db-staging` (porta 5434) | Segregação total |
-| **Banco de Dados** | `saudefinancas` | `vita_saude_staging` | Segregação total |
-| **Role de DDL** | `sf_user` | `vita_staging_migrator` | Lock/statement timeouts configurados |
-| **Role da Aplicação** | `sf_user` | `vita_staging_app` | Sem superuser, sem permissão CREATE |
-| **Redis Container** | `sf-redis-qo40k8o4g8owcoww0s4sccog-213922522114` | `sf-redis-staging` (porta 6381) | Instância dedicada |
-| **Fila BullMQ** | `wearables-fit-import` | `wearables-fit-import-staging` | Namespace isolado |
-| **Prefixo BullMQ** | `bull` | `bull_staging` | Namespace isolado |
-| **LOCAL_SECURE Path** | N/A (Em memória / transitório) | `/data/vita-saude-staging/wearables` | Volume exclusivo (0700) |
-| **Backup Path** | N/A | `/data/vita-saude-backups/prod-pre-g4-2` | Volume exclusivo (0700/0600) |
-| **Portas Internas** | 3001, 5432, 6379 | 3011, 5434, 6381 | Zero colisão de portas |
+| **API Container** | `sf-api-qo40k8o4g8owcoww0s4sccog-213922545655` | `sf-api-staging` (porta 3011) | Isolamento planejado/pending |
+| **Worker Container** | Integrado na API prod | `sf-worker-staging` | Isolamento planejado/pending (UID 1000) |
+| **PostgreSQL Container** | `sf-db-qo40k8o4g8owcoww0s4sccog-213922496244` | `sf-db-staging` (porta 5434) | Isolamento planejado/pending |
+| **Banco de Dados** | `saudefinancas` | `vita_saude_staging` | Isolamento planejado/pending |
+| **Role de DDL** | `sf_user` | `vita_staging_migrator` | Isolamento planejado/pending (Timeouts 5s/30s) |
+| **Role da Aplicação** | `sf_user` | `vita_staging_app` | Isolamento planejado/pending (Sem superuser/CREATE) |
+| **Redis Container** | `sf-redis-qo40k8o4g8owcoww0s4sccog-213922522114` | `sf-redis-staging` (porta 6381) | Isolamento planejado/pending |
+| **Fila BullMQ** | `wearables-fit-import` | `wearables-fit-import-staging` | Isolamento planejado/pending |
+| **Prefixo BullMQ** | `bull` | `bull_staging` | Isolamento planejado/pending |
+| **Intervalo Reconciliador** | 30s (`RECONCILIATION_INTERVAL_MS=30000`) | 10s (`RECONCILIATION_INTERVAL_MS=10000`) | Isolamento planejado/pending |
+| **LOCAL_SECURE Path** | N/A (Em memória / transitório) | `/data/vita-saude-staging/wearables` | Isolamento planejado/pending (0700) |
+| **Backup Path** | N/A | `/data/vita-saude-backups/prod-pre-g4-2` | Isolamento planejado/pending (0700/0600) |
+| **Portas Internas** | 3001, 5432, 6379 | 3011, 5434, 6381 | Isolamento planejado/pending (Zero colisão) |
 
 ---
 
 ## 4. Sequência Operacional Rigorosa de Execução
 
-A execução na VPS obedece estritamente às etapas numeradas:
+A execução na VPS obedece estritamente às etapas numeradas a partir da raiz do repositório:
 
 ### Etapa 0: Baseline de Latência e Guard Rail Pré-Provisionamento
 1. Coletar 5 amostras da API de produção:
    ```bash
    for i in $(seq 1 5); do
-     curl -o /dev/null -s -w "%{time_total}\n" https://appapi.robersonsouza.com.br/health/liveness
+     curl -o /dev/null -s -w "%{time_total}\n" https://appapi.robersonsouza.com.br/api/health/liveness
      sleep 10
    done
    ```
-2. Executar guard rail prévio:
+2. Executar guard rail prévio com todas as variáveis obrigatórias:
    ```bash
-   node apps/api/scripts/vps_isolation_guard_rail.mjs
+   NODE_ENV=staging \
+   APP_ENV=staging \
+   DATABASE_URL="postgresql://vita_staging_app:${STAGING_APP_PASSWORD}@127.0.0.1:5434/vita_saude_staging?schema=public" \
+   STORAGE_PATH="/data/vita-saude-staging/wearables" \
+   QUEUE_NAME="wearables-fit-import-staging" \
+   QUEUE_PREFIX="bull_staging" \
+   PUBLIC_API_URL="http://127.0.0.1:3011" \
+     node apps/api/scripts/vps_isolation_guard_rail.mjs
    ```
    *Critério de parada: Exit Code 0 obrigatório.*
 
@@ -72,7 +80,14 @@ A execução na VPS obedece estritamente às etapas numeradas:
 ### Etapa 3: Guard Rail dos Recursos Efetivos
 1. Re-executar validação de isolamento com containers de staging ativos:
    ```bash
-   node apps/api/scripts/vps_isolation_guard_rail.mjs
+   NODE_ENV=staging \
+   APP_ENV=staging \
+   DATABASE_URL="postgresql://vita_staging_app:${STAGING_APP_PASSWORD}@127.0.0.1:5434/vita_saude_staging?schema=public" \
+   STORAGE_PATH="/data/vita-saude-staging/wearables" \
+   QUEUE_NAME="wearables-fit-import-staging" \
+   QUEUE_PREFIX="bull_staging" \
+   PUBLIC_API_URL="http://127.0.0.1:3011" \
+     node apps/api/scripts/vps_isolation_guard_rail.mjs
    ```
 
 ### Etapa 4: Preflight Temporal e Migrações
@@ -114,10 +129,10 @@ A execução na VPS obedece estritamente às etapas numeradas:
    ```
 
 ### Etapa 7: Testes Funcionais e Health Probes
-1. Validar probes HTTP na porta 3011:
-   - `GET /health/liveness` -> `200 OK`
-   - `GET /health/readiness` -> `200 OK` (com DB, Timezone UTC, Redis e Storage)
-   - `GET /health/metrics` -> `200 OK` (formato Prometheus)
+1. Validar probes HTTP na porta 3011 (disponíveis sob prefixo `/api/health` e alias `/health`):
+   - `GET /api/health/liveness` -> `200 OK`
+   - `GET /api/health/readiness` -> `200 OK` (com DB, Timezone UTC, Redis e Storage)
+   - `GET /api/health/metrics` -> `200 OK` (formato Prometheus)
 
 ### Etapa 8: Testes Destrutivos Controlados sob Monitoramento
 1. Iniciar monitoramento contínuo em background:
@@ -125,9 +140,10 @@ A execução na VPS obedece estritamente às etapas numeradas:
    bash apps/api/scripts/monitor_staging_vps.sh --baseline-ms 45 &
    MONITOR_PID=$!
    ```
-2. Executar runner destrutivo de SIGKILL e recuperação:
+2. Executar runner destrutivo de SIGKILL e recuperação (Cenário A de expiração natural ou B acelerado):
    ```bash
-   ALLOW_DESTRUCTIVE_TESTS=true node apps/api/scripts/test_sigkill_worker_recovery.mjs
+   # Cenário A: Expiração natural de lease (60s)
+   ALLOW_DESTRUCTIVE_TESTS=true node apps/api/scripts/test_sigkill_worker_recovery.mjs --scenario=A
    ```
 3. Executar suíte de testes de anti-TOCTOU concorrente:
    ```bash
