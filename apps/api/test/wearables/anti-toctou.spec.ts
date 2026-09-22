@@ -137,113 +137,142 @@ describe('Anti-TOCTOU Concorrente: Leitura e Escrita Protegidas no Storage (G4.2
   });
 
   // ---------------------------------------------------------------------------
-  // 3. TESTE CONCORRENTE ANTI-TOCTOU: TROCA DE COMPONENTE INTERMEDIÁRIO
+  // 3. TESTE CONCORRENTE ANTI-TOCTOU DETERMINÍSTICO (SINCRONIZADO COM BARREIRAS)
   // ---------------------------------------------------------------------------
-  it('Concorrente Leitura: troca de componente intermediário por symlink para sandbox não vaza sentinela', async () => {
+  it('Concorrente Leitura (Barreira Determinística): troca de componente intermediário durante pre-read bloqueia vazamento de sentinela', async () => {
     const canarySecret = `CANARY_HOST_SECRET_TOKEN_${crypto.randomBytes(32).toString('hex')}`;
     const sentinelFilePath = path.join(testSandboxDir, 'canary_sentinel_host_file.txt');
     fs.writeFileSync(sentinelFilePath, canarySecret, { mode: 0o600 });
     const sentinelHashBefore = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
 
-    const parentDir = path.join(testStorageDir, 'users', 'race_read');
-    const genuineDir = path.join(testStorageDir, 'users', 'race_read_genuine');
-    fs.mkdirSync(parentDir, { recursive: true, mode: 0o700 });
-    fs.mkdirSync(genuineDir, { recursive: true, mode: 0o700 });
-
+    const parentDir = path.join(testStorageDir, 'users', 'barrier_read');
     const swapTarget = path.join(parentDir, 'swap_node');
-    const attackKey = 'users/race_read/swap_node/canary_sentinel_host_file.txt';
+    fs.mkdirSync(parentDir, { recursive: true, mode: 0o700 });
+    fs.mkdirSync(swapTarget, { recursive: true, mode: 0o700 });
 
-    let stopSwapping = false;
-    const swapPromise = (async () => {
-      let isSymlink = false;
-      while (!stopSwapping) {
-        try {
-          if (fs.existsSync(swapTarget)) {
-            fs.rmSync(swapTarget, { recursive: true, force: true });
-          }
-          if (isSymlink) {
-            fs.mkdirSync(swapTarget, { recursive: true, mode: 0o700 });
-          } else {
-            fs.symlinkSync(testSandboxDir, swapTarget, process.platform === 'win32' ? 'junction' : 'dir');
-          }
-          isSymlink = !isSymlink;
-        } catch {}
-        await new Promise((r) => setImmediate(r));
-      }
-    })();
+    const attackKey = 'users/barrier_read/swap_node/canary_sentinel_host_file.txt';
 
-    // Dispara 20 requisições simultâneas de leitura enquanto a árvore é permutada
-    const readPromises = Array.from({ length: 20 }, async () => {
-      try {
-        const buffer = await storage.getObject(attackKey);
-        // Se de alguma forma retornou dados, jamais pode ser o segredo da sentinela
-        expect(buffer.toString()).not.toContain(canarySecret);
-      } catch (err: any) {
-        expect(err).toBeDefined();
-        const errStr = JSON.stringify(err);
-        expect(errStr).not.toContain(canarySecret);
+    // Cria um arquivo genuíno inicialmente no caminho esperado
+    const genuineFile = path.join(swapTarget, 'canary_sentinel_host_file.txt');
+    fs.writeFileSync(genuineFile, 'GENUINE_INITIAL_CONTENT', { mode: 0o600 });
+
+    // Configura a barreira determinística: troca o diretório intermediário EXATAMENTE entre validação e leitura
+    let barrierTriggered = false;
+    storage.setTestBarrier(async (point) => {
+      if (point === 'pre-read') {
+        barrierTriggered = true;
+        // Força a troca do diretório intermediário por um symlink para o sandbox externo
+        fs.rmSync(swapTarget, { recursive: true, force: true });
+        fs.symlinkSync(testSandboxDir, swapTarget, process.platform === 'win32' ? 'junction' : 'dir');
       }
     });
 
-    await Promise.all(readPromises);
-    stopSwapping = true;
-    await swapPromise;
+    let errorThrown: any = null;
+    try {
+      await storage.getObject(attackKey);
+    } catch (err) {
+      errorThrown = err;
+    }
 
-    // Confirmação de integridade inegociável: hash da sentinela inalterado
+    expect(barrierTriggered).toBe(true);
+    expect(errorThrown).toBeInstanceOf(BadRequestException);
+    expect(errorThrown.message).toContain('Symlinks proibidos');
+
+    // Comprovação estrita: a sentinela jamais foi lida ou vazada
+    const errDump = JSON.stringify(errorThrown);
+    expect(errDump).not.toContain(canarySecret);
+
+    // Hash da sentinela rigorosamente idêntico
     const sentinelHashAfter = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
     expect(sentinelHashAfter).toBe(sentinelHashBefore);
   });
 
-  it('Concorrente Escrita: troca de componente intermediário por symlink para sandbox não sobrescreve sentinela', async () => {
+  it('Concorrente Escrita (Barreira Determinística): troca de componente intermediário durante pre-publish bloqueia sobrescrita da sentinela', async () => {
     const canarySecret = `CANARY_HOST_SECRET_TOKEN_${crypto.randomBytes(32).toString('hex')}`;
     const sentinelFilePath = path.join(testSandboxDir, 'canary_sentinel_host_file.txt');
     fs.writeFileSync(sentinelFilePath, canarySecret, { mode: 0o600 });
     const sentinelHashBefore = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
 
-    const parentDir = path.join(testStorageDir, 'users', 'race_write');
-    const genuineDir = path.join(testStorageDir, 'users', 'race_write_genuine');
-    fs.mkdirSync(parentDir, { recursive: true, mode: 0o700 });
-    fs.mkdirSync(genuineDir, { recursive: true, mode: 0o700 });
-
+    const parentDir = path.join(testStorageDir, 'users', 'barrier_write');
     const swapTarget = path.join(parentDir, 'swap_node');
-    const attackKey = 'users/race_write/swap_node/canary_sentinel_host_file.txt';
+    fs.mkdirSync(parentDir, { recursive: true, mode: 0o700 });
+    fs.mkdirSync(swapTarget, { recursive: true, mode: 0o700 });
+
+    const attackKey = 'users/barrier_write/swap_node/canary_sentinel_host_file.txt';
     const maliciousBuffer = Buffer.from('MALICIOUS_OVERWRITE_PAYLOAD_CORRUPT');
 
-    let stopSwapping = false;
-    const swapPromise = (async () => {
-      let isSymlink = false;
-      while (!stopSwapping) {
-        try {
-          if (fs.existsSync(swapTarget)) {
-            fs.rmSync(swapTarget, { recursive: true, force: true });
-          }
-          if (isSymlink) {
-            fs.mkdirSync(swapTarget, { recursive: true, mode: 0o700 });
-          } else {
-            fs.symlinkSync(testSandboxDir, swapTarget, process.platform === 'win32' ? 'junction' : 'dir');
-          }
-          isSymlink = !isSymlink;
-        } catch {}
-        await new Promise((r) => setImmediate(r));
-      }
-    })();
-
-    // Dispara 20 requisições simultâneas de escrita enquanto a árvore é permutada
-    const writePromises = Array.from({ length: 20 }, async () => {
-      try {
-        await storage.putObject(attackKey, maliciousBuffer);
-      } catch (err: any) {
-        expect(err).toBeDefined();
+    // Configura a barreira determinística: troca o diretório intermediário EXATAMENTE durante a fase de escrita temporária
+    let barrierTriggered = false;
+    storage.setTestBarrier(async (point) => {
+      if (point === 'pre-publish') {
+        barrierTriggered = true;
+        // Força a troca do diretório intermediário por um symlink para o sandbox externo
+        fs.rmSync(swapTarget, { recursive: true, force: true });
+        fs.symlinkSync(testSandboxDir, swapTarget, process.platform === 'win32' ? 'junction' : 'dir');
       }
     });
 
-    await Promise.all(writePromises);
-    stopSwapping = true;
-    await swapPromise;
+    let errorThrown: any = null;
+    try {
+      await storage.putObject(attackKey, maliciousBuffer);
+    } catch (err) {
+      errorThrown = err;
+    }
 
-    // Confirmação de integridade inegociável: a sentinela no sandbox NUNCA foi sobrescrita
+    expect(barrierTriggered).toBe(true);
+    expect(errorThrown).toBeInstanceOf(BadRequestException);
+    expect(errorThrown.message).toContain('Symlinks proibidos');
+
+    // Comprovação estrita 1: Sentinela externa NUNCA foi sobrescrita
+    const content = fs.readFileSync(sentinelFilePath, 'utf8');
+    expect(content).toBe(canarySecret);
     const sentinelHashAfter = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
     expect(sentinelHashAfter).toBe(sentinelHashBefore);
+
+    // Comprovação estrita 2: Nenhum arquivo residual ou temporário permaneceu em .tmp_uploads
+    const tmpDir = path.join(testStorageDir, '.tmp_uploads');
+    if (fs.existsSync(tmpDir)) {
+      const tmpEntries = fs.readdirSync(tmpDir);
+      expect(tmpEntries.length).toBe(0);
+    }
+  });
+
+  it('Concorrente Exclusão (Barreira Determinística): troca de componente intermediário durante pre-delete bloqueia remoção da sentinela', async () => {
+    const canarySecret = `CANARY_HOST_SECRET_TOKEN_${crypto.randomBytes(32).toString('hex')}`;
+    const sentinelFilePath = path.join(testSandboxDir, 'canary_sentinel_host_file.txt');
+    fs.writeFileSync(sentinelFilePath, canarySecret, { mode: 0o600 });
+
+    const parentDir = path.join(testStorageDir, 'users', 'barrier_delete');
+    const swapTarget = path.join(parentDir, 'swap_node');
+    fs.mkdirSync(parentDir, { recursive: true, mode: 0o700 });
+    fs.mkdirSync(swapTarget, { recursive: true, mode: 0o700 });
+
+    const genuineFile = path.join(swapTarget, 'canary_sentinel_host_file.txt');
+    fs.writeFileSync(genuineFile, 'GENUINE_DELETE_TARGET', { mode: 0o600 });
+
+    const attackKey = 'users/barrier_delete/swap_node/canary_sentinel_host_file.txt';
+
+    let barrierTriggered = false;
+    storage.setTestBarrier(async (point) => {
+      if (point === 'pre-delete') {
+        barrierTriggered = true;
+        fs.rmSync(swapTarget, { recursive: true, force: true });
+        fs.symlinkSync(testSandboxDir, swapTarget, process.platform === 'win32' ? 'junction' : 'dir');
+      }
+    });
+
+    let errorThrown: any = null;
+    try {
+      await storage.deleteObject(attackKey);
+    } catch (err) {
+      errorThrown = err;
+    }
+
+    expect(barrierTriggered).toBe(true);
+    expect(errorThrown).toBeInstanceOf(BadRequestException);
+
+    // Sentinela externa NUNCA foi excluída
+    expect(fs.existsSync(sentinelFilePath)).toBe(true);
     const content = fs.readFileSync(sentinelFilePath, 'utf8');
     expect(content).toBe(canarySecret);
   });

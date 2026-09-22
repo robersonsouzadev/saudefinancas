@@ -14,8 +14,14 @@
 set -u
 
 PROD_API_URL="https://appapi.robersonsouza.com.br/health/liveness"
-PROD_CONTAINER_API="sf-api-qo40k8o4g8owcoww0s4sccog-213922545655"
+PROD_CONTAINERS=(
+  "sf-api-qo40k8o4g8owcoww0s4sccog-213922545655"
+  "sf-web-qo40k8o4g8owcoww0s4sccog-214436573752"
+  "sf-redis-qo40k8o4g8owcoww0s4sccog-212850989354"
+  "sf-db-qo40k8o4g8owcoww0s4sccog-212850550005"
+)
 AUDIT_LOG_DIR="/data/vita-saude-staging-audit"
+mkdir -p "$AUDIT_LOG_DIR" 2>/dev/null || AUDIT_LOG_DIR="/tmp/vita-saude-staging-audit"
 mkdir -p "$AUDIT_LOG_DIR"
 AUDIT_LOG="$AUDIT_LOG_DIR/monitor_telemetry_$(date -u +%s).log"
 
@@ -52,10 +58,16 @@ echo "- Arquivo de Auditoria: $AUDIT_LOG"
 echo "- Build PID Monitorado:  ${BUILD_PID:-Nenhum}"
 echo "- Runner PID Monitorado: ${RUNNER_PID:-Nenhum}"
 echo "- Baseline de Latência: ${BASELINE_LATENCY_MS} ms"
+echo "- Containers de Produção Monitorados: ${#PROD_CONTAINERS[@]}"
 echo "--------------------------------------------------------------------------------"
 
-# Captura inicial do RestartCount da produção
-INITIAL_RESTART_COUNT=$(docker inspect --format='{{.RestartCount}}' "$PROD_CONTAINER_API" 2>/dev/null || echo "0")
+# Captura inicial do RestartCount de todos os 4 containers de produção
+declare -A INITIAL_RESTARTS
+for c in "${PROD_CONTAINERS[@]}"; do
+  r_count=$(docker inspect --format='{{.RestartCount}}' "$c" 2>/dev/null || echo "0")
+  INITIAL_RESTARTS["$c"]="$r_count"
+  echo "- Produção $c: RestartCount inicial = $r_count"
+done
 HIGH_LOAD_COUNT=0
 
 terminate_process_tree() {
@@ -110,6 +122,13 @@ trigger_safeguard_halt() {
   exit 1
 }
 
+# Descoberta dinâmica de filesystem para monitoramento de disco
+DISCOVERED_MOUNT="/data"
+if [ ! -d "$DISCOVERED_MOUNT" ]; then
+  DISCOVERED_MOUNT="/"
+fi
+echo "- Ponto de Montagem para Monitoramento de Disco: $DISCOVERED_MOUNT"
+
 # Loop de monitoramento contínuo
 while true; do
   TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -120,9 +139,9 @@ while true; do
   TIME_TOTAL=$(echo "$CURL_OUT" | awk '{print $2}')
   LATENCY_MS=$(echo "$TIME_TOTAL" | awk '{printf "%.0f", $1 * 1000}')
 
-  # Critério 1A: Erro 5xx na Produção
-  if [[ "$HTTP_CODE" =~ ^5 ]]; then
-    trigger_safeguard_halt "API de produção retornou erro HTTP $HTTP_CODE"
+  # Critério 1A: Erro HTTP 000 (Inacessível / Timeout) ou 5xx na Produção
+  if [[ "$HTTP_CODE" == "000" ]] || [[ "$HTTP_CODE" =~ ^5 ]]; then
+    trigger_safeguard_halt "API de produção inacessível ou retornou erro HTTP $HTTP_CODE (tempo=${LATENCY_MS}ms)"
   fi
 
   # Critério 1B: Latência p95 > 200 ms ou aumento > 50% relativo à baseline
@@ -143,10 +162,10 @@ while true; do
   fi
 
   # 3. Verificação de Disco Livre no Host (Limiar: < 45 GB = 47.185.920 KB)
-  DISK_AVAIL_KB=$(df --output=avail /dev/sda1 | tail -1 | tr -d ' ')
+  DISK_AVAIL_KB=$(df -k --output=avail "$DISCOVERED_MOUNT" | tail -1 | tr -d ' ')
   if [[ "$DISK_AVAIL_KB" -lt 47185920 ]]; then
     DISK_AVAIL_GB=$(( DISK_AVAIL_KB / 1024 / 1024 ))
-    trigger_safeguard_halt "Espaço em disco livre atingiu piso crítico: ${DISK_AVAIL_GB} GB (< 45 GB)"
+    trigger_safeguard_halt "Espaço em disco livre atingiu piso crítico no ponto $DISCOVERED_MOUNT: ${DISK_AVAIL_GB} GB (< 45 GB)"
   fi
 
   # 4. Verificação de Load Average do Host (Limiar: > 2.5 contínuo por > 30s)
@@ -161,14 +180,23 @@ while true; do
     HIGH_LOAD_COUNT=0
   fi
 
-  # 5. Verificação de Reinicialização de Contêineres de Produção
-  CURRENT_RESTARTS=$(docker inspect --format='{{.RestartCount}}' "$PROD_CONTAINER_API" 2>/dev/null || echo "0")
-  if [[ "$CURRENT_RESTARTS" -gt "$INITIAL_RESTART_COUNT" ]]; then
-    trigger_safeguard_halt "Contêiner de produção $PROD_CONTAINER_API sofreu reinício inesperado (RestartCount: $CURRENT_RESTARTS)"
-  fi
+  # 5. Verificação de Reinicialização e Status dos 4 Contêineres de Produção
+  RESTARTS_SUMMARY=""
+  for c in "${PROD_CONTAINERS[@]}"; do
+    c_status=$(docker inspect --format='{{.State.Status}}' "$c" 2>/dev/null || echo "missing")
+    if [[ "$c_status" != "running" ]] && [[ "$c_status" != "missing" ]]; then
+      trigger_safeguard_halt "Contêiner de produção $c não está em execução (Status: $c_status)"
+    fi
+    c_restarts=$(docker inspect --format='{{.RestartCount}}' "$c" 2>/dev/null || echo "0")
+    init_r="${INITIAL_RESTARTS[$c]:-0}"
+    if [[ "$c_restarts" -gt "$init_r" ]]; then
+      trigger_safeguard_halt "Contêiner de produção $c sofreu reinício inesperado (RestartCount: $c_restarts, Inicial: $init_r)"
+    fi
+    RESTARTS_SUMMARY="$RESTARTS_SUMMARY $c=$c_restarts"
+  done
 
   # Registro no log de telemetria
-  echo "$TS status=HEALTHY prod_http=$HTTP_CODE prod_lat=${LATENCY_MS}ms mem_avail=${MEM_AVAIL_MB}MB disk_avail_gb=$(( DISK_AVAIL_KB / 1024 / 1024 )) load=$LOAD_1MIN prod_restarts=$CURRENT_RESTARTS" >> "$AUDIT_LOG"
+  echo "$TS status=HEALTHY prod_http=$HTTP_CODE prod_lat=${LATENCY_MS}ms mem_avail=${MEM_AVAIL_MB}MB disk_avail_gb=$(( DISK_AVAIL_KB / 1024 / 1024 )) load=$LOAD_1MIN prod_restarts=[$RESTARTS_SUMMARY ]" >> "$AUDIT_LOG"
 
   sleep 10
 done

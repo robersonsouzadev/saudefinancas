@@ -1,4 +1,5 @@
 version: '3.8'
+name: vita_staging
 
 # ==============================================================================
 # AMBIENTE ISOLADO DE STAGING — VITA SAÚDE (G4.2)
@@ -8,6 +9,7 @@ version: '3.8'
 
 networks:
   vita_staging_net:
+    name: vita_staging_net
     driver: bridge
 
 volumes:

@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus, Res, ServiceUnavailableException } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Res, ServiceUnavailableException, Inject } from '@nestjs/common';
 import { Response } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PrivateObjectStorageService } from '../wearables/services/storage.service';
@@ -6,12 +6,12 @@ import { WearablesObservabilityService } from '../wearables/services/wearables-o
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 
-@Controller('health')
+@Controller(['health', 'api/health'])
 export class HealthController {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly storage: PrivateObjectStorageService,
-    private readonly observability: WearablesObservabilityService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(PrivateObjectStorageService) private readonly storage: PrivateObjectStorageService,
+    @Inject(WearablesObservabilityService) private readonly observability: WearablesObservabilityService,
     @InjectQueue('wearables-fit-import') private readonly fitQueue: Queue,
   ) {}
 

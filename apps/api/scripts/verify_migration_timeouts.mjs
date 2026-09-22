@@ -62,14 +62,28 @@ async function main() {
     let statusOutput = '';
     let statusExitCode = null;
 
-    await new Promise((resolve) => {
+    await new Promise((resolve, reject) => {
       const proc = spawn('npx', ['prisma', 'migrate', 'status'], {
         env: { ...process.env, DATABASE_URL: migratorDbUrl },
         shell: true,
       });
+
+      const timer = setTimeout(() => {
+        try { proc.kill('SIGKILL'); } catch {}
+        reject(new Error('Watchdog timeout: npx prisma migrate status excedeu 15 segundos sem responder.'));
+      }, 15000);
+
       proc.stdout?.on('data', (d) => { statusOutput += d.toString(); });
       proc.stderr?.on('data', (d) => { statusOutput += d.toString(); });
-      proc.on('close', (code) => { statusExitCode = code; resolve(); });
+      proc.on('close', (code) => {
+        clearTimeout(timer);
+        statusExitCode = code;
+        resolve();
+      });
+      proc.on('error', (err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
     });
 
     const elapsedStatusMs = Date.now() - t0Status;
@@ -142,14 +156,28 @@ async function main() {
     let deployExitCode = null;
 
     console.log('[Prisma CLI Deploy]: Disparando "npx prisma migrate deploy" contra o banco descartável bloqueado...');
-    await new Promise((resolve) => {
+    await new Promise((resolve, reject) => {
       const proc = spawn('npx', ['prisma', 'migrate', 'deploy'], {
         env: { ...process.env, DATABASE_URL: probeMigratorDbUrl },
         shell: true,
       });
+
+      const timer = setTimeout(() => {
+        try { proc.kill('SIGKILL'); } catch {}
+        reject(new Error('Watchdog timeout: npx prisma migrate deploy excedeu 15 segundos sem responder.'));
+      }, 15000);
+
       proc.stdout?.on('data', (d) => { deployOutput += d.toString(); });
       proc.stderr?.on('data', (d) => { deployOutput += d.toString(); });
-      proc.on('close', (code) => { deployExitCode = code; resolve(); });
+      proc.on('close', (code) => {
+        clearTimeout(timer);
+        deployExitCode = code;
+        resolve();
+      });
+      proc.on('error', (err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
     });
 
     const elapsedDeployMs = Date.now() - t0Deploy;
@@ -242,22 +270,42 @@ async function main() {
     console.error(`\n[FATAL ERROR NO RUNNER DE TIMEOUTS]: ${fatalErr.message}`);
     process.exitCode = 1;
   } finally {
-    if (clientAdmin) {
-      try {
-        await clientAdmin.query('ROLLBACK;');
-        await clientAdmin.end();
-      } catch {}
-    }
     if (clientProbeAdmin) {
       try {
         await clientProbeAdmin.query('ROLLBACK;');
         await clientProbeAdmin.end();
       } catch {}
     }
+    if (clientAdmin) {
+      try {
+        await clientAdmin.query('ROLLBACK;');
+        await clientAdmin.end();
+      } catch {}
+    }
     if (clientMigrator) {
       try {
         await clientMigrator.end();
       } catch {}
+    }
+
+    // Cleanup incondicional do banco descartável caso ainda exista
+    if (adminDbUrl) {
+      const probeDbName = 'vita_saude_staging_timeout_probe';
+      try {
+        const adminUrlObj = new URL(adminDbUrl);
+        const adminDefaultUrl = `${adminUrlObj.protocol}//${adminUrlObj.username}:${adminUrlObj.password}@${adminUrlObj.host}/postgres`;
+        const dropClient = new Client({ connectionString: adminDefaultUrl });
+        await dropClient.connect();
+        await dropClient.query(`
+          SELECT pg_terminate_backend(pid) 
+          FROM pg_stat_activity 
+          WHERE datname = '${probeDbName}' AND pid <> pg_backend_pid();
+        `);
+        await dropClient.query(`DROP DATABASE IF EXISTS ${probeDbName};`);
+        await dropClient.end();
+      } catch (dropErr) {
+        // Silencioso ou warn no cleanup finally
+      }
     }
   }
 }

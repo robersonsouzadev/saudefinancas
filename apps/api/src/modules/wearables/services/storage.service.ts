@@ -16,6 +16,7 @@ import { IPrivateObjectStorage, StoredObjectRef } from '../interfaces/storage.in
 export class PrivateObjectStorageService implements IPrivateObjectStorage {
   private readonly logger = new Logger(PrivateObjectStorageService.name);
   private readonly basePath: string;
+  private testBarrier?: (point: string, meta?: any) => Promise<void> | void;
 
   constructor(private readonly configService: ConfigService) {
     const customPath = this.configService.get<string>('STORAGE_PATH');
@@ -36,6 +37,10 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
 
   getBasePath(): string {
     return this.basePath;
+  }
+
+  setTestBarrier(barrier?: (point: string, meta?: any) => Promise<void> | void): void {
+    this.testBarrier = barrier;
   }
 
   private validateAndResolveKey(key: string): { fullPath: string; dirPath: string; sanitizedKey: string } {
@@ -78,11 +83,13 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
         try {
           const real = fs.realpathSync(current);
           if (!real.startsWith(root + path.sep) && real !== root) {
-            throw new BadRequestException(`Caminho canônico fora da raiz autorizada: ${real}`);
+            throw new BadRequestException(`Symlinks proibidos no storage: caminho canônico fora da raiz autorizada (${real})`);
           }
-        } catch {
-          // Se realpath falhar em nó intermediário, rejeita imediatamente
-          throw new BadRequestException(`Falha ao resolver caminho canônico intermediário: ${current}`);
+        } catch (err) {
+          if (err instanceof BadRequestException) {
+            throw err;
+          }
+          throw new BadRequestException(`Symlinks proibidos no storage: falha ao resolver caminho canônico intermediário (${current})`);
         }
       }
       if (current === root) break;
@@ -123,36 +130,41 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
         fs.constants.O_WRONLY |
         (fs.constants.O_NOFOLLOW || 0);
 
+      const dirOpenFlags = fs.constants.O_RDONLY | (fs.constants.O_DIRECTORY || 0) | (fs.constants.O_NOFOLLOW || 0);
+      let dirHandle: fs.promises.FileHandle | null = null;
       let fileHandle: fs.promises.FileHandle | null = null;
+
       try {
+        dirHandle = await fs.promises.open(dirPath, dirOpenFlags);
+        if (fs.existsSync(`/proc/self/fd/${dirHandle.fd}`)) {
+          const canonicalDirPath = fs.realpathSync(`/proc/self/fd/${dirHandle.fd}`);
+          if (!canonicalDirPath.startsWith(this.basePath + path.sep) && canonicalDirPath !== this.basePath) {
+            throw new BadRequestException('Symlinks proibidos no storage: escape de diretório detectado via descritor.');
+          }
+        }
+
+        // Gravação em arquivo temporário com permissões estritas 0600
         fileHandle = await fs.promises.open(tempPath, openFlags, 0o600);
         await fileHandle.writeFile(buffer);
         await fileHandle.sync(); // fsync do arquivo temporário
         await fileHandle.close();
         fileHandle = null;
 
-        // Re-validação pré-link de toda a cadeia de diretórios intermediários (Anti-TOCTOU)
-        this.validateNoSymlinksInPath(dirPath);
+        // Ponto de sincronização determinístico para testes (Anti-TOCTOU barrier)
+        if (this.testBarrier) {
+          await this.testBarrier('pre-publish', { key: sanitizedKey, dirPath, fullPath, dirFd: dirHandle.fd });
+        }
 
-        // Verificação via descritor de diretório: em Linux / procfs, valida se o dirHandle não escapou da raiz
-        const dirOpenFlags = fs.constants.O_RDONLY | (fs.constants.O_DIRECTORY || 0) | (fs.constants.O_NOFOLLOW || 0);
-        let dirHandle: fs.promises.FileHandle | null = null;
-        try {
-          dirHandle = await fs.promises.open(dirPath, dirOpenFlags);
-          if (fs.existsSync(`/proc/self/fd/${dirHandle.fd}`)) {
-            const canonicalDirPath = fs.realpathSync(`/proc/self/fd/${dirHandle.fd}`);
-            if (!canonicalDirPath.startsWith(this.basePath + path.sep) && canonicalDirPath !== this.basePath) {
-              throw new BadRequestException('Symlinks proibidos no storage: escape de diretório detectado via descritor.');
-            }
-          }
-        } finally {
-          if (dirHandle) {
-            await dirHandle.close().catch(() => {});
+        // Re-validação anti-TOCTOU mantendo o descritor de diretório aberto
+        this.validateNoSymlinksInPath(dirPath);
+        if (fs.existsSync(`/proc/self/fd/${dirHandle.fd}`)) {
+          const canonicalDirPath = fs.realpathSync(`/proc/self/fd/${dirHandle.fd}`);
+          if (!canonicalDirPath.startsWith(this.basePath + path.sep) && canonicalDirPath !== this.basePath) {
+            throw new BadRequestException('Symlinks proibidos no storage: escape de diretório detectado via descritor pós-barreira.');
           }
         }
 
         // Publicação atômica NO-CLOBBER via fs.promises.link
-        // Se fullPath já existir, link falha com EEXIST impedindo sobrescrita silenciosa
         await fs.promises.link(tempPath, fullPath);
 
         // Verificação pós-publicação do arquivo final aberto via O_NOFOLLOW
@@ -177,6 +189,9 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
             await checkHandle.close().catch(() => {});
           }
         }
+
+        // fsync do diretório pai para durabilidade dos metadados com descritor aberto
+        await dirHandle.sync().catch(() => {});
       } catch (linkErr: any) {
         if (linkErr.code === 'EEXIST') {
           throw new ConflictException(`Conflito de storage: arquivo já existe em destino (${sanitizedKey}). Sobrescrita proibida.`);
@@ -186,15 +201,11 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
         if (fileHandle) {
           await fileHandle.close().catch(() => {});
         }
+        if (dirHandle) {
+          await dirHandle.close().catch(() => {});
+        }
         await fs.promises.unlink(tempPath).catch(() => {});
       }
-
-      // fsync do diretório pai para durabilidade dos metadados (onde suportado)
-      try {
-        const syncDirHandle = await fs.promises.open(dirPath, fs.constants.O_RDONLY);
-        await syncDirHandle.sync().catch(() => {});
-        await syncDirHandle.close().catch(() => {});
-      } catch {}
 
       return {
         storageKey: sanitizedKey.replace(/\\/g, '/'),
@@ -214,7 +225,7 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
   }
 
   async getObject(key: string, expectedSha256?: string): Promise<Buffer> {
-    const { fullPath, dirPath } = this.validateAndResolveKey(key);
+    const { fullPath, dirPath, sanitizedKey } = this.validateAndResolveKey(key);
 
     try {
       if (!fs.existsSync(fullPath)) {
@@ -222,6 +233,14 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
       }
 
       // 1. Verificação prévia de toda a hierarquia de diretórios intermediários
+      this.validateNoSymlinksInPath(fullPath);
+
+      // Ponto de sincronização determinístico para testes de leitura
+      if (this.testBarrier) {
+        await this.testBarrier('pre-read', { key: sanitizedKey, dirPath, fullPath });
+      }
+
+      // Re-validação anti-TOCTOU
       this.validateNoSymlinksInPath(fullPath);
 
       // 2. Abertura do descritor de arquivo com O_NOFOLLOW para leitura imune a TOCTOU
@@ -283,6 +302,12 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
     const { fullPath } = this.validateAndResolveKey(key);
 
     if (fs.existsSync(fullPath)) {
+      this.validateNoSymlinksInPath(fullPath);
+      if (this.testBarrier) {
+        await this.testBarrier('pre-delete', { key, fullPath });
+      }
+      this.validateNoSymlinksInPath(fullPath);
+
       const lstat = await fs.promises.lstat(fullPath);
       if (lstat.isSymbolicLink()) {
         throw new BadRequestException('Tentativa de remoção de symlink proibido no storage.');

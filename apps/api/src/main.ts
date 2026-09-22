@@ -9,7 +9,7 @@ async function bootstrap() {
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ extended: true, limit: '50mb' }));
   app.setGlobalPrefix('api', {
-    exclude: ['health', 'health/(.*)'],
+    exclude: ['health', 'health/(.*)', 'api/health', 'api/health/(.*)'],
   });
   app.useGlobalPipes(
     new ValidationPipe({

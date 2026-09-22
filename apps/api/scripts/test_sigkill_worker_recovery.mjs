@@ -125,6 +125,8 @@ async function main() {
 
     // 4. Aguardar o Worker capturar o Job e transicionar para PROCESSING
     let jobStarted = false;
+    let killedWorkerLeaseOwner = null;
+    let killedWorkerLeaseVersion = null;
     for (let i = 0; i < 30; i++) {
       await new Promise((r) => setTimeout(r, 200));
       const res = await client.query(`
@@ -134,14 +136,19 @@ async function main() {
       `, [fileId]);
 
       if (res.rows[0]?.status === 'PROCESSING') {
+        if (!res.rows[0].leaseOwner) {
+          throw new Error('VIOLAÇÃO CRÍTICA: Job está em status PROCESSING porém leaseOwner está ausente no banco!');
+        }
         jobStarted = true;
-        console.log(`[Passo 4] Worker capturou o job! Status=PROCESSING, leaseOwner=${res.rows[0].leaseOwner}, leaseVersion=${res.rows[0].leaseVersion}`);
+        killedWorkerLeaseOwner = res.rows[0].leaseOwner;
+        killedWorkerLeaseVersion = res.rows[0].leaseVersion;
+        console.log(`[Passo 4] Worker capturou o job! Status=PROCESSING, leaseOwner=${killedWorkerLeaseOwner}, leaseVersion=${killedWorkerLeaseVersion}`);
         break;
       }
     }
 
     if (!jobStarted) {
-      throw new Error('Timeout aguardando worker entrar em status PROCESSING.');
+      throw new Error('Timeout aguardando worker entrar em status PROCESSING com leaseOwner válido.');
     }
 
     // 5. Inspeção Pré-SIGKILL do Container
@@ -195,7 +202,9 @@ async function main() {
           postRunning = true;
           break;
         }
-      } catch {}
+      } catch (inspectPollErr) {
+        // Container pode estar em transição momentânea logo após o kill
+      }
     }
 
     if (!postInspect || !postRunning) {
@@ -212,11 +221,29 @@ async function main() {
     console.log(`- Novo StartedAt:       ${postStartedAt} (Anterior: ${preStartedAt})`);
     console.log(`- Novo RestartCount:    ${postRestartCount} (Anterior: ${preRestartCount})`);
 
-    // Prova factual de que o processo posterior é diferente do anterior
-    if (postPid === prePid && postStartedAt === preStartedAt) {
-      throw new Error(`PROVA FALHOU: O processo após o SIGKILL possui o mesmo PID (${postPid}) e StartedAt (${postStartedAt}). Reinício não comprovado.`);
+    // Asserções estritas de troca de processo e contagem de reinicializações
+    if (postRestartCount <= preRestartCount) {
+      throw new Error(`PROVA FALHOU: RestartCount pós-SIGKILL (${postRestartCount}) não é estritamente maior que o anterior (${preRestartCount}).`);
     }
-    console.log(`[Passo 7 Concluído]: Prova confirmada — Novo processo Node instanciado (PID ${prePid} -> ${postPid}).`);
+    if (new Date(postStartedAt).getTime() <= new Date(preStartedAt).getTime()) {
+      throw new Error(`PROVA FALHOU: StartedAt pós-SIGKILL (${postStartedAt}) não é posterior ao anterior (${preStartedAt}).`);
+    }
+    if (postPid === prePid) {
+      throw new Error(`PROVA FALHOU: PID do host (${postPid}) não mudou após SIGKILL.`);
+    }
+
+    // Comprovação do processo Node dentro do container
+    try {
+      const topOutput = execSync(`docker top ${workerContainer}`, { encoding: 'utf8' });
+      if (!topOutput.includes('node')) {
+        throw new Error(`PROVA FALHOU: Processo node não encontrado via 'docker top ${workerContainer}'.`);
+      }
+      console.log(`- Processo Node ativo no container confirmado via docker top.`);
+    } catch (topErr) {
+      throw new Error(`Falha ao verificar processo no container: ${topErr.message}`);
+    }
+
+    console.log(`[Passo 7 Concluído]: Prova confirmada — Novo processo Node instanciado (PID ${prePid} -> ${postPid}, RestartCount ${preRestartCount} -> ${postRestartCount}).`);
 
     // 8. Tratamento do Lease por Cenário
     if (isNaturalLease) {
@@ -327,6 +354,46 @@ async function main() {
     if (telemetryRes.rows.length > 1) {
       throw new Error(`ERRO DE DUPLICAÇÃO: Mais de 1 registro de telemetria associado à atividade ${activity.id}`);
     }
+
+    // 11. Prova Estrita de Fencing contra Worker Zumbi
+    console.log('\n[Passo 11] Executando prova estrita de Fencing contra Worker Zumbi...');
+    console.log(`- Simulando tentativa de conclusão tardia pelo worker eliminado (PID ${prePid}, leaseOwner=${killedWorkerLeaseOwner}, leaseVersion=${killedWorkerLeaseVersion})...`);
+
+    // Invariante A: Inspecionar estado atual pós-recuperação
+    const zombieCheckRes = await client.query(`
+      SELECT status, "leaseOwner", "leaseVersion"
+      FROM "ImportedFile"
+      WHERE id = $1;
+    `, [fileId]);
+    const zombieFile = zombieCheckRes.rows[0];
+
+    if (zombieFile.status === 'PROCESSING') {
+      throw new Error(`FENCING FALHOU: Arquivo ainda consta como PROCESSING.`);
+    }
+    if (zombieFile.leaseOwner === killedWorkerLeaseOwner) {
+      throw new Error(`FENCING FALHOU: Worker morto ainda é o leaseOwner.`);
+    }
+    console.log(`  -> Checagem no lock: status=${zombieFile.status}, leaseOwner=${zombieFile.leaseOwner || 'NULL'} (Worker zumbi rejeitado com sucesso).`);
+
+    // Invariante B: Tentativa de UPDATE com credenciais do worker zumbi DEVE atualizar exatamente 0 linhas
+    const zombieUpdateRes = await client.query(`
+      UPDATE "ImportedFile"
+      SET 
+        status = 'PROCESSED',
+        "processedAt" = timezone('UTC', NOW()),
+        "leaseOwner" = NULL,
+        "leaseExpiresAt" = NULL
+      WHERE id = $1
+        AND "leaseOwner" = $2
+        AND "leaseVersion" = $3
+        AND status = 'PROCESSING';
+    `, [fileId, killedWorkerLeaseOwner, killedWorkerLeaseVersion]);
+
+    if (zombieUpdateRes.rowCount !== 0) {
+      throw new Error(`FENCING FALHOU: Update zumbi atualizou ${zombieUpdateRes.rowCount} linhas! Deveria ser estritamente 0.`);
+    }
+    console.log(`  -> Tentativa de UPDATE atômico pelo zumbi afetou ${zombieUpdateRes.rowCount} linhas (rejeição confirmada).`);
+    console.log(`[Passo 11 Concluído]: Fencing zumbi validado com sucesso no banco de dados.`);
 
     console.log('\n================================================================================');
     console.log(' [SUCESSO FACTUAL]: RESILIÊNCIA A SIGKILL E RECUPERAÇÃO HOMOLOGADAS COM SUCESSO!');

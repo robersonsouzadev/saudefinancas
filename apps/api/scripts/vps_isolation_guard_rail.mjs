@@ -1,29 +1,26 @@
 #!/usr/bin/env node
 
 /**
- * GUARD RAIL AUTOMÁTICO DE PROTEÇÃO DE PRODUÇÃO (G4.2)
+ * GUARD RAIL AUTOMÁTICO DE PROTEÇÃO DE PRODUÇÃO E ISOLAMENTO (G4.2)
  * 
- * Valida rigorosamente que testes, deploys e execuções na VPS
- * NUNCA atinjam recursos, bancos, containers ou redes de produção do Vita Saúde.
- * 
- * Verifica os 11 requisitos obrigatórios de isolamento:
- * 1. Labels e IDs dos containers Docker;
- * 2. Projeto Docker Compose (vita_staging);
- * 3. Mounts e volumes isolados sem compartilhamento com produção;
- * 4. Redes segregadas (vita_staging_net);
- * 5. Portas publicadas restritas a 127.0.0.1 (3011, 5434, 6381);
- * 6. Consulta runtime a current_database(), current_user e timezone UTC;
- * 7. Identidade da instância Redis e isolamento de cache/filas;
- * 8. Nomes e prefixos de filas BullMQ contendo 'staging';
- * 9. Realpath do storage sem symlinks e ancorado na raiz de staging;
- * 10. Ausência de recursos graváveis compartilhados com produção;
- * 11. Encerramento seguro via process.exitCode != 0 em caso de qualquer falha.
+ * Opera em duas fases mutuamente exclusivas:
+ * 1. --phase=pre-provisioning: Validação estática, somente leitura, de configuração,
+ *    variáveis de ambiente, portas proibidas e caminhos locais antes de provisionar staging.
+ *    Não exige que contêineres de staging ou banco já existam.
+ * 2. --phase=post-provisioning: Validação rigorosa de runtime com contêineres ativos.
+ *    Exige OBRIGATORIAMENTE os 4 contêineres de staging no estado Running:
+ *    - sf-db-staging
+ *    - sf-redis-staging
+ *    - sf-api-staging
+ *    - sf-worker-staging
+ *    Falha com Exit Code 1 se qualquer contêiner faltar ou falhar nas regras de isolamento.
  */
 
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import pg from 'pg';
+import net from 'net';
 
 const { Client } = pg;
 
@@ -54,9 +51,54 @@ const PRODUCTION_PATHS = [
 
 const FORBIDDEN_HOST_PORTS = [3000, 3001, 5432, 6379];
 
+function pingRedis(host, port, timeoutMs = 2000) {
+  return new Promise((resolve, reject) => {
+    const socket = new net.Socket();
+    let responded = false;
+
+    socket.setTimeout(timeoutMs);
+    socket.once('connect', () => {
+      socket.write('*1\r\n$4\r\nPING\r\n');
+    });
+
+    socket.on('data', (data) => {
+      const resp = data.toString();
+      responded = true;
+      socket.destroy();
+      if (resp.includes('+PONG')) {
+        resolve('PONG');
+      } else {
+        reject(new Error(`Resposta inesperada do Redis: ${resp.trim()}`));
+      }
+    });
+
+    socket.once('timeout', () => {
+      socket.destroy();
+      reject(new Error(`Timeout (${timeoutMs}ms) aguardando PONG do Redis em ${host}:${port}`));
+    });
+
+    socket.once('error', (err) => {
+      socket.destroy();
+      reject(err);
+    });
+
+    socket.connect(port, host);
+  });
+}
+
 async function runGuardRail() {
+  const phaseArg = process.argv.find((a) => a.startsWith('--phase='));
+  const phase = phaseArg
+    ? phaseArg.split('=')[1]
+    : process.argv.includes('--post-provisioning')
+    ? 'post-provisioning'
+    : 'pre-provisioning';
+
+  const isPost = phase === 'post-provisioning';
+  const isPre = !isPost;
+
   console.log('================================================================================');
-  console.log('        GUARD RAIL AUTOMÁTICO DE ISOLAMENTO VPS — VITA SAÚDE (G4.2)            ');
+  console.log(` GUARD RAIL DE ISOLAMENTO VPS — VITA SAÚDE (G4.2) [FASE: ${phase.toUpperCase()}] `);
   console.log('================================================================================\n');
 
   const errors = [];
@@ -88,7 +130,11 @@ async function runGuardRail() {
     const dbUrl = process.env.DATABASE_URL || '';
     console.log(`[Check 2] DATABASE_URL: ${dbUrl ? dbUrl.replace(/:[^:@]+@/, ':****@') : '(ausente)'}`);
     if (!dbUrl) {
-      errors.push('DATABASE_URL não informada.');
+      if (isPost) {
+        errors.push('DATABASE_URL não informada em modo pós-provisionamento.');
+      } else {
+        warnings.push('DATABASE_URL não informada na verificação pré-provisionamento.');
+      }
     } else {
       try {
         const parsedUrl = new URL(dbUrl);
@@ -101,7 +147,7 @@ async function runGuardRail() {
         }
         const port = parseInt(parsedUrl.port || '5432', 10);
         if (FORBIDDEN_HOST_PORTS.includes(port) && !parsedUrl.hostname.includes('staging') && parsedUrl.hostname !== 'sf-db-staging') {
-          errors.push(`VIOLAÇÃO CRÍTICA: Porta do banco (${port}) colide com portas de produção padrão sem host de staging!`);
+          errors.push(`VIOLAÇÃO CRÍTICA: Porta do banco (${port}) colide com portas padrão sem host de staging!`);
         }
       } catch (err) {
         errors.push(`DATABASE_URL inválida ou malformada: ${err.message}`);
@@ -184,28 +230,37 @@ async function runGuardRail() {
           errors.push(`Falha ao resolver realpath de STORAGE_PATH: ${pathErr.message}`);
         }
       } else {
-        warnings.push(`STORAGE_PATH '${storagePath}' ainda não existe no filesystem local.`);
+        if (isPost) {
+          errors.push(`STORAGE_PATH '${storagePath}' deve existir no filesystem em modo pós-provisionamento.`);
+        } else {
+          warnings.push(`STORAGE_PATH '${storagePath}' ainda não existe no filesystem local (aceitável em pré-provisionamento).`);
+        }
       }
     }
 
     // -------------------------------------------------------------------------
-    // 7. Inspeção do Docker: Labels, IDs, Compose Project, Mounts, Redes e Portas
+    // 7. Inspeção Docker (Pre vs Post Provisioning)
     // -------------------------------------------------------------------------
-    console.log('[Check 7] Inspecionando Docker Engine, Containers, Labels, Mounts e Redes...');
+    console.log('\n[Check 7] Inspecionando Docker Engine, Containers, Labels, Mounts e Redes...');
+    const stagingContainers = ['sf-db-staging', 'sf-redis-staging', 'sf-api-staging', 'sf-worker-staging'];
+    const expectedProject = process.env.STAGING_COMPOSE_PROJECT || 'vita_staging';
+    const expectedNet = process.env.STAGING_NETWORK || 'vita_staging_net';
+
+    let dockerAvailable = false;
+    let foundStagingRunning = [];
+
     try {
-      const dockerPsRaw = execSync("docker ps --format '{{.ID}}|{{.Names}}|{{.Labels}}|{{.Ports}}|{{.Networks}}'", {
+      const dockerPsRaw = execSync("docker ps --format '{{.ID}}|{{.Names}}|{{.Labels}}|{{.State}}|{{.Ports}}|{{.Networks}}'", {
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe'],
       });
+      dockerAvailable = true;
 
       const lines = dockerPsRaw.split('\n').map((l) => l.trim()).filter(Boolean);
       console.log(`- Containers Docker ativos no host: ${lines.length}`);
 
-      const stagingContainers = ['sf-api-staging', 'sf-db-staging', 'sf-worker-staging', 'sf-redis-staging'];
-      const foundStaging = [];
-
       for (const line of lines) {
-        const [id, name, labels, ports, networks] = line.split('|');
+        const [id, name, labels, state, ports, networks] = line.split('|');
 
         // Validação de colisão de ID e Nome com produção
         for (const prodName of PRODUCTION_CONTAINERS) {
@@ -215,63 +270,80 @@ async function runGuardRail() {
         }
 
         if (stagingContainers.includes(name)) {
-          foundStaging.push(name);
-          console.log(`\n  Inspecionando container de staging: [${name}] (ID: ${id})`);
+          if (state && state.toLowerCase().includes('running')) {
+            foundStagingRunning.push(name);
+          }
+
+          console.log(`\n  Inspecionando container de staging: [${name}] (ID: ${id}, State: ${state})`);
 
           // 7a. Verificação do Projeto Docker Compose
-          const expectedProject = process.env.STAGING_COMPOSE_PROJECT || 'vita_staging';
           if (!labels.includes(`com.docker.compose.project=${expectedProject}`)) {
-            errors.push(`Container '${name}' não possui a label obrigatória 'com.docker.compose.project=${expectedProject}'. Labels: ${labels}`);
+            errors.push(`Container '${name}' não possui label 'com.docker.compose.project=${expectedProject}'. Labels: ${labels}`);
           }
 
           // 7b. Verificação de Redes
-          const expectedNet = process.env.STAGING_NETWORK || 'vita_staging_net';
           if (!networks.includes(expectedNet)) {
-            errors.push(`Container '${name}' não está conectado à rede de staging '${expectedNet}'. Redes detectadas: '${networks}'`);
+            errors.push(`Container '${name}' não conectado à rede '${expectedNet}'. Redes: '${networks}'`);
           }
 
-          // 7c. Verificação de Portas Publicadas
-          if (name === 'sf-api-staging') {
-            if (ports && !ports.includes('127.0.0.1:3011')) {
-              errors.push(`sf-api-staging deve publicar exclusivamente em 127.0.0.1:3011. Portas detectadas: '${ports}'`);
-            }
-          }
-          if (name === 'sf-db-staging') {
-            if (ports && !ports.includes('127.0.0.1:5434')) {
-              errors.push(`sf-db-staging deve publicar exclusivamente em 127.0.0.1:5434. Portas detectadas: '${ports}'`);
-            }
-          }
-          if (name === 'sf-redis-staging') {
-            if (ports && ports.includes('0.0.0.0:6379')) {
-              errors.push(`sf-redis-staging não pode expor a porta 6379 publicamente em 0.0.0.0. Portas: '${ports}'`);
-            }
-          }
-
-          // 7d. Inspeção detalhada de Mounts via docker inspect
+          // 7c. Inspeção estruturada de Portas e Mounts via docker inspect JSON
           try {
-            const inspectRaw = execSync(`docker inspect --format='{{json .Mounts}}' ${id}`, { encoding: 'utf8' });
-            const mounts = JSON.parse(inspectRaw.trim() || '[]');
+            const inspectRaw = execSync(`docker inspect ${id}`, { encoding: 'utf8' });
+            const [inspectData] = JSON.parse(inspectRaw.trim() || '[]');
+
+            // Verificação estruturada de Mounts
+            const mounts = inspectData?.Mounts || [];
             for (const m of mounts) {
               const src = m.Source || '';
               console.log(`    - Mount: ${src} -> ${m.Destination} (${m.Type})`);
               for (const prodPath of PRODUCTION_PATHS) {
                 if (src.startsWith(prodPath)) {
-                  errors.push(`VIOLAÇÃO CRÍTICA: Container de staging '${name}' monta caminho compartilhado com produção: '${src}'!`);
+                  errors.push(`VIOLAÇÃO CRÍTICA: Container de staging '${name}' monta caminho de produção: '${src}'!`);
+                }
+              }
+            }
+
+            // Verificação estruturada de Portas (NetworkSettings.Ports)
+            const portBindings = inspectData?.NetworkSettings?.Ports || {};
+            for (const [containerPort, hostBindings] of Object.entries(portBindings)) {
+              if (Array.isArray(hostBindings)) {
+                for (const b of hostBindings) {
+                  const hostIp = b.HostIp;
+                  const hostPort = b.HostPort;
+                  console.log(`    - Porta publicada: ${containerPort} -> ${hostIp}:${hostPort}`);
+                  if (hostIp !== '127.0.0.1') {
+                    errors.push(`VIOLAÇÃO CRÍTICA: Container '${name}' publicou porta ${hostPort} em IP não-loopback '${hostIp}' (esperado: 127.0.0.1)!`);
+                  }
                 }
               }
             }
           } catch (inspectErr) {
-            errors.push(`Falha ao inspecionar mounts do container '${name}': ${inspectErr.message}`);
+            errors.push(`Falha ao inspecionar container '${name}': ${inspectErr.message}`);
           }
         }
       }
 
-      console.log(`- Containers de staging identificados e validados: ${foundStaging.length}/${stagingContainers.length}`);
+      console.log(`- Containers de staging ativos (Running): ${foundStagingRunning.length}/${stagingContainers.length}`);
     } catch (dockerErr) {
-      if (allowOffline) {
-        warnings.push(`Docker não disponível no ambiente de verificação estática offline: ${dockerErr.message}`);
+      if (isPost || !allowOffline) {
+        if (isPost) {
+          errors.push(`FALHA CRÍTICA DE RUNTIME: Docker não disponível no host em modo pós-provisionamento: ${dockerErr.message}`);
+        } else {
+          warnings.push(`Docker não disponível no host local: ${dockerErr.message}`);
+        }
+      }
+    }
+
+    // Exigência estrita em modo PÓS-PROVISIONAMENTO
+    if (isPost) {
+      if (!dockerAvailable) {
+        errors.push('Modo pós-provisionamento exige Docker Engine operacional no host.');
       } else {
-        errors.push(`FALHA CRÍTICA DE INSPEÇÃO DO DOCKER ENGINE: Não foi possível executar 'docker ps': ${dockerErr.message}`);
+        for (const sc of stagingContainers) {
+          if (!foundStagingRunning.includes(sc)) {
+            errors.push(`Container de staging obrigatório '${sc}' não encontrado ou não está no estado Running!`);
+          }
+        }
       }
     }
 
@@ -296,39 +368,65 @@ async function runGuardRail() {
         console.log(`- timezone efetivo:   "${row.tz}"`);
 
         if (!row.db.endsWith('_staging') && !row.db.endsWith('_test')) {
-          errors.push(`VIOLAÇÃO CRÍTICA: current_database() retornado pelo servidor '${row.db}' não termina com _staging ou _test!`);
+          errors.push(`VIOLAÇÃO CRÍTICA: current_database() '${row.db}' não termina com _staging ou _test!`);
         }
         if (PRODUCTION_DB_NAMES.includes(row.db)) {
           errors.push(`VIOLAÇÃO CRÍTICA: Conectado diretamente ao banco de produção '${row.db}'!`);
         }
         if (row.usr === 'sf_user' || row.usr === 'postgres') {
-          errors.push(`current_user '${row.usr}' é o usuário administrativo ou de produção! Esperado: vita_staging_app ou vita_staging_migrator.`);
+          errors.push(`current_user '${row.usr}' é role administrativa de produção! Esperado: vita_staging_app ou vita_staging_migrator.`);
         }
         if (row.tz !== 'UTC') {
           errors.push(`Timezone da sessão do banco de dados é '${row.tz}'. Esperado rigorosamente: 'UTC'.`);
         }
 
-        // Verificação de privilégios: usuário da aplicação NÃO deve ter privilégio superuser
-        const superRes = await dbClient.query(`
-          SELECT rolsuper FROM pg_roles WHERE rolname = current_user;
+        // Verificação de privilégios restritos
+        const privRes = await dbClient.query(`
+          SELECT rolsuper, rolcreaterole, rolcreatedb 
+          FROM pg_roles 
+          WHERE rolname = current_user;
         `);
-        if (superRes.rows[0]?.rolsuper === true) {
+        const privs = privRes.rows[0];
+        if (privs?.rolsuper === true) {
           errors.push(`VIOLAÇÃO DE PRIVILÉGIOS: current_user '${row.usr}' possui flag SUPERUSER ativa!`);
         }
-      } catch (dbErr) {
-        if (allowOffline) {
-          warnings.push(`Banco de dados inacessível em modo offline: ${dbErr.message}`);
-        } else {
-          errors.push(`Falha na inspeção de runtime do banco de dados: ${dbErr.message}`);
+        if (privs?.rolcreaterole === true) {
+          errors.push(`VIOLAÇÃO DE PRIVILÉGIOS: current_user '${row.usr}' possui flag CREATEROLE ativa!`);
         }
+        if (privs?.rolcreatedb === true) {
+          errors.push(`VIOLAÇÃO DE PRIVILÉGIOS: current_user '${row.usr}' possui flag CREATEDB ativa!`);
+        }
+      } catch (dbErr) {
+        if (isPost) {
+          errors.push(`Falha na inspeção de runtime do banco de dados em pós-provisionamento: ${dbErr.message}`);
+        } else {
+          warnings.push(`Banco de dados inacessível em modo pré-provisionamento: ${dbErr.message}`);
+        }
+      }
+    } else if (isPost) {
+      errors.push('DATABASE_URL ausente em modo pós-provisionamento.');
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. Conexão Runtime ao Redis e Resposta PONG (Obrigatória em pós-provisionamento)
+    // -------------------------------------------------------------------------
+    if (isPost) {
+      const redisHost = process.env.REDIS_HOST || '127.0.0.1';
+      const redisPort = parseInt(process.env.REDIS_PORT || '6381', 10);
+      console.log(`\n[Check 9] Verificando Redis runtime em ${redisHost}:${redisPort}...`);
+      try {
+        const pong = await pingRedis(redisHost, redisPort, 3000);
+        console.log(`- Redis respondeu: "${pong}" com sucesso.`);
+      } catch (redisErr) {
+        errors.push(`Falha na conexão ao Redis runtime (${redisHost}:${redisPort}): ${redisErr.message}`);
       }
     }
 
     // -------------------------------------------------------------------------
-    // 9. Relatório Final do Guard Rail
+    // 10. Relatório Final do Guard Rail
     // -------------------------------------------------------------------------
     console.log('\n================================================================================');
-    console.log('                 SUMÁRIO FINAL DO GUARD RAIL DE ISOLAMENTO                      ');
+    console.log(`         SUMÁRIO FINAL DO GUARD RAIL — FASE ${phase.toUpperCase()}             `);
     console.log('================================================================================');
 
     if (warnings.length > 0) {
@@ -337,15 +435,14 @@ async function runGuardRail() {
     }
 
     if (errors.length > 0) {
-      console.error('\n[BLOQUEIO DE SEGURANÇA ACIONADO] O ambiente NÃO cumpriu todos os critérios de isolamento:');
+      console.error(`\n[BLOQUEIO DE SEGURANÇA ACIONADO] O ambiente NÃO cumpriu todos os critérios da fase ${phase}:`);
       errors.forEach((e) => console.error(`  [X] ${e}`));
-      console.error('\nExecução bloqueada com Exit Code 1. Nenhuma modificação autorizada.');
+      console.error(`\nExecução bloqueada com Exit Code 1. Nenhuma modificação autorizada.`);
       process.exitCode = 1;
       return;
     }
 
-    console.log('[SUCESSO FACTUAL] Todos os 11 requisitos de isolamento foram auditados e confirmados.');
-    console.log('Ambiente de staging aprovado para procedimentos controlados.');
+    console.log(`[SUCESSO FACTUAL] Todos os requisitos da fase ${phase} foram auditados e aprovados.`);
     process.exitCode = 0;
   } catch (fatalErr) {
     console.error(`\n[FATAL ERROR INESPERADO NO GUARD RAIL]: ${fatalErr.message}`);

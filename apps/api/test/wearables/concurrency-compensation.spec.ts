@@ -165,8 +165,9 @@ describe('Concorrência, Deduplicação e Compensação (G2)', () => {
     it('deve prosseguir quando o claim atômico obtiver count = 1 (primeiro worker)', async () => {
       // Simula primeiro worker obtendo a linha exclusivamente via $queryRaw UPDATE RETURNING
       mockPrisma.$queryRaw = vi.fn().mockResolvedValueOnce([{ id: 'import-1', leaseVersion: 1n }]);
-      mockPrisma.importedFile.findUnique.mockResolvedValueOnce({
+      mockPrisma.importedFile.findUnique.mockResolvedValue({
         id: 'import-1',
+        status: 'PENDING',
         userId: 'user-123',
         storageKey: 'wearables/user-123/2026/09/uuid.fit',
         fileSha256: 'abc',
@@ -204,18 +205,18 @@ describe('Concorrência, Deduplicação e Compensação (G2)', () => {
       await fitProcessing.processImport('import-1');
 
       expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(1);
-      expect(mockStorage.getObject).toHaveBeenCalledWith('wearables/user-123/2026/09/uuid.fit');
+      expect(mockStorage.getObject).toHaveBeenCalledWith('wearables/user-123/2026/09/uuid.fit', 'abc');
     });
 
     it('deve abortar imediatamente sem tocar no storage quando o claim retornar count = 0 (segundo worker)', async () => {
       // Simula segundo worker tentando pegar o mesmo job já em processamento (retorna array vazio)
+      mockPrisma.importedFile.findUnique.mockResolvedValueOnce({ status: 'PENDING' });
       mockPrisma.$queryRaw = vi.fn().mockResolvedValueOnce([]);
 
       await fitProcessing.processImport('import-1');
 
       expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(1);
       // Nenhuma ação adicional deve ser realizada
-      expect(mockPrisma.importedFile.findUnique).not.toHaveBeenCalled();
       expect(mockStorage.getObject).not.toHaveBeenCalled();
       expect(mockSupervisor.parseWithSupervisor).not.toHaveBeenCalled();
     });
