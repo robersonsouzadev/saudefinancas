@@ -1,0 +1,50 @@
+================================================================================
+SAÍDA BRUTA: TESTES NEGATIVOS DO RUNNER LINUX (G4.2 V9)
+================================================================================
+Comando:
+  bash apps/api/scripts/test_runner_negative.sh
+
+Ambiente Factual de Execução:
+  Host: Linux staging-wearables 6.1.0-25-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.106-3 (2024-08-26) x86_64 GNU/Linux
+  Kernel: 6.1.0-25-amd64
+  Compilador: gcc (Debian 12.2.0-14) 12.2.0
+  Timestamp (UTC): 2026-09-22T17:15:25Z
+  Diretório Real: /tmp/repro_g4_2_v9
+
+================================================================================
+INICIANDO SUÍTE FORMAL DE TESTES NEGATIVOS DO RUNNER (G4.2 V9)
+Target Runner: /tmp/repro_g4_2_v9/apps/api/scripts/run_storage_linux_tests.sh
+Timestamp (UTC): 2026-09-22T17:15:25Z
+================================================================================
+
+[TEST NEG 1/8] Validando: Compilação do helper falha...
+PASS (Cenário 1): Runner abortou no passo [1/4] sem executar probe (RC=1).
+
+[TEST NEG 2/8] Validando: Helper compila, mas probe falha...
+PASS (Cenário 2): Runner abortou no passo [2/4] com Exit Code 2 sem compilar suíte.
+
+[TEST NEG 3/8] Validando: Helper e probe passam, mas compilação da suíte falha...
+PASS (Cenário 3): Runner abortou no passo [3/4] sem invocar binário inexistente (RC=1).
+
+[TEST NEG 4/8] Validando: Compilação retorna zero, mas binário não é produzido...
+PASS (Cenário 4): Runner detectou ausência de binário e retornou Exit Code não zero (1).
+
+[TEST NEG 5/8] Validando: Suíte física de testes retorna código não zero...
+PASS (Cenário 5): Runner propagou fielmente o Exit Code 42 dos testes.
+
+[TEST NEG 6/8] Validando: Ausência de mensagem '100% SUCESSO' em falhas...
+PASS (Cenário 6): Runner não emitiu qualquer declaração indevida de sucesso em falha.
+
+[TEST NEG 7/8] Validando: Preservação estrita de Exit Codes específicos...
+PASS (Cenário 7): Exit Code arbitrário 77 foi fielmente preservado pelo runner.
+
+[TEST NEG 8/8] Validando: Execução integral válida retorna Exit Code 0...
+PASS (Cenário 8): Execução integral válida aprovada com Exit Code 0.
+
+================================================================================
+RESUMO DOS TESTES NEGATIVOS DO RUNNER (G4.2 V9):
+NEGATIVE_PASSED=8
+NEGATIVE_FAILED=0
+NEGATIVE_TOTAL=8
+NEGATIVE_EXIT_CODE=0
+================================================================================

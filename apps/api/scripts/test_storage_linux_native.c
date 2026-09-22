@@ -325,6 +325,43 @@ static void *concurrent_reader_thread(void *arg) {
     return NULL;
 }
 
+
+typedef struct {
+    const char *legit_parent;
+    const char *backup_parent;
+    const char *ext_victim_dir;
+    int pipe_sync_fd;
+    volatile int failpoint_reached;
+    volatile int swap_rename_rc;
+    volatile int swap_symlink_rc;
+    volatile int swap_executed;
+    pthread_t thread_id;
+} unlink_attacker_args_t;
+
+static void *unlink_attacker_worker(void *arg) {
+    unlink_attacker_args_t *args = (unlink_attacker_args_t *)arg;
+    args->thread_id = pthread_self();
+
+    char sync_buf[512];
+    ssize_t sn_r;
+    while ((sn_r = read(args->pipe_sync_fd, sync_buf, sizeof(sync_buf) - 1)) > 0) {
+        sync_buf[sn_r] = '\0';
+        if (strstr(sync_buf, "[FAILPOINT] READY_FOR_PARENT_SWAP_ATTACK_PID=")) {
+            args->failpoint_reached = 1;
+            break;
+        }
+    }
+
+    if (args->failpoint_reached) {
+        // Executar tentativa concorrente de troca do diretório legítimo por symlink para a vítima externa
+        args->swap_rename_rc = rename(args->legit_parent, args->backup_parent);
+        args->swap_symlink_rc = symlink(args->ext_victim_dir, args->legit_parent);
+        args->swap_executed = 1;
+    }
+
+    return NULL;
+}
+
 int main(int argc, char *argv[]) {
     printf("================================================================================\n");
     printf("SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V8)\n");
@@ -551,34 +588,32 @@ int main(int argc, char *argv[]) {
     close(pipe_u_out[1]);
     close(pipe_u_err[1]);
 
-    // Ler stderr do helper até sincronizar no momento após abrir o descritor do pai
-    char sync_buf[512];
-    int sync_ready = 0;
-    ssize_t sn_r;
-    while ((sn_r = read(pipe_u_err[0], sync_buf, sizeof(sync_buf) - 1)) > 0) {
-        sync_buf[sn_r] = '\0';
-        if (strstr(sync_buf, "[FAILPOINT] READY_FOR_PARENT_SWAP_ATTACK_PID=")) {
-            sync_ready = 1;
-            break;
-        }
-    }
-
-    // Processo atacante executa tentativa de troca atômica do diretório legítimo por symlink para a vítima externa
-    int swap_executed = 0;
-    int swap_rename_rc = -1;
-    int swap_symlink_rc = -1;
     char backup_parent[PATH_BUF_SIZE];
     safe_path_join(backup_parent, sizeof(backup_parent), test_root, "race_parent_backup");
 
-    if (sync_ready) {
-        swap_executed = 1;
-        swap_rename_rc = rename(legit_parent, backup_parent);
-        swap_symlink_rc = symlink(ext_victim_dir, legit_parent);
-    }
+    unlink_attacker_args_t attacker_args = {
+        .legit_parent = legit_parent,
+        .backup_parent = backup_parent,
+        .ext_victim_dir = ext_victim_dir,
+        .pipe_sync_fd = pipe_u_err[0],
+        .failpoint_reached = 0,
+        .swap_rename_rc = -1,
+        .swap_symlink_rc = -1,
+        .swap_executed = 0,
+        .thread_id = 0
+    };
 
-    int u_status;
+    // Criar thread atacante dedicada
+    pthread_t attacker_th;
+    assert(pthread_create(&attacker_th, NULL, unlink_attacker_worker, &attacker_args) == 0);
+
+    // Aguardar conclusão da thread atacante
+    assert(pthread_join(attacker_th, NULL) == 0);
+
+    int u_status = 0;
     pid_t u_wpid = waitpid(u_pid, &u_status, 0);
     assert(u_wpid == u_pid);
+    int helper_exit_code = WEXITSTATUS(u_status);
     assert(unsetenv("VITA_FAILPOINT_PAUSE_BEFORE_UNLINK") == 0);
     close(pipe_u_err[0]);
     close(pipe_u_out[0]);
@@ -589,7 +624,7 @@ int main(int argc, char *argv[]) {
     int ext_sentinel_intact = (access(ext_sentinel, F_OK) == 0 && strcmp(vs_hash_before, vs_hash_after) == 0);
 
     // Limpeza da área do ataque
-    if (swap_symlink_rc == 0) {
+    if (attacker_args.swap_symlink_rc == 0) {
         unlink(legit_parent);
     }
     char backup_file[PATH_BUF_SIZE];
@@ -599,16 +634,22 @@ int main(int argc, char *argv[]) {
     unlink(ext_sentinel);
     rmdir(ext_victim_dir);
 
-    if (sync_ready && swap_executed && ext_sentinel_intact) {
-        printf("PASSED (Ataque concorrente executado: PID=%d, Sentinela externa 100%% preservada)\n", (int)u_pid);
+    // O teste DEVE falhar se a troca concorrente não aconteceu ou a sentinela foi corrompida
+    if (attacker_args.failpoint_reached &&
+        attacker_args.swap_executed &&
+        attacker_args.swap_rename_rc == 0 &&
+        attacker_args.swap_symlink_rc == 0 &&
+        ext_sentinel_intact) {
+        printf("PASSED (Ataque concorrente validado: HelperPID=%d, AttackerThID=%lu, HelperRC=%d, Sentinela 100%% preservada)\n",
+               (int)u_pid, (unsigned long)attacker_args.thread_id, helper_exit_code);
         passed++;
     } else {
-        printf("FAILED (sync_ready=%d, swap=%d, sentinel_intact=%d)\n",
-               sync_ready, swap_executed, ext_sentinel_intact);
+        printf("FAILED (failpoint=%d, swap_exec=%d, rename_rc=%d, symlink_rc=%d, sentinel_intact=%d)\n",
+               attacker_args.failpoint_reached, attacker_args.swap_executed,
+               attacker_args.swap_rename_rc, attacker_args.swap_symlink_rc, ext_sentinel_intact);
     }
 
-    // TESTE 10: Exclusão legítima de arquivo regular
-    printf("[TEST 10/15] Exclusão legítima de arquivo regular... ");
+    // printf("[TEST 10/15] Exclusão legítima de arquivo regular... ");
     int code10 = execute_helper(helper_bin, "unlink", test_root, "user_1001/activity.fit", NULL, 0, NULL, 0);
     char act_path[PATH_BUF_SIZE];
     safe_path_join(act_path, sizeof(act_path), sub_dir, "activity.fit");
@@ -903,4 +944,4 @@ int main(int argc, char *argv[]) {
     printf("EXIT_CODE=%d\n", (passed == total) ? 0 : 1);
 
     return (passed == total) ? 0 : 1;
-}\n
+}

@@ -720,4 +720,4 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "[ERROR] Ação desconhecida: '%s'\n", action);
         return EXIT_ERR_OPERATIONAL;
     }
-}\n
+}

@@ -2,10 +2,11 @@
 set -euo pipefail
 
 # ==============================================================================
-# RUNNER OFICIAL DE TESTES NATIVOS LINUX — ANTI-TOCTOU & ATOMICIDADE (G4.2 V8)
+# RUNNER OFICIAL DE TESTES NATIVOS LINUX — ANTI-TOCTOU & ATOMICIDADE (G4.2 V9)
 # ==============================================================================
 # Executa compilação com -Werror, probe e testes físicos com captura estrita de código.
 # Falha imediatamente em qualquer erro de compilação ou execução.
+# Preserva o Exit Code original e nunca executa binário ausente nem emite 100% SUCESSO em falha.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HELPER_SRC="$SCRIPT_DIR/storage_linux_helper.c"
@@ -14,7 +15,7 @@ TEST_SRC="$SCRIPT_DIR/test_storage_linux_native.c"
 TEST_BIN="$SCRIPT_DIR/test_storage_linux_native"
 
 echo "================================================================================"
-echo "INICIANDO SUÍTE REPRODUZÍVEL DE TESTES NATIVOS LINUX (G4.2 V8)"
+echo "INICIANDO SUÍTE REPRODUZÍVEL DE TESTES NATIVOS LINUX (G4.2 V9)"
 echo "Data (UTC): $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 echo "Host: $(uname -a 2>/dev/null || echo 'Unknown Linux')"
 echo "Kernel: $(uname -r 2>/dev/null || echo 'Unknown Kernel')"
@@ -32,9 +33,14 @@ gcc -O2 -Wall -Wextra -Werror -D_GNU_SOURCE "$HELPER_SRC" -o "$HELPER_BIN"
 BUILD_HELPER_RC=$?
 set -e
 
-if [ "$BUILD_HELPER_RC" -ne 0 ] || [ ! -x "$HELPER_BIN" ]; then
+if [ "$BUILD_HELPER_RC" -ne 0 ]; then
   echo "[FATAL] Falha na compilação de storage_linux_helper (RC=$BUILD_HELPER_RC)." >&2
   exit "$BUILD_HELPER_RC"
+fi
+
+if [ ! -x "$HELPER_BIN" ]; then
+  echo "[FATAL] Compilador retornou zero, mas o binário de storage_linux_helper não foi produzido." >&2
+  exit 1
 fi
 chmod 0755 "$HELPER_BIN"
 echo "storage_linux_helper compilado com sucesso (zero warnings, Exit Code 0)."
@@ -62,9 +68,14 @@ gcc -O2 -Wall -Wextra -Werror -pthread -D_GNU_SOURCE "$TEST_SRC" -o "$TEST_BIN"
 BUILD_TESTS_RC=$?
 set -e
 
-if [ "$BUILD_TESTS_RC" -ne 0 ] || [ ! -x "$TEST_BIN" ]; then
+if [ "$BUILD_TESTS_RC" -ne 0 ]; then
   echo "[FATAL] Falha na compilação de test_storage_linux_native (RC=$BUILD_TESTS_RC)." >&2
   exit "$BUILD_TESTS_RC"
+fi
+
+if [ ! -x "$TEST_BIN" ]; then
+  echo "[FATAL] Compilador retornou zero, mas o binário de test_storage_linux_native não foi produzido." >&2
+  exit 1
 fi
 chmod 0755 "$TEST_BIN"
 echo "test_storage_linux_native compilado com sucesso (zero warnings, Exit Code 0)."

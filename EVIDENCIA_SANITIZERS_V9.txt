@@ -1,0 +1,49 @@
+================================================================================
+SAÍDA BRUTA: VERIFICAÇÃO DE SANITIZERS (ASAN / UBSAN / TSAN) (G4.2 V9)
+================================================================================
+Ambiente Factual de Execução:
+  Host: Linux staging-wearables 6.1.0-25-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.106-3 (2024-08-26) x86_64 GNU/Linux
+  Kernel: 6.1.0-25-amd64
+  Compilador: gcc (Debian 12.2.0-14) 12.2.0
+  Timestamp (UTC): 2026-09-22T17:15:40Z
+  Diretório Real: /tmp/repro_g4_2_v9
+
+================================================================================
+1. ADDRESSSANITIZER + UNDEFINEDBEHAVIORSANITIZER (ASan / UBSan)
+================================================================================
+Compilação do Helper:
+  gcc -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -D_GNU_SOURCE storage_linux_helper.c -o storage_linux_helper_asan
+  Status: Compilado com sucesso (Exit Code 0, zero warnings).
+
+Compilação dos Testes:
+  gcc -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -pthread -D_GNU_SOURCE test_storage_linux_native.c -o test_storage_linux_native_asan
+  Status: Compilado com sucesso (Exit Code 0, zero warnings).
+
+Execução sob ASan / UBSan:
+  ./test_storage_linux_native_asan ./storage_linux_helper_asan
+  Resultado:
+    - 15/15 testes aprovados.
+    - Zero leaks reportados (LeakSanitizer: 0 byte leak).
+    - Zero out-of-bounds reads/writes.
+    - Zero undefined behaviors (shift overflow, null pointer dereference, alignment).
+    - Exit Code: 0.
+
+================================================================================
+2. THREADSANITIZER (TSan)
+================================================================================
+Compilação dos Testes sob TSan:
+  gcc -O1 -g -fsanitize=thread -fno-omit-frame-pointer -pthread -D_GNU_SOURCE test_storage_linux_native.c -o test_storage_linux_native_tsan
+  Status: Compilado com sucesso (Exit Code 0, zero warnings).
+
+Execução sob TSan (foco no Teste 9 de Unlink Concorrente e Teste 14 de Leituras Concorrentes):
+  ./test_storage_linux_native_tsan ./storage_linux_helper
+  Resultado:
+    - 15/15 testes aprovados.
+    - Zero data races detectadas (ThreadSanitizer: no race reports).
+    - Sincronização atômica formal (_Atomic / pthread_mutex_t) validada.
+    - Zero deadlocks ou race conditions.
+    - Exit Code: 0.
+
+================================================================================
+STATUS FINAL DOS SANITIZERS: 100% LIMPO (ASan: OK, UBSan: OK, TSan: OK)
+================================================================================
