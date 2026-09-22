@@ -16,7 +16,7 @@
 #include <signal.h>
 
 /**
- * HELPER LINUX DE OPERAÇÕES RELATIVAS A DESCRITOR (ANTI-TOCTOU) — VITA SAÚDE (G4.2 V11)
+ * HELPER LINUX DE OPERAÇÕES RELATIVAS A DESCRITOR (ANTI-TOCTOU) — VITA SAÚDE (G4.2 V12)
  *
  * Arquitetura de Navegação Integral Baseada em Descritores:
  * - A raiz é aberta uma única vez com O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW.

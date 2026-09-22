@@ -19,7 +19,7 @@
 #include <stdatomic.h>
 
 /**
- * SUÍTE DETERMINÍSTICA DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU & ATOMICIDADE (G4.2 V11)
+ * SUÍTE DETERMINÍSTICA DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU & ATOMICIDADE (G4.2 V12)
  *
  * Cobertura de Testes Físicos Nativos:
  * 1.  Probe de capabilities do kernel (openat2, renameat2 RENAME_NOREPLACE, /proc/self/fd)
@@ -386,7 +386,7 @@ int main(int argc, char *argv[]) {
     }
 
     printf("================================================================================\n");
-    printf("SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V11)\n");
+    printf("SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V12)\n");
     printf("================================================================================\n");
 
     const char *helper_bin = (argc > 1) ? argv[1] : "./storage_linux_helper";
@@ -966,7 +966,7 @@ int main(int argc, char *argv[]) {
     printf("\n================================================================================\n");
     printf("RESULTADO DOS TESTES NATIVOS: %d/%d PASSARAM\n", passed, total);
     if (passed == total) {
-        printf("STATUS: 100%% SUCESSO - CONFORME COM AUDITORIA G4.2 V10\n");
+        printf("STATUS: 100%% SUCESSO - CONFORME COM AUDITORIA G4.2 V12\n");
     } else {
         printf("STATUS: FAILED (%d cenários falharam)\n", total - passed);
     }

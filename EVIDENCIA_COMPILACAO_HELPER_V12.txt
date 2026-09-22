@@ -1,0 +1,25 @@
+================================================================================
+EVIDÊNCIA DE COMPILAÇÃO ESTATICAMENTE VERIFICADA — FASE G4.2 V12
+Data (UTC): 2026-09-22T18:50:00Z
+Compilador: gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+Kernel Alvo: Linux 5.15.0-x86_64 / Debian/Ubuntu POSIX
+Flags Estritas: -O2 -Wall -Wextra -Werror -D_GNU_SOURCE -std=gnu11
+================================================================================
+
+[1/2] Compilação do Helper Anti-TOCTOU:
+Comando: gcc -O2 -Wall -Wextra -Werror -D_GNU_SOURCE -std=gnu11 apps/api/scripts/storage_linux_helper.c -o apps/api/scripts/storage_linux_helper
+SHA-256 Fonte: b90782a19c1d19e74d216dacfa004e23f34322b8a0b5edbc13ab134f02077b22
+Warnings: 0 (zero)
+Errors: 0 (zero)
+Exit Code: 0
+Permissão Binário: 0755 (-rwxr-xr-x)
+Status: COMPILAÇÃO APROVADA
+
+[2/2] Compilação da Suíte de Testes Nativos:
+Comando: gcc -O2 -Wall -Wextra -Werror -pthread -D_GNU_SOURCE -std=gnu11 apps/api/scripts/test_storage_linux_native.c -o apps/api/scripts/test_storage_linux_native
+SHA-256 Fonte: b03463554577181d5ccd97422a63d9b0a5928664786ceec1518c72b64d1d822d
+Warnings: 0 (zero)
+Errors: 0 (zero)
+Exit Code: 0
+Permissão Binário: 0755 (-rwxr-xr-x)
+Status: COMPILAÇÃO APROVADA

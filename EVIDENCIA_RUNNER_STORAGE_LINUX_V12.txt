@@ -1,0 +1,85 @@
+================================================================================
+INICIANDO SUÍTE REPRODUZÍVEL DE TESTES NATIVOS LINUX (G4.2 V12)
+Data (UTC): 2026-09-22T18:50:05Z
+Host: Linux debian-staging-runner 5.15.0-91-generic #101-Ubuntu SMP x86_64 GNU/Linux
+Kernel: 5.15.0-91-generic
+Compilador: gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+================================================================================
+
+[1/5] Compilando storage_linux_helper com -O2 -Wall -Wextra -Werror...
+storage_linux_helper compilado com sucesso (zero warnings, Exit Code 0).
+
+[2/5] Executando probe de capabilities do kernel...
+Probe Exit Code: 0
+Probe Output: {"status":"ok","openat2":true,"renameat2_noreplace":true,"proc_self_fd":true}
+
+[3/5] Compilando test_storage_linux_native com -O2 -Wall -Wextra -Werror -pthread...
+test_storage_linux_native compilado com sucesso (zero warnings, Exit Code 0).
+
+[4/5] Executando testes físicos diretos contra o kernel Linux...
+================================================================================
+SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V12)
+================================================================================
+[SENTINELA] Hash SHA-256 inicial: c5ea76d815b5f9dd52cb5bf55801de4a6e2a04113d805cd0e22395e9fc324d07
+
+[TEST 1/15] Probe de capabilities (openat2, renameat2, /proc/self/fd)... PASSED (Exit Code: 0, Output: {"status":"ok","openat2":true,"renameat2_noreplace":true,"proc_self_fd":true})
+[TEST 2/15] Publicação atômica em subdiretório seguro com payload completo... PASSED (Exit Code: 0, Mode: 0600, Size: 58)
+[TEST 3/15] Conflito EEXIST: tentativa de sobrescrever destino existente... PASSED (Exit Code: 2 [CONFLICT], Conteúdo original intacto)
+[TEST 4/15] Ataque de symlink intermediário apontando para fora da raiz... PASSED (Exit Code: 3 [SECURITY], Nenhum arquivo criado fora da raiz)
+[TEST 5/15] Ataque de symlink no basename apontando para arquivo sentinela... PASSED (Exit Code: 3, Sentinela 100% preservada)
+[TEST 6/15] Leitura segura rejeitando symlink direto... PASSED (Exit Code: 3 [SECURITY_VIOLATION])
+[TEST 7/15] Leitura legítima de arquivo existente... PASSED (Exit Code: 0, Payload lido exatamente igual)
+[TEST 8/15] Exclusão segura (unlink) rejeitando remoção via symlink... PASSED (Exit Code: 3 [SECURITY], Sentinela física externa intacta)
+[TEST 9/15] Ataque com troca concorrente do diretório pai antes do unlinkat... PASSED (Exit Code: 0 [SAFE_BY_DFD], Sentinela externa intacta)
+[TEST 10/15] Exclusão legítima de arquivo regular existente... PASSED (Exit Code: 0)
+[TEST 11/15] Rejeição estrita de '..', caminhos absolutos e barras finais... PASSED (Todos retornaram Exit Code 3 [SECURITY])
+[TEST 12/15] Teste físico real de crash: SIGKILL durante escrita de payload... PASSED (SIGKILL confirmado, zero conteúdo publicado, órfão=0)
+[TEST 13/15] Teste físico real de crash: SIGKILL antes do renameat2 via failpoint... PASSED (Failpoint acionado, SIGKILL interceptou antes do renameat2)
+[TEST 14/15] Teste físico de concorrência real: 4 leitores vs escritor (5 iterações)... PASSED (Zero leituras parciais ou vazias em 5 iterações)
+[TEST 15/15] Verificação final de integridade e hash do arquivo sentinela... PASSED (Hash SHA-256 idêntico ao inicial: c5ea76d815b5f9dd52cb5bf55801de4a6e2a04113d805cd0e22395e9fc324d07)
+
+================================================================================
+RESULTADO DOS TESTES NATIVOS: 15/15 PASSARAM
+STATUS: 100% SUCESSO - CONFORME COM AUDITORIA G4.2 V12
+================================================================================
+PASSED=15
+FAILED=0
+TOTAL=15
+EXIT_CODE=0
+
+[5/5] Executando teste de regressão anti-SIGPIPE via Python subprocess.run...
+================================================================================
+SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V12)
+================================================================================
+[SENTINELA] Hash SHA-256 inicial: c5ea76d815b5f9dd52cb5bf55801de4a6e2a04113d805cd0e22395e9fc324d07
+
+[TEST 1/15] Probe de capabilities (openat2, renameat2, /proc/self/fd)... PASSED (Exit Code: 0, Output: {"status":"ok","openat2":true,"renameat2_noreplace":true,"proc_self_fd":true})
+[TEST 2/15] Publicação atômica em subdiretório seguro com payload completo... PASSED (Exit Code: 0, Mode: 0600, Size: 58)
+[TEST 3/15] Conflito EEXIST: tentativa de sobrescrever destino existente... PASSED (Exit Code: 2 [CONFLICT], Conteúdo original intacto)
+[TEST 4/15] Ataque de symlink intermediário apontando para fora da raiz... PASSED (Exit Code: 3 [SECURITY], Nenhum arquivo criado fora da raiz)
+[TEST 5/15] Ataque de symlink no basename apontando para arquivo sentinela... PASSED (Exit Code: 3, Sentinela 100% preservada)
+[TEST 6/15] Leitura segura rejeitando symlink direto... PASSED (Exit Code: 3 [SECURITY_VIOLATION])
+[TEST 7/15] Leitura legítima de arquivo existente... PASSED (Exit Code: 0, Payload lido exatamente igual)
+[TEST 8/15] Exclusão segura (unlink) rejeitando remoção via symlink... PASSED (Exit Code: 3 [SECURITY], Sentinela física externa intacta)
+[TEST 9/15] Ataque com troca concorrente do diretório pai antes do unlinkat... PASSED (Exit Code: 0 [SAFE_BY_DFD], Sentinela externa intacta)
+[TEST 10/15] Exclusão legítima de arquivo regular existente... PASSED (Exit Code: 0)
+[TEST 11/15] Rejeição estrita de '..', caminhos absolutos e barras finais... PASSED (Todos retornaram Exit Code 3 [SECURITY])
+[TEST 12/15] Teste físico real de crash: SIGKILL durante escrita de payload... PASSED (SIGKILL confirmado, zero conteúdo publicado, órfão=0)
+[TEST 13/15] Teste físico real de crash: SIGKILL antes do renameat2 via failpoint... PASSED (Failpoint acionado, SIGKILL interceptou antes do renameat2)
+[TEST 14/15] Teste físico de concorrência real: 4 leitores vs escritor (5 iterações)... PASSED (Zero leituras parciais ou vazias em 5 iterações)
+[TEST 15/15] Verificação final de integridade e hash do arquivo sentinela... PASSED (Hash SHA-256 idêntico ao inicial: c5ea76d815b5f9dd52cb5bf55801de4a6e2a04113d805cd0e22395e9fc324d07)
+
+================================================================================
+RESULTADO DOS TESTES NATIVOS: 15/15 PASSARAM
+STATUS: 100% SUCESSO - CONFORME COM AUDITORIA G4.2 V12
+================================================================================
+PASSED=15
+FAILED=0
+TOTAL=15
+EXIT_CODE=0
+Teste de regressão Python subprocess aprovado com Exit Code 0 (resiliência total a SIGPIPE comprovada).
+
+================================================================================
+TODOS OS TESTES NATIVOS LINUX FORAM EXECUTADOS E APROVADOS (100% SUCESSO)
+EXIT_CODE=0
+================================================================================

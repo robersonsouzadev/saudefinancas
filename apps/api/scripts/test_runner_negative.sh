@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ==============================================================================
-# SUÍTE DE TESTES NEGATIVOS DO RUNNER LINUX (G4.2 V11)
+# SUÍTE DE TESTES NEGATIVOS DO RUNNER LINUX (G4.2 V12)
 # ==============================================================================
 # Valida formalmente os 8 cenários obrigatórios de robustez do runner:
 # 1. Compilação do helper falha
@@ -23,7 +23,7 @@ NEGATIVE_PASSED=0
 NEGATIVE_FAILED=0
 
 echo "================================================================================"
-echo "INICIANDO SUÍTE FORMAL DE TESTES NEGATIVOS DO RUNNER (G4.2 V11)"
+echo "INICIANDO SUÍTE FORMAL DE TESTES NEGATIVOS DO RUNNER (G4.2 V12)"
 echo "Target Runner: $TARGET_RUNNER"
 echo "Timestamp (UTC): $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 echo "================================================================================"
@@ -282,7 +282,7 @@ rm -rf "$WS8"
 # ------------------------------------------------------------------------------
 echo ""
 echo "================================================================================"
-echo "RESUMO DOS TESTES NEGATIVOS DO RUNNER (G4.2 V11):"
+echo "RESUMO DOS TESTES NEGATIVOS DO RUNNER (G4.2 V12):"
 echo "NEGATIVE_PASSED=$NEGATIVE_PASSED"
 echo "NEGATIVE_FAILED=$NEGATIVE_FAILED"
 echo "NEGATIVE_TOTAL=$NEGATIVE_TOTAL"
