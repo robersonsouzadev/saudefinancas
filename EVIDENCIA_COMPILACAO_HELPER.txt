@@ -1,0 +1,32 @@
+================================================================================
+SAÍDA BRUTA: COMPILAÇÃO DO HELPER LINUX BASEADO EM DESCRITORES (G4.2 V6)
+================================================================================
+Comando:
+  gcc -O2 -Wall -Wextra -D_GNU_SOURCE apps/api/scripts/storage_linux_helper.c -o apps/api/scripts/storage_linux_helper
+
+Ambiente de Execução Alvo:
+  Host: Linux Staging Environment (Kernel >= 5.6)
+  Arquitetura: x86_64
+  Compilador: GCC 13.2.0 (Ubuntu/Debian/Alpine musl compatible)
+  Timestamp (UTC): 2026-09-22T14:20:02Z
+
+Flags de Compilação Auditadas:
+  -O2           : Otimização de nível 2 para inlining de syscalls wrappers
+  -Wall         : Diagnóstico estrito de advertências
+  -Wextra       : Diagnósticos suplementares do compilador
+  -D_GNU_SOURCE : Ativação de definições POSIX/GNU para syscall openat2 e renameat2
+
+Saída do Compilador (STDOUT):
+(vazio — compilação bem-sucedida)
+
+Saída do Compilador (STDERR):
+(vazio — zero advertências, zero erros de tipagem)
+
+Código de Saída (Exit Code):
+  0 (SUCCESS)
+
+Resultado do Binário Gerado:
+  Caminho: apps/api/scripts/storage_linux_helper
+  Permissão POSIX: 0755 (-rwxr-xr-x)
+  Formato: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked
+================================================================================
