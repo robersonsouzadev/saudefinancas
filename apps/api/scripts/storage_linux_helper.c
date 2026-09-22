@@ -1,4 +1,7 @@
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,9 +13,10 @@
 #include <errno.h>
 #include <stdint.h>
 #include <time.h>
+#include <signal.h>
 
 /**
- * HELPER LINUX DE OPERAÇÕES RELATIVAS A DESCRITOR (ANTI-TOCTOU) — VITA SAÚDE (G4.2 V6)
+ * HELPER LINUX DE OPERAÇÕES RELATIVAS A DESCRITOR (ANTI-TOCTOU) — VITA SAÚDE (G4.2 V7)
  *
  * Arquitetura de Navegação Integral Baseada em Descritores:
  * - A raiz é aberta uma única vez com O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW.
@@ -82,8 +86,9 @@ struct open_how {
 static inline int sys_openat2(int dfd, const char *path, struct open_how *how, size_t size) {
 #ifdef __NR_openat2
     errno = 0;
-    return syscall(__NR_openat2, dfd, path, how, size);
+    return (int)syscall(__NR_openat2, dfd, path, how, size);
 #else
+    (void)dfd; (void)path; (void)how; (void)size;
     errno = ENOSYS;
     return -1;
 #endif
@@ -92,8 +97,9 @@ static inline int sys_openat2(int dfd, const char *path, struct open_how *how, s
 static inline int sys_renameat2(int olddfd, const char *oldpath, int newdfd, const char *newpath, unsigned int flags) {
 #ifdef SYS_renameat2
     errno = 0;
-    return syscall(SYS_renameat2, olddfd, oldpath, newdfd, newpath, flags);
+    return (int)syscall(SYS_renameat2, olddfd, oldpath, newdfd, newpath, flags);
 #else
+    (void)olddfd; (void)oldpath; (void)newdfd; (void)newpath; (void)flags;
     errno = ENOSYS;
     return -1;
 #endif
@@ -232,14 +238,27 @@ static int resolve_parent_and_basename(int root_dfd, const char *rel_path, char 
         errno = 0;
         int next_dfd = sys_openat2(curr_dfd, dir_name, &how, sizeof(how));
         int saved_errno = errno;
-        close(curr_dfd);
 
         if (next_dfd < 0) {
+            // Context analysis antes de fechar curr_dfd
+            struct stat st;
+            errno = 0;
+            int st_res = fstatat(curr_dfd, dir_name, &st, AT_SYMLINK_NOFOLLOW);
+
+            close(curr_dfd);
+
             if (saved_errno == ENOSYS) {
                 fprintf(stderr, "[UNAVAILABLE_ERROR] openat2 não suportado pelo kernel (ENOSYS).\n");
                 *out_exit_code = EXIT_ERR_UNAVAILABLE;
             } else if (saved_errno == ELOOP || saved_errno == EXDEV || saved_errno == EEXIST) {
                 fprintf(stderr, "[SECURITY_ERROR] Violação de segurança/symlink em '%s': %s\n", dir_name, strerror(saved_errno));
+                *out_exit_code = EXIT_ERR_SECURITY;
+            } else if (st_res == 0 && (S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode))) {
+                fprintf(stderr, "[SECURITY_ERROR] Componente intermediário '%s' é symlink ou não-diretório (modo 0%o, errno %d: %s)\n",
+                        dir_name, (unsigned int)(st.st_mode & S_IFMT), saved_errno, strerror(saved_errno));
+                *out_exit_code = EXIT_ERR_SECURITY;
+            } else if (saved_errno == ENOTDIR) {
+                fprintf(stderr, "[SECURITY_ERROR] Componente intermediário '%s' não é diretório (ENOTDIR).\n", dir_name);
                 *out_exit_code = EXIT_ERR_SECURITY;
             } else if (saved_errno == ENOENT) {
                 fprintf(stderr, "[ERROR] Diretório pai '%s' não encontrado (ENOENT).\n", dir_name);
@@ -250,6 +269,8 @@ static int resolve_parent_and_basename(int root_dfd, const char *rel_path, char 
             }
             return -1;
         }
+
+        close(curr_dfd);
         curr_dfd = next_dfd;
     }
 
@@ -301,7 +322,7 @@ static int cmd_probe(void) {
     }
 
     const char test_data[] = "vita_saude_probe_atomic_payload_2026";
-    size_t written = write(probe_fd, test_data, sizeof(test_data));
+    ssize_t written = write(probe_fd, test_data, sizeof(test_data));
     (void)written;
     fchmod(probe_fd, 0600);
     fdatasync(probe_fd);
@@ -323,7 +344,6 @@ static int cmd_probe(void) {
     }
 
     // 3. Testar se renameat2 com RENAME_NOREPLACE falha com EEXIST quando destino existe
-    // Criar um novo arquivo temporário
     errno = 0;
     int probe_fd2 = sys_openat2(root_dfd, "probe_test_file.tmp2", &how, sizeof(how));
     if (probe_fd2 >= 0) {
@@ -367,6 +387,7 @@ static int cmd_probe(void) {
  * - Escreve TODO o payload da stdin.
  * - fchmod 0600 e fsync(tmp_fd).
  * - Fecha tmp_fd.
+ * - Failpoint opcional de pausa para testes físicos de crash com SIGKILL.
  * - renameat2(parent_fd, tmp, parent_fd, base, RENAME_NOREPLACE).
  * - fsync(parent_dfd).
  * - Se falhar, remove apenas o arquivo temporário pertencente a esta operação.
@@ -452,42 +473,56 @@ static int cmd_put(const char *root_dir, const char *rel_path) {
         return EXIT_ERR_OPERATIONAL;
     }
 
+    // Fechar descritor do temporário antes do rename
     close(tmp_fd);
 
-    // Publicação atômica usando renameat2 com RENAME_NOREPLACE
+    // Failpoint de teste físico: pausar para permitir interrupção/SIGKILL externo após fsync
+    const char *fp_pause = getenv("VITA_FAILPOINT_PAUSE_BEFORE_RENAME");
+    if (fp_pause && strcmp(fp_pause, "1") == 0) {
+        fprintf(stderr, "[FAILPOINT] READY_FOR_SIGKILL_PID=%d\n", (int)getpid());
+        fflush(stderr);
+        sleep(10);
+    }
+
+    // Publicação estritamente atômica usando renameat2 com RENAME_NOREPLACE
     errno = 0;
-    int r = sys_renameat2(parent_dfd, tmp_name, parent_dfd, basename_buf, RENAME_NOREPLACE);
-    if (r != 0) {
-        int err = errno;
-        // Limpar apenas o temporário desta operação
+    int ren_res = sys_renameat2(parent_dfd, tmp_name, parent_dfd, basename_buf, RENAME_NOREPLACE);
+    int ren_err = errno;
+
+    if (ren_res != 0) {
+        // Falha no rename: remover exclusivamente nosso arquivo temporário
         unlinkat(parent_dfd, tmp_name, 0);
         close(parent_dfd);
-        if (err == EEXIST) {
-            fprintf(stderr, "[CONFLICT_ERROR] Destino '%s' já existe (RENAME_NOREPLACE recusou sobrescrita).\n", basename_buf);
+
+        if (ren_err == EEXIST) {
+            fprintf(stderr, "[CONFLICT] Destino '%s' já existe (RENAME_NOREPLACE recusou sobrescrita).\n", basename_buf);
             return EXIT_ERR_CONFLICT;
         }
-        if (err == ENOSYS) {
+        if (ren_err == ENOSYS) {
             fprintf(stderr, "[UNAVAILABLE_ERROR] renameat2 ausente no kernel (ENOSYS).\n");
             return EXIT_ERR_UNAVAILABLE;
         }
-        if (err == ELOOP || err == EXDEV) {
-            fprintf(stderr, "[SECURITY_ERROR] Violação de segurança no rename: %s\n", strerror(err));
+        if (ren_err == ELOOP || ren_err == EXDEV) {
+            fprintf(stderr, "[SECURITY_ERROR] renameat2 violação de link/dispositivo: %s\n", strerror(ren_err));
             return EXIT_ERR_SECURITY;
         }
-        fprintf(stderr, "[ERROR] renameat2 falhou: %s\n", strerror(err));
+
+        fprintf(stderr, "[ERROR] renameat2 falhou: %s\n", strerror(ren_err));
         return EXIT_ERR_OPERATIONAL;
     }
 
-    // fsync no diretório pai após publicação atômica
-    fsync(parent_dfd);
+    // fsync obrigatório no diretório pai após o rename para persistência de metadata
+    if (fsync(parent_dfd) != 0) {
+        fprintf(stderr, "[WARNING] fsync falhou no diretório pai: %s\n", strerror(errno));
+    }
+
     close(parent_dfd);
     return EXIT_OK;
 }
 
 /**
  * 3. LEITURA SEGURA (READ)
- * Abre o arquivo exclusivamente relativo ao parent_dfd seguro com openat2 e O_NOFOLLOW.
- * Rejeita qualquer symlink ou tipo não-regular.
+ * Abre descritor com openat2(RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS) e valida S_ISREG.
  */
 static int cmd_read(const char *root_dir, const char *rel_path) {
     int root_dfd = open_storage_root(root_dir);
@@ -512,18 +547,15 @@ static int cmd_read(const char *root_dir, const char *rel_path) {
     if (fd < 0) {
         if (err == ENOENT) return EXIT_ERR_OPERATIONAL;
         if (err == ENOSYS) return EXIT_ERR_UNAVAILABLE;
-        if (err == ELOOP || err == EXDEV) {
-            fprintf(stderr, "[SECURITY_ERROR] Tentativa de ler symlink ou caminho fora da raiz.\n");
-            return EXIT_ERR_SECURITY;
-        }
-        fprintf(stderr, "[ERROR] Falha ao abrir '%s': %s\n", basename_buf, strerror(err));
+        if (err == ELOOP || err == EXDEV) return EXIT_ERR_SECURITY;
+        fprintf(stderr, "[ERROR] openat2 leitura falhou para '%s': %s\n", basename_buf, strerror(err));
         return EXIT_ERR_OPERATIONAL;
     }
 
     // Verificar se é estritamente arquivo regular
     struct stat st;
     if (fstat(fd, &st) != 0 || !S_ISREG(st.st_mode)) {
-        fprintf(stderr, "[SECURITY_ERROR] Alvo não é um arquivo regular.\n");
+        fprintf(stderr, "[SECURITY_ERROR] Alvo '%s' não é um arquivo regular.\n", basename_buf);
         close(fd);
         return EXIT_ERR_SECURITY;
     }
@@ -534,6 +566,7 @@ static int cmd_read(const char *root_dir, const char *rel_path) {
     while ((bytes_read = read(fd, buf, sizeof(buf))) > 0) {
         ssize_t total_written = 0;
         while (total_written < bytes_read) {
+            errno = 0;
             ssize_t w = write(STDOUT_FILENO, buf + total_written, bytes_read - total_written);
             if (w <= 0) {
                 close(fd);
@@ -548,7 +581,7 @@ static int cmd_read(const char *root_dir, const char *rel_path) {
 
 /**
  * 4. EXCLUSÃO SEGURA (UNLINK)
- * Executa unlinkat estritamente sobre o basename no parent_dfd seguro.
+ * Valida que o basename não é symlink e executa unlinkat estritamente sobre o basename no parent_dfd seguro.
  */
 static int cmd_unlink(const char *root_dir, const char *rel_path) {
     int root_dfd = open_storage_root(root_dir);
@@ -559,6 +592,22 @@ static int cmd_unlink(const char *root_dir, const char *rel_path) {
     int parent_dfd = resolve_parent_and_basename(root_dfd, rel_path, basename_buf, sizeof(basename_buf), &exit_code);
     close(root_dfd);
     if (parent_dfd < 0) return exit_code;
+
+    // Verificar se o alvo a ser excluído é estritamente arquivo regular
+    struct stat st;
+    errno = 0;
+    if (fstatat(parent_dfd, basename_buf, &st, AT_SYMLINK_NOFOLLOW) != 0) {
+        int err = errno;
+        close(parent_dfd);
+        if (err == ENOENT) return EXIT_ERR_OPERATIONAL;
+        return EXIT_ERR_OPERATIONAL;
+    }
+
+    if (S_ISLNK(st.st_mode) || !S_ISREG(st.st_mode)) {
+        fprintf(stderr, "[SECURITY_ERROR] unlink recusado: '%s' não é um arquivo regular (symlink/dir detectado).\n", basename_buf);
+        close(parent_dfd);
+        return EXIT_ERR_SECURITY;
+    }
 
     errno = 0;
     int r = unlinkat(parent_dfd, basename_buf, 0);
