@@ -16,9 +16,10 @@
 #include <assert.h>
 #include <signal.h>
 #include <pthread.h>
+#include <stdatomic.h>
 
 /**
- * SUÍTE DETERMINÍSTICA DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU & ATOMICIDADE (G4.2 V7)
+ * SUÍTE DETERMINÍSTICA DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU & ATOMICIDADE (G4.2 V8)
  *
  * Cobertura de Testes Físicos Nativos:
  * 1.  Probe de capabilities do kernel (openat2, renameat2 RENAME_NOREPLACE, /proc/self/fd)
@@ -29,14 +30,35 @@
  * 6.  Leitura segura rejeitando symlink direto com EXIT_ERR_SECURITY = 3
  * 7.  Leitura legítima de arquivo regular existente
  * 8.  Exclusão segura (unlink) rejeitando remoção via symlink com EXIT_ERR_SECURITY = 3
- * 9.  Ataque com troca concorrente do diretório pai antes de unlinkat
+ * 9.  Ataque Físico Concorrente de Substituição do Diretório Pai (Parent Directory Swap TOCTOU)
  * 10. Exclusão legítima de arquivo regular existente
  * 11. Rejeição estrita de escape '..', caminhos absolutos e barras finais
  * 12. Teste Físico Real de Crash: SIGKILL durante escrita de payload grande
  * 13. Teste Físico Real de Crash: SIGKILL após fsync do temporário e antes do renameat2 via failpoint
- * 14. Teste Físico Real de Concorrência: 4 leitores contínuos vs escritor de payload grande (zero leituras parciais)
+ * 14. Teste Físico Real de Concorrência: 4 leitores atômicos vs escritor de 128 KB (zero leituras parciais)
  * 15. Auditoria final matemática do hash da sentinela externa
  */
+
+#define PATH_BUF_SIZE 2048
+
+/**
+ * Composição segura de caminhos com verificação matemática de limites de buffer.
+ * Elimina completamente advertências de format-truncation do compilador.
+ */
+static void safe_path_join(char *dest, size_t dest_size, const char *prefix, const char *suffix) {
+    assert(dest != NULL && prefix != NULL && suffix != NULL && dest_size > 0);
+    size_t p_len = strlen(prefix);
+    size_t s_len = strlen(suffix);
+    if (p_len + 1 + s_len + 1 > dest_size) {
+        fprintf(stderr, "[FATAL] Truncamento de caminho detectado: '%s' + '%s' excede %zu bytes.\n",
+                prefix, suffix, dest_size);
+        abort();
+    }
+    memcpy(dest, prefix, p_len);
+    dest[p_len] = '/';
+    memcpy(dest + p_len + 1, suffix, s_len);
+    dest[p_len + 1 + s_len] = '\0';
+}
 
 typedef struct {
     uint32_t state[8];
@@ -238,7 +260,8 @@ static int execute_helper_full(const char *helper_bin, const char *action,
     close(pipe_err[0]);
 
     int status;
-    waitpid(pid, &status, 0);
+    pid_t wpid = waitpid(pid, &status, 0);
+    assert(wpid == pid);
     if (WIFEXITED(status)) {
         return WEXITSTATUS(status);
     }
@@ -255,60 +278,56 @@ static int execute_helper(const char *helper_bin, const char *action,
     return execute_helper_full(helper_bin, action, arg1, arg2, input_data, input_len, out_buf, out_buf_len, NULL, 0);
 }
 
-// Estrutura para leitores concorrentes (Teste 14)
+// Estrutura para leitores concorrentes com sincronização atômica formal (Teste 14)
 typedef struct {
     const char *helper_bin;
     const char *test_root;
     const char *rel_path;
     size_t expected_size;
     const char *expected_sha256;
-    volatile int stop_flag;
-    volatile int race_violation;
-    int read_successes;
-    int read_not_found;
+    atomic_int stop_flag;
+    atomic_int race_violation;
+    atomic_int read_successes;
+    atomic_int read_not_found;
+    pthread_mutex_t mutex;
 } concurrent_reader_ctx;
 
 static void *concurrent_reader_thread(void *arg) {
     concurrent_reader_ctx *ctx = (concurrent_reader_ctx *)arg;
-    char read_buf[262144]; // buffer de 256 KB
+    char read_buf[262144];
     char computed_sha[65];
 
-    while (!ctx->stop_flag) {
+    while (atomic_load(&ctx->stop_flag) == 0) {
         char err_buf[256];
         int code = execute_helper_full(ctx->helper_bin, "read", ctx->test_root, ctx->rel_path,
                                        NULL, 0, read_buf, sizeof(read_buf), err_buf, sizeof(err_buf));
 
         if (code == 1) {
-            // Arquivo não publicado ainda (ENOENT) — perfeitamente legítimo
-            ctx->read_not_found++;
+            atomic_fetch_add(&ctx->read_not_found, 1);
         } else if (code == 0) {
-            // Arquivo publicado — DEVE ser integral e corresponder ao hash esperado
             size_t len = strlen(read_buf);
             if (len == 0 || len < ctx->expected_size) {
-                // Violação grave: leitura parcial ou arquivo vazio observado!
-                ctx->race_violation = 1;
+                atomic_store(&ctx->race_violation, 1);
                 break;
             }
             compute_buffer_sha256((const uint8_t *)read_buf, len, computed_sha);
             if (strcmp(computed_sha, ctx->expected_sha256) != 0) {
-                // Violação grave: hash corrompido observado!
-                ctx->race_violation = 2;
+                atomic_store(&ctx->race_violation, 2);
                 break;
             }
-            ctx->read_successes++;
+            atomic_fetch_add(&ctx->read_successes, 1);
         } else {
-            // Qualquer outro código não é esperado em leitura legítima
-            ctx->race_violation = 3;
+            atomic_store(&ctx->race_violation, 3);
             break;
         }
-        usleep(500); // 0.5 ms entre leituras para maximizar intercalação
+        usleep(500);
     }
     return NULL;
 }
 
 int main(int argc, char *argv[]) {
     printf("================================================================================\n");
-    printf("SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V7)\n");
+    printf("SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V8)\n");
     printf("================================================================================\n");
 
     const char *helper_bin = (argc > 1) ? argv[1] : "./storage_linux_helper";
@@ -326,7 +345,7 @@ int main(int argc, char *argv[]) {
     char canary_path[] = "/tmp/vita_canary_sentinel_host_file.txt";
     FILE *canary = fopen(canary_path, "wb");
     assert(canary != NULL);
-    const char canary_initial[] = "CANARY_SECRET_INTEGRITY_TOKEN_V7_SAFE_GUARD_2026";
+    const char canary_initial[] = "CANARY_SECRET_INTEGRITY_TOKEN_V8_SAFE_GUARD_2026";
     size_t nw = fwrite(canary_initial, 1, strlen(canary_initial), canary);
     assert(nw == strlen(canary_initial));
     fclose(canary);
@@ -352,15 +371,15 @@ int main(int argc, char *argv[]) {
 
     // TESTE 2: Publicação atômica completa e integridade (tamanho exato: 58 bytes)
     printf("[TEST 2/15] Publicação atômica em subdiretório seguro com payload completo... ");
-    char sub_dir[512];
-    snprintf(sub_dir, sizeof(sub_dir), "%s/user_1001", test_root);
+    char sub_dir[PATH_BUF_SIZE];
+    safe_path_join(sub_dir, sizeof(sub_dir), test_root, "user_1001");
     assert(mkdir(sub_dir, 0700) == 0);
     const char payload_fit[] = "MOCK_FIT_BINARY_DATA_WITH_STRICT_HEADER_AND_CRC_1234567890";
     size_t payload_len = strlen(payload_fit);
     int code2 = execute_helper(helper_bin, "put", test_root, "user_1001/activity.fit", payload_fit, payload_len, NULL, 0);
     if (code2 == 0) {
-        char created_file[512];
-        snprintf(created_file, sizeof(created_file), "%s/user_1001/activity.fit", test_root);
+        char created_file[PATH_BUF_SIZE];
+        safe_path_join(created_file, sizeof(created_file), sub_dir, "activity.fit");
         struct stat st;
         if (stat(created_file, &st) == 0 && (st.st_mode & 0777) == 0600 && st.st_size == (off_t)payload_len) {
             printf("PASSED (Exit Code: 0, Mode: 0600, Size: %ld)\n", (long)st.st_size);
@@ -377,9 +396,10 @@ int main(int argc, char *argv[]) {
     const char payload_conflict[] = "OVERWRITE_PAYLOAD_THAT_MUST_BE_REJECTED";
     int code3 = execute_helper(helper_bin, "put", test_root, "user_1001/activity.fit", payload_conflict, strlen(payload_conflict), NULL, 0);
     if (code3 == 2) {
-        char created_file[512];
-        snprintf(created_file, sizeof(created_file), "%s/user_1001/activity.fit", test_root);
+        char created_file[PATH_BUF_SIZE];
+        safe_path_join(created_file, sizeof(created_file), sub_dir, "activity.fit");
         FILE *f = fopen(created_file, "rb");
+        assert(f != NULL);
         char read_back[128];
         size_t rn = fread(read_back, 1, sizeof(read_back) - 1, f);
         read_back[rn] = '\0';
@@ -398,13 +418,13 @@ int main(int argc, char *argv[]) {
     printf("[TEST 4/15] Ataque de symlink intermediário apontando para fora da raiz... ");
     char victim_dir[] = "/tmp/vita_victim_escape_dir";
     assert(mkdir(victim_dir, 0700) == 0);
-    char symlink_attack_path[512];
-    snprintf(symlink_attack_path, sizeof(symlink_attack_path), "%s/symlink_dir", test_root);
+    char symlink_attack_path[PATH_BUF_SIZE];
+    safe_path_join(symlink_attack_path, sizeof(symlink_attack_path), test_root, "symlink_dir");
     assert(symlink(victim_dir, symlink_attack_path) == 0);
 
     int code4 = execute_helper(helper_bin, "put", test_root, "symlink_dir/pwned.fit", "PAYLOAD", 7, NULL, 0);
-    char escaped_file[512];
-    snprintf(escaped_file, sizeof(escaped_file), "%s/pwned.fit", victim_dir);
+    char escaped_file[PATH_BUF_SIZE];
+    safe_path_join(escaped_file, sizeof(escaped_file), victim_dir, "pwned.fit");
 
     char canary_check_t4[65];
     compute_file_sha256(canary_path, canary_check_t4);
@@ -421,8 +441,8 @@ int main(int argc, char *argv[]) {
 
     // TESTE 5: Ataque de symlink no basename de destino apontando para sentinela
     printf("[TEST 5/15] Ataque de symlink no basename apontando para arquivo sentinela... ");
-    char symlink_file_target[512];
-    snprintf(symlink_file_target, sizeof(symlink_file_target), "%s/user_1001/canary_link.fit", test_root);
+    char symlink_file_target[PATH_BUF_SIZE];
+    safe_path_join(symlink_file_target, sizeof(symlink_file_target), sub_dir, "canary_link.fit");
     assert(symlink(canary_path, symlink_file_target) == 0);
 
     int code5 = execute_helper(helper_bin, "put", test_root, "user_1001/canary_link.fit", "MALICIOUS_DATA", 14, NULL, 0);
@@ -479,35 +499,119 @@ int main(int argc, char *argv[]) {
     }
     assert(unlink(symlink_file_target) == 0);
 
-    // TESTE 9: Ataque com troca concorrente do diretório pai antes do unlinkat
+    // TESTE 9: Ataque Físico Concorrente de Substituição do Diretório Pai (Parent Swap TOCTOU)
     printf("[TEST 9/15] Ataque com troca concorrente do diretório pai antes do unlinkat... ");
-    char race_parent[512];
-    snprintf(race_parent, sizeof(race_parent), "%s/race_parent", test_root);
-    assert(mkdir(race_parent, 0700) == 0);
-    char race_file[512];
-    snprintf(race_file, sizeof(race_file), "%s/race_file.fit", race_parent);
-    FILE *rf = fopen(race_file, "wb");
-    assert(rf != NULL);
-    fwrite("RACE_DATA", 1, 9, rf);
-    fclose(rf);
+    char legit_parent[PATH_BUF_SIZE];
+    safe_path_join(legit_parent, sizeof(legit_parent), test_root, "race_parent");
+    assert(mkdir(legit_parent, 0700) == 0);
 
-    int code9 = execute_helper(helper_bin, "unlink", test_root, "race_parent/race_file.fit", NULL, 0, NULL, 0);
-    char canary_check9[65];
-    compute_file_sha256(canary_path, canary_check9);
+    char legit_file[PATH_BUF_SIZE];
+    safe_path_join(legit_file, sizeof(legit_file), legit_parent, "target.fit");
+    FILE *lf = fopen(legit_file, "wb");
+    assert(lf != NULL);
+    const char target_content[] = "LEGITIMATE_TARGET_DATA";
+    size_t lf_w = fwrite(target_content, 1, strlen(target_content), lf);
+    assert(lf_w == strlen(target_content));
+    fclose(lf);
 
-    if ((code9 == 0 || code9 == 1 || code9 == 3) && access(canary_path, F_OK) == 0 && strcmp(canary_hash_before, canary_check9) == 0) {
-        printf("PASSED (Sentinela preservada, sem exclusão fora da raiz)\n");
+    char ext_victim_dir[] = "/tmp/vita_victim_swap_dir";
+    assert(mkdir(ext_victim_dir, 0700) == 0);
+    char ext_sentinel[PATH_BUF_SIZE];
+    safe_path_join(ext_sentinel, sizeof(ext_sentinel), ext_victim_dir, "victim_sentinel.txt");
+    FILE *vsf = fopen(ext_sentinel, "wb");
+    assert(vsf != NULL);
+    const char vs_token[] = "VICTIM_SENTINEL_SECRET_TOKEN_DO_NOT_DELETE";
+    size_t vs_w = fwrite(vs_token, 1, strlen(vs_token), vsf);
+    assert(vs_w == strlen(vs_token));
+    fclose(vsf);
+
+    char vs_hash_before[65];
+    compute_file_sha256(ext_sentinel, vs_hash_before);
+
+    // Ativar failpoint de sincronização de corrida antes do unlinkat
+    assert(setenv("VITA_FAILPOINT_PAUSE_BEFORE_UNLINK", "1", 1) == 0);
+
+    int pipe_u_err[2];
+    int pipe_u_out[2];
+    assert(pipe(pipe_u_err) == 0 && pipe(pipe_u_out) == 0);
+
+    pid_t u_pid = fork();
+    assert(u_pid >= 0);
+
+    if (u_pid == 0) {
+        dup2(pipe_u_out[1], STDOUT_FILENO);
+        dup2(pipe_u_err[1], STDERR_FILENO);
+        close(pipe_u_out[0]); close(pipe_u_out[1]);
+        close(pipe_u_err[0]); close(pipe_u_err[1]);
+
+        execl(helper_bin, helper_bin, "unlink", test_root, "race_parent/target.fit", (char *)NULL);
+        _exit(127);
+    }
+
+    close(pipe_u_out[1]);
+    close(pipe_u_err[1]);
+
+    // Ler stderr do helper até sincronizar no momento após abrir o descritor do pai
+    char sync_buf[512];
+    int sync_ready = 0;
+    ssize_t sn_r;
+    while ((sn_r = read(pipe_u_err[0], sync_buf, sizeof(sync_buf) - 1)) > 0) {
+        sync_buf[sn_r] = '\0';
+        if (strstr(sync_buf, "[FAILPOINT] READY_FOR_PARENT_SWAP_ATTACK_PID=")) {
+            sync_ready = 1;
+            break;
+        }
+    }
+
+    // Processo atacante executa tentativa de troca atômica do diretório legítimo por symlink para a vítima externa
+    int swap_executed = 0;
+    int swap_rename_rc = -1;
+    int swap_symlink_rc = -1;
+    char backup_parent[PATH_BUF_SIZE];
+    safe_path_join(backup_parent, sizeof(backup_parent), test_root, "race_parent_backup");
+
+    if (sync_ready) {
+        swap_executed = 1;
+        swap_rename_rc = rename(legit_parent, backup_parent);
+        swap_symlink_rc = symlink(ext_victim_dir, legit_parent);
+    }
+
+    int u_status;
+    pid_t u_wpid = waitpid(u_pid, &u_status, 0);
+    assert(u_wpid == u_pid);
+    assert(unsetenv("VITA_FAILPOINT_PAUSE_BEFORE_UNLINK") == 0);
+    close(pipe_u_err[0]);
+    close(pipe_u_out[0]);
+
+    // Comprovar que o arquivo da vítima externa foi 100% preservado
+    char vs_hash_after[65];
+    compute_file_sha256(ext_sentinel, vs_hash_after);
+    int ext_sentinel_intact = (access(ext_sentinel, F_OK) == 0 && strcmp(vs_hash_before, vs_hash_after) == 0);
+
+    // Limpeza da área do ataque
+    if (swap_symlink_rc == 0) {
+        unlink(legit_parent);
+    }
+    char backup_file[PATH_BUF_SIZE];
+    safe_path_join(backup_file, sizeof(backup_file), backup_parent, "target.fit");
+    unlink(backup_file);
+    rmdir(backup_parent);
+    unlink(ext_sentinel);
+    rmdir(ext_victim_dir);
+
+    if (sync_ready && swap_executed && ext_sentinel_intact) {
+        printf("PASSED (Ataque concorrente executado: PID=%d, Sentinela externa 100%% preservada)\n", (int)u_pid);
         passed++;
     } else {
-        printf("FAILED (Violação em corrida de diretório pai)\n");
+        printf("FAILED (sync_ready=%d, swap=%d, sentinel_intact=%d)\n",
+               sync_ready, swap_executed, ext_sentinel_intact);
     }
-    rmdir(race_parent);
 
     // TESTE 10: Exclusão legítima de arquivo regular
     printf("[TEST 10/15] Exclusão legítima de arquivo regular... ");
     int code10 = execute_helper(helper_bin, "unlink", test_root, "user_1001/activity.fit", NULL, 0, NULL, 0);
-    char act_path[512];
-    snprintf(act_path, sizeof(act_path), "%s/user_1001/activity.fit", test_root);
+    char act_path[PATH_BUF_SIZE];
+    safe_path_join(act_path, sizeof(act_path), sub_dir, "activity.fit");
     if (code10 == 0 && access(act_path, F_OK) != 0) {
         printf("PASSED (Exit Code: 0, Arquivo removido com sucesso)\n");
         passed++;
@@ -550,27 +654,26 @@ int main(int argc, char *argv[]) {
     }
 
     close(pipe_crash[0]);
-    // Escrever bloco inicial de 16 KB
     char chunk[4096];
     memset(chunk, 'A', sizeof(chunk));
     for (int i = 0; i < 4; i++) {
         ssize_t w = write(pipe_crash[1], chunk, sizeof(chunk));
-        (void)w;
+        assert(w == (ssize_t)sizeof(chunk));
     }
     // Interromper fisicamente o helper com SIGKILL durante a escrita
     assert(kill(crash_pid, SIGKILL) == 0);
     close(pipe_crash[1]);
 
     int crash_status;
-    waitpid(crash_pid, &crash_status, 0);
+    pid_t cwpid = waitpid(crash_pid, &crash_status, 0);
+    assert(cwpid == crash_pid);
 
-    char target_killed_file[512];
-    snprintf(target_killed_file, sizeof(target_killed_file), "%s/user_1001/killed_stream.fit", test_root);
+    char target_killed_file[PATH_BUF_SIZE];
+    safe_path_join(target_killed_file, sizeof(target_killed_file), sub_dir, "killed_stream.fit");
 
-    // 1. Destino definitivo NÃO pode existir
     int file_not_published = (access(target_killed_file, F_OK) != 0);
 
-    // 2. Identificar e limpar eventual arquivo temporário órfão (.tmp.*)
+    // Identificar e limpar eventual arquivo temporário órfão (.tmp.*)
     DIR *d = opendir(sub_dir);
     int orphan_found = 0;
     if (d) {
@@ -578,9 +681,9 @@ int main(int argc, char *argv[]) {
         while ((de = readdir(d)) != NULL) {
             if (strncmp(de->d_name, ".tmp.", 5) == 0) {
                 orphan_found = 1;
-                char orphan_path[1024];
-                snprintf(orphan_path, sizeof(orphan_path), "%s/%s", sub_dir, de->d_name);
-                unlink(orphan_path);
+                char orphan_path[PATH_BUF_SIZE];
+                safe_path_join(orphan_path, sizeof(orphan_path), sub_dir, de->d_name);
+                assert(unlink(orphan_path) == 0);
             }
         }
         closedir(d);
@@ -597,10 +700,9 @@ int main(int argc, char *argv[]) {
         printf("FAILED (crash_status=%d, published=%d)\n", crash_status, !file_not_published);
     }
 
-    // TESTE 13: Teste Físico Real de Crash (SIGKILL após fsync e antes de renameat2 via failpoint)
+    // TESTE 13: Teste Físico Real de Crash (SIGKILL antes de renameat2 via failpoint)
     printf("[TEST 13/15] Teste físico real de crash: SIGKILL antes do renameat2 via failpoint... ");
-    // Ativar failpoint de teste
-    setenv("VITA_FAILPOINT_PAUSE_BEFORE_RENAME", "1", 1);
+    assert(setenv("VITA_FAILPOINT_PAUSE_BEFORE_RENAME", "1", 1) == 0);
 
     int pipe_fp_out[2];
     int pipe_fp_err[2];
@@ -626,13 +728,11 @@ int main(int argc, char *argv[]) {
     close(pipe_fp_out[1]);
     close(pipe_fp_err[1]);
 
-    // Fornecer payload completo
     const char fp_payload[] = "CRITICAL_PAYLOAD_PAUSED_BEFORE_RENAME_FAILPOINT";
-    size_t w_fp = write(pipe_fp_in[1], fp_payload, strlen(fp_payload));
-    (void)w_fp;
+    ssize_t w_fp = write(pipe_fp_in[1], fp_payload, strlen(fp_payload));
+    assert(w_fp == (ssize_t)strlen(fp_payload));
     close(pipe_fp_in[1]);
 
-    // Ler stderr até encontrar o sinal do failpoint com o PID real
     char fp_err_buf[512];
     int fp_ready = 0;
     ssize_t n_err;
@@ -647,27 +747,26 @@ int main(int argc, char *argv[]) {
     close(pipe_fp_out[0]);
 
     if (fp_ready) {
-        // Enviar SIGKILL imediato enquanto o processo está pausado após fsync
-        kill(fp_pid, SIGKILL);
+        assert(kill(fp_pid, SIGKILL) == 0);
     }
 
     int fp_status;
-    waitpid(fp_pid, &fp_status, 0);
-    unsetenv("VITA_FAILPOINT_PAUSE_BEFORE_RENAME");
+    pid_t fp_wpid = waitpid(fp_pid, &fp_status, 0);
+    assert(fp_wpid == fp_pid);
+    assert(unsetenv("VITA_FAILPOINT_PAUSE_BEFORE_RENAME") == 0);
 
-    char target_paused_file[512];
-    snprintf(target_paused_file, sizeof(target_paused_file), "%s/user_1001/paused_file.fit", test_root);
+    char target_paused_file[PATH_BUF_SIZE];
+    safe_path_join(target_paused_file, sizeof(target_paused_file), sub_dir, "paused_file.fit");
     int paused_not_published = (access(target_paused_file, F_OK) != 0);
 
-    // Limpar temporário órfão gerado
     d = opendir(sub_dir);
     if (d) {
         struct dirent *de;
         while ((de = readdir(d)) != NULL) {
             if (strncmp(de->d_name, ".tmp.", 5) == 0) {
-                char orphan_path[1024];
-                snprintf(orphan_path, sizeof(orphan_path), "%s/%s", sub_dir, de->d_name);
-                unlink(orphan_path);
+                char orphan_path[PATH_BUF_SIZE];
+                safe_path_join(orphan_path, sizeof(orphan_path), sub_dir, de->d_name);
+                assert(unlink(orphan_path) == 0);
             }
         }
         closedir(d);
@@ -687,7 +786,7 @@ int main(int argc, char *argv[]) {
     // TESTE 14: Teste Físico Real de Concorrência (4 Leitores Contínuos vs Escritor em 5 Iterações)
     printf("[TEST 14/15] Teste físico de concorrência real: 4 leitores vs escritor (5 iterações)... ");
     int race_detected = 0;
-    const size_t c_size = 131072; // 128 KB
+    const size_t c_size = 131072;
     char *c_payload = (char *)malloc(c_size);
     assert(c_payload != NULL);
     for (size_t i = 0; i < c_size; i++) {
@@ -697,8 +796,10 @@ int main(int argc, char *argv[]) {
     compute_buffer_sha256((const uint8_t *)c_payload, c_size, c_expected_sha);
 
     for (int iter = 0; iter < 5; iter++) {
-        char rel_iter[64];
-        snprintf(rel_iter, sizeof(rel_iter), "user_1001/stream_%d.fit", iter);
+        char iter_suffix[64];
+        sprintf(iter_suffix, "stream_%d.fit", iter);
+        char rel_iter[128];
+        sprintf(rel_iter, "user_1001/stream_%d.fit", iter);
 
         concurrent_reader_ctx r_ctx;
         r_ctx.helper_bin = helper_bin;
@@ -706,17 +807,17 @@ int main(int argc, char *argv[]) {
         r_ctx.rel_path = rel_iter;
         r_ctx.expected_size = c_size;
         r_ctx.expected_sha256 = c_expected_sha;
-        r_ctx.stop_flag = 0;
-        r_ctx.race_violation = 0;
-        r_ctx.read_successes = 0;
-        r_ctx.read_not_found = 0;
+        atomic_init(&r_ctx.stop_flag, 0);
+        atomic_init(&r_ctx.race_violation, 0);
+        atomic_init(&r_ctx.read_successes, 0);
+        atomic_init(&r_ctx.read_not_found, 0);
+        assert(pthread_mutex_init(&r_ctx.mutex, NULL) == 0);
 
         pthread_t readers[4];
         for (int r = 0; r < 4; r++) {
-            pthread_create(&readers[r], NULL, concurrent_reader_thread, &r_ctx);
+            assert(pthread_create(&readers[r], NULL, concurrent_reader_thread, &r_ctx) == 0);
         }
 
-        // Escritor produz payload de 128 KB em blocos de 8 KB com pequena pausa
         int pipe_wr[2];
         assert(pipe(pipe_wr) == 0);
         pid_t wr_pid = fork();
@@ -735,30 +836,32 @@ int main(int argc, char *argv[]) {
         while (off < c_size) {
             size_t to_write = (c_size - off > 8192) ? 8192 : (c_size - off);
             ssize_t w = write(pipe_wr[1], c_payload + off, to_write);
-            if (w <= 0) break;
+            assert(w > 0);
             off += (size_t)w;
-            usleep(200); // 0.2 ms para dar tempo aos leitores de observar estado intermediário
+            usleep(200);
         }
         close(pipe_wr[1]);
 
         int wr_status;
-        waitpid(wr_pid, &wr_status, 0);
+        pid_t wr_wpid = waitpid(wr_pid, &wr_status, 0);
+        assert(wr_wpid == wr_pid);
         assert(WIFEXITED(wr_status) && WEXITSTATUS(wr_status) == 0);
 
-        // Deixar leitores observarem o arquivo completo publicado
         usleep(2000);
-        r_ctx.stop_flag = 1;
+        atomic_store(&r_ctx.stop_flag, 1);
 
         for (int r = 0; r < 4; r++) {
-            pthread_join(readers[r], NULL);
+            assert(pthread_join(readers[r], NULL) == 0);
         }
 
-        if (r_ctx.race_violation != 0) {
-            race_detected = r_ctx.race_violation;
+        assert(pthread_mutex_destroy(&r_ctx.mutex) == 0);
+
+        int v = atomic_load(&r_ctx.race_violation);
+        if (v != 0) {
+            race_detected = v;
             break;
         }
 
-        // Limpeza da iteração
         execute_helper(helper_bin, "unlink", test_root, rel_iter, NULL, 0, NULL, 0);
     }
     free(c_payload);
@@ -782,14 +885,14 @@ int main(int argc, char *argv[]) {
     }
 
     // Limpeza
-    unlink(canary_path);
-    rmdir(sub_dir);
-    rmdir(test_root);
+    assert(unlink(canary_path) == 0);
+    assert(rmdir(sub_dir) == 0);
+    assert(rmdir(test_root) == 0);
 
     printf("\n================================================================================\n");
     printf("RESULTADO DOS TESTES NATIVOS: %d/%d PASSARAM\n", passed, total);
     if (passed == total) {
-        printf("STATUS: 100%% SUCESSO - CONFORME COM AUDITORIA G4.2 V7\n");
+        printf("STATUS: 100%% SUCESSO - CONFORME COM AUDITORIA G4.2 V8\n");
     } else {
         printf("STATUS: FAILED (%d cenários falharam)\n", total - passed);
     }
@@ -800,4 +903,4 @@ int main(int argc, char *argv[]) {
     printf("EXIT_CODE=%d\n", (passed == total) ? 0 : 1);
 
     return (passed == total) ? 0 : 1;
-}
+}\n

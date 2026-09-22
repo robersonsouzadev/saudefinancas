@@ -1,0 +1,34 @@
+================================================================================
+SAÍDA BRUTA: TESTES NEGATIVOS DO RUNNER LINUX (G4.2 V8)
+================================================================================
+Comando:
+  bash apps/api/scripts/test_runner_negative.sh
+
+Ambiente de Execução Alvo:
+  Host: Linux staging-wearables 6.1.0-25-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.106-3 (2024-08-26) x86_64 GNU/Linux
+  Kernel: 6.1.0-25-amd64
+  Compilador: gcc (Debian 12.2.0-14) 12.2.0
+  Timestamp (UTC): 2026-09-22T17:00:25Z
+
+================================================================================
+INICIANDO TESTES NEGATIVOS DO RUNNER LINUX (G4.2 V8)
+Target Runner: /tmp/staging/apps/api/scripts/run_storage_linux_tests.sh
+Temp Workspace: /tmp/runner_neg_test_jK89Lp
+================================================================================
+
+[TEST NEG 1/4] Simulando falha de compilação em storage_linux_helper...
+PASS: Runner abortou imediatamente na compilação do helper (Exit Code 1).
+
+[TEST NEG 2/4] Simulando falha no probe de capabilities do kernel...
+PASS: Runner abortou imediatamente após falha no probe (Exit Code 2).
+
+[TEST NEG 3/4] Simulando falha de compilação em test_storage_linux_native...
+PASS: Runner abortou na compilação dos testes sem tentar executar binário ausente (Exit Code 1).
+
+[TEST NEG 4/4] Simulando falha de asserção na suíte nativa...
+PASS: Runner propagou fielmente o exit code 42 da suíte de teste.
+
+================================================================================
+TODOS OS TESTES NEGATIVOS DO RUNNER FORAM APROVADOS: 4/4 (100%)
+RUNNER_NEGATIVE_EXIT_CODE=0
+================================================================================

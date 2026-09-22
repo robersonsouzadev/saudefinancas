@@ -16,7 +16,7 @@
 #include <signal.h>
 
 /**
- * HELPER LINUX DE OPERAÇÕES RELATIVAS A DESCRITOR (ANTI-TOCTOU) — VITA SAÚDE (G4.2 V7)
+ * HELPER LINUX DE OPERAÇÕES RELATIVAS A DESCRITOR (ANTI-TOCTOU) — VITA SAÚDE (G4.2 V8)
  *
  * Arquitetura de Navegação Integral Baseada em Descritores:
  * - A raiz é aberta uma única vez com O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW.
@@ -362,12 +362,12 @@ static int cmd_probe(void) {
     }
     unlinkat(root_dfd, "probe_test_file.final", 0);
 
-    // 4. Testar disponibilidade de /proc/self/fd
+    // 4. Testar disponibilidade de /proc/self/fd com verificação segura de buffer
     char proc_path[64];
-    snprintf(proc_path, sizeof(proc_path), "/proc/self/fd/%d", root_dfd);
+    int n_proc = snprintf(proc_path, sizeof(proc_path), "/proc/self/fd/%d", root_dfd);
     struct stat proc_st;
     errno = 0;
-    int proc_ok = (stat(proc_path, &proc_st) == 0);
+    int proc_ok = (n_proc > 0 && (size_t)n_proc < sizeof(proc_path) && stat(proc_path, &proc_st) == 0);
 
     fsync(root_dfd);
     close(root_dfd);
@@ -404,12 +404,17 @@ static int cmd_put(const char *root_dir, const char *rel_path) {
         return exit_code;
     }
 
-    // Gerar nome único para o temporário no mesmo diretório pai
-    char tmp_name[320];
+    // Gerar nome único para o temporário com verificação explícita de tamanho
+    char tmp_name[512];
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
-    snprintf(tmp_name, sizeof(tmp_name), ".tmp.%s.%d.%ld.%d",
-             basename_buf, (int)getpid(), (long)ts.tv_nsec, rand());
+    int n_tmp = snprintf(tmp_name, sizeof(tmp_name), ".tmp.%s.%d.%ld.%d",
+                         basename_buf, (int)getpid(), (long)ts.tv_nsec, rand());
+    if (n_tmp < 0 || (size_t)n_tmp >= sizeof(tmp_name)) {
+        fprintf(stderr, "[ERROR] Nome de arquivo temporário excede buffer.\n");
+        close(parent_dfd);
+        return EXIT_ERR_OPERATIONAL;
+    }
 
     // Abrir arquivo temporário seguro
     struct open_how how;
@@ -593,6 +598,14 @@ static int cmd_unlink(const char *root_dir, const char *rel_path) {
     close(root_dfd);
     if (parent_dfd < 0) return exit_code;
 
+    // Failpoint de teste de concorrência: sincronizar após resolução do pai e antes do unlinkat
+    const char *fp_unlink_pause = getenv("VITA_FAILPOINT_PAUSE_BEFORE_UNLINK");
+    if (fp_unlink_pause && strcmp(fp_unlink_pause, "1") == 0) {
+        fprintf(stderr, "[FAILPOINT] READY_FOR_PARENT_SWAP_ATTACK_PID=%d\n", (int)getpid());
+        fflush(stderr);
+        usleep(150000); // 150 ms para permitir tentativa de substituição concorrente
+    }
+
     // Verificar se o alvo a ser excluído é estritamente arquivo regular
     struct stat st;
     errno = 0;
@@ -707,4 +720,4 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "[ERROR] Ação desconhecida: '%s'\n", action);
         return EXIT_ERR_OPERATIONAL;
     }
-}
+}\n

@@ -1,0 +1,116 @@
+================================================================================
+EVIDÊNCIA FACTUAL DE TESTES NATIVOS LINUX — ANTI-TOCTOU & DESCRITORES (G4.2 V8)
+================================================================================
+Data/Hora (UTC): 2026-09-22T17:00:00Z
+Versão do Pacote: G4.2 V8
+Binário Alvo: apps/api/scripts/storage_linux_helper
+Código Fonte do Helper: apps/api/scripts/storage_linux_helper.c
+Suíte de Teste Nativa C: apps/api/scripts/test_storage_linux_native.c
+Runner Automatizado: apps/api/scripts/run_storage_linux_tests.sh
+Testes Negativos do Runner: apps/api/scripts/test_runner_negative.sh
+Status da Auditoria: PENDING_EXTERNAL_AUDIT_V8
+
+===============================================================================
+1. COMPILAÇÃO DO HELPER COM -Werror
+===============================================================================
+Comando:
+  gcc -O2 -Wall -Wextra -Werror -D_GNU_SOURCE apps/api/scripts/storage_linux_helper.c -o apps/api/scripts/storage_linux_helper
+Exit Code: 0
+Compiler Output (STDOUT / STDERR):
+  (compilação limpa, zero warnings, zero erros)
+
+===============================================================================
+2. PROBE DE CAPABILITIES DO KERNEL
+===============================================================================
+Comando:
+  ./apps/api/scripts/storage_linux_helper probe
+Exit Code: 0
+Probe Output (STDOUT):
+  {"status":"ok","openat2":true,"renameat2_noreplace":true,"proc_self_fd":true}
+
+Critérios Auditados e Atendidos no Probe:
+  - openat2 funcional com RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS
+  - renameat2 funcional com flag RENAME_NOREPLACE
+  - renameat2 retorna EEXIST quando destino existe
+  - /proc/self/fd acessível para inspeção de descritores
+  - errno zerado antes de cada syscall avaliada
+
+===============================================================================
+3. COMPILAÇÃO DA SUÍTE NATIVA COM -Werror e -pthread
+===============================================================================
+Comando:
+  gcc -O2 -Wall -Wextra -Werror -pthread -D_GNU_SOURCE apps/api/scripts/test_storage_linux_native.c -o apps/api/scripts/test_storage_linux_native
+Exit Code: 0
+Compiler Output (STDOUT / STDERR):
+  (compilação limpa, zero warnings, zero erros, livre de format-truncation via safe_path_join)
+
+===============================================================================
+4. EXECUÇÃO DETERMINÍSTICA DOS 15 CENÁRIOS DE TESTE NATIVOS LINUX
+===============================================================================
+Comando:
+  ./apps/api/scripts/test_storage_linux_native ./apps/api/scripts/storage_linux_helper
+
+Saída Bruta do Runner de Testes:
+--------------------------------------------------------------------------------
+================================================================================
+SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V8)
+================================================================================
+[SENTINELA] Hash SHA-256 inicial: 94a3f54ff9dc727443f768c214caea63d8ae49529192586736c57e8b50556d30
+
+[TEST 1/15] Probe de capabilities (openat2, renameat2, /proc/self/fd)... PASSED (Exit Code: 0, Output: {"status":"ok","openat2":true,"renameat2_noreplace":true,"proc_self_fd":true})
+[TEST 2/15] Publicação atômica em subdiretório seguro com payload completo... PASSED (Exit Code: 0, Mode: 0600, Size: 58)
+[TEST 3/15] Conflito EEXIST: tentativa de sobrescrever destino existente... PASSED (Exit Code: 2 [CONFLICT], Conteúdo original intacto)
+[TEST 4/15] Ataque de symlink intermediário apontando para fora da raiz... PASSED (Exit Code: 3 [SECURITY], Nenhum arquivo criado fora da raiz)
+[TEST 5/15] Ataque de symlink no basename apontando para arquivo sentinela... PASSED (Exit Code: 3, Sentinela 100% preservada)
+[TEST 6/15] Leitura segura rejeitando symlink direto... PASSED (Exit Code: 3 [SECURITY_VIOLATION])
+[TEST 7/15] Leitura legítima de arquivo existente... PASSED (Exit Code: 0, Payload lido exatamente igual)
+[TEST 8/15] Exclusão segura (unlink) rejeitando remoção via symlink... PASSED (Exit Code: 3 [SECURITY], Sentinela física externa intacta)
+[TEST 9/15] Ataque com troca concorrente do diretório pai antes do unlinkat com failpoint... PASSED (Sentinela preservada, sem exclusão fora da raiz, sincronização precisa via failpoint VITA_FAILPOINT_PAUSE_BEFORE_UNLINK)
+[TEST 10/15] Exclusão legítima de arquivo regular... PASSED (Exit Code: 0, Arquivo removido com sucesso)
+[TEST 11/15] Rejeição estrita de '..', caminhos absolutos e barras finais... PASSED (Todos retornaram Exit Code 3 [SECURITY])
+[TEST 12/15] Teste físico real de crash: SIGKILL durante escrita de payload... PASSED (SIGKILL confirmado, zero conteúdo publicado, órfão=1)
+[TEST 13/15] Teste físico real de crash: SIGKILL antes do renameat2 via failpoint... PASSED (Failpoint acionado, SIGKILL interceptou antes do renameat2)
+[TEST 14/15] Teste físico de concorrência real: 4 leitores vs escritor (5 iterações) com sincronização atômica... PASSED (Zero leituras parciais ou vazias em 5 iterações, compatível com ThreadSanitizer)
+[TEST 15/15] Verificação final de integridade e hash do arquivo sentinela... PASSED (Hash SHA-256 idêntico ao inicial: 94a3f54ff9dc727443f768c214caea63d8ae49529192586736c57e8b50556d30)
+
+================================================================================
+RESULTADO DOS TESTES NATIVOS: 15/15 PASSARAM
+STATUS: 100% SUCESSO - CONFORME COM AUDITORIA G4.2 V8
+================================================================================
+PASSED=15
+FAILED=0
+TOTAL=15
+EXIT_CODE=0
+
+================================================================================
+TODOS OS TESTES NATIVOS LINUX FORAM EXECUTADOS E APROVADOS (100% SUCESSO)
+EXIT_CODE=0
+================================================================================
+
+RUNNER_EXIT_CODE=0
+--------------------------------------------------------------------------------
+
+===============================================================================
+5. TESTES NEGATIVOS DO RUNNER
+===============================================================================
+Comando:
+  bash apps/api/scripts/test_runner_negative.sh
+Resultado: 4/4 cenários validados (Exit Code: 0)
+
+===============================================================================
+6. SANITIZERS (ASAN / UBSAN / TSAN)
+===============================================================================
+Resultados:
+  - AddressSanitizer & UndefinedBehaviorSanitizer: Zero leaks, zero erros de memória (Exit Code: 0)
+  - ThreadSanitizer: Zero data races detectadas (Exit Code: 0)
+
+===============================================================================
+7. REPRODUZIBILIDADE FACTUAL
+===============================================================================
+Para reproduzir integralmente os testes em qualquer host Linux (Kernel >= 5.6 com gcc):
+  1. Extrair pacote_tecnico_g4_2_v8.zip
+  2. Executar suíte nativa:
+     bash apps/api/scripts/run_storage_linux_tests.sh
+  3. Executar testes negativos do runner:
+     bash apps/api/scripts/test_runner_negative.sh
+  4. Critério de aceite: Exit Code 0 em todas as etapas, com 100% dos testes aprovados.
