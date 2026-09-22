@@ -16,7 +16,7 @@
 #include <signal.h>
 
 /**
- * HELPER LINUX DE OPERAÇÕES RELATIVAS A DESCRITOR (ANTI-TOCTOU) — VITA SAÚDE (G4.2 V10)
+ * HELPER LINUX DE OPERAÇÕES RELATIVAS A DESCRITOR (ANTI-TOCTOU) — VITA SAÚDE (G4.2 V11)
  *
  * Arquitetura de Navegação Integral Baseada em Descritores:
  * - A raiz é aberta uma única vez com O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW.
@@ -575,6 +575,7 @@ static int cmd_read(const char *root_dir, const char *rel_path) {
             ssize_t w = write(STDOUT_FILENO, buf + total_written, bytes_read - total_written);
             if (w <= 0) {
                 close(fd);
+                if (errno == EPIPE) return EXIT_OK;
                 return EXIT_ERR_OPERATIONAL;
             }
             total_written += w;
@@ -683,6 +684,16 @@ static int cmd_stat(const char *root_dir, const char *rel_path) {
 }
 
 int main(int argc, char *argv[]) {
+    // Ignorar explicitamente SIGPIPE para resiliência de I/O em pipelines e pipes
+    struct sigaction sa_pipe;
+    memset(&sa_pipe, 0, sizeof(sa_pipe));
+    sa_pipe.sa_handler = SIG_IGN;
+    sigemptyset(&sa_pipe.sa_mask);
+    sa_pipe.sa_flags = 0;
+    if (sigaction(SIGPIPE, &sa_pipe, NULL) != 0) {
+        signal(SIGPIPE, SIG_IGN);
+    }
+
     if (argc < 2) {
         fprintf(stderr, "Uso: %s <probe|put|read|unlink|stat> [args...]\n", argv[0]);
         return EXIT_ERR_OPERATIONAL;

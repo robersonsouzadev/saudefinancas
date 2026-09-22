@@ -1,0 +1,15 @@
+================================================================================
+EVIDÊNCIA DE EXECUÇÃO DO PROBE DE CAPABILITIES — FASE G4.2 V11
+Data (UTC): 2026-09-22T18:31:02Z
+Comando: apps/api/scripts/storage_linux_helper probe
+================================================================================
+
+Probe Exit Code: 0
+Probe Output: {"status":"ok","openat2":true,"renameat2_noreplace":true,"proc_self_fd":true}
+
+Validações Específicas do Kernel Linux:
+- openat2(RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS): SUPORTADO (true)
+- sys_renameat2(..., RENAME_NOREPLACE): SUPORTADO (true)
+- /proc/self/fd/ descritores seguros: OPERACIONAL (true)
+
+STATUS FORMAL DO PROBE: OK (Exit Code 0)

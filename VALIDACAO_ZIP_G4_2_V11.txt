@@ -1,0 +1,23 @@
+================================================================================
+RELATÓRIO DE AUDITORIA DE INTEGRIDADE E ESTRUTURA POSIX — FASE G4.2 V11
+Data/Hora (UTC): 2026-09-22T18:33:51Z
+Arquivo:         pacote_tecnico_g4_2_v11.zip
+Tamanho Físico:  4,344,105 bytes (4344105 B)
+SHA-256 Oficial: 8a7595f6dec9a50924c17fe9e48c6eebeaa6d7a95e5f482339e7dc937638c7db
+================================================================================
+
+Total de Entradas no Arquivo ZIP: 107
+- Diretórios Estruturais:         25
+- Arquivos Regulares Gravados:    82
+
+Conformidade POSIX / UNIX:
+- Atributo create_system:         3 (UNIX) em 100% das entradas
+- Permissões de Diretórios:       0755 (-rwxr-xr-x)
+- Permissões de Scripts Executáveis (.sh/.py): 0755 (-rwxr-xr-x)
+- Permissões de Arquivos Regulares:            0644 (-rw-r--r--)
+- Finais de Linha (CRLF check):   100% LF puro (zero CRLF, zero CR solto)
+- Path Traversal / Backslash:     ZERO backslashes (\), ZERO traversals (..)
+- Integridade de Fontes C:        Terminados estritamente com '}\n' (7d 0a)
+
+STATUS DA VALIDAÇÃO ESTRUTURAL: APROVADA COM 100% DE SUCESSO
+================================================================================

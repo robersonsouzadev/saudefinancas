@@ -1,0 +1,60 @@
+================================================================================
+SUÍTE DE TESTES NEGATIVOS DO VERIFICADOR V11 — FASE G4.2
+Verificador: C:\Users\rober\.gemini\antigravity\scratch\SaudeFinancas\verify_v11_package.py
+================================================================================
+
+[TEST NEG 1/16] Simulando: ZIP inexistente...
+  PASS: Verificador rejeitou ZIP inexistente (RC=1).
+
+[TEST NEG 2/16] Simulando: Manifesto ausente no ZIP...
+  PASS: Verificador rejeitou ZIP sem manifesto (RC=1).
+
+[TEST NEG 3/16] Simulando: Linha malformada no manifesto...
+  PASS: Verificador rejeitou manifesto malformado (RC=1).
+
+[TEST NEG 4/16] Simulando: Caminho duplicado no manifesto...
+  PASS: Verificador detectou e rejeitou caminho duplicado (RC=1).
+
+[TEST NEG 5/16] Simulando: Arquivo presente no ZIP não listado no manifesto...
+  PASS: Verificador rejeitou arquivo não listado (RC=1).
+
+[TEST NEG 6/16] Simulando: Hash SHA-256 divergente no manifesto...
+  PASS: Verificador detectou divergência de SHA-256 (RC=1).
+
+[TEST NEG 7/16] Simulando: Symlink injetado dentro do ZIP...
+  PASS: Verificador rejeitou symlink dentro do ZIP (RC=1).
+
+[TEST NEG 8/16] Simulando: Path traversal (..) dentro do ZIP...
+  PASS: Verificador rejeitou path traversal no ZIP (RC=1).
+
+[TEST NEG 9/16] Simulando: Permissão POSIX incompatível (.sh sem 0755)...
+  PASS: Verificador rejeitou script .sh sem permissão 0755 (RC=1).
+
+[TEST NEG 10/16] Simulando: Fonte C com literal '\n' nos bytes finais...
+  PASS: Verificador rejeitou fonte com literal '\n' (RC=1).
+
+[TEST NEG 11/16] Simulando: Arquivo de texto contendo CRLF...
+  PASS: Verificador rejeitou arquivo com CRLF (RC=1).
+
+[TEST NEG 12/16] Simulando: Evidência contendo somente token V11...
+  PASS: Verificador rejeitou evidência com apenas token V11 (RC=1).
+
+[TEST NEG 13/16] Simulando: Evidência com hash de sentinela divergente (94a3f5...)...
+  PASS: Verificador rejeitou evidência com hash de sentinela antigo/divergente (RC=1).
+
+[TEST NEG 14/16] Simulando: Evidência de sanitizers com FAIL...
+  PASS: Verificador rejeitou pacote com FAIL em sanitizer (RC=1).
+
+[TEST NEG 15/16] Validando: ZIP válido em diretório com espaços...
+  PASS: Verificador operou perfeitamente em caminhos com espaços (RC=0).
+
+[TEST NEG 16/16] Validando: Execução de ZIP válido a partir de CWD externo arbitrário...
+  PASS: Verificador operou com 100% de sucesso a partir de CWD externo (RC=0).
+
+================================================================================
+RESUMO DOS TESTES NEGATIVOS DO VERIFICADOR V11: 16/16 PASSARAM
+VERIFIER_NEGATIVE_PASSED=16
+VERIFIER_NEGATIVE_FAILED=0
+VERIFIER_NEGATIVE_TOTAL=16
+VERIFIER_NEGATIVE_EXIT_CODE=0
+================================================================================

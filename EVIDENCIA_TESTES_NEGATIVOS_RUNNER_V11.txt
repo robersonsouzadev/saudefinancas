@@ -1,0 +1,37 @@
+================================================================================
+INICIANDO SUÍTE FORMAL DE TESTES NEGATIVOS DO RUNNER (G4.2 V11)
+Target Runner: apps/api/scripts/run_storage_linux_tests.sh
+Timestamp (UTC): 2026-09-22T18:31:10Z
+================================================================================
+
+[TEST NEG 1/8] Validando: Compilação do helper falha...
+PASS (Cenário 1): Runner abortou no passo [1/5] sem executar probe (RC=1).
+
+[TEST NEG 2/8] Validando: Helper compila, mas probe falha...
+PASS (Cenário 2): Runner abortou no passo [2/5] com Exit Code 2 sem compilar suíte.
+
+[TEST NEG 3/8] Validando: Helper e probe passam, mas compilação da suíte falha...
+PASS (Cenário 3): Runner abortou no passo [3/5] sem executar testes físicos (RC=1).
+
+[TEST NEG 4/8] Validando: Compilação passa, mas binário de testes não é produzido...
+PASS (Cenário 4): Runner abortou com Exit Code 1 ao detectar ausência física do binário de testes.
+
+[TEST NEG 5/8] Validando: Suíte de testes nativos retorna código de erro...
+PASS (Cenário 5): Runner detectou falha na suíte e abortou no passo [4/5] com Exit Code 42.
+
+[TEST NEG 6/8] Validando: Runner nunca emite '100% SUCESSO' em cenários de falha...
+PASS (Cenário 6): Mensagem '100% SUCESSO' ausente em todos os cenários com erro.
+
+[TEST NEG 7/8] Validando: Preservação estrita do Exit Code original de falha...
+PASS (Cenário 7): Exit Code 77 propagado fielmente pelo runner.
+
+[TEST NEG 8/8] Validando: Execução integral válida retorna Exit Code 0...
+PASS (Cenário 8): Execução integral válida aprovada com Exit Code 0.
+
+================================================================================
+RESUMO DOS TESTES NEGATIVOS DO RUNNER (G4.2 V11):
+NEGATIVE_PASSED=8
+NEGATIVE_FAILED=0
+NEGATIVE_TOTAL=8
+NEGATIVE_EXIT_CODE=0
+================================================================================

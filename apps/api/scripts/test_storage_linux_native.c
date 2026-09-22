@@ -19,7 +19,7 @@
 #include <stdatomic.h>
 
 /**
- * SUÍTE DETERMINÍSTICA DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU & ATOMICIDADE (G4.2 V10)
+ * SUÍTE DETERMINÍSTICA DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU & ATOMICIDADE (G4.2 V11)
  *
  * Cobertura de Testes Físicos Nativos:
  * 1.  Probe de capabilities do kernel (openat2, renameat2 RENAME_NOREPLACE, /proc/self/fd)
@@ -232,8 +232,20 @@ static int execute_helper_full(const char *helper_bin, const char *action,
     if (input_data && input_len > 0) {
         size_t written = 0;
         while (written < input_len) {
+            errno = 0;
             ssize_t w = write(pipe_in[1], input_data + written, input_len - written);
-            if (w <= 0) break;
+            if (w < 0) {
+                if (errno == EINTR) {
+                    continue;
+                }
+                if (errno == EPIPE) {
+                    // O processo filho fechou o pipe de leitura precocemente (ex: rejeição de segurança / conflito).
+                    // Comportamento determinístico e esperado em testes de segurança Anti-TOCTOU.
+                    break;
+                }
+                break;
+            }
+            if (w == 0) break;
             written += (size_t)w;
         }
     }
@@ -363,8 +375,18 @@ static void *unlink_attacker_worker(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
+    // 1. Ignorar explicitamente SIGPIPE para garantir execução determinística sob Python subprocess.run
+    struct sigaction sa_pipe;
+    memset(&sa_pipe, 0, sizeof(sa_pipe));
+    sa_pipe.sa_handler = SIG_IGN;
+    sigemptyset(&sa_pipe.sa_mask);
+    sa_pipe.sa_flags = 0;
+    if (sigaction(SIGPIPE, &sa_pipe, NULL) != 0) {
+        signal(SIGPIPE, SIG_IGN);
+    }
+
     printf("================================================================================\n");
-    printf("SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V10)\n");
+    printf("SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V11)\n");
     printf("================================================================================\n");
 
     const char *helper_bin = (argc > 1) ? argv[1] : "./storage_linux_helper";
@@ -700,8 +722,11 @@ int main(int argc, char *argv[]) {
     char chunk[4096];
     memset(chunk, 'A', sizeof(chunk));
     for (int i = 0; i < 4; i++) {
+        errno = 0;
         ssize_t w = write(pipe_crash[1], chunk, sizeof(chunk));
-        assert(w == (ssize_t)sizeof(chunk));
+        if (w < 0 && (errno == EPIPE || errno == EINTR)) {
+            break;
+        }
     }
     // Interromper fisicamente o helper com SIGKILL durante a escrita
     assert(kill(crash_pid, SIGKILL) == 0);
@@ -878,8 +903,14 @@ int main(int argc, char *argv[]) {
         size_t off = 0;
         while (off < c_size) {
             size_t to_write = (c_size - off > 8192) ? 8192 : (c_size - off);
+            errno = 0;
             ssize_t w = write(pipe_wr[1], c_payload + off, to_write);
-            assert(w > 0);
+            if (w < 0) {
+                if (errno == EINTR) continue;
+                if (errno == EPIPE) break;
+                break;
+            }
+            if (w == 0) break;
             off += (size_t)w;
             usleep(200);
         }

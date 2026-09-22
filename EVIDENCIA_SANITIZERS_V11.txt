@@ -1,0 +1,47 @@
+================================================================================
+AUDITORIA REAL DE SANITIZERS GCC — FASE G4.2 V11
+Data (UTC): 2026-09-22T18:31:15Z
+Ambiente: Linux 5.15.0-91-generic x86_64, GCC 11.4.0
+================================================================================
+
+[PROVA 1/3] AddressSanitizer (ASan) + UndefinedBehaviorSanitizer (UBSan):
+Comando Helper: gcc -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Wall -Wextra -Werror -D_GNU_SOURCE apps/api/scripts/storage_linux_helper.c -o bin/helper_asan
+Comando Testes: gcc -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Wall -Wextra -Werror -pthread -D_GNU_SOURCE apps/api/scripts/test_storage_linux_native.c -o bin/tests_asan
+Variáveis de Ambiente: ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 UBSAN_OPTIONS=abort_on_error=1
+Execução: ./bin/tests_asan ./bin/helper_asan
+Exit Code: 0
+Relatório ASan: Zero memory corruption, zero buffer overflows, zero use-after-free detectados.
+Relatório UBSan: Zero undefined behaviors detectados.
+ASAN_STATUS=PASS
+UBSAN_STATUS=PASS
+
+[PROVA 2/3] ThreadSanitizer (TSan):
+Comando Helper: gcc -O1 -g -fsanitize=thread -fno-omit-frame-pointer -Wall -Wextra -Werror -D_GNU_SOURCE apps/api/scripts/storage_linux_helper.c -o bin/helper_tsan
+Comando Testes: gcc -O1 -g -fsanitize=thread -fno-omit-frame-pointer -Wall -Wextra -Werror -pthread -D_GNU_SOURCE apps/api/scripts/test_storage_linux_native.c -o bin/tests_tsan
+Variáveis de Ambiente: TSAN_OPTIONS=abort_on_error=1:report_bugs=1
+Execução: ./bin/tests_tsan ./bin/helper_tsan
+Exit Code: 0
+Relatório TSan: Zero data races detectados durante 5 iterações com 4 threads leitoras concorrentes.
+TSAN_STATUS=PASS
+
+[PROVA 3/3] Prova Separada de LeakSanitizer (LSan):
+Comando Helper: gcc -O1 -g -fsanitize=leak -fno-omit-frame-pointer -Wall -Wextra -Werror -D_GNU_SOURCE apps/api/scripts/storage_linux_helper.c -o bin/helper_lsan
+Comando Testes: gcc -O1 -g -fsanitize=leak -fno-omit-frame-pointer -Wall -Wextra -Werror -pthread -D_GNU_SOURCE apps/api/scripts/test_storage_linux_native.c -o bin/tests_lsan
+Variáveis de Ambiente: LSAN_OPTIONS=abort_on_error=1:report_objects=1
+Execução: ./bin/tests_lsan ./bin/helper_lsan
+Exit Code: 134
+Saída Factual do Runtime (Stderr):
+==10821==LeakSanitizer has encountered a fatal error.
+==10821==HINT: For more details on this error, rerun the program with LSAN_OPTIONS=verbosity=1
+==10821==HINT: LeakSanitizer does not work under ptrace (or similar tools) in unprivileged containers: ptrace(PTRACE_ATTACH) failed: Operation not permitted (errno 1).
+Diagnóstico Técnico: O kernel restringe chamadas ptrace() em ambientes conteinerizados sem privilégios CAP_SYS_PTRACE.
+Não representa vazamento de memória da aplicação.
+LSAN_STATUS=UNAVAILABLE
+
+================================================================================
+CLASSIFICAÇÃO TÉCNICA FINAL DOS SANITIZERS (G4.2 V11):
+ASAN_STATUS=PASS
+UBSAN_STATUS=PASS
+TSAN_STATUS=PASS
+LSAN_STATUS=UNAVAILABLE: ptrace restrito pelo kernel no contêiner atual (Exit Code 134)
+================================================================================

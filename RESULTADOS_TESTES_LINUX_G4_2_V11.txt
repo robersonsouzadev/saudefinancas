@@ -1,0 +1,34 @@
+================================================================================
+RELATÓRIO CONSOLIDADO DOS TESTES NATIVOS LINUX — FASE G4.2 V11
+Data (UTC): 2026-09-22T18:31:20Z
+Host: debian-staging-runner 5.15.0-91-generic x86_64
+================================================================================
+
+1. FONTES EXECUTADOS:
+- storage_linux_helper.c: SHA-256 = 6f9595026eb4cca5afb78c982d05a973bbb5eda88951d669e6b96ef169c0621e
+- test_storage_linux_native.c: SHA-256 = eb0f03201639ea2d39bce596f5a1ae5a89e99e2b261848c8c21cfbe666065caa
+- run_storage_linux_tests.sh: SHA-256 = fcd68a5e9040b999d28c99a67cd6903408b330a091bf66919a82946ef24f0e13
+- test_runner_negative.sh: SHA-256 = 8544cad29f626d95f9777f5fa5c67e7d8f7929d35c052b92e548a1dd2eeb4bdf
+
+2. RESULTADOS DETALHADOS DOS 15 TESTES FÍSICOS NATIVOS:
+[TEST 1/15]  Probe de capabilities: PASSED (Exit Code: 0)
+[TEST 2/15]  Publicação atômica completa (0600, 58B): PASSED (Exit Code: 0)
+[TEST 3/15]  Conflito EEXIST via RENAME_NOREPLACE: PASSED (Exit Code: 2)
+[TEST 4/15]  Ataque symlink intermediário fora da raiz: PASSED (Exit Code: 3)
+[TEST 5/15]  Ataque symlink no basename para sentinela: PASSED (Exit Code: 3)
+[TEST 6/15]  Leitura segura rejeitando symlink: PASSED (Exit Code: 3)
+[TEST 7/15]  Leitura legítima de arquivo existente: PASSED (Exit Code: 0)
+[TEST 8/15]  Exclusão segura (unlink) rejeitando symlink: PASSED (Exit Code: 3)
+[TEST 9/15]  Ataque de troca do diretório pai (Parent Swap): PASSED (Exit Code: 0 [SAFE_BY_DFD])
+[TEST 10/15] Exclusão legítima de arquivo regular: PASSED (Exit Code: 0)
+[TEST 11/15] Rejeição estrita de escape '..', absolutos e barras: PASSED (Exit Code: 3)
+[TEST 12/15] Crash físico: SIGKILL durante escrita de payload: PASSED (SIGKILL confirmado)
+[TEST 13/15] Crash físico: SIGKILL antes do renameat2 via failpoint: PASSED (Interceptado)
+[TEST 14/15] Concorrência: 4 leitores vs escritor (5 iterações): PASSED (Zero leituras parciais)
+[TEST 15/15] Auditoria matemática da sentinela externa: PASSED (Hash intacto: c5ea76d815b5f9dd52cb5bf55801de4a6e2a04113d805cd0e22395e9fc324d07)
+
+3. TESTES NEGATIVOS DO RUNNER: 8/8 PASSARAM (Exit Code 0)
+4. TESTES NEGATIVOS DO VERIFICADOR: 16/16 PASSARAM (Exit Code 0)
+5. TESTE DE REGRESSÃO ANTI-SIGPIPE (PYTHON SUBPROCESS): APROVADO (Exit Code 0)
+
+STATUS OFICIAL: G4.2 = PENDING_EXTERNAL_AUDIT_V11
