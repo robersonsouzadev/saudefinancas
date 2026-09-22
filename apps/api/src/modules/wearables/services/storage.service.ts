@@ -5,16 +5,17 @@ import {
   BadRequestException,
   ConflictException,
   ServiceUnavailableException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { IPrivateObjectStorage, StoredObjectRef } from '../interfaces/storage.interface';
-import { LinuxStorageHelper } from './storage-linux-helper';
+import { LinuxStorageHelper, LinuxStorageHelperError } from './storage-linux-helper';
 
 @Injectable()
-export class PrivateObjectStorageService implements IPrivateObjectStorage {
+export class PrivateObjectStorageService implements IPrivateObjectStorage, OnModuleInit {
   private readonly logger = new Logger(PrivateObjectStorageService.name);
   private readonly basePath: string;
   private testBarrier?: (point: string, meta?: any) => Promise<void> | void;
@@ -33,6 +34,49 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
       this.basePath = fs.realpathSync(rawPath);
     } catch {
       this.basePath = rawPath;
+    }
+  }
+
+  onModuleInit(): void {
+    const nodeEnv = (process.env.NODE_ENV || '').toLowerCase();
+    const appEnv = (process.env.APP_ENV || '').toLowerCase();
+    const isStagingOrProd =
+      nodeEnv === 'staging' || nodeEnv === 'production' ||
+      appEnv === 'staging' || appEnv === 'production';
+
+    const isHelperAvailable = LinuxStorageHelper.isLinuxDescriptorHelperAvailable();
+
+    if (isStagingOrProd) {
+      if (!isHelperAvailable) {
+        const probe = LinuxStorageHelper.runProbe();
+        const reason = probe.rawStderr || `Exit Code ${probe.exitCode}`;
+        this.logger.error(
+          `[FAIL_CLOSED] O storage LOCAL_SECURE requer o helper Linux baseado em descritores (openat2, renameat2) funcional. Inicialização abortada em ambiente ${nodeEnv || appEnv}. Causa: ${reason}`,
+        );
+        throw new Error(
+          `[FAIL_CLOSED] Storage seguro requer contrato de descritores Linux (openat2 + renameat2). Ambiente ${nodeEnv || appEnv} não suporta fallback.`,
+        );
+      }
+      this.logger.log('[STORAGE_INIT] Storage seguro inicializado com helper Linux baseado em descritores.');
+    } else {
+      // Ambiente local / testes
+      if (!isHelperAvailable) {
+        const allowFallback =
+          process.env.ALLOW_INSECURE_STORAGE_FALLBACK === 'true' ||
+          process.env.ALLOW_TEST_DESCRIPTOR_EMULATION === 'true' ||
+          nodeEnv === 'test' ||
+          nodeEnv === 'development' ||
+          !nodeEnv;
+
+        if (!allowFallback) {
+          throw new Error(
+            `[FAIL_CLOSED] Helper Linux não disponível e fallback não autorizado explicitamente (defina ALLOW_INSECURE_STORAGE_FALLBACK=true para desenvolvimento).`,
+          );
+        }
+        this.logger.warn(
+          '[STORAGE_INIT] Operando em modo de emulação de descritores para testes locais. Não autorizado para staging/produção.',
+        );
+      }
     }
   }
 
@@ -76,8 +120,8 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
     const root = this.basePath;
 
     while (current.length >= root.length) {
-      if (fs.existsSync(current)) {
-        const stat = fs.lstatSync(current);
+      const stat = fs.lstatSync(current, { throwIfNoEntry: false });
+      if (stat) {
         if (stat.isSymbolicLink()) {
           throw new BadRequestException(`Symlinks proibidos no storage: symlink detectado na árvore de diretórios (${current})`);
         }
@@ -100,13 +144,19 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
     }
   }
 
+  /**
+   * Publicação rigorosamente atômica de objeto no storage.
+   * Cria temporário no mesmo diretório pai seguro, escreve todo o payload,
+   * executa fsync, fchmod 0600 e publica com renameat2(RENAME_NOREPLACE) ou renameSync.
+   * Nenhum leitor pode observar arquivo vazio ou parcial.
+   */
   async putObject(key: string, buffer: Buffer, expectedSha256?: string): Promise<StoredObjectRef> {
     const { fullPath, dirPath, sanitizedKey } = this.validateAndResolveKey(key);
 
     try {
       this.validateNoSymlinksInPath(dirPath);
 
-      // Verificação preliminar do destino com lstat (detecta symlinks quebrados ou existentes)
+      // Verificação preliminar do destino com lstat seguro
       const preStat = fs.lstatSync(fullPath, { throwIfNoEntry: false });
       if (preStat) {
         if (preStat.isSymbolicLink()) {
@@ -119,20 +169,50 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
         fs.mkdirSync(dirPath, { recursive: true, mode: 0o700 });
       }
 
-      // Validação de integridade do payload antes da escrita
+      // Validação de integridade do payload antes da gravação
       const calculatedSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
       if (expectedSha256 && calculatedSha256 !== expectedSha256) {
         throw new BadRequestException('SHA-256 do buffer não corresponde ao hash esperado antes da gravação.');
       }
 
-      // Escrita segura em diretório temporário restrito à raiz autorizada do storage
-      const tmpUploadsDir = path.join(this.basePath, '.tmp_uploads');
-      if (!fs.existsSync(tmpUploadsDir)) {
-        fs.mkdirSync(tmpUploadsDir, { recursive: true, mode: 0o700 });
+      // Ponto de sincronização determinístico pré-escrita para testes
+      if (this.testBarrier) {
+        await this.testBarrier('pre-write', { key: sanitizedKey, dirPath, fullPath });
       }
 
+      // 1. VIA HELPER LINUX BASEADO EM DESCRITORES (openat2, RESOLVE_BENEATH, renameat2 RENAME_NOREPLACE)
+      if (LinuxStorageHelper.isLinuxDescriptorHelperAvailable()) {
+        const targetRel = sanitizedKey.replace(/\\/g, '/');
+        try {
+          if (this.testBarrier) {
+            await this.testBarrier('pre-publish', { key: sanitizedKey, dirPath, fullPath });
+          }
+          LinuxStorageHelper.putAtomic(this.basePath, targetRel, buffer);
+          return {
+            storageKey: targetRel,
+            storageDriver: 'LOCAL_SECURE',
+            fileSizeBytes: buffer.length,
+          };
+        } catch (err: any) {
+          if (err instanceof LinuxStorageHelperError) {
+            if (err.exitCode === 2) {
+              throw new ConflictException(`Conflito de storage: arquivo já existe em destino (${sanitizedKey}). Sobrescrita proibida.`);
+            }
+            if (err.exitCode === 3) {
+              throw new BadRequestException(`Symlinks proibidos no storage: ${err.message}`);
+            }
+            if (err.exitCode === 4) {
+              throw new ServiceUnavailableException(`Recurso openat2 indisponível: ${err.message}`);
+            }
+          }
+          throw new BadRequestException(`Falha ao gravar arquivo via descritor seguro: ${err.message}`);
+        }
+      }
+
+      // 2. MODO DE EMULAÇÃO DE DESCRITORES PARA AMBIENTE LOCAL / TESTES
+      // O temporário DEVE ser criado dentro do mesmo diretório pai seguro do destino!
       const tempFileName = `.tmp_${crypto.randomBytes(16).toString('hex')}`;
-      const tempPath = path.join(tmpUploadsDir, tempFileName);
+      const tempPath = path.join(dirPath, tempFileName);
 
       const openFlags =
         fs.constants.O_CREAT |
@@ -141,104 +221,55 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
         (fs.constants.O_NOFOLLOW || 0);
 
       // Gravação em arquivo temporário com permissões estritas 0600
-      const fileHandle = await fs.promises.open(tempPath, openFlags, 0o600);
-      await fileHandle.writeFile(buffer);
-      await fileHandle.sync(); // fsync do arquivo temporário
-      await fileHandle.close();
+      let fileHandle: fs.promises.FileHandle | null = null;
+      try {
+        fileHandle = await fs.promises.open(tempPath, openFlags, 0o600);
+        await fileHandle.writeFile(buffer);
+        await fileHandle.sync(); // fsync do arquivo temporário
+      } finally {
+        if (fileHandle) {
+          await fileHandle.close().catch(() => {});
+        }
+      }
 
       // Ponto de sincronização determinístico para testes (Anti-TOCTOU barrier)
       if (this.testBarrier) {
         await this.testBarrier('pre-publish', { key: sanitizedKey, dirPath, fullPath, tempPath });
       }
 
-      // 1. VIA HELPER LINUX BASEADO EM DESCRITORES (openat2, RESOLVE_BENEATH, linkat, unlinkat)
-      if (LinuxStorageHelper.isLinuxDescriptorHelperAvailable()) {
-        const tempRel = path.relative(this.basePath, tempPath).replace(/\\/g, '/');
-        const targetRel = sanitizedKey.replace(/\\/g, '/');
-        const helperRes = LinuxStorageHelper.write(this.basePath, targetRel, tempRel);
-        await fs.promises.unlink(tempPath).catch(() => {});
-
-        if (!helperRes.success) {
-          if (helperRes.exitCode === 2 || helperRes.stderr?.includes('[EEXIST]')) {
-            throw new ConflictException(`Conflito de storage: arquivo já existe em destino (${sanitizedKey}). Sobrescrita proibida.`);
-          }
-          if (helperRes.stderr?.includes('SECURITY_') || helperRes.stderr?.includes('symlink')) {
-            throw new BadRequestException(`Symlinks proibidos no storage: ${helperRes.stderr.trim()}`);
-          }
-          throw new BadRequestException(`Falha de segurança no storage via descritores: ${helperRes.stderr || 'erro descritor'}`);
-        }
-
-        return {
-          storageKey: sanitizedKey.replace(/\\/g, '/'),
-          storageDriver: 'LOCAL_SECURE',
-          fileSizeBytes: buffer.length,
-        };
-      }
-
-      // 2. FALLBACK PORTÁTIL DE DESCRITORES (DESENVOLVIMENTO LOCAL / TESTES)
       const dirOpenFlags = fs.constants.O_RDONLY | (fs.constants.O_DIRECTORY || 0) | (fs.constants.O_NOFOLLOW || 0);
       let dirHandle: fs.promises.FileHandle | null = null;
 
       try {
         dirHandle = await fs.promises.open(dirPath, dirOpenFlags);
-        if (fs.existsSync(`/proc/self/fd/${dirHandle.fd}`)) {
-          const canonicalDirPath = fs.realpathSync(`/proc/self/fd/${dirHandle.fd}`);
-          if (!canonicalDirPath.startsWith(this.basePath + path.sep) && canonicalDirPath !== this.basePath) {
-            throw new BadRequestException('Symlinks proibidos no storage: escape de diretório detectado via descritor.');
-          }
-        }
 
         // Re-validação anti-TOCTOU mantendo o descritor de diretório aberto
         this.validateNoSymlinksInPath(dirPath);
-        if (fs.existsSync(fullPath)) {
-          const postBarrierStat = fs.lstatSync(fullPath);
+
+        const postBarrierStat = fs.lstatSync(fullPath, { throwIfNoEntry: false });
+        if (postBarrierStat) {
           if (postBarrierStat.isSymbolicLink()) {
-            throw new BadRequestException('Symlinks proibidos no storage: symlink detectado no caminho alvo pós-barreira.');
-          }
-        }
-
-        // Publicação atômica NO-CLOBBER via fs.promises.link
-        await fs.promises.link(tempPath, fullPath);
-
-        // Verificação pós-publicação do arquivo final aberto via O_NOFOLLOW
-        const checkOpenFlags = fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0);
-        let checkHandle: fs.promises.FileHandle | null = null;
-        try {
-          checkHandle = await fs.promises.open(fullPath, checkOpenFlags);
-          if (fs.existsSync(`/proc/self/fd/${checkHandle.fd}`)) {
-            const canonicalPublished = fs.realpathSync(`/proc/self/fd/${checkHandle.fd}`);
-            if (!canonicalPublished.startsWith(this.basePath + path.sep)) {
-              await fs.promises.unlink(fullPath).catch(() => {});
-              throw new BadRequestException('Symlinks proibidos no storage: escape pós-publicação detectado.');
-            }
-          }
-          const canonicalOnDisk = fs.realpathSync(fullPath);
-          if (!canonicalOnDisk.startsWith(this.basePath + path.sep)) {
-            await fs.promises.unlink(fullPath).catch(() => {});
-            throw new BadRequestException('Symlinks proibidos no storage: escape pós-publicação detectado.');
-          }
-        } finally {
-          if (checkHandle) {
-            await checkHandle.close().catch(() => {});
-          }
-        }
-
-        // fsync do diretório pai para durabilidade dos metadados com descritor aberto
-        await dirHandle.sync().catch(() => {});
-      } catch (linkErr: any) {
-        if (linkErr.code === 'EEXIST') {
-          const checkStat = fs.lstatSync(fullPath, { throwIfNoEntry: false });
-          if (checkStat && checkStat.isSymbolicLink()) {
-            throw new BadRequestException(`Symlinks proibidos no storage: tentativa de sobrescrita de symlink.`);
+            throw new BadRequestException('Symlinks proibidos no storage: symlink detectado no caminho alvo.');
           }
           throw new ConflictException(`Conflito de storage: arquivo já existe em destino (${sanitizedKey}). Sobrescrita proibida.`);
         }
-        throw linkErr;
+
+        // Publicação atômica
+        await fs.promises.rename(tempPath, fullPath);
+
+        // fsync do diretório pai para durabilidade dos metadados com descritor aberto
+        await dirHandle.sync().catch(() => {});
+      } catch (publishErr: any) {
+        // Remover apenas o arquivo temporário pertencente a esta operação
+        await fs.promises.unlink(tempPath).catch(() => {});
+        if (publishErr.code === 'EEXIST' || publishErr instanceof ConflictException) {
+          throw new ConflictException(`Conflito de storage: arquivo já existe em destino (${sanitizedKey}). Sobrescrita proibida.`);
+        }
+        throw publishErr;
       } finally {
         if (dirHandle) {
           await dirHandle.close().catch(() => {});
         }
-        await fs.promises.unlink(tempPath).catch(() => {});
       }
 
       return {
@@ -247,7 +278,7 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
         fileSizeBytes: buffer.length,
       };
     } catch (err: any) {
-      if (err instanceof BadRequestException || err instanceof ConflictException) {
+      if (err instanceof BadRequestException || err instanceof ConflictException || err instanceof ServiceUnavailableException) {
         throw err;
       }
       if (err.code === 'EACCES' || err.code === 'EROFS' || err.code === 'ENOSPC') {
@@ -262,10 +293,6 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
     const { fullPath, dirPath, sanitizedKey } = this.validateAndResolveKey(key);
 
     try {
-      if (!fs.existsSync(fullPath)) {
-        throw new NotFoundException(`Objeto de storage não encontrado: ${key}`);
-      }
-
       // Ponto de sincronização determinístico para testes de leitura
       if (this.testBarrier) {
         await this.testBarrier('pre-read', { key: sanitizedKey, dirPath, fullPath });
@@ -274,26 +301,34 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
       // 1. VIA HELPER LINUX BASEADO EM DESCRITORES
       if (LinuxStorageHelper.isLinuxDescriptorHelperAvailable()) {
         const targetRel = sanitizedKey.replace(/\\/g, '/');
-        const helperRes = LinuxStorageHelper.read(this.basePath, targetRel);
-        if (!helperRes.success) {
-          if (helperRes.stderr?.includes('SECURITY_') || helperRes.stderr?.includes('symlink')) {
-            throw new BadRequestException(`Symlinks proibidos no storage: ${helperRes.stderr.trim()}`);
+        try {
+          const buffer = LinuxStorageHelper.readSafe(this.basePath, targetRel);
+          if (expectedSha256) {
+            const readSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+            if (readSha256 !== expectedSha256) {
+              throw new BadRequestException(`Violação de integridade no storage: SHA-256 lido difere do esperado.`);
+            }
           }
-          throw new NotFoundException(`Objeto de storage não encontrado: ${key}`);
-        }
-        const buffer = helperRes.stdout || Buffer.alloc(0);
-        if (expectedSha256) {
-          const readSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
-          if (readSha256 !== expectedSha256) {
-            throw new BadRequestException(`Violação de integridade no storage: SHA-256 lido difere do esperado.`);
+          return buffer;
+        } catch (err: any) {
+          if (err instanceof LinuxStorageHelperError) {
+            if (err.exitCode === 3) {
+              throw new BadRequestException(`Symlinks proibidos no storage: ${err.message}`);
+            }
+            if (err.exitCode === 1) {
+              throw new NotFoundException(`Objeto de storage não encontrado: ${key}`);
+            }
           }
+          throw err;
         }
-        return buffer;
       }
 
-      // 2. FALLBACK PORTÁTIL DE DESCRITORES
+      // 2. MODO DE EMULAÇÃO LOCAL
       this.validateNoSymlinksInPath(fullPath);
-      const preStat = fs.lstatSync(fullPath);
+      const preStat = fs.lstatSync(fullPath, { throwIfNoEntry: false });
+      if (!preStat) {
+        throw new NotFoundException(`Objeto de storage não encontrado: ${key}`);
+      }
       if (preStat.isSymbolicLink()) {
         throw new BadRequestException('Symlinks proibidos no storage: symlink detectado na leitura.');
       }
@@ -302,19 +337,6 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
       let fileHandle: fs.promises.FileHandle | null = null;
       try {
         fileHandle = await fs.promises.open(fullPath, openFlags);
-
-        if (fs.existsSync(`/proc/self/fd/${fileHandle.fd}`)) {
-          const canonicalFdPath = fs.realpathSync(`/proc/self/fd/${fileHandle.fd}`);
-          if (!canonicalFdPath.startsWith(this.basePath + path.sep)) {
-            throw new BadRequestException('Symlinks proibidos no storage: escape de diretório intermediário detectado via descritor.');
-          }
-        }
-
-        const canonicalFile = fs.realpathSync(fullPath);
-        if (!canonicalFile.startsWith(this.basePath + path.sep)) {
-          throw new BadRequestException('Symlinks proibidos no storage: escape de diretório intermediário detectado.');
-        }
-
         const stat = await fileHandle.stat();
         if (!stat.isFile()) {
           throw new BadRequestException('Recurso no storage não é um arquivo regular.');
@@ -325,7 +347,9 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
         if (expectedSha256) {
           const readSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
           if (readSha256 !== expectedSha256) {
-            throw new BadRequestException(`Violação de integridade no storage: SHA-256 lido (${readSha256}) difere do esperado (${expectedSha256}).`);
+            throw new BadRequestException(
+              `Violação de integridade no storage: SHA-256 lido (${readSha256}) difere do esperado (${expectedSha256}).`,
+            );
           }
         }
 
@@ -338,6 +362,9 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
     } catch (err: any) {
       if (err instanceof NotFoundException || err instanceof BadRequestException) {
         throw err;
+      }
+      if (err.code === 'ENOENT') {
+        throw new NotFoundException(`Objeto de storage não encontrado: ${key}`);
       }
       if (err.code === 'ELOOP' || err.code === 'EINVAL') {
         throw new BadRequestException('Symlinks proibidos no storage.');
@@ -353,37 +380,44 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
   async deleteObject(key: string): Promise<void> {
     const { fullPath, sanitizedKey } = this.validateAndResolveKey(key);
 
-    if (fs.existsSync(fullPath)) {
-      if (this.testBarrier) {
-        await this.testBarrier('pre-delete', { key, fullPath });
-      }
+    if (this.testBarrier) {
+      await this.testBarrier('pre-delete', { key, fullPath });
+    }
 
-      // 1. VIA HELPER LINUX BASEADO EM DESCRITORES
-      if (LinuxStorageHelper.isLinuxDescriptorHelperAvailable()) {
-        const targetRel = sanitizedKey.replace(/\\/g, '/');
-        const helperRes = LinuxStorageHelper.unlink(this.basePath, targetRel);
-        if (!helperRes.success) {
-          if (helperRes.stderr?.includes('SECURITY_') || helperRes.stderr?.includes('symlink')) {
+    // 1. VIA HELPER LINUX BASEADO EM DESCRITORES
+    if (LinuxStorageHelper.isLinuxDescriptorHelperAvailable()) {
+      const targetRel = sanitizedKey.replace(/\\/g, '/');
+      try {
+        LinuxStorageHelper.unlinkSafe(this.basePath, targetRel);
+        return;
+      } catch (err: any) {
+        if (err instanceof LinuxStorageHelperError) {
+          if (err.exitCode === 3) {
             throw new BadRequestException('Tentativa de remoção de symlink proibido no storage.');
           }
-          throw new Error(`Falha ao remover arquivo do storage: ${helperRes.stderr}`);
+          if (err.exitCode === 1) {
+            // Se não existe, idempotente
+            return;
+          }
         }
-        return;
+        throw err;
       }
+    }
 
-      // 2. FALLBACK PORTÁTIL DE DESCRITORES
-      this.validateNoSymlinksInPath(fullPath);
-      const lstat = await fs.promises.lstat(fullPath);
-      if (lstat.isSymbolicLink()) {
-        throw new BadRequestException('Tentativa de remoção de symlink proibido no storage.');
-      }
-      try {
-        await fs.promises.unlink(fullPath);
-      } catch (unlinkErr: any) {
-        if (unlinkErr.code !== 'ENOENT') {
-          this.logger.error(`Falha ao remover arquivo do storage: ${key}. Erro: ${unlinkErr?.message}`);
-          throw unlinkErr;
-        }
+    // 2. MODO DE EMULAÇÃO LOCAL
+    const stat = fs.lstatSync(fullPath, { throwIfNoEntry: false });
+    if (!stat) return;
+    if (stat.isSymbolicLink()) {
+      throw new BadRequestException('Tentativa de remoção de symlink proibido no storage.');
+    }
+
+    this.validateNoSymlinksInPath(fullPath);
+    try {
+      await fs.promises.unlink(fullPath);
+    } catch (unlinkErr: any) {
+      if (unlinkErr.code !== 'ENOENT') {
+        this.logger.error(`Falha ao remover arquivo do storage: ${key}. Erro: ${unlinkErr?.message}`);
+        throw unlinkErr;
       }
     }
   }
@@ -402,11 +436,10 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
           walk(res);
         } else {
           // Ignora arquivos temporários de escrita em andamento
-          if (entry.name.startsWith('.tmp_')) continue;
+          if (entry.name.startsWith('.tmp_') || entry.name.startsWith('.tmp.')) continue;
 
           const relKey = path.relative(this.basePath, res).replace(/\\/g, '/');
           if (!knownKeys.has(relKey)) {
-            // PROTEÇÃO ANTI-TOCTOU: só considerar órfão se mtime > grace period (default 1 hora)
             try {
               const stat = fs.statSync(res);
               if (stat.mtimeMs < cutoffTime) {
@@ -417,7 +450,7 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
                 );
               }
             } catch {
-              // Se stat falhar, ignorar silenciosamente
+              // Se stat falhar, ignorar
             }
           }
         }
@@ -438,4 +471,3 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
     }
   }
 }
-

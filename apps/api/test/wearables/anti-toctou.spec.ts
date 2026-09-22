@@ -64,12 +64,10 @@ describe('Anti-TOCTOU Concorrente: Leitura, Escrita e Exclusão Protegidas por D
     // Comprovação estrita: NENHUM arquivo foi criado fora da raiz autorizada
     expect(fs.existsSync(nonExistentExternalFile)).toBe(false);
 
-    // Comprovação estrita: Nenhum arquivo temporário permaneceu em .tmp_uploads
-    const tmpDir = path.join(testStorageDir, '.tmp_uploads');
-    if (fs.existsSync(tmpDir)) {
-      const tmpEntries = fs.readdirSync(tmpDir);
-      expect(tmpEntries.length).toBe(0);
-    }
+    // Comprovação estrita: Nenhum arquivo temporário permaneceu no diretório pai
+    const parentEntries = fs.readdirSync(path.dirname(symlinkFullPath));
+    const tmpRemaining = parentEntries.filter((f) => f.startsWith('.tmp'));
+    expect(tmpRemaining.length).toBe(0);
   });
 
   // ---------------------------------------------------------------------------
@@ -354,6 +352,35 @@ describe('Anti-TOCTOU Concorrente: Leitura, Escrita e Exclusão Protegidas por D
     } else {
       // Ambiente de desenvolvimento Windows: helper Linux só executa em target POSIX
       expect(helperAvailable).toBe(false);
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // 7. FAIL-CLOSED NO STARTUP EM STAGING E PRODUÇÃO
+  // ---------------------------------------------------------------------------
+  it('Fail-Closed: inicialização em staging ou produção sem helper funcional deve abortar com erro fechado', () => {
+    const configMock = {
+      get: (key: string) => {
+        if (key === 'STORAGE_PATH') return testStorageDir;
+        return null;
+      },
+    } as unknown as ConfigService;
+
+    const originalNodeEnv = process.env.NODE_ENV;
+    const originalAppEnv = process.env.APP_ENV;
+
+    try {
+      // Simula ambiente staging
+      process.env.NODE_ENV = 'staging';
+      process.env.APP_ENV = 'staging';
+
+      const s = new PrivateObjectStorageService(configMock);
+      if (process.platform !== 'linux') {
+        expect(() => s.onModuleInit()).toThrow(/\[FAIL_CLOSED\]/);
+      }
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
+      process.env.APP_ENV = originalAppEnv;
     }
   });
 });
