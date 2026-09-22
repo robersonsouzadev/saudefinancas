@@ -1,0 +1,131 @@
+================================================================================
+AUDITORIA EXTERNA DE CONFORMIDADE ESTRUTURAL POSIX DO ZIP (G4.2 V10)
+================================================================================
+Arquivo Auditado: pacote_tecnico_g4_2_v10.zip
+Tamanho Físico:   1,576,037 bytes
+SHA-256:          bead080d1747c224801c2ca49d9e03148c783262e46208b900bf710706a79c42
+Total de Entradas:107
+Total de Arquivos:82
+Total Diretórios: 25
+================================================================================
+
+INSPEÇÃO DETALHADA DAS ENTRADAS POSIX NO PACOTE:
+--------------------------------------------------------------------------------
+Tipo   | Modo   |   Tamanho | Nome no ZIP
+--------------------------------------------------------------------------------
+DIR    | 755    |         0 | apps/
+DIR    | 755    |         0 | apps/api/
+DIR    | 755    |         0 | apps/api/prisma/
+DIR    | 755    |         0 | apps/api/prisma/migrations/
+DIR    | 755    |         0 | apps/api/prisma/migrations/20260801000000_baseline/
+DIR    | 755    |         0 | apps/api/prisma/migrations/20260921191000_wearables_fit_importer/
+DIR    | 755    |         0 | apps/api/prisma/migrations/20260921200000_imported_file_lease_fencing/
+DIR    | 755    |         0 | apps/api/prisma/migrations/20260921220000_temporal_invariants_and_utc_fencing/
+DIR    | 755    |         0 | apps/api/scripts/
+DIR    | 755    |         0 | apps/api/src/
+DIR    | 755    |         0 | apps/api/src/modules/
+DIR    | 755    |         0 | apps/api/src/modules/health/
+DIR    | 755    |         0 | apps/api/src/modules/wearables/
+DIR    | 755    |         0 | apps/api/src/modules/wearables/controllers/
+DIR    | 755    |         0 | apps/api/src/modules/wearables/interfaces/
+DIR    | 755    |         0 | apps/api/src/modules/wearables/processors/
+DIR    | 755    |         0 | apps/api/src/modules/wearables/services/
+DIR    | 755    |         0 | apps/api/src/prisma/
+DIR    | 755    |         0 | apps/api/test/
+DIR    | 755    |         0 | apps/api/test/infra/
+DIR    | 755    |         0 | apps/api/test/integration/
+DIR    | 755    |         0 | apps/api/test/wearables/
+DIR    | 755    |         0 | docs/
+DIR    | 755    |         0 | docs/adr/
+DIR    | 755    |         0 | docs/runbooks/
+FILE   | 644    |      1277 | .env.staging.example
+FILE   | 644    |      1054 | .env.staging.validation
+FILE   | 644    |       108 | .gitattributes
+FILE   | 644    |       553 | .gitignore
+FILE   | 644    |      1517 | EVIDENCIA_COMPILACAO_HELPER_V10.txt
+FILE   | 644    |      1619 | EVIDENCIA_PROBE_CAPABILITIES_V10.txt
+FILE   | 644    |      4091 | EVIDENCIA_RUNNER_STORAGE_LINUX_V10.txt
+FILE   | 644    |      3098 | EVIDENCIA_SANITIZERS_V10.txt
+FILE   | 644    |      2479 | EVIDENCIA_TESTES_NEGATIVOS_RUNNER_V10.txt
+FILE   | 644    |      1909 | EVIDENCIA_TESTES_NEGATIVOS_VERIFICADOR_V10.txt
+FILE   | 644    |      8972 | MANIFEST_SHA256SUMS_V10.txt
+FILE   | 644    |     19099 | RELATORIO_ENTREGA_G4_2_V10.md
+FILE   | 644    |      7401 | RESULTADOS_TESTES_LINUX_G4_2_V10.txt
+FILE   | 644    |      1850 | apps/api/Dockerfile
+FILE   | 644    |       305 | apps/api/nest-cli.json
+FILE   | 644    |      1928 | apps/api/package.json
+FILE   | 644    |     31980 | apps/api/prisma/migrations/20260801000000_baseline/migration.sql
+FILE   | 644    |      9299 | apps/api/prisma/migrations/20260921191000_wearables_fit_importer/migration.sql
+FILE   | 644    |      1570 | apps/api/prisma/migrations/20260921191000_wearables_fit_importer/rollback.sql
+FILE   | 644    |      1105 | apps/api/prisma/migrations/20260921200000_imported_file_lease_fencing/migration.sql
+FILE   | 644    |       894 | apps/api/prisma/migrations/20260921200000_imported_file_lease_fencing/rollback.sql
+FILE   | 644    |      1493 | apps/api/prisma/migrations/20260921220000_temporal_invariants_and_utc_fencing/migration.sql
+FILE   | 644    |      1054 | apps/api/prisma/migrations/20260921220000_temporal_invariants_and_utc_fencing/rollback.sql
+FILE   | 644    |        64 | apps/api/prisma/migrations/migration_lock.toml
+FILE   | 644    |     33515 | apps/api/prisma/schema.prisma
+FILE   | 644    |     13464 | apps/api/prisma/seed.ts
+FILE   | 755    |      2834 | apps/api/scripts/backup_production_safeguard.sh
+FILE   | 644    |      2796 | apps/api/scripts/bootstrap_staging_post_migration.sql
+FILE   | 644    |      2813 | apps/api/scripts/bootstrap_staging_pre_migration.sql
+FILE   | 755    |     12342 | apps/api/scripts/monitor_staging_vps.sh
+FILE   | 644    |     12556 | apps/api/scripts/preflight_temporal_check.mjs
+FILE   | 755    |      3801 | apps/api/scripts/run_storage_linux_tests.sh
+FILE   | 644    |     26269 | apps/api/scripts/storage_linux_helper.c
+FILE   | 755    |     11202 | apps/api/scripts/test_runner_negative.sh
+FILE   | 644    |     19608 | apps/api/scripts/test_sigkill_worker_recovery.mjs
+FILE   | 644    |     37291 | apps/api/scripts/test_storage_linux_native.c
+FILE   | 644    |     14096 | apps/api/scripts/verify_migration_timeouts.mjs
+FILE   | 644    |     23612 | apps/api/scripts/vps_isolation_guard_rail.mjs
+FILE   | 644    |      2468 | apps/api/src/app.module.ts
+FILE   | 644    |       670 | apps/api/src/main.ts
+FILE   | 644    |      3710 | apps/api/src/modules/health/health.controller.ts
+FILE   | 644    |       820 | apps/api/src/modules/health/health.module.ts
+FILE   | 644    |     12137 | apps/api/src/modules/wearables/controllers/wearables.controller.ts
+FILE   | 644    |       421 | apps/api/src/modules/wearables/interfaces/storage.interface.ts
+FILE   | 644    |     14650 | apps/api/src/modules/wearables/processors/fit-processing.service.ts
+FILE   | 644    |      4671 | apps/api/src/modules/wearables/services/fit-importer.service.ts
+FILE   | 644    |      6018 | apps/api/src/modules/wearables/services/outbox-reconciliation.service.ts
+FILE   | 644    |      8849 | apps/api/src/modules/wearables/services/storage-linux-helper.ts
+FILE   | 644    |     18572 | apps/api/src/modules/wearables/services/storage.service.ts
+FILE   | 644    |      4825 | apps/api/src/modules/wearables/services/wearables-observability.service.ts
+FILE   | 644    |      2257 | apps/api/src/modules/wearables/wearables.module.ts
+FILE   | 644    |      1101 | apps/api/src/prisma/prisma.service.ts
+FILE   | 644    |      1887 | apps/api/src/worker.ts
+FILE   | 644    |     27243 | apps/api/test/infra/run_e2e_http_audit.mjs
+FILE   | 644    |      9911 | apps/api/test/infra/run_migrations_test.mjs
+FILE   | 644    |      5482 | apps/api/test/infra/test-storage-backup-restore.mjs
+FILE   | 644    |      8995 | apps/api/test/integration/compiled-runtime-e2e.spec.ts
+FILE   | 644    |      6214 | apps/api/test/integration/health.spec.ts
+FILE   | 644    |      5991 | apps/api/test/integration/http-regression.spec.ts
+FILE   | 644    |     17286 | apps/api/test/integration/postgres-real.spec.ts
+FILE   | 644    |      3730 | apps/api/test/integration/preflight.spec.ts
+FILE   | 644    |      4985 | apps/api/test/integration/redaction-pii.spec.ts
+FILE   | 644    |      7319 | apps/api/test/integration/redis-bullmq-real.spec.ts
+FILE   | 644    |      7947 | apps/api/test/integration/utc-pool-resilience.spec.ts
+FILE   | 644    |     12830 | apps/api/test/integration/worker-resilience.spec.ts
+FILE   | 644    |     17819 | apps/api/test/wearables/anti-toctou.spec.ts
+FILE   | 644    |      8570 | apps/api/test/wearables/concurrency-compensation.spec.ts
+FILE   | 644    |      4178 | apps/api/test/wearables/fit-binary-validation.spec.ts
+FILE   | 644    |      5171 | apps/api/test/wearables/fit-normalizer.spec.ts
+FILE   | 644    |      1788 | apps/api/test/wearables/fit-worker-supervisor.spec.ts
+FILE   | 644    |      1641 | apps/api/test/wearables/pseudonymization.spec.ts
+FILE   | 644    |      5236 | apps/api/test/wearables/storage.spec.ts
+FILE   | 644    |       546 | apps/api/tsconfig.json
+FILE   | 644    |     21971 | build_v10_package.py
+FILE   | 644    |    418354 | diff_g4_2_v10.patch
+FILE   | 644    |      4472 | docker-compose.staging.yml
+FILE   | 644    |      3517 | docs/adr/001-utc-timestamp-strategy.md
+FILE   | 644    |      9020 | docs/runbooks/staging_deploy_wearables.md
+FILE   | 644    |    507861 | package-lock.json
+FILE   | 644    |       358 | package.json
+FILE   | 644    |     13070 | test_verifier_negative.py
+FILE   | 644    |     13800 | verify_v10_package.py
+--------------------------------------------------------------------------------
+ATESTADO FORMAL DE CONFORMIDADE POSIX:
+  [OK] 100% das entradas gravadas com create_system == 3 (UNIX)
+  [OK] Zero caminhos com barras invertidas (\)
+  [OK] Zero caminhos absolutos ou sequências de escape ('..')
+  [OK] Diretórios e scripts .sh com permissão estrita 0755
+  [OK] Arquivos regulares com permissão estrita 0644
+  [OK] Verificação de integridade pós-fechamento sem paradoxo de autorreferência
+================================================================================

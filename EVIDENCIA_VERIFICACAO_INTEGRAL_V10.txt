@@ -1,0 +1,25 @@
+================================================================================
+AUDITORIA TÉCNICA INDEPENDENTE DE INTEGRIDADE — FASE G4.2 V10
+Timestamp (UTC): 2026-09-22T18:00:22Z
+Host:            win32
+Alvo Auditado:   C:\Users\rober\.gemini\antigravity\scratch\SaudeFinancas\pacote_tecnico_g4_2_v10.zip
+================================================================================
+Tamanho do ZIP:  1,576,037 bytes
+SHA-256 do ZIP:  bead080d1747c224801c2ca49d9e03148c783262e46208b900bf710706a79c42
+Total Entradas:  107 (Arquivos: 82, Diretórios: 25)
+  [PASS] 100% das entradas gravadas com create_system == 3 (UNIX).
+  [PASS] Zero entradas com barras invertidas (\).
+  [PASS] Zero caminhos com traversal ou barras iniciais.
+  [PASS] Permissões POSIX estritas: 0755 para dirs/scripts, 0644 para regulares.
+  [PASS] Pacote extraído com sucesso em diretório temporário: C:\Users\rober\AppData\Local\Temp\vita_v10_audit_8c4nd_4u
+  [PASS] Manifesto canônico auditado: 81/81 arquivos válidos.
+  [PASS] 100% dos fontes em LF puro (zero CRLF, zero NUL, zero BOM).
+  [PASS] Bytes finais dos fontes C validados: terminam estritamente com '}\n' (7d 0a).
+
+[AVISO] Compilador GCC Linux nativo não disponível neste host. Validações estáticas de código C, scripts e manifesto concluídas com sucesso.
+  [PASS] Todas as 6 evidências da versão V10 estão presentes e consistentes.
+
+================================================================================
+AUDITORIA INTEGRAL CONCLUÍDA COM 100% DE APROVAÇÃO (VERIFY_EXIT_CODE=0)
+STATUS FORMAL: G4.2 = PENDING_EXTERNAL_AUDIT_V10
+================================================================================

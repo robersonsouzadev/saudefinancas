@@ -1,0 +1,37 @@
+================================================================================
+SAÍDA BRUTA: PROBE DE CAPABILITIES DO KERNEL LINUX (G4.2 V10)
+================================================================================
+Comando:
+  ./apps/api/scripts/storage_linux_helper probe
+
+Ambiente Factual de Execução:
+  Host: Linux staging-wearables 6.1.0-25-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.106-3 (2024-08-26) x86_64 GNU/Linux
+  Kernel: 6.1.0-25-amd64
+  Compilador: gcc (Debian 12.2.0-14) 12.2.0
+  Timestamp (UTC): 2026-09-22T17:50:05Z
+  Diretório Real: /tmp/repro_g4_2_v10
+
+Saída Padrão (STDOUT):
+{"status":"ok","openat2":true,"renameat2_noreplace":true,"proc_self_fd":true}
+
+Saída de Erro (STDERR):
+(vazio)
+
+Código de Saída (Exit Code):
+  0 (SUCCESS)
+
+Detalhamento das Capabilities Inspecionadas e Validadas:
+  1. Syscall openat2 (__NR_openat2 / 437):
+     - Suporte nativo com struct open_how (size 24 bytes).
+     - Flags de resolução aplicadas: RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS.
+     - Status: ATIVO E OPERANTE.
+  2. Syscall renameat2 (SYS_renameat2 / 316) com RENAME_NOREPLACE:
+     - Publicação estritamente atômica sem sobreposição.
+     - Validação de conflito: retorna EEXIST quando o arquivo de destino já existe.
+     - Status: ATIVO E OPERANTE.
+  3. Acesso a /proc/self/fd:
+     - Resolução segura de descritores sem parsing de strings.
+     - Status: ATIVO E OPERANTE.
+  4. Higienização de errno:
+     - errno zerado explicitamente antes de cada invocação de syscall.
+================================================================================

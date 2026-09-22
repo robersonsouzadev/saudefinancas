@@ -1,0 +1,43 @@
+================================================================================
+SUÍTE DE TESTES NEGATIVOS DO VERIFICADOR V10
+Timestamp (UTC): 2026-09-22T18:00:16Z
+Verificador:     C:\Users\rober\.gemini\antigravity\scratch\SaudeFinancas\verify_v10_package.py
+================================================================================
+
+[TEST NEG 1/10] Simulando: ZIP inexistente...
+  PASS: Verificador rejeitou ZIP inexistente (RC=1).
+
+[TEST NEG 2/10] Simulando: Manifesto ausente...
+  PASS: Verificador rejeitou pacote sem manifesto (RC=1).
+
+[TEST NEG 3/10] Simulando: Hash divergente no manifesto...
+  PASS: Verificador detectou divergência de SHA-256 (RC=1).
+
+[TEST NEG 4/10] Simulando: Arquivo do manifesto ausente no ZIP...
+  PASS: Verificador detectou arquivo ausente (RC=1).
+
+[TEST NEG 5/10] Simulando: Fonte C com literal \n no final...
+  PASS: Verificador rejeitou fonte C com literal \n no final (RC=1).
+
+[TEST NEG 6/10] Simulando: Fonte contendo CRLF...
+  PASS: Verificador detectou e rejeitou CRLF (RC=1).
+
+[TEST NEG 7/10] Simulando: Permissão POSIX inválida em script .sh...
+  PASS: Verificador rejeitou permissão POSIX incompatível (RC=1).
+
+[TEST NEG 8/10] Simulando: Entrada com path traversal (..) no caminho...
+  PASS: Verificador rejeitou entrada com path traversal (RC=1).
+
+[TEST NEG 9/10] Validando: Caminho do ZIP contendo espaços...
+  PASS: Verificador processou corretamente caminho com espaços.
+
+[TEST NEG 10/10] Validando: Execução a partir de cwd externo...
+  PASS: Verificador opera de qualquer diretório atual (CWD independente).
+
+================================================================================
+RESUMO DOS TESTES NEGATIVOS DO VERIFICADOR: 10/10 PASSARAM
+VERIFIER_NEGATIVE_PASSED=10
+VERIFIER_NEGATIVE_FAILED=0
+VERIFIER_NEGATIVE_TOTAL=10
+VERIFIER_NEGATIVE_EXIT_CODE=0
+================================================================================

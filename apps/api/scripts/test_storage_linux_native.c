@@ -19,7 +19,7 @@
 #include <stdatomic.h>
 
 /**
- * SUÍTE DETERMINÍSTICA DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU & ATOMICIDADE (G4.2 V8)
+ * SUÍTE DETERMINÍSTICA DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU & ATOMICIDADE (G4.2 V10)
  *
  * Cobertura de Testes Físicos Nativos:
  * 1.  Probe de capabilities do kernel (openat2, renameat2 RENAME_NOREPLACE, /proc/self/fd)
@@ -364,7 +364,7 @@ static void *unlink_attacker_worker(void *arg) {
 
 int main(int argc, char *argv[]) {
     printf("================================================================================\n");
-    printf("SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V8)\n");
+    printf("SUÍTE DE TESTES NATIVOS LINUX — DESCRITORES ANTI-TOCTOU E ATOMICIDADE (G4.2 V10)\n");
     printf("================================================================================\n");
 
     const char *helper_bin = (argc > 1) ? argv[1] : "./storage_linux_helper";
@@ -382,7 +382,7 @@ int main(int argc, char *argv[]) {
     char canary_path[] = "/tmp/vita_canary_sentinel_host_file.txt";
     FILE *canary = fopen(canary_path, "wb");
     assert(canary != NULL);
-    const char canary_initial[] = "CANARY_SECRET_INTEGRITY_TOKEN_V8_SAFE_GUARD_2026";
+    const char canary_initial[] = "CANARY_SECRET_INTEGRITY_TOKEN_V10_SAFE_GUARD_2026";
     size_t nw = fwrite(canary_initial, 1, strlen(canary_initial), canary);
     assert(nw == strlen(canary_initial));
     fclose(canary);
@@ -635,11 +635,13 @@ int main(int argc, char *argv[]) {
     rmdir(ext_victim_dir);
 
     // O teste DEVE falhar se a troca concorrente não aconteceu ou a sentinela foi corrompida
+    // HelperRC=0 é plenamente seguro pois o helper utiliza o descritor seguro do diretório renomeado
     if (attacker_args.failpoint_reached &&
         attacker_args.swap_executed &&
         attacker_args.swap_rename_rc == 0 &&
         attacker_args.swap_symlink_rc == 0 &&
-        ext_sentinel_intact) {
+        ext_sentinel_intact &&
+        (helper_exit_code == 0 || helper_exit_code == 3)) {
         printf("PASSED (Ataque concorrente validado: HelperPID=%d, AttackerThID=%lu, HelperRC=%d, Sentinela 100%% preservada)\n",
                (int)u_pid, (unsigned long)attacker_args.thread_id, helper_exit_code);
         passed++;
@@ -649,7 +651,7 @@ int main(int argc, char *argv[]) {
                attacker_args.swap_rename_rc, attacker_args.swap_symlink_rc, ext_sentinel_intact);
     }
 
-    // printf("[TEST 10/15] Exclusão legítima de arquivo regular... ");
+    printf("[TEST 10/15] Exclusão legítima de arquivo regular... ");
     int code10 = execute_helper(helper_bin, "unlink", test_root, "user_1001/activity.fit", NULL, 0, NULL, 0);
     char act_path[PATH_BUF_SIZE];
     safe_path_join(act_path, sizeof(act_path), sub_dir, "activity.fit");
@@ -933,7 +935,7 @@ int main(int argc, char *argv[]) {
     printf("\n================================================================================\n");
     printf("RESULTADO DOS TESTES NATIVOS: %d/%d PASSARAM\n", passed, total);
     if (passed == total) {
-        printf("STATUS: 100%% SUCESSO - CONFORME COM AUDITORIA G4.2 V8\n");
+        printf("STATUS: 100%% SUCESSO - CONFORME COM AUDITORIA G4.2 V10\n");
     } else {
         printf("STATUS: FAILED (%d cenários falharam)\n", total - passed);
     }

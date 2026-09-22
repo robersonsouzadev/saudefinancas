@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ==============================================================================
-# RUNNER OFICIAL DE TESTES NATIVOS LINUX — ANTI-TOCTOU & ATOMICIDADE (G4.2 V9)
+# RUNNER OFICIAL DE TESTES NATIVOS LINUX — ANTI-TOCTOU & ATOMICIDADE (G4.2 V10)
 # ==============================================================================
 # Executa compilação com -Werror, probe e testes físicos com captura estrita de código.
 # Falha imediatamente em qualquer erro de compilação ou execução.
@@ -15,7 +15,7 @@ TEST_SRC="$SCRIPT_DIR/test_storage_linux_native.c"
 TEST_BIN="$SCRIPT_DIR/test_storage_linux_native"
 
 echo "================================================================================"
-echo "INICIANDO SUÍTE REPRODUZÍVEL DE TESTES NATIVOS LINUX (G4.2 V9)"
+echo "INICIANDO SUÍTE REPRODUZÍVEL DE TESTES NATIVOS LINUX (G4.2 V10)"
 echo "Data (UTC): $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 echo "Host: $(uname -a 2>/dev/null || echo 'Unknown Linux')"
 echo "Kernel: $(uname -r 2>/dev/null || echo 'Unknown Kernel')"
