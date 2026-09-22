@@ -1,0 +1,378 @@
+================================================================================
+RELATORIO FACTUAL DE EXECUCAO DE TESTES LOCAIS - PACOTE TECNICO G4.2 V5
+================================================================================
+Data/Hora (UTC): 2026-09-22T13:30:13Z (09:30:13 -04:00)
+Commit Base: 5ca1b946c99b1c15fd2591179be16d8e3b3d6e5f
+Ambiente: Windows x86_64, Node.js v20, PostgreSQL 18.4 (embedded), Redis Mock / In-Memory
+Comando: npx vitest run --fileParallelism=false
+Diretorio: apps/api
+Exit Code: 0
+Total Arquivos de Teste: 16 (16 passed)
+Total Testes Executados: 91 (91 passed)
+Duracao Total: 17.19s
+Status: APROVADO_LOCALMENTE
+
+================================================================================
+SAIDA BRUTA DO COMANDO (STDOUT / STDERR)
+================================================================================
+
+ RUN  v1.6.1 C:/Users/rober/.gemini/antigravity/scratch/SaudeFinancas/apps/api
+
+stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
+2026-09-22 09:30:14.497 -04 [42392] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+
+2026-09-22 09:30:14.501 -04 [42392] LOG:  listening on IPv6 address "::1", port 5433
+
+2026-09-22 09:30:14.501 -04 [42392] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+
+
+stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
+2026-09-22 09:30:14.592 -04 [17772] LOG:  database system was interrupted; last known up at 2026-09-22 09:25:09 -04
+
+
+stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
+2026-09-22 09:30:14.717 -04 [17772] LOG:  database system was not properly shut down; automatic recovery in progress
+
+2026-09-22 09:30:14.720 -04 [17772] LOG:  redo starts at 0/9A2B670
+
+2026-09-22 09:30:14.722 -04 [17772] LOG:  invalid record length at 0/9A61CB0: expected at least 24, got 0
+2026-09-22 09:30:14.722 -04 [17772] LOG:  redo done at 0/9A61C88 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+
+
+stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
+2026-09-22 09:30:14.734 -04 [20404] LOG:  checkpoint starting: end-of-recovery immediate wait
+
+
+stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
+2026-09-22 09:30:14.768 -04 [20404] LOG:  checkpoint complete: wrote 40 buffers (0.2%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.003 s, sync=0.026 s, total=0.044 s; sync files=30, longest=0.003 s, average=0.001 s; distance=217 kB, estimate=217 kB; lsn=0/9A61CB0, redo lsn=0/9A61CB0
+
+
+stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
+2026-09-22 09:30:14.792 -04 [42392] LOG:  database system is ready to accept connections
+
+
+stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1) > 1. Constraint UNIQUE(userId, fileSha256) > deve rejeitar insercao duplicada do mesmo SHA-256 para o mesmo usuario com erro P2002
+2026-09-22 09:30:15.309 -04 [48028] ERROR:  duplicate key value violates unique constraint "ImportedFile_userId_fileSha256_key"
+2026-09-22 09:30:15.309 -04 [48028] DETAIL:  Key ("userId", "fileSha256")=(b3c88d73-e181-4742-a7ba-3af6f277e359, 005813bd02c949dd23b424f4ed2f2327b993286beab8b183cc5d80196cdaaef7) already exists.
+2026-09-22 09:30:15.309 -04 [48028] STATEMENT:  INSERT INTO "public"."ImportedFile" ("id","userId","provider","originalFileName","storageKey","storageDriver","fileSizeBytes","fileSha256","mimeType","status","retryCount","leaseVersion","recoverySequence","createdAt","updatedAt") VALUES ($1,$2,CAST($3::text AS "public"."WearableProvider"),$4,$5,$6,$7,$8,$9,CAST($10::text AS "public"."ImportStatus"),$11,$12,$13,$14,$15) RETURNING "public"."ImportedFile"."id", "public"."ImportedFile"."userId", "public"."ImportedFile"."provider"::text, "public"."ImportedFile"."originalFileName", "public"."ImportedFile"."storageKey", "public"."ImportedFile"."storageDriver", "public"."ImportedFile"."fileSizeBytes", "public"."ImportedFile"."fileSha256", "public"."ImportedFile"."mimeType", "public"."ImportedFile"."status"::text, "public"."ImportedFile"."errorCode", "public"."ImportedFile"."errorMessage", "public"."ImportedFile"."retryCount", "public"."ImportedFile"."workerPid", "public"."ImportedFile"."processingStartedAt", "public"."ImportedFile"."processingDurationMs", "public"."ImportedFile"."processedAt", "public"."ImportedFile"."retentionExpiresAt", "public"."ImportedFile"."leaseOwner", "public"."ImportedFile"."leaseExpiresAt", "public"."ImportedFile"."leaseVersion", "public"."ImportedFile"."recoverySequence", "public"."ImportedFile"."createdAt", "public"."ImportedFile"."updatedAt"
+
+
+stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1) > 2. Indices Parciais de ActivitySource > deve impedir que o mesmo (importedFileId, sessionIndex) seja associado a atividades distintas
+2026-09-22 09:30:15.325 -04 [48028] ERROR:  duplicate key value violates unique constraint "activity_source_imported_file_session_idx"
+2026-09-22 09:30:15.325 -04 [48028] DETAIL:  Key ("importedFileId", "sessionIndex")=(f1690168-615c-4b0c-9583-2eee791449a1, 0) already exists.
+2026-09-22 09:30:15.325 -04 [48028] STATEMENT:  INSERT INTO "public"."ActivitySource" ("id","activityId","provider","sourceType","importedFileId","sessionIndex","firstSeenAt","lastSeenAt") VALUES ($1,$2,CAST($3::text AS "public"."WearableProvider"),CAST($4::text AS "public"."ActivitySourceType"),$5,$6,$7,$8) RETURNING "public"."ActivitySource"."id", "public"."ActivitySource"."activityId", "public"."ActivitySource"."provider"::text, "public"."ActivitySource"."sourceType"::text, "public"."ActivitySource"."importedFileId", "public"."ActivitySource"."sessionIndex", "public"."ActivitySource"."externalActivityId", "public"."ActivitySource"."sourceHash", "public"."ActivitySource"."metadata", "public"."ActivitySource"."firstSeenAt", "public"."ActivitySource"."lastSeenAt"
+
+
+stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1) > 2. Indices Parciais de ActivitySource > deve impedir que o mesmo (provider, externalActivityId) seja duplicado
+2026-09-22 09:30:15.330 -04 [48028] ERROR:  duplicate key value violates unique constraint "activity_source_provider_external_id_idx"
+2026-09-22 09:30:15.330 -04 [48028] DETAIL:  Key (provider, "externalActivityId")=(GARMIN, garmin_act_1790083815327) already exists.
+2026-09-22 09:30:15.330 -04 [48028] STATEMENT:  INSERT INTO "public"."ActivitySource" ("id","activityId","provider","sourceType","sessionIndex","externalActivityId","firstSeenAt","lastSeenAt") VALUES ($1,$2,CAST($3::text AS "public"."WearableProvider"),CAST($4::text AS "public"."ActivitySourceType"),$5,$6,$7,$8) RETURNING "public"."ActivitySource"."id", "public"."ActivitySource"."activityId", "public"."ActivitySource"."provider"::text, "public"."ActivitySource"."sourceType"::text, "public"."ActivitySource"."importedFileId", "public"."ActivitySource"."sessionIndex", "public"."ActivitySource"."externalActivityId", "public"."ActivitySource"."sourceHash", "public"."ActivitySource"."metadata", "public"."ActivitySource"."firstSeenAt", "public"."ActivitySource"."lastSeenAt"
+
+
+ ✓ test/integration/postgres-real.spec.ts  (9 tests) 1319ms
+ ✓ test/wearables/anti-toctou.spec.ts  (9 tests) 64ms
+stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
+2026-09-22 09:30:16.869 -04 [7940] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+
+2026-09-22 09:30:16.873 -04 [7940] LOG:  listening on IPv6 address "::1", port 5433
+
+2026-09-22 09:30:16.873 -04 [7940] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+
+
+stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
+2026-09-22 09:30:16.978 -04 [47912] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:14 -04
+
+
+stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
+2026-09-22 09:30:17.097 -04 [47912] LOG:  database system was not properly shut down; automatic recovery in progress
+
+2026-09-22 09:30:17.101 -04 [47912] LOG:  redo starts at 0/9A61D28
+
+
+stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
+2026-09-22 09:30:17.106 -04 [47912] LOG:  invalid record length at 0/9AE72D8: expected at least 24, got 0
+2026-09-22 09:30:17.106 -04 [47912] LOG:  redo done at 0/9AE72B0 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+
+2026-09-22 09:30:17.113 -04 [38120] LOG:  checkpoint starting: end-of-recovery immediate wait
+
+
+stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
+2026-09-22 09:30:17.172 -04 [38120] LOG:  checkpoint complete: wrote 105 buffers (0.6%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.004 s, sync=0.052 s, total=0.065 s; sync files=60, longest=0.003 s, average=0.001 s; distance=533 kB, estimate=533 kB; lsn=0/9AE72D8, redo lsn=0/9AE72D8
+
+
+stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
+2026-09-22 09:30:17.202 -04 [7940] LOG:  database system is ready to accept connections
+
+
+[Nest] 38852  - 22/09/2026, 09:30:18    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado e4e0fca4-5a52-49a2-b832-3e03269110ad retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=e4e0fca4-5a52-49a2-b832-3e03269110ad-recovery-1.
+[Nest] 38852  - 22/09/2026, 09:30:18    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado b503af15-9b48-4fb2-be85-bc5584908170 retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=b503af15-9b48-4fb2-be85-bc5584908170-recovery-1.
+[Nest] 38852  - 22/09/2026, 09:30:18    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado 7c097085-a684-456f-a34c-9e9a00aca384 retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=7c097085-a684-456f-a34c-9e9a00aca384-recovery-1.
+[Nest] 38852  - 22/09/2026, 09:30:18    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado 495daa17-be2c-4546-95a2-39397d291b3b retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=495daa17-be2c-4546-95a2-39397d291b3b-recovery-1.
+[Nest] 38852  - 22/09/2026, 09:30:18    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado 674e4d19-f5a4-4e9f-8683-9cc21a65d456 retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=674e4d19-f5a4-4e9f-8683-9cc21a65d456-recovery-1.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Crash Recovery] 5 jobs de recuperacao re-enfileirados com sucesso.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 0196f162-dc02-45a9-931a-9b98498c7d61 re-enfileirado com jobId=0196f162-dc02-45a9-931a-9b98498c7d61-recovery-4.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 6f87c10c-b8ac-412d-89d8-ba09c3c1cc23 re-enfileirado com jobId=6f87c10c-b8ac-412d-89d8-ba09c3c1cc23-recovery-5.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 08646e13-1c74-4690-877e-2a21c38a5282 re-enfileirado com jobId=08646e13-1c74-4690-877e-2a21c38a5282-recovery-1.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente ecd4d0f4-ae9e-40f8-923c-797afaf80960 re-enfileirado com jobId=ecd4d0f4-ae9e-40f8-923c-797afaf80960-recovery-3.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente e4e0fca4-5a52-49a2-b832-3e03269110ad re-enfileirado com jobId=e4e0fca4-5a52-49a2-b832-3e03269110ad-recovery-2.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 7c097085-a684-456f-a34c-9e9a00aca384 re-enfileirado com jobId=7c097085-a684-456f-a34c-9e9a00aca384-recovery-2.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 52fa301d-bbe2-4d59-a6a2-c1ad00795ac8 re-enfileirado com jobId=52fa301d-bbe2-4d59-a6a2-c1ad00795ac8-recovery-1.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 014b6a3d-d2d6-464a-a645-28ea6f0373bf re-enfileirado com jobId=014b6a3d-d2d6-464a-a645-28ea6f0373bf-recovery-3.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 55f31286-2d0f-47b1-96c7-79520a411011 re-enfileirado com jobId=55f31286-2d0f-47b1-96c7-79520a411011-recovery-2.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 5fcf9797-f985-4f9d-8b0b-d7ab62cb520e re-enfileirado com jobId=5fcf9797-f985-4f9d-8b0b-d7ab62cb520e-recovery-5.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 7e94b930-2c55-424e-afb1-60a2805c293b re-enfileirado com jobId=7e94b930-2c55-424e-afb1-60a2805c293b-recovery-2.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 9de67478-c15b-42fa-a413-0fbd0e05d1ff re-enfileirado com jobId=9de67478-c15b-42fa-a413-0fbd0e05d1ff-recovery-3.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente cb1a28c2-bf68-4be9-afc8-0f6cda9fcde5 re-enfileirado com jobId=cb1a28c2-bf68-4be9-afc8-0f6cda9fcde5-recovery-3.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 47dd13ac-0ddb-4e90-9dbc-d34686c6a92a re-enfileirado com jobId=47dd13ac-0ddb-4e90-9dbc-d34686c6a92a-recovery-2.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente b503af15-9b48-4fb2-be85-bc5584908170 re-enfileirado com jobId=b503af15-9b48-4fb2-be85-bc5584908170-recovery-2.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 4417e178-3863-41a5-a856-edb2b26a3024 re-enfileirado com jobId=4417e178-3863-41a5-a856-edb2b26a3024-recovery-5.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 9a8fe142-2c83-4015-bfc1-19f2ece0cc54 re-enfileirado com jobId=9a8fe142-2c83-4015-bfc1-19f2ece0cc54-recovery-3.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 143c0bc6-e84a-4759-ade1-0be5cc3cc5f5 re-enfileirado com jobId=143c0bc6-e84a-4759-ade1-0be5cc3cc5f5-recovery-3.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 3606caec-4e9b-4733-9229-10c0eec8aebe re-enfileirado com jobId=3606caec-4e9b-4733-9229-10c0eec8aebe-recovery-2.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 42655527-50eb-4232-8c03-d083858e3147 re-enfileirado com jobId=42655527-50eb-4232-8c03-d083858e3147-recovery-4.
+[Nest] 38852  - 22/09/2026, 09:30:18     LOG [FitProcessingService] [IDEMPOTENT_SKIP] Arquivo 748e6cc8-dbd6-4a4c-ade9-7ce4507c3238 ja se encontra com status PROCESSED. Redelivery ignorado sem reprocessamento.
+ ✓ test/integration/worker-resilience.spec.ts  (5 tests) 1680ms
+stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
+2026-09-22 09:30:18.999 -04 [37808] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+
+2026-09-22 09:30:19.002 -04 [37808] LOG:  listening on IPv6 address "::1", port 5433
+2026-09-22 09:30:19.002 -04 [37808] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+
+
+stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
+2026-09-22 09:30:19.067 -04 [36604] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:17 -04
+
+
+stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
+2026-09-22 09:30:19.207 -04 [36604] LOG:  database system was not properly shut down; automatic recovery in progress
+
+2026-09-22 09:30:19.210 -04 [36604] LOG:  redo starts at 0/9AE7350
+
+2026-09-22 09:30:19.212 -04 [36604] LOG:  invalid record length at 0/9B0E4B8: expected at least 24, got 0
+
+2026-09-22 09:30:19.212 -04 [36604] LOG:  redo done at 0/9B0E490 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+
+
+stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
+2026-09-22 09:30:19.221 -04 [43612] LOG:  checkpoint starting: end-of-recovery immediate wait
+
+
+stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
+2026-09-22 09:30:19.248 -04 [43612] LOG:  checkpoint complete: wrote 30 buffers (0.2%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.019 s, total=0.035 s; sync files=25, longest=0.003 s, average=0.001 s; distance=156 kB, estimate=156 kB; lsn=0/9B0E4B8, redo lsn=0/9B0E4B8
+
+
+stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
+2026-09-22 09:30:19.277 -04 [37808] LOG:  database system is ready to accept connections
+
+
+[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Job f9a4578a-5423-4c8f-9a27-ba5520a44fac adquirido com sucesso pelo worker Roberson-38852-80631dd5 (versao: 1).
+[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Arquivo FIT f9a4578a-5423-4c8f-9a27-ba5520a44fac processado com sucesso em 123ms.
+[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Job c6932bfb-65b8-42dd-b988-a68f7a143256 adquirido com sucesso pelo worker Roberson-38852-80631dd5 (versao: 1).
+[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Arquivo FIT c6932bfb-65b8-42dd-b988-a68f7a143256 processado com sucesso em 58ms.
+[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Job bd266cdf-9205-44dc-9c3c-35ac04bb814f adquirido com sucesso pelo worker Roberson-38852-80631dd5 (versao: 1).
+[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Arquivo FIT bd266cdf-9205-44dc-9c3c-35ac04bb814f processado com sucesso em 56ms.
+ ✓ test/integration/compiled-runtime-e2e.spec.ts  (8 tests) 1325ms
+[Nest] 38852  - 22/09/2026, 09:30:20    WARN [FitImporterService] Concorrencia detectada para o arquivo SHA-256 1d3ff5c38bb6cfc1a0e6f7dcda5422951b7cfacb998c7512192350114be2a0f7. Acionando compensacao no storage.
+[Nest] 38852  - 22/09/2026, 09:30:20   ERROR [FitProcessingService] Execucao cancelada por violacao de fencing: [FENCING_VIOLATION] Worker Roberson-38852-52adf16c (versao 1) perdeu o lease do arquivo import-1. Status no banco: PROCESSING, Owner: undefined, Versao: 1, Expirado: false. Transacao abortada com ROLLBACK.
+[Nest] 38852  - 22/09/2026, 09:30:20     LOG [FitProcessingService] Job import-1 adquirido com sucesso pelo worker Roberson-38852-52adf16c (versao: 1).
+[Nest] 38852  - 22/09/2026, 09:30:20    WARN [FitProcessingService] Claim atomico ignorado para arquivo import-1. Job nao elegivel ou ja em processamento ativo.
+ ✓ test/wearables/concurrency-compensation.spec.ts  (5 tests) 10ms
+stdout | test/integration/utc-pool-resilience.spec.ts > UTC Pool Resilience and Unprivileged Role (G4.2)
+2026-09-22 09:30:20.927 -04 [47348] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+
+2026-09-22 09:30:20.931 -04 [47348] LOG:  listening on IPv6 address "::1", port 5433
+2026-09-22 09:30:20.931 -04 [47348] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+
+
+stdout | test/integration/utc-pool-resilience.spec.ts > UTC Pool Resilience and Unprivileged Role (G4.2)
+2026-09-22 09:30:21.041 -04 [47616] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:19 -04
+
+
+stdout | test/integration/utc-pool-resilience.spec.ts > UTC Pool Resilience and Unprivileged Role (G4.2)
+2026-09-22 09:30:21.198 -04 [47616] LOG:  database system was not properly shut down; automatic recovery in progress
+
+2026-09-22 09:30:21.200 -04 [47616] LOG:  redo starts at 0/9B0E530
+
+2026-09-22 09:30:21.204 -04 [47616] LOG:  invalid record length at 0/9B50E90: expected at least 24, got 0
+
+2026-09-22 09:30:21.204 -04 [47616] LOG:  redo done at 0/9B50E68 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+
+2026-09-22 09:30:21.211 -04 [48232] LOG:  checkpoint starting: end-of-recovery immediate wait
+
+
+stdout | test/integration/utc-pool-resilience.spec.ts > UTC Pool Resilience and Unprivileged Role (G4.2)
+2026-09-22 09:30:21.262 -04 [48232] LOG:  checkpoint complete: wrote 64 buffers (0.4%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.003 s, sync=0.043 s, total=0.057 s; sync files=53, longest=0.003 s, average=0.001 s; distance=266 kB, estimate=266 kB; lsn=0/9B50E90, redo lsn=0/9B50E90
+
+
+stdout | test/integration/utc-pool-resilience.spec.ts > UTC Pool Resilience and Unprivileged Role (G4.2)
+2026-09-22 09:30:21.284 -04 [47348] LOG:  database system is ready to accept connections
+
+
+ ✓ test/integration/utc-pool-resilience.spec.ts  (5 tests) 1576ms
+stdout | test/integration/redis-bullmq-real.spec.ts > Testes com Redis e BullMQ Reais (G4.1)
+2026-09-22 09:30:23.120 -04 [41936] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+
+2026-09-22 09:30:23.123 -04 [41936] LOG:  listening on IPv6 address "::1", port 5433
+
+2026-09-22 09:30:23.124 -04 [41936] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+
+
+stdout | test/integration/redis-bullmq-real.spec.ts > Testes com Redis e BullMQ Reais (G4.1)
+2026-09-22 09:30:23.212 -04 [47924] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:21 -04
+
+
+stdout | test/integration/redis-bullmq-real.spec.ts > Testes com Redis e BullMQ Reais (G4.1)
+2026-09-22 09:30:23.362 -04 [47924] LOG:  database system was not properly shut down; automatic recovery in progress
+
+2026-09-22 09:30:23.365 -04 [47924] LOG:  redo starts at 0/9B50F08
+
+2026-09-22 09:30:23.367 -04 [47924] LOG:  invalid record length at 0/9B7E900: expected at least 24, got 0
+2026-09-22 09:30:23.367 -04 [47924] LOG:  redo done at 0/9B7E8D8 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+
+2026-09-22 09:30:23.375 -04 [33156] LOG:  checkpoint starting: end-of-recovery immediate wait
+
+
+stdout | test/integration/redis-bullmq-real.spec.ts > Testes com Redis e BullMQ Reais (G4.1)
+2026-09-22 09:30:23.399 -04 [33156] LOG:  checkpoint complete: wrote 32 buffers (0.2%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.018 s, total=0.031 s; sync files=23, longest=0.003 s, average=0.001 s; distance=182 kB, estimate=182 kB; lsn=0/9B7E900, redo lsn=0/9B7E900
+
+
+stdout | test/integration/redis-bullmq-real.spec.ts > Testes com Redis e BullMQ Reais (G4.1)
+2026-09-22 09:30:23.425 -04 [41936] LOG:  database system is ready to accept connections
+
+
+[Nest] 38852  - 22/09/2026, 09:30:23    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado 5145d408-7588-4ea9-b769-ff28b061a32c retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=5145d408-7588-4ea9-b769-ff28b061a32c-recovery-1.
+[Nest] 38852  - 22/09/2026, 09:30:23     LOG [OutboxReconciliationService] [Crash Recovery] 1 jobs de recuperacao re-enfileirados com sucesso.
+ ✓ test/integration/redis-bullmq-real.spec.ts  (5 tests) 1158ms
+stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
+2026-09-22 09:30:24.940 -04 [44828] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+
+2026-09-22 09:30:24.943 -04 [44828] LOG:  listening on IPv6 address "::1", port 5433
+
+2026-09-22 09:30:24.943 -04 [44828] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+
+
+stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
+2026-09-22 09:30:25.026 -04 [40716] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:23 -04
+
+
+stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
+2026-09-22 09:30:25.163 -04 [40716] LOG:  database system was not properly shut down; automatic recovery in progress
+
+
+stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
+2026-09-22 09:30:25.165 -04 [40716] LOG:  redo starts at 0/9B7E978
+
+2026-09-22 09:30:25.167 -04 [40716] LOG:  invalid record length at 0/9B9BFC0: expected at least 24, got 0
+2026-09-22 09:30:25.167 -04 [40716] LOG:  redo done at 0/9B9BF98 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+
+2026-09-22 09:30:25.174 -04 [31360] LOG:  checkpoint starting: end-of-recovery immediate wait
+
+
+stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
+2026-09-22 09:30:25.198 -04 [31360] LOG:  checkpoint complete: wrote 24 buffers (0.1%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.017 s, total=0.030 s; sync files=18, longest=0.003 s, average=0.001 s; distance=117 kB, estimate=117 kB; lsn=0/9B9BFC0, redo lsn=0/9B9BFC0
+
+
+stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
+2026-09-22 09:30:25.230 -04 [44828] LOG:  database system is ready to accept connections
+
+
+ ✓ test/integration/health.spec.ts  (7 tests) 1077ms
+stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
+2026-09-22 09:30:26.723 -04 [30336] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+
+
+stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
+2026-09-22 09:30:26.727 -04 [30336] LOG:  listening on IPv6 address "::1", port 5433
+
+2026-09-22 09:30:26.727 -04 [30336] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+
+
+stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
+2026-09-22 09:30:26.794 -04 [27264] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:25 -04
+
+
+stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
+2026-09-22 09:30:26.942 -04 [27264] LOG:  database system was not properly shut down; automatic recovery in progress
+
+2026-09-22 09:30:26.945 -04 [27264] LOG:  redo starts at 0/9B9C050
+
+2026-09-22 09:30:26.945 -04 [27264] LOG:  invalid record length at 0/9BA2AA8: expected at least 24, got 0
+
+2026-09-22 09:30:26.945 -04 [27264] LOG:  redo done at 0/9BA24B8 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+
+
+stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
+2026-09-22 09:30:26.957 -04 [35900] LOG:  checkpoint starting: end-of-recovery immediate wait
+
+2026-09-22 09:30:26.968 -04 [35900] LOG:  checkpoint complete: wrote 5 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.005 s, total=0.021 s; sync files=6, longest=0.003 s, average=0.001 s; distance=26 kB, estimate=26 kB; lsn=0/9BA2AA8, redo lsn=0/9BA2AA8
+
+
+stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
+2026-09-22 09:30:26.989 -04 [30336] LOG:  database system is ready to accept connections
+
+
+ ✓ test/integration/http-regression.spec.ts  (4 tests) 880ms
+[Nest] 38852  - 22/09/2026, 09:30:27   DEBUG [PrivateObjectStorageService] [Orphan Check] Arquivo user1/recent_orphan.fit ausente no banco mas recente (age=0s). Preservado pelo grace period.
+ ✓ test/wearables/storage.spec.ts  (6 tests) 49ms
+ ✓ test/wearables/fit-normalizer.spec.ts  (4 tests) 4ms
+ ✓ test/integration/redaction-pii.spec.ts  (8 tests) 3ms
+ ✓ test/wearables/fit-binary-validation.spec.ts  (7 tests) 6ms
+stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
+2026-09-22 09:30:29.241 -04 [8836] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+
+2026-09-22 09:30:29.245 -04 [8836] LOG:  listening on IPv6 address "::1", port 5433
+
+2026-09-22 09:30:29.245 -04 [8836] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+
+
+stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
+2026-09-22 09:30:29.343 -04 [36200] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:26 -04
+
+
+stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
+2026-09-22 09:30:29.498 -04 [36200] LOG:  database system was not properly shut down; automatic recovery in progress
+
+2026-09-22 09:30:29.502 -04 [36200] LOG:  redo starts at 0/9BA2B20
+
+
+stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
+2026-09-22 09:30:29.504 -04 [36200] LOG:  invalid record length at 0/9BB81C8: expected at least 24, got 0
+
+2026-09-22 09:30:29.504 -04 [36200] LOG:  redo done at 0/9BB81A0 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+
+
+stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
+2026-09-22 09:30:29.513 -04 [22588] LOG:  checkpoint starting: end-of-recovery immediate wait
+
+
+stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
+2026-09-22 09:30:29.535 -04 [22588] LOG:  checkpoint complete: wrote 17 buffers (0.1%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.015 s, total=0.029 s; sync files=16, longest=0.003 s, average=0.001 s; distance=85 kB, estimate=85 kB; lsn=0/9BB81C8, redo lsn=0/9BB81C8
+
+
+stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
+2026-09-22 09:30:29.571 -04 [8836] LOG:  database system is ready to accept connections
+
+
+stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3) > deve retornar Exit Code 1 quando houver violacao deterministica (processedAt < createdAt)
+┌─────────┬────────────────┬──────────────────────────────────┬───────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ (index) │ table          │ constraint                       │ id                │ detail                                                                                               │
+├─────────┼────────────────┼──────────────────────────────────┼───────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 0       │ 'ImportedFile' │ 'chk_imported_file_processed_at' │ '3a214e2a...d899' │ 'processedAt (2026-09-22T16:30:30.018Z) < createdAt (2026-09-22T17:30:30.018Z) [Divergencia: 1.00h]' │
+└─────────┴────────────────┴──────────────────────────────────┴───────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3) > deve retornar Exit Code 2 quando houver apenas alerta heuristico (sem violacao deterministica)
+┌─────────┬────────────────┬──────────────────────────────┬───────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ (index) │ table          │ category                     │ id                │ detail                                                                                                      │
+├─────────┼────────────────┼──────────────────────────────┼───────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 0       │ 'ImportedFile' │ 'HEURISTIC_FUTURE_TIMESTAMP' │ '5918b218...6578' │ 'createdAt (2026-09-22T17:40:30.086Z) esta mais de 5 minutos no futuro em relacao ao relogio UTC do banco.' │
+└─────────┴────────────────┴──────────────────────────────┴───────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+ ✓ test/integration/preflight.spec.ts  (4 tests) 1247ms
+[Nest] 38852  - 22/09/2026, 09:30:30    WARN [FitWorkerSupervisorService] Worker de parsing FIT excedeu o timeout de 1ms. Forcando worker.terminate().
+ ✓ test/wearables/fit-worker-supervisor.spec.ts  (2 tests) 51ms
+ ✓ test/wearables/pseudonymization.spec.ts  (3 tests) 3ms
+
+ Test Files  16 passed (16)
+      Tests  91 passed (91)
+   Start at  09:30:13
+   Duration  17.19s (transform 224ms, setup 0ms, collect 4.05s, tests 10.45s, environment 2ms, prepare 1.21s)

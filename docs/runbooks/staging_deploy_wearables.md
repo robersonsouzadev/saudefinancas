@@ -19,48 +19,45 @@ Este runbook descreve os procedimentos operacionais para provisionamento, valida
 
 | Recurso | Produção (Ativo) | Staging (Isolado) | Status de Isolamento |
 | :--- | :--- | :--- | :--- |
-| **API Container** | `sf-api-qo40k8o4g8owcoww0s4sccog-213922545655` | `sf-api-staging` (porta 127.0.0.1:3011) | Isolado |
-| **Worker Container** | Integrado na API prod | `sf-worker-staging` | Isolado (UID 1000) |
-| **PostgreSQL Container** | `sf-db-qo40k8o4g8owcoww0s4sccog-213922496244` | `sf-db-staging` (porta 127.0.0.1:5434) | Isolado |
-| **Banco de Dados** | `saudefinancas` | `vita_saude_staging` | Isolado |
-| **Role de DDL** | `sf_user` | `vita_staging_migrator` | Isolado (Timeouts 5s/30s) |
-| **Role da Aplicação** | `sf_user` | `vita_staging_app` | Isolado (Sem superuser/CREATE) |
-| **Redis Container** | `sf-redis-qo40k8o4g8owcoww0s4sccog-213922522114` | `sf-redis-staging` (porta 127.0.0.1:6381) | Isolado |
-| **Fila BullMQ** | `wearables-fit-import` | `wearables-fit-import-staging` | Isolado |
-| **Prefixo BullMQ** | `bull` | `bull_staging` | Isolado |
-| **Intervalo Reconciliador** | 30s (`RECONCILIATION_INTERVAL_MS=30000`) | 10s (`RECONCILIATION_INTERVAL_MS=10000`) | Isolado |
-| **LOCAL_SECURE Path** | N/A (Em memória / transitório) | `/data/vita-saude-staging/wearables` | Isolado (0700) |
-| **Backup Path** | N/A | `/data/vita-saude-backups/prod-pre-g4-2` | Isolado (0700/0600) |
-| **Portas Internas** | 3001, 5432, 6379 | 127.0.0.1:3011, 127.0.0.1:5434, 127.0.0.1:6381 | Isolado (Zero colisão) |
+| **API Container** | `sf-api-qo40k8o4g8owcoww0s4sccog-213922545655` | `sf-api-staging` (porta 127.0.0.1:3011) | Isolamento planejado/pending |
+| **Worker Container** | Integrado na API prod | `sf-worker-staging` | Isolamento planejado/pending |
+| **PostgreSQL Container** | `sf-db-qo40k8o4g8owcoww0s4sccog-213922496244` | `sf-db-staging` (porta 127.0.0.1:5434) | Isolamento planejado/pending |
+| **Banco de Dados** | `saudefinancas` | `vita_saude_staging` | Isolamento planejado/pending |
+| **Role de DDL** | `sf_user` | `vita_staging_migrator` | Isolamento planejado/pending |
+| **Role da Aplicação** | `sf_user` | `vita_staging_app` | Isolamento planejado/pending |
+| **Redis Container** | `sf-redis-qo40k8o4g8owcoww0s4sccog-213922522114` | `sf-redis-staging` (porta 127.0.0.1:6381) | Isolamento planejado/pending |
+| **Fila BullMQ** | `wearables-fit-import` | `wearables-fit-import-staging` | Isolamento planejado/pending |
+| **Prefixo BullMQ** | `bull` | `bull_staging` | Isolamento planejado/pending |
+| **Intervalo Reconciliador** | 30s (`RECONCILIATION_INTERVAL_MS=30000`) | 10s (`RECONCILIATION_INTERVAL_MS=10000`) | Isolamento planejado/pending |
+| **LOCAL_SECURE Path** | N/A (Em memória / transitório) | `/data/vita-saude-staging/wearables` | Isolamento planejado/pending |
+| **Backup Path** | N/A | `/data/vita-saude-backups/prod-pre-g4-2` | Isolamento planejado/pending |
+| **Portas Internas** | 3001, 5432, 6379 | 127.0.0.1:3011, 127.0.0.1:5434, 127.0.0.1:6381 | Isolamento planejado/pending |
 
 ---
 
 ## 4. Sequência Operacional Rigorosa de Execução
 
-A execução na VPS obedece estritamente às etapas numeradas a partir da raiz do repositório (`/data/vita-saude-staging-deploy`):
+A execução na VPS obedece estritamente às etapas numeradas a partir da raiz do diretório de staging (`/data/vita-saude-staging-deploy`):
 
-### Etapa 0: Baseline de Latência e Guard Rail Pré-Provisionamento
-1. Coletar 5 amostras da API de produção:
+### Etapa 0: Carregamento Seguro de Variáveis e Guard Rail Pré-Provisionamento
+1. Carregar variáveis do ambiente de staging de forma segura na sessão da shell:
    ```bash
-   for i in $(seq 1 5); do
-     curl -o /dev/null -s -w "%{time_total}\n" https://appapi.robersonsouza.com.br/api/health/liveness
-     sleep 10
-   done
+   set -a && source .env.staging && set +a
    ```
-2. Executar guard rail prévio (Fase de Pré-Provisionamento) com variáveis de staging:
+2. Executar guard rail prévio (Fase de Pré-Provisionamento) validando configuração:
    ```bash
    node apps/api/scripts/vps_isolation_guard_rail.mjs --phase=pre-provisioning
    ```
    *Critério de parada: Exit Code 0 obrigatório. Bloqueia se containers de staging já existirem ou colidirem com portas.*
 
 ### Etapa 1: Salvaguarda da Produção (Auditoria Passiva Read-Only)
-1. Inspecionar status, memória e RestartCount dos 4 containers de produção sem tocar neles:
+1. Inspecionar status, integridade e RestartCount dos 4 containers factuais de produção sem tocá-los:
    ```bash
    docker inspect --format='{{.Name}}: State={{.State.Status}}, Restarts={{.RestartCount}}' \
      sf-api-qo40k8o4g8owcoww0s4sccog-213922545655 \
-     sf-web-qo40k8o4g8owcoww0s4sccog-214436573752 \
-     sf-redis-qo40k8o4g8owcoww0s4sccog-212850989354 \
-     sf-db-qo40k8o4g8owcoww0s4sccog-212850550005
+     sf-web-qo40k8o4g8owcoww0s4sccog-213922581192 \
+     sf-redis-qo40k8o4g8owcoww0s4sccog-213922522114 \
+     sf-db-qo40k8o4g8owcoww0s4sccog-213922496244
    ```
    *Nota: Backup de produção (pg_dump) requer autorização formal separada. Staging opera 100% isolado.*
 
@@ -100,7 +97,7 @@ A execução na VPS obedece estritamente às etapas numeradas a partir da raiz d
 3. Aplicar as migrações físicas via Prisma CLI como `vita_staging_migrator`:
    ```bash
    DATABASE_URL="postgresql://vita_staging_migrator:$STAGING_MIGRATOR_PASSWORD@127.0.0.1:5434/vita_saude_staging?schema=public" \
-     npx prisma migrate deploy
+     npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
    ```
 
 ### Etapa 5: Verificações Pós-Migration e Concessão de Privilégios
@@ -132,9 +129,9 @@ A execução na VPS obedece estritamente às etapas numeradas a partir da raiz d
    - `GET /health/metrics` -> `200 OK`
 
 ### Etapa 8: Testes Destrutivos Controlados sob Monitoramento
-1. Iniciar monitoramento contínuo em background:
+1. Iniciar monitoramento contínuo em background (o monitor calcula baseline factual de 5 amostras e vigia os 4 containers de produção):
    ```bash
-   bash apps/api/scripts/monitor_staging_vps.sh --baseline-ms 45 &
+   bash apps/api/scripts/monitor_staging_vps.sh &
    MONITOR_PID=$!
    ```
 2. Executar runner destrutivo de SIGKILL e recuperação:

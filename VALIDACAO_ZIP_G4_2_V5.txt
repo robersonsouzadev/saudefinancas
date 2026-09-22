@@ -1,0 +1,118 @@
+================================================================================
+VALIDACAO FORMAL DO PACOTE TECNICO G4.2 V5 (POSIX / PERMISSOES / INTEGRIDADE)
+================================================================================
+Arquivo: pacote_tecnico_g4_2_v5.zip
+Tamanho: 1333681 bytes
+SHA-256 do ZIP: 47d6c00482bcc442b3aceca17a96a55c8081f4bc1faa7a44092a27f6112dd30d
+Total de Entradas: 94 (69 arquivos, 25 diretorios)
+
+VERIFICACAO ESTRITA DAS ESPECIFICACOES POSIX:
+1. create_system == 3 (UNIX): VALIDADO EM 100% DAS ENTRADAS
+2. Separador estrito de caminhos ('/'): ZERO BARRAS INVERTIDAS
+3. Seguranca de travessia: ZERO CAMINHOS ABSOLUTOS, ZERO '..'
+4. Permissoes POSIX:
+   - Diretorios: 0755 (drwxr-xr-x)
+   - Scripts (.sh): 0755 (-rwxr-xr-x)
+   - Arquivos regulares: 0644 (-rw-r--r--)
+
+LISTAGEM DETALHADA DAS ENTRADAS COM ATRIBUTOS POSIX:
+--------------------------------------------------------------------------------
+MODO         CREATE_SYS   TAMANHO    CAMINHO
+--------------------------------------------------------------------------------
+d0o755       3            0          apps/
+d0o755       3            0          apps/api/
+d0o755       3            0          apps/api/prisma/
+d0o755       3            0          apps/api/prisma/migrations/
+d0o755       3            0          apps/api/prisma/migrations/20260801000000_baseline/
+d0o755       3            0          apps/api/prisma/migrations/20260921191000_wearables_fit_importer/
+d0o755       3            0          apps/api/prisma/migrations/20260921200000_imported_file_lease_fencing/
+d0o755       3            0          apps/api/prisma/migrations/20260921220000_temporal_invariants_and_utc_fencing/
+d0o755       3            0          apps/api/scripts/
+d0o755       3            0          apps/api/src/
+d0o755       3            0          apps/api/src/modules/
+d0o755       3            0          apps/api/src/modules/health/
+d0o755       3            0          apps/api/src/modules/wearables/
+d0o755       3            0          apps/api/src/modules/wearables/controllers/
+d0o755       3            0          apps/api/src/modules/wearables/interfaces/
+d0o755       3            0          apps/api/src/modules/wearables/processors/
+d0o755       3            0          apps/api/src/modules/wearables/services/
+d0o755       3            0          apps/api/src/prisma/
+d0o755       3            0          apps/api/test/
+d0o755       3            0          apps/api/test/infra/
+d0o755       3            0          apps/api/test/integration/
+d0o755       3            0          apps/api/test/wearables/
+d0o755       3            0          docs/
+d0o755       3            0          docs/adr/
+d0o755       3            0          docs/runbooks/
+f0o644       3            358        package.json
+f0o644       3            507861     package-lock.json
+f0o644       3            4472       docker-compose.staging.yml
+f0o644       3            1277       .env.staging.example
+f0o644       3            1054       .env.staging.validation
+f0o644       3            553        .gitignore
+f0o644       3            35623      RESULTADOS_TESTES_LOCAIS_G4_2_V5.txt
+f0o644       3            294572     diff_g4_2.patch
+f0o644       3            10887      RELATORIO_ENTREGA_G4_2_V5.md
+f0o644       3            9020       docs/runbooks/staging_deploy_wearables.md
+f0o644       3            3517       docs/adr/001-utc-timestamp-strategy.md
+f0o644       3            1990       apps/api/package.json
+f0o644       3            546        apps/api/tsconfig.json
+f0o644       3            305        apps/api/nest-cli.json
+f0o644       3            1850       apps/api/Dockerfile
+f0o644       3            33515      apps/api/prisma/schema.prisma
+f0o644       3            13755      apps/api/prisma/seed.ts
+f0o644       3            64         apps/api/prisma/migrations/migration_lock.toml
+f0o644       3            32673      apps/api/prisma/migrations/20260801000000_baseline/migration.sql
+f0o644       3            9299       apps/api/prisma/migrations/20260921191000_wearables_fit_importer/migration.sql
+f0o644       3            1570       apps/api/prisma/migrations/20260921191000_wearables_fit_importer/rollback.sql
+f0o644       3            1105       apps/api/prisma/migrations/20260921200000_imported_file_lease_fencing/migration.sql
+f0o644       3            894        apps/api/prisma/migrations/20260921200000_imported_file_lease_fencing/rollback.sql
+f0o644       3            1493       apps/api/prisma/migrations/20260921220000_temporal_invariants_and_utc_fencing/migration.sql
+f0o644       3            1054       apps/api/prisma/migrations/20260921220000_temporal_invariants_and_utc_fencing/rollback.sql
+f0o755       3            2834       apps/api/scripts/backup_production_safeguard.sh
+f0o644       3            2813       apps/api/scripts/bootstrap_staging_pre_migration.sql
+f0o644       3            2796       apps/api/scripts/bootstrap_staging_post_migration.sql
+f0o755       3            12342      apps/api/scripts/monitor_staging_vps.sh
+f0o644       3            12556      apps/api/scripts/preflight_temporal_check.mjs
+f0o644       3            12108      apps/api/scripts/storage_linux_helper.c
+f0o644       3            19608      apps/api/scripts/test_sigkill_worker_recovery.mjs
+f0o644       3            14096      apps/api/scripts/verify_migration_timeouts.mjs
+f0o644       3            23612      apps/api/scripts/vps_isolation_guard_rail.mjs
+f0o644       3            2532       apps/api/src/app.module.ts
+f0o644       3            694        apps/api/src/main.ts
+f0o644       3            1887       apps/api/src/worker.ts
+f0o644       3            1101       apps/api/src/prisma/prisma.service.ts
+f0o644       3            3710       apps/api/src/modules/health/health.controller.ts
+f0o644       3            820        apps/api/src/modules/health/health.module.ts
+f0o644       3            2257       apps/api/src/modules/wearables/wearables.module.ts
+f0o644       3            12137      apps/api/src/modules/wearables/controllers/wearables.controller.ts
+f0o644       3            421        apps/api/src/modules/wearables/interfaces/storage.interface.ts
+f0o644       3            14650      apps/api/src/modules/wearables/processors/fit-processing.service.ts
+f0o644       3            4671       apps/api/src/modules/wearables/services/fit-importer.service.ts
+f0o644       3            6018       apps/api/src/modules/wearables/services/outbox-reconciliation.service.ts
+f0o644       3            18262      apps/api/src/modules/wearables/services/storage.service.ts
+f0o644       3            3771       apps/api/src/modules/wearables/services/storage-linux-helper.ts
+f0o644       3            4825       apps/api/src/modules/wearables/services/wearables-observability.service.ts
+f0o644       3            8995       apps/api/test/integration/compiled-runtime-e2e.spec.ts
+f0o644       3            6214       apps/api/test/integration/health.spec.ts
+f0o644       3            5991       apps/api/test/integration/http-regression.spec.ts
+f0o644       3            17286      apps/api/test/integration/postgres-real.spec.ts
+f0o644       3            3730       apps/api/test/integration/preflight.spec.ts
+f0o644       3            4985       apps/api/test/integration/redaction-pii.spec.ts
+f0o644       3            7319       apps/api/test/integration/redis-bullmq-real.spec.ts
+f0o644       3            7947       apps/api/test/integration/utc-pool-resilience.spec.ts
+f0o644       3            12830      apps/api/test/integration/worker-resilience.spec.ts
+f0o644       3            16781      apps/api/test/wearables/anti-toctou.spec.ts
+f0o644       3            8570       apps/api/test/wearables/concurrency-compensation.spec.ts
+f0o644       3            4178       apps/api/test/wearables/fit-binary-validation.spec.ts
+f0o644       3            5171       apps/api/test/wearables/fit-normalizer.spec.ts
+f0o644       3            1788       apps/api/test/wearables/fit-worker-supervisor.spec.ts
+f0o644       3            1641       apps/api/test/wearables/pseudonymization.spec.ts
+f0o644       3            5236       apps/api/test/wearables/storage.spec.ts
+f0o644       3            27243      apps/api/test/infra/run_e2e_http_audit.mjs
+f0o644       3            9911       apps/api/test/infra/run_migrations_test.mjs
+f0o644       3            5482       apps/api/test/infra/test-storage-backup-restore.mjs
+f0o644       3            7665       MANIFEST_SHA256SUMS.txt
+--------------------------------------------------------------------------------
+STATUS DE VALIDACAO DO ZIP: APROVADO COM EXCELENCIA (100% CONFORME POSIX)
+================================================================================

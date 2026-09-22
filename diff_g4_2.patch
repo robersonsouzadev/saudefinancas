@@ -78,20 +78,424 @@ index c425187..2eadcb9 100644
  
  # Logs
  *.log
+diff --git a/RESULTADOS_TESTES_LOCAIS_G4_2_V5.txt b/RESULTADOS_TESTES_LOCAIS_G4_2_V5.txt
+new file mode 100644
+index 0000000..829bcc1
+--- /dev/null
++++ b/RESULTADOS_TESTES_LOCAIS_G4_2_V5.txt
+@@ -0,0 +1,378 @@
++================================================================================
++RELATORIO FACTUAL DE EXECUCAO DE TESTES LOCAIS - PACOTE TECNICO G4.2 V5
++================================================================================
++Data/Hora (UTC): 2026-09-22T13:30:13Z (09:30:13 -04:00)
++Commit Base: 5ca1b946c99b1c15fd2591179be16d8e3b3d6e5f
++Ambiente: Windows x86_64, Node.js v20, PostgreSQL 18.4 (embedded), Redis Mock / In-Memory
++Comando: npx vitest run --fileParallelism=false
++Diretorio: apps/api
++Exit Code: 0
++Total Arquivos de Teste: 16 (16 passed)
++Total Testes Executados: 91 (91 passed)
++Duracao Total: 17.19s
++Status: APROVADO_LOCALMENTE
++
++================================================================================
++SAIDA BRUTA DO COMANDO (STDOUT / STDERR)
++================================================================================
++
++ RUN  v1.6.1 C:/Users/rober/.gemini/antigravity/scratch/SaudeFinancas/apps/api
++
++stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
++2026-09-22 09:30:14.497 -04 [42392] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
++
++2026-09-22 09:30:14.501 -04 [42392] LOG:  listening on IPv6 address "::1", port 5433
++
++2026-09-22 09:30:14.501 -04 [42392] LOG:  listening on IPv4 address "127.0.0.1", port 5433
++
++
++stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
++2026-09-22 09:30:14.592 -04 [17772] LOG:  database system was interrupted; last known up at 2026-09-22 09:25:09 -04
++
++
++stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
++2026-09-22 09:30:14.717 -04 [17772] LOG:  database system was not properly shut down; automatic recovery in progress
++
++2026-09-22 09:30:14.720 -04 [17772] LOG:  redo starts at 0/9A2B670
++
++2026-09-22 09:30:14.722 -04 [17772] LOG:  invalid record length at 0/9A61CB0: expected at least 24, got 0
++2026-09-22 09:30:14.722 -04 [17772] LOG:  redo done at 0/9A61C88 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
++
++
++stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
++2026-09-22 09:30:14.734 -04 [20404] LOG:  checkpoint starting: end-of-recovery immediate wait
++
++
++stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
++2026-09-22 09:30:14.768 -04 [20404] LOG:  checkpoint complete: wrote 40 buffers (0.2%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.003 s, sync=0.026 s, total=0.044 s; sync files=30, longest=0.003 s, average=0.001 s; distance=217 kB, estimate=217 kB; lsn=0/9A61CB0, redo lsn=0/9A61CB0
++
++
++stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1)
++2026-09-22 09:30:14.792 -04 [42392] LOG:  database system is ready to accept connections
++
++
++stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1) > 1. Constraint UNIQUE(userId, fileSha256) > deve rejeitar insercao duplicada do mesmo SHA-256 para o mesmo usuario com erro P2002
++2026-09-22 09:30:15.309 -04 [48028] ERROR:  duplicate key value violates unique constraint "ImportedFile_userId_fileSha256_key"
++2026-09-22 09:30:15.309 -04 [48028] DETAIL:  Key ("userId", "fileSha256")=(b3c88d73-e181-4742-a7ba-3af6f277e359, 005813bd02c949dd23b424f4ed2f2327b993286beab8b183cc5d80196cdaaef7) already exists.
++2026-09-22 09:30:15.309 -04 [48028] STATEMENT:  INSERT INTO "public"."ImportedFile" ("id","userId","provider","originalFileName","storageKey","storageDriver","fileSizeBytes","fileSha256","mimeType","status","retryCount","leaseVersion","recoverySequence","createdAt","updatedAt") VALUES ($1,$2,CAST($3::text AS "public"."WearableProvider"),$4,$5,$6,$7,$8,$9,CAST($10::text AS "public"."ImportStatus"),$11,$12,$13,$14,$15) RETURNING "public"."ImportedFile"."id", "public"."ImportedFile"."userId", "public"."ImportedFile"."provider"::text, "public"."ImportedFile"."originalFileName", "public"."ImportedFile"."storageKey", "public"."ImportedFile"."storageDriver", "public"."ImportedFile"."fileSizeBytes", "public"."ImportedFile"."fileSha256", "public"."ImportedFile"."mimeType", "public"."ImportedFile"."status"::text, "public"."ImportedFile"."errorCode", "public"."ImportedFile"."errorMessage", "public"."ImportedFile"."retryCount", "public"."ImportedFile"."workerPid", "public"."ImportedFile"."processingStartedAt", "public"."ImportedFile"."processingDurationMs", "public"."ImportedFile"."processedAt", "public"."ImportedFile"."retentionExpiresAt", "public"."ImportedFile"."leaseOwner", "public"."ImportedFile"."leaseExpiresAt", "public"."ImportedFile"."leaseVersion", "public"."ImportedFile"."recoverySequence", "public"."ImportedFile"."createdAt", "public"."ImportedFile"."updatedAt"
++
++
++stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1) > 2. Indices Parciais de ActivitySource > deve impedir que o mesmo (importedFileId, sessionIndex) seja associado a atividades distintas
++2026-09-22 09:30:15.325 -04 [48028] ERROR:  duplicate key value violates unique constraint "activity_source_imported_file_session_idx"
++2026-09-22 09:30:15.325 -04 [48028] DETAIL:  Key ("importedFileId", "sessionIndex")=(f1690168-615c-4b0c-9583-2eee791449a1, 0) already exists.
++2026-09-22 09:30:15.325 -04 [48028] STATEMENT:  INSERT INTO "public"."ActivitySource" ("id","activityId","provider","sourceType","importedFileId","sessionIndex","firstSeenAt","lastSeenAt") VALUES ($1,$2,CAST($3::text AS "public"."WearableProvider"),CAST($4::text AS "public"."ActivitySourceType"),$5,$6,$7,$8) RETURNING "public"."ActivitySource"."id", "public"."ActivitySource"."activityId", "public"."ActivitySource"."provider"::text, "public"."ActivitySource"."sourceType"::text, "public"."ActivitySource"."importedFileId", "public"."ActivitySource"."sessionIndex", "public"."ActivitySource"."externalActivityId", "public"."ActivitySource"."sourceHash", "public"."ActivitySource"."metadata", "public"."ActivitySource"."firstSeenAt", "public"."ActivitySource"."lastSeenAt"
++
++
++stdout | test/integration/postgres-real.spec.ts > Testes de Integracao com PostgreSQL Real (G4.1) > 2. Indices Parciais de ActivitySource > deve impedir que o mesmo (provider, externalActivityId) seja duplicado
++2026-09-22 09:30:15.330 -04 [48028] ERROR:  duplicate key value violates unique constraint "activity_source_provider_external_id_idx"
++2026-09-22 09:30:15.330 -04 [48028] DETAIL:  Key (provider, "externalActivityId")=(GARMIN, garmin_act_1790083815327) already exists.
++2026-09-22 09:30:15.330 -04 [48028] STATEMENT:  INSERT INTO "public"."ActivitySource" ("id","activityId","provider","sourceType","sessionIndex","externalActivityId","firstSeenAt","lastSeenAt") VALUES ($1,$2,CAST($3::text AS "public"."WearableProvider"),CAST($4::text AS "public"."ActivitySourceType"),$5,$6,$7,$8) RETURNING "public"."ActivitySource"."id", "public"."ActivitySource"."activityId", "public"."ActivitySource"."provider"::text, "public"."ActivitySource"."sourceType"::text, "public"."ActivitySource"."importedFileId", "public"."ActivitySource"."sessionIndex", "public"."ActivitySource"."externalActivityId", "public"."ActivitySource"."sourceHash", "public"."ActivitySource"."metadata", "public"."ActivitySource"."firstSeenAt", "public"."ActivitySource"."lastSeenAt"
++
++
++ ✓ test/integration/postgres-real.spec.ts  (9 tests) 1319ms
++ ✓ test/wearables/anti-toctou.spec.ts  (9 tests) 64ms
++stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
++2026-09-22 09:30:16.869 -04 [7940] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
++
++2026-09-22 09:30:16.873 -04 [7940] LOG:  listening on IPv6 address "::1", port 5433
++
++2026-09-22 09:30:16.873 -04 [7940] LOG:  listening on IPv4 address "127.0.0.1", port 5433
++
++
++stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
++2026-09-22 09:30:16.978 -04 [47912] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:14 -04
++
++
++stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
++2026-09-22 09:30:17.097 -04 [47912] LOG:  database system was not properly shut down; automatic recovery in progress
++
++2026-09-22 09:30:17.101 -04 [47912] LOG:  redo starts at 0/9A61D28
++
++
++stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
++2026-09-22 09:30:17.106 -04 [47912] LOG:  invalid record length at 0/9AE72D8: expected at least 24, got 0
++2026-09-22 09:30:17.106 -04 [47912] LOG:  redo done at 0/9AE72B0 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
++
++2026-09-22 09:30:17.113 -04 [38120] LOG:  checkpoint starting: end-of-recovery immediate wait
++
++
++stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
++2026-09-22 09:30:17.172 -04 [38120] LOG:  checkpoint complete: wrote 105 buffers (0.6%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.004 s, sync=0.052 s, total=0.065 s; sync files=60, longest=0.003 s, average=0.001 s; distance=533 kB, estimate=533 kB; lsn=0/9AE72D8, redo lsn=0/9AE72D8
++
++
++stdout | test/integration/worker-resilience.spec.ts > Worker Resilience, Fencing, and Redis Outage Recovery (G4.2)
++2026-09-22 09:30:17.202 -04 [7940] LOG:  database system is ready to accept connections
++
++
++[Nest] 38852  - 22/09/2026, 09:30:18    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado e4e0fca4-5a52-49a2-b832-3e03269110ad retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=e4e0fca4-5a52-49a2-b832-3e03269110ad-recovery-1.
++[Nest] 38852  - 22/09/2026, 09:30:18    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado b503af15-9b48-4fb2-be85-bc5584908170 retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=b503af15-9b48-4fb2-be85-bc5584908170-recovery-1.
++[Nest] 38852  - 22/09/2026, 09:30:18    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado 7c097085-a684-456f-a34c-9e9a00aca384 retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=7c097085-a684-456f-a34c-9e9a00aca384-recovery-1.
++[Nest] 38852  - 22/09/2026, 09:30:18    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado 495daa17-be2c-4546-95a2-39397d291b3b retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=495daa17-be2c-4546-95a2-39397d291b3b-recovery-1.
++[Nest] 38852  - 22/09/2026, 09:30:18    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado 674e4d19-f5a4-4e9f-8683-9cc21a65d456 retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=674e4d19-f5a4-4e9f-8683-9cc21a65d456-recovery-1.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Crash Recovery] 5 jobs de recuperacao re-enfileirados com sucesso.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 0196f162-dc02-45a9-931a-9b98498c7d61 re-enfileirado com jobId=0196f162-dc02-45a9-931a-9b98498c7d61-recovery-4.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 6f87c10c-b8ac-412d-89d8-ba09c3c1cc23 re-enfileirado com jobId=6f87c10c-b8ac-412d-89d8-ba09c3c1cc23-recovery-5.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 08646e13-1c74-4690-877e-2a21c38a5282 re-enfileirado com jobId=08646e13-1c74-4690-877e-2a21c38a5282-recovery-1.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente ecd4d0f4-ae9e-40f8-923c-797afaf80960 re-enfileirado com jobId=ecd4d0f4-ae9e-40f8-923c-797afaf80960-recovery-3.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente e4e0fca4-5a52-49a2-b832-3e03269110ad re-enfileirado com jobId=e4e0fca4-5a52-49a2-b832-3e03269110ad-recovery-2.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 7c097085-a684-456f-a34c-9e9a00aca384 re-enfileirado com jobId=7c097085-a684-456f-a34c-9e9a00aca384-recovery-2.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 52fa301d-bbe2-4d59-a6a2-c1ad00795ac8 re-enfileirado com jobId=52fa301d-bbe2-4d59-a6a2-c1ad00795ac8-recovery-1.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 014b6a3d-d2d6-464a-a645-28ea6f0373bf re-enfileirado com jobId=014b6a3d-d2d6-464a-a645-28ea6f0373bf-recovery-3.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 55f31286-2d0f-47b1-96c7-79520a411011 re-enfileirado com jobId=55f31286-2d0f-47b1-96c7-79520a411011-recovery-2.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 5fcf9797-f985-4f9d-8b0b-d7ab62cb520e re-enfileirado com jobId=5fcf9797-f985-4f9d-8b0b-d7ab62cb520e-recovery-5.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 7e94b930-2c55-424e-afb1-60a2805c293b re-enfileirado com jobId=7e94b930-2c55-424e-afb1-60a2805c293b-recovery-2.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 9de67478-c15b-42fa-a413-0fbd0e05d1ff re-enfileirado com jobId=9de67478-c15b-42fa-a413-0fbd0e05d1ff-recovery-3.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente cb1a28c2-bf68-4be9-afc8-0f6cda9fcde5 re-enfileirado com jobId=cb1a28c2-bf68-4be9-afc8-0f6cda9fcde5-recovery-3.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 47dd13ac-0ddb-4e90-9dbc-d34686c6a92a re-enfileirado com jobId=47dd13ac-0ddb-4e90-9dbc-d34686c6a92a-recovery-2.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente b503af15-9b48-4fb2-be85-bc5584908170 re-enfileirado com jobId=b503af15-9b48-4fb2-be85-bc5584908170-recovery-2.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 4417e178-3863-41a5-a856-edb2b26a3024 re-enfileirado com jobId=4417e178-3863-41a5-a856-edb2b26a3024-recovery-5.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 9a8fe142-2c83-4015-bfc1-19f2ece0cc54 re-enfileirado com jobId=9a8fe142-2c83-4015-bfc1-19f2ece0cc54-recovery-3.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 143c0bc6-e84a-4759-ade1-0be5cc3cc5f5 re-enfileirado com jobId=143c0bc6-e84a-4759-ade1-0be5cc3cc5f5-recovery-3.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 3606caec-4e9b-4733-9229-10c0eec8aebe re-enfileirado com jobId=3606caec-4e9b-4733-9229-10c0eec8aebe-recovery-2.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [OutboxReconciliationService] [Outbox Reconciler] Arquivo pendente 42655527-50eb-4232-8c03-d083858e3147 re-enfileirado com jobId=42655527-50eb-4232-8c03-d083858e3147-recovery-4.
++[Nest] 38852  - 22/09/2026, 09:30:18     LOG [FitProcessingService] [IDEMPOTENT_SKIP] Arquivo 748e6cc8-dbd6-4a4c-ade9-7ce4507c3238 ja se encontra com status PROCESSED. Redelivery ignorado sem reprocessamento.
++ ✓ test/integration/worker-resilience.spec.ts  (5 tests) 1680ms
++stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
++2026-09-22 09:30:18.999 -04 [37808] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
++
++2026-09-22 09:30:19.002 -04 [37808] LOG:  listening on IPv6 address "::1", port 5433
++2026-09-22 09:30:19.002 -04 [37808] LOG:  listening on IPv4 address "127.0.0.1", port 5433
++
++
++stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
++2026-09-22 09:30:19.067 -04 [36604] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:17 -04
++
++
++stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
++2026-09-22 09:30:19.207 -04 [36604] LOG:  database system was not properly shut down; automatic recovery in progress
++
++2026-09-22 09:30:19.210 -04 [36604] LOG:  redo starts at 0/9AE7350
++
++2026-09-22 09:30:19.212 -04 [36604] LOG:  invalid record length at 0/9B0E4B8: expected at least 24, got 0
++
++2026-09-22 09:30:19.212 -04 [36604] LOG:  redo done at 0/9B0E490 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
++
++
++stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
++2026-09-22 09:30:19.221 -04 [43612] LOG:  checkpoint starting: end-of-recovery immediate wait
++
++
++stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
++2026-09-22 09:30:19.248 -04 [43612] LOG:  checkpoint complete: wrote 30 buffers (0.2%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.019 s, total=0.035 s; sync files=25, longest=0.003 s, average=0.001 s; distance=156 kB, estimate=156 kB; lsn=0/9B0E4B8, redo lsn=0/9B0E4B8
++
++
++stdout | test/integration/compiled-runtime-e2e.spec.ts > Testes E2E de Runtime Compilado e Processamento FIT Real (G4.1)
++2026-09-22 09:30:19.277 -04 [37808] LOG:  database system is ready to accept connections
++
++
++[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Job f9a4578a-5423-4c8f-9a27-ba5520a44fac adquirido com sucesso pelo worker Roberson-38852-80631dd5 (versao: 1).
++[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Arquivo FIT f9a4578a-5423-4c8f-9a27-ba5520a44fac processado com sucesso em 123ms.
++[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Job c6932bfb-65b8-42dd-b988-a68f7a143256 adquirido com sucesso pelo worker Roberson-38852-80631dd5 (versao: 1).
++[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Arquivo FIT c6932bfb-65b8-42dd-b988-a68f7a143256 processado com sucesso em 58ms.
++[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Job bd266cdf-9205-44dc-9c3c-35ac04bb814f adquirido com sucesso pelo worker Roberson-38852-80631dd5 (versao: 1).
++[Nest] 38852  - 22/09/2026, 09:30:19     LOG [FitProcessingService] Arquivo FIT bd266cdf-9205-44dc-9c3c-35ac04bb814f processado com sucesso em 56ms.
++ ✓ test/integration/compiled-runtime-e2e.spec.ts  (8 tests) 1325ms
++[Nest] 38852  - 22/09/2026, 09:30:20    WARN [FitImporterService] Concorrencia detectada para o arquivo SHA-256 1d3ff5c38bb6cfc1a0e6f7dcda5422951b7cfacb998c7512192350114be2a0f7. Acionando compensacao no storage.
++[Nest] 38852  - 22/09/2026, 09:30:20   ERROR [FitProcessingService] Execucao cancelada por violacao de fencing: [FENCING_VIOLATION] Worker Roberson-38852-52adf16c (versao 1) perdeu o lease do arquivo import-1. Status no banco: PROCESSING, Owner: undefined, Versao: 1, Expirado: false. Transacao abortada com ROLLBACK.
++[Nest] 38852  - 22/09/2026, 09:30:20     LOG [FitProcessingService] Job import-1 adquirido com sucesso pelo worker Roberson-38852-52adf16c (versao: 1).
++[Nest] 38852  - 22/09/2026, 09:30:20    WARN [FitProcessingService] Claim atomico ignorado para arquivo import-1. Job nao elegivel ou ja em processamento ativo.
++ ✓ test/wearables/concurrency-compensation.spec.ts  (5 tests) 10ms
++stdout | test/integration/utc-pool-resilience.spec.ts > UTC Pool Resilience and Unprivileged Role (G4.2)
++2026-09-22 09:30:20.927 -04 [47348] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
++
++2026-09-22 09:30:20.931 -04 [47348] LOG:  listening on IPv6 address "::1", port 5433
++2026-09-22 09:30:20.931 -04 [47348] LOG:  listening on IPv4 address "127.0.0.1", port 5433
++
++
++stdout | test/integration/utc-pool-resilience.spec.ts > UTC Pool Resilience and Unprivileged Role (G4.2)
++2026-09-22 09:30:21.041 -04 [47616] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:19 -04
++
++
++stdout | test/integration/utc-pool-resilience.spec.ts > UTC Pool Resilience and Unprivileged Role (G4.2)
++2026-09-22 09:30:21.198 -04 [47616] LOG:  database system was not properly shut down; automatic recovery in progress
++
++2026-09-22 09:30:21.200 -04 [47616] LOG:  redo starts at 0/9B0E530
++
++2026-09-22 09:30:21.204 -04 [47616] LOG:  invalid record length at 0/9B50E90: expected at least 24, got 0
++
++2026-09-22 09:30:21.204 -04 [47616] LOG:  redo done at 0/9B50E68 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
++
++2026-09-22 09:30:21.211 -04 [48232] LOG:  checkpoint starting: end-of-recovery immediate wait
++
++
++stdout | test/integration/utc-pool-resilience.spec.ts > UTC Pool Resilience and Unprivileged Role (G4.2)
++2026-09-22 09:30:21.262 -04 [48232] LOG:  checkpoint complete: wrote 64 buffers (0.4%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.003 s, sync=0.043 s, total=0.057 s; sync files=53, longest=0.003 s, average=0.001 s; distance=266 kB, estimate=266 kB; lsn=0/9B50E90, redo lsn=0/9B50E90
++
++
++stdout | test/integration/utc-pool-resilience.spec.ts > UTC Pool Resilience and Unprivileged Role (G4.2)
++2026-09-22 09:30:21.284 -04 [47348] LOG:  database system is ready to accept connections
++
++
++ ✓ test/integration/utc-pool-resilience.spec.ts  (5 tests) 1576ms
++stdout | test/integration/redis-bullmq-real.spec.ts > Testes com Redis e BullMQ Reais (G4.1)
++2026-09-22 09:30:23.120 -04 [41936] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
++
++2026-09-22 09:30:23.123 -04 [41936] LOG:  listening on IPv6 address "::1", port 5433
++
++2026-09-22 09:30:23.124 -04 [41936] LOG:  listening on IPv4 address "127.0.0.1", port 5433
++
++
++stdout | test/integration/redis-bullmq-real.spec.ts > Testes com Redis e BullMQ Reais (G4.1)
++2026-09-22 09:30:23.212 -04 [47924] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:21 -04
++
++
++stdout | test/integration/redis-bullmq-real.spec.ts > Testes com Redis e BullMQ Reais (G4.1)
++2026-09-22 09:30:23.362 -04 [47924] LOG:  database system was not properly shut down; automatic recovery in progress
++
++2026-09-22 09:30:23.365 -04 [47924] LOG:  redo starts at 0/9B50F08
++
++2026-09-22 09:30:23.367 -04 [47924] LOG:  invalid record length at 0/9B7E900: expected at least 24, got 0
++2026-09-22 09:30:23.367 -04 [47924] LOG:  redo done at 0/9B7E8D8 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
++
++2026-09-22 09:30:23.375 -04 [33156] LOG:  checkpoint starting: end-of-recovery immediate wait
++
++
++stdout | test/integration/redis-bullmq-real.spec.ts > Testes com Redis e BullMQ Reais (G4.1)
++2026-09-22 09:30:23.399 -04 [33156] LOG:  checkpoint complete: wrote 32 buffers (0.2%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.018 s, total=0.031 s; sync files=23, longest=0.003 s, average=0.001 s; distance=182 kB, estimate=182 kB; lsn=0/9B7E900, redo lsn=0/9B7E900
++
++
++stdout | test/integration/redis-bullmq-real.spec.ts > Testes com Redis e BullMQ Reais (G4.1)
++2026-09-22 09:30:23.425 -04 [41936] LOG:  database system is ready to accept connections
++
++
++[Nest] 38852  - 22/09/2026, 09:30:23    WARN [OutboxReconciliationService] [Crash Recovery] Arquivo travado 5145d408-7588-4ea9-b769-ff28b061a32c retornado para PENDING (recoverySequence=1, retryCount=1). Re-enfileirado com jobId=5145d408-7588-4ea9-b769-ff28b061a32c-recovery-1.
++[Nest] 38852  - 22/09/2026, 09:30:23     LOG [OutboxReconciliationService] [Crash Recovery] 1 jobs de recuperacao re-enfileirados com sucesso.
++ ✓ test/integration/redis-bullmq-real.spec.ts  (5 tests) 1158ms
++stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
++2026-09-22 09:30:24.940 -04 [44828] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
++
++2026-09-22 09:30:24.943 -04 [44828] LOG:  listening on IPv6 address "::1", port 5433
++
++2026-09-22 09:30:24.943 -04 [44828] LOG:  listening on IPv4 address "127.0.0.1", port 5433
++
++
++stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
++2026-09-22 09:30:25.026 -04 [40716] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:23 -04
++
++
++stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
++2026-09-22 09:30:25.163 -04 [40716] LOG:  database system was not properly shut down; automatic recovery in progress
++
++
++stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
++2026-09-22 09:30:25.165 -04 [40716] LOG:  redo starts at 0/9B7E978
++
++2026-09-22 09:30:25.167 -04 [40716] LOG:  invalid record length at 0/9B9BFC0: expected at least 24, got 0
++2026-09-22 09:30:25.167 -04 [40716] LOG:  redo done at 0/9B9BF98 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
++
++2026-09-22 09:30:25.174 -04 [31360] LOG:  checkpoint starting: end-of-recovery immediate wait
++
++
++stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
++2026-09-22 09:30:25.198 -04 [31360] LOG:  checkpoint complete: wrote 24 buffers (0.1%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.017 s, total=0.030 s; sync files=18, longest=0.003 s, average=0.001 s; distance=117 kB, estimate=117 kB; lsn=0/9B9BFC0, redo lsn=0/9B9BFC0
++
++
++stdout | test/integration/health.spec.ts > Health and Readiness Probes HTTP Reais (G4.2)
++2026-09-22 09:30:25.230 -04 [44828] LOG:  database system is ready to accept connections
++
++
++ ✓ test/integration/health.spec.ts  (7 tests) 1077ms
++stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
++2026-09-22 09:30:26.723 -04 [30336] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
++
++
++stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
++2026-09-22 09:30:26.727 -04 [30336] LOG:  listening on IPv6 address "::1", port 5433
++
++2026-09-22 09:30:26.727 -04 [30336] LOG:  listening on IPv4 address "127.0.0.1", port 5433
++
++
++stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
++2026-09-22 09:30:26.794 -04 [27264] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:25 -04
++
++
++stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
++2026-09-22 09:30:26.942 -04 [27264] LOG:  database system was not properly shut down; automatic recovery in progress
++
++2026-09-22 09:30:26.945 -04 [27264] LOG:  redo starts at 0/9B9C050
++
++2026-09-22 09:30:26.945 -04 [27264] LOG:  invalid record length at 0/9BA2AA8: expected at least 24, got 0
++
++2026-09-22 09:30:26.945 -04 [27264] LOG:  redo done at 0/9BA24B8 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
++
++
++stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
++2026-09-22 09:30:26.957 -04 [35900] LOG:  checkpoint starting: end-of-recovery immediate wait
++
++2026-09-22 09:30:26.968 -04 [35900] LOG:  checkpoint complete: wrote 5 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.005 s, total=0.021 s; sync files=6, longest=0.003 s, average=0.001 s; distance=26 kB, estimate=26 kB; lsn=0/9BA2AA8, redo lsn=0/9BA2AA8
++
++
++stdout | test/integration/http-regression.spec.ts > Testes de Regressao HTTP e Contrato DTO (G4.1.1)
++2026-09-22 09:30:26.989 -04 [30336] LOG:  database system is ready to accept connections
++
++
++ ✓ test/integration/http-regression.spec.ts  (4 tests) 880ms
++[Nest] 38852  - 22/09/2026, 09:30:27   DEBUG [PrivateObjectStorageService] [Orphan Check] Arquivo user1/recent_orphan.fit ausente no banco mas recente (age=0s). Preservado pelo grace period.
++ ✓ test/wearables/storage.spec.ts  (6 tests) 49ms
++ ✓ test/wearables/fit-normalizer.spec.ts  (4 tests) 4ms
++ ✓ test/integration/redaction-pii.spec.ts  (8 tests) 3ms
++ ✓ test/wearables/fit-binary-validation.spec.ts  (7 tests) 6ms
++stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
++2026-09-22 09:30:29.241 -04 [8836] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
++
++2026-09-22 09:30:29.245 -04 [8836] LOG:  listening on IPv6 address "::1", port 5433
++
++2026-09-22 09:30:29.245 -04 [8836] LOG:  listening on IPv4 address "127.0.0.1", port 5433
++
++
++stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
++2026-09-22 09:30:29.343 -04 [36200] LOG:  database system was interrupted; last known up at 2026-09-22 09:30:26 -04
++
++
++stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
++2026-09-22 09:30:29.498 -04 [36200] LOG:  database system was not properly shut down; automatic recovery in progress
++
++2026-09-22 09:30:29.502 -04 [36200] LOG:  redo starts at 0/9BA2B20
++
++
++stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
++2026-09-22 09:30:29.504 -04 [36200] LOG:  invalid record length at 0/9BB81C8: expected at least 24, got 0
++
++2026-09-22 09:30:29.504 -04 [36200] LOG:  redo done at 0/9BB81A0 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
++
++
++stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
++2026-09-22 09:30:29.513 -04 [22588] LOG:  checkpoint starting: end-of-recovery immediate wait
++
++
++stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
++2026-09-22 09:30:29.535 -04 [22588] LOG:  checkpoint complete: wrote 17 buffers (0.1%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.015 s, total=0.029 s; sync files=16, longest=0.003 s, average=0.001 s; distance=85 kB, estimate=85 kB; lsn=0/9BB81C8, redo lsn=0/9BB81C8
++
++
++stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3)
++2026-09-22 09:30:29.571 -04 [8836] LOG:  database system is ready to accept connections
++
++
++stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3) > deve retornar Exit Code 1 quando houver violacao deterministica (processedAt < createdAt)
++┌─────────┬────────────────┬──────────────────────────────────┬───────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────┐
++│ (index) │ table          │ constraint                       │ id                │ detail                                                                                               │
++├─────────┼────────────────┼──────────────────────────────────┼───────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┤
++│ 0       │ 'ImportedFile' │ 'chk_imported_file_processed_at' │ '3a214e2a...d899' │ 'processedAt (2026-09-22T16:30:30.018Z) < createdAt (2026-09-22T17:30:30.018Z) [Divergencia: 1.00h]' │
++└─────────┴────────────────┴──────────────────────────────────┴───────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────┘
++
++stdout | test/integration/preflight.spec.ts > Preflight Temporal Read-Only Audit (Exit Codes 0, 1, 2, 3) > deve retornar Exit Code 2 quando houver apenas alerta heuristico (sem violacao deterministica)
++┌─────────┬────────────────┬──────────────────────────────┬───────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
++│ (index) │ table          │ category                     │ id                │ detail                                                                                                      │
++├─────────┼────────────────┼──────────────────────────────┼───────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
++│ 0       │ 'ImportedFile' │ 'HEURISTIC_FUTURE_TIMESTAMP' │ '5918b218...6578' │ 'createdAt (2026-09-22T17:40:30.086Z) esta mais de 5 minutos no futuro em relacao ao relogio UTC do banco.' │
++└─────────┴────────────────┴──────────────────────────────┴───────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
++
++ ✓ test/integration/preflight.spec.ts  (4 tests) 1247ms
++[Nest] 38852  - 22/09/2026, 09:30:30    WARN [FitWorkerSupervisorService] Worker de parsing FIT excedeu o timeout de 1ms. Forcando worker.terminate().
++ ✓ test/wearables/fit-worker-supervisor.spec.ts  (2 tests) 51ms
++ ✓ test/wearables/pseudonymization.spec.ts  (3 tests) 3ms
++
++ Test Files  16 passed (16)
++      Tests  91 passed (91)
++   Start at  09:30:13
++   Duration  17.19s (transform 224ms, setup 0ms, collect 4.05s, tests 10.45s, environment 2ms, prepare 1.21s)
 diff --git a/apps/api/Dockerfile b/apps/api/Dockerfile
-index 992af36..89e3814 100644
+index 992af36..39bd679 100644
 --- a/apps/api/Dockerfile
 +++ b/apps/api/Dockerfile
-@@ -16,7 +16,7 @@ RUN npm install --legacy-peer-deps
+@@ -1,7 +1,7 @@
+ # Multi-stage Dockerfile for NestJS API
+ 
+ FROM node:20-alpine AS builder
+-RUN apk add --no-cache openssl libc6-compat
++RUN apk add --no-cache openssl libc6-compat gcc musl-dev
+ WORKDIR /app
+ 
+ # Copy root and package files
+@@ -15,8 +15,13 @@ RUN npm install --legacy-peer-deps
+ # Copy API source code
  COPY apps/api ./apps/api
  
++# Compile Linux storage helper if C file exists
++RUN if [ -f apps/api/scripts/storage_linux_helper.c ]; then \
++      gcc -O2 -Wall -D_GNU_SOURCE apps/api/scripts/storage_linux_helper.c -o apps/api/scripts/storage_linux_helper; \
++    fi
++
  # Set dummy DATABASE_URL for Prisma Client generation during build
 -ENV DATABASE_URL="postgresql://sf_user:sf_password_secure_2026@sf-db:5432/saudefinancas?schema=public"
 +ENV DATABASE_URL="postgresql://sf_user:build_dummy_secret@sf-db:5432/build_dummy?schema=public"
  
  # Generate Prisma client and build NestJS
  WORKDIR /app/apps/api
-@@ -42,7 +42,6 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+@@ -38,11 +43,11 @@ RUN npm install --omit=dev --legacy-peer-deps
+ # Copy built code, prisma schema, pre-generated Prisma Client and Prisma CLI
+ COPY --from=builder /app/apps/api/dist ./apps/api/dist
+ COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
++COPY --from=builder /app/apps/api/scripts ./apps/api/scripts
+ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
  COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
  COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
  COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
@@ -311,14 +715,14 @@ index 0000000..447d5a5
 +SELECT 'BOOTSTRAP PRÉ-MIGRATION CONCLUÍDO COM SUCESSO' as status;
 diff --git a/apps/api/scripts/monitor_staging_vps.sh b/apps/api/scripts/monitor_staging_vps.sh
 new file mode 100644
-index 0000000..f550c0e
+index 0000000..dbb3950
 --- /dev/null
 +++ b/apps/api/scripts/monitor_staging_vps.sh
-@@ -0,0 +1,202 @@
+@@ -0,0 +1,271 @@
 +#!/usr/bin/env bash
 +
 +# ==============================================================================
-+# MONITOR DE SAÚDE DA PRODUÇÃO E RECURSOS DO HOST (VITA SAÚDE - G4.2)
++# MONITOR DE SAÚDE DA PRODUÇÃO E RECURSOS DO HOST (VITA SAÚDE - G4.2 V5)
 +# ==============================================================================
 +# Monitora a cada 10 segundos os 6 critérios de salvaguarda.
 +# Se algum critério for violado:
@@ -328,15 +732,16 @@ index 0000000..f550c0e
 +#   4. JAMAIS toca ou reinicia a produção.
 +# ==============================================================================
 +
-+set -u
++set -euo pipefail
 +
 +PROD_API_URL="https://appapi.robersonsouza.com.br/health/liveness"
 +PROD_CONTAINERS=(
 +  "sf-api-qo40k8o4g8owcoww0s4sccog-213922545655"
-+  "sf-web-qo40k8o4g8owcoww0s4sccog-214436573752"
-+  "sf-redis-qo40k8o4g8owcoww0s4sccog-212850989354"
-+  "sf-db-qo40k8o4g8owcoww0s4sccog-212850550005"
++  "sf-web-qo40k8o4g8owcoww0s4sccog-213922581192"
++  "sf-redis-qo40k8o4g8owcoww0s4sccog-213922522114"
++  "sf-db-qo40k8o4g8owcoww0s4sccog-213922496244"
 +)
++
 +AUDIT_LOG_DIR="/data/vita-saude-staging-audit"
 +mkdir -p "$AUDIT_LOG_DIR" 2>/dev/null || AUDIT_LOG_DIR="/tmp/vita-saude-staging-audit"
 +mkdir -p "$AUDIT_LOG_DIR"
@@ -344,7 +749,6 @@ index 0000000..f550c0e
 +
 +BUILD_PID=""
 +RUNNER_PID=""
-+BASELINE_LATENCY_MS=0
 +
 +# Parse de argumentos
 +while [[ $# -gt 0 ]]; do
@@ -357,10 +761,6 @@ index 0000000..f550c0e
 +      RUNNER_PID="$2"
 +      shift 2
 +      ;;
-+    --baseline-ms)
-+      BASELINE_LATENCY_MS="$2"
-+      shift 2
-+      ;;
 +    *)
 +      echo "Argumento desconhecido: $1"
 +      exit 1
@@ -369,22 +769,88 @@ index 0000000..f550c0e
 +done
 +
 +echo "================================================================================"
-+echo "    MONITOR CONTÍNUO DE SALVAGUARDA DA PRODUÇÃO — VITA SAÚDE (G4.2)            "
++echo "    MONITOR CONTÍNUO DE SALVAGUARDA DA PRODUÇÃO — VITA SAÚDE (G4.2 V5)          "
 +echo "================================================================================"
 +echo "- Arquivo de Auditoria: $AUDIT_LOG"
 +echo "- Build PID Monitorado:  ${BUILD_PID:-Nenhum}"
 +echo "- Runner PID Monitorado: ${RUNNER_PID:-Nenhum}"
-+echo "- Baseline de Latência: ${BASELINE_LATENCY_MS} ms"
 +echo "- Containers de Produção Monitorados: ${#PROD_CONTAINERS[@]}"
 +echo "--------------------------------------------------------------------------------"
 +
-+# Captura inicial do RestartCount de todos os 4 containers de produção
-+declare -A INITIAL_RESTARTS
-+for c in "${PROD_CONTAINERS[@]}"; do
-+  r_count=$(docker inspect --format='{{.RestartCount}}' "$c" 2>/dev/null || echo "0")
-+  INITIAL_RESTARTS["$c"]="$r_count"
-+  echo "- Produção $c: RestartCount inicial = $r_count"
++# ------------------------------------------------------------------------------
++# 1. CÁLCULO INTERNO DE BASELINE DA PRODUÇÃO (5 AMOSTRAS VÁLIDAS)
++# ------------------------------------------------------------------------------
++echo "--- [Iniciando Coleta de Baseline: 5 amostras consecutivas na rota de produção] ---"
++SAMPLES=()
++
++for i in {1..5}; do
++  CURL_OUT=$(curl -o /dev/null -s -w "%{http_code} %{time_total}" --max-time 5 "$PROD_API_URL" 2>/dev/null || echo "000 9.999")
++  SAMPLE_HTTP=$(echo "$CURL_OUT" | awk '{print $1}')
++  SAMPLE_TIME=$(echo "$CURL_OUT" | awk '{print $2}')
++  SAMPLE_MS=$(echo "$SAMPLE_TIME" | awk '{printf "%.0f", $1 * 1000}')
++
++  echo "  -> Amostra $i: HTTP $SAMPLE_HTTP em ${SAMPLE_MS} ms"
++
++  if [[ "$SAMPLE_HTTP" == "000" ]] || [[ ! "$SAMPLE_HTTP" =~ ^2 ]]; then
++    echo "[ERRO FATAL NO BASELINE]: Rota de produção inacessível ou respondeu status não-2xx (HTTP $SAMPLE_HTTP) na amostra $i."
++    echo "Execução de staging bloqueada preventivamente."
++    exit 1
++  fi
++
++  SAMPLES+=("$SAMPLE_MS")
++  sleep 2
 +done
++
++# Ordenar amostras numericamente
++IFS=$'\n' SORTED_SAMPLES=($(sort -n <<<"${SAMPLES[*]}"))
++unset IFS
++
++BASELINE_MEDIAN="${SORTED_SAMPLES[2]}" # 3ª amostra de 5
++BASELINE_P95="${SORTED_SAMPLES[4]}"    # 5ª amostra de 5 (máxima)
++
++echo "[Baseline Calculada]: Mediana = ${BASELINE_MEDIAN} ms | p95 = ${BASELINE_P95} ms"
++echo "BASELINE_ESTABLISHED median_ms=$BASELINE_MEDIAN p95_ms=$BASELINE_P95 timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$AUDIT_LOG"
++
++# ------------------------------------------------------------------------------
++# 2. AUDITORIA RIGOROSA INICIAL DOS 4 CONTAINERS DE PRODUÇÃO
++# ------------------------------------------------------------------------------
++echo "--- [Inspecionando estado dos 4 containers de produção factuais] ---"
++declare -A INITIAL_RESTARTS
++
++for c in "${PROD_CONTAINERS[@]}"; do
++  INSPECT_RAW=$(docker inspect "$c" 2>/dev/null) || {
++    echo "[ERRO FATAL]: Container de produção esperado '$c' NÃO foi localizado no host Docker!"
++    exit 1
++  }
++
++  C_STATUS=$(echo "$INSPECT_RAW" | jq -r '.[0].State.Status // empty' 2>/dev/null || docker inspect --format='{{.State.Status}}' "$c")
++  C_RUNNING=$(echo "$INSPECT_RAW" | jq -r '.[0].State.Running // empty' 2>/dev/null || docker inspect --format='{{.State.Running}}' "$c")
++  C_OOM=$(echo "$INSPECT_RAW" | jq -r '.[0].State.OOMKilled // empty' 2>/dev/null || docker inspect --format='{{.State.OOMKilled}}' "$c")
++  C_HEALTH=$(echo "$INSPECT_RAW" | jq -r '.[0].State.Health.Status // "none"' 2>/dev/null || docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$c" 2>/dev/null || echo "none")
++  C_RESTARTS=$(echo "$INSPECT_RAW" | jq -r '.[0].RestartCount // empty' 2>/dev/null || docker inspect --format='{{.RestartCount}}' "$c")
++
++  if [[ "$C_RUNNING" != "true" ]] || [[ "$C_STATUS" != "running" ]]; then
++    echo "[ERRO FATAL]: Container de produção '$c' não está em execução (Status: $C_STATUS, Running: $C_RUNNING)!"
++    exit 1
++  fi
++  if [[ "$C_OOM" == "true" ]]; then
++    echo "[ERRO FATAL]: Container de produção '$c' sofreu OOMKilled!"
++    exit 1
++  fi
++  if [[ "$C_HEALTH" == "unhealthy" ]]; then
++    echo "[ERRO FATAL]: Container de produção '$c' apresenta status de saúde UNHEALTHY!"
++    exit 1
++  fi
++  if [[ -z "$C_RESTARTS" ]]; then
++    echo "[ERRO FATAL]: Falha ao capturar RestartCount do container de produção '$c'!"
++    exit 1
++  fi
++
++  INITIAL_RESTARTS["$c"]="$C_RESTARTS"
++  echo "  -> Container: $c | Status: $C_STATUS | Restarts: $C_RESTARTS | Health: $C_HEALTH"
++done
++
++echo "--------------------------------------------------------------------------------"
 +HIGH_LOAD_COUNT=0
 +
 +terminate_process_tree() {
@@ -392,21 +858,15 @@ index 0000000..f550c0e
 +  local proc_name="$2"
 +  if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
 +    echo "[ABORT SAFEGUARD] Cancelando árvore de processos de $proc_name (PID raiz: $pid)..."
-+    
-+    # 1. Envia SIGTERM para os filhos e depois para o pai
 +    pkill -TERM -P "$pid" 2>/dev/null || true
 +    kill -15 "$pid" 2>/dev/null || true
-+    
 +    sleep 3
-+    
-+    # 2. Se ainda estiver ativo, envia SIGKILL para toda a árvore
 +    if kill -0 "$pid" 2>/dev/null; then
-+      echo "[ABORT SAFEGUARD] Processo ainda ativo após SIGTERM. Forçando SIGKILL em toda a árvore (PID: $pid)..."
++      echo "[ABORT SAFEGUARD] Forçando SIGKILL em toda a árvore (PID: $pid)..."
 +      pkill -KILL -P "$pid" 2>/dev/null || true
 +      kill -9 "$pid" 2>/dev/null || true
 +    fi
-+    
-+    wait "$pid" 2>/dev/null
++    wait "$pid" 2>/dev/null || true
 +    local exit_code=$?
 +    echo "[ABORT SAFEGUARD] $proc_name finalizado. Código de saída preservado: $exit_code"
 +    echo "CANCELLED_PROCESS name=\"$proc_name\" pid=$pid exit_code=$exit_code timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$AUDIT_LOG"
@@ -419,17 +879,15 @@ index 0000000..f550c0e
 +
 +  echo ""
 +  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-+  echo " [VIOLAÇÃO CRÍTICA DE LIMIAR DETECTADA EM $timestamp]                           "
++  echo " [VIOLAÇÃO CRÍTICA DE SALVAGUARDA DETECTADA EM $timestamp]                      "
 +  echo " Motivo: $reason"
 +  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 +
 +  echo "HALT_TRIGGERED reason=\"$reason\" timestamp=$timestamp" >> "$AUDIT_LOG"
 +
-+  # 1. Cancela supervisionadamente toda a árvore de build e teste
 +  terminate_process_tree "$BUILD_PID" "Build Staging"
 +  terminate_process_tree "$RUNNER_PID" "Test Runner Staging"
 +
-+  # 2. Desliga os contêineres de staging com segurança
 +  echo "[ISOLATION HALT] Desligando contêineres de staging..."
 +  docker stop sf-api-staging sf-worker-staging sf-db-staging sf-redis-staging 2>/dev/null || true
 +
@@ -446,73 +904,88 @@ index 0000000..f550c0e
 +fi
 +echo "- Ponto de Montagem para Monitoramento de Disco: $DISCOVERED_MOUNT"
 +
-+# Loop de monitoramento contínuo
++# ------------------------------------------------------------------------------
++# 3. LOOP CONTÍNUO DE SUPERVISÃO A CADA 10 SEGUNDOS
++# ------------------------------------------------------------------------------
 +while true; do
 +  TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 +
-+  # 1. Verificação de Latência e Erro HTTP na API de Produção
++  # 1. Latência e Erro HTTP na API de Produção
 +  CURL_OUT=$(curl -o /dev/null -s -w "%{http_code} %{time_total}" --max-time 5 "$PROD_API_URL" 2>/dev/null || echo "000 9.999")
 +  HTTP_CODE=$(echo "$CURL_OUT" | awk '{print $1}')
 +  TIME_TOTAL=$(echo "$CURL_OUT" | awk '{print $2}')
 +  LATENCY_MS=$(echo "$TIME_TOTAL" | awk '{printf "%.0f", $1 * 1000}')
 +
-+  # Critério 1A: Erro HTTP 000 (Inacessível / Timeout) ou 5xx na Produção
 +  if [[ "$HTTP_CODE" == "000" ]] || [[ "$HTTP_CODE" =~ ^5 ]]; then
 +    trigger_safeguard_halt "API de produção inacessível ou retornou erro HTTP $HTTP_CODE (tempo=${LATENCY_MS}ms)"
 +  fi
 +
-+  # Critério 1B: Latência p95 > 200 ms ou aumento > 50% relativo à baseline
 +  if [[ "$LATENCY_MS" -gt 200 ]]; then
-+    trigger_safeguard_halt "Latência da API de produção excedeu 200 ms: ${LATENCY_MS} ms"
++    trigger_safeguard_halt "Latência da API de produção excedeu teto de 200 ms: ${LATENCY_MS} ms"
 +  fi
-+  if [[ "$BASELINE_LATENCY_MS" -gt 0 ]]; then
-+    MAX_ALLOWED_LATENCY=$(( BASELINE_LATENCY_MS + (BASELINE_LATENCY_MS / 2) ))
++  if [[ "$BASELINE_P95" -gt 0 ]]; then
++    MAX_ALLOWED_LATENCY=$(( BASELINE_P95 + (BASELINE_P95 / 2) ))
 +    if [[ "$LATENCY_MS" -gt "$MAX_ALLOWED_LATENCY" ]] && [[ "$LATENCY_MS" -gt 100 ]]; then
-+      trigger_safeguard_halt "Acréscimo de latência da produção > 50%: ${LATENCY_MS} ms (Baseline: ${BASELINE_LATENCY_MS} ms)"
++      trigger_safeguard_halt "Acréscimo de latência da produção > 50%: ${LATENCY_MS} ms (Baseline p95: ${BASELINE_P95} ms)"
 +    fi
 +  fi
 +
-+  # 2. Verificação de Memória Disponível no Host (Limiar: < 1200 MB)
++  # 2. Memória Disponível no Host (< 1200 MB)
 +  MEM_AVAIL_MB=$(free -m | awk '/Mem:/{print $7}')
 +  if [[ "$MEM_AVAIL_MB" -lt 1200 ]]; then
 +    trigger_safeguard_halt "Memória RAM disponível no host atingiu piso crítico: ${MEM_AVAIL_MB} MB (< 1200 MB)"
 +  fi
 +
-+  # 3. Verificação de Disco Livre no Host (Limiar: < 45 GB = 47.185.920 KB)
++  # 3. Disco Livre no Host (< 45 GB = 47.185.920 KB)
 +  DISK_AVAIL_KB=$(df -k --output=avail "$DISCOVERED_MOUNT" | tail -1 | tr -d ' ')
 +  if [[ "$DISK_AVAIL_KB" -lt 47185920 ]]; then
 +    DISK_AVAIL_GB=$(( DISK_AVAIL_KB / 1024 / 1024 ))
 +    trigger_safeguard_halt "Espaço em disco livre atingiu piso crítico no ponto $DISCOVERED_MOUNT: ${DISK_AVAIL_GB} GB (< 45 GB)"
 +  fi
 +
-+  # 4. Verificação de Load Average do Host (Limiar: > 2.5 contínuo por > 30s)
++  # 4. Load Average do Host (> 2.5 sustentado por 30s)
 +  LOAD_1MIN=$(cat /proc/loadavg | awk '{print $1}')
 +  LOAD_INT=$(echo "$LOAD_1MIN" | awk '{printf "%.0f", $1 * 10}')
 +  if [[ "$LOAD_INT" -gt 25 ]]; then
 +    HIGH_LOAD_COUNT=$(( HIGH_LOAD_COUNT + 1 ))
-+    if [[ "$HIGH_LOAD_COUNT" -ge 3 ]]; then # 3 amostras de 10s = 30s
++    if [[ "$HIGH_LOAD_COUNT" -ge 3 ]]; then
 +      trigger_safeguard_halt "Load average do host superior a 2.5 sustentado por 30s: $LOAD_1MIN"
 +    fi
 +  else
 +    HIGH_LOAD_COUNT=0
 +  fi
 +
-+  # 5. Verificação de Reinicialização e Status dos 4 Contêineres de Produção
++  # 5. Inviolabilidade e Status dos 4 Containers de Produção (SEM ACEITAR MISSING OU FALLBACK)
 +  RESTARTS_SUMMARY=""
 +  for c in "${PROD_CONTAINERS[@]}"; do
-+    c_status=$(docker inspect --format='{{.State.Status}}' "$c" 2>/dev/null || echo "missing")
-+    if [[ "$c_status" != "running" ]] && [[ "$c_status" != "missing" ]]; then
-+      trigger_safeguard_halt "Contêiner de produção $c não está em execução (Status: $c_status)"
++    C_INSPECT=$(docker inspect "$c" 2>/dev/null) || {
++      trigger_safeguard_halt "Container de produção $c DESAPARECEU ou não respondeu ao docker inspect!"
++    }
++
++    C_STATUS=$(echo "$C_INSPECT" | jq -r '.[0].State.Status // empty' 2>/dev/null || docker inspect --format='{{.State.Status}}' "$c")
++    C_RUNNING=$(echo "$C_INSPECT" | jq -r '.[0].State.Running // empty' 2>/dev/null || docker inspect --format='{{.State.Running}}' "$c")
++    C_OOM=$(echo "$C_INSPECT" | jq -r '.[0].State.OOMKilled // empty' 2>/dev/null || docker inspect --format='{{.State.OOMKilled}}' "$c")
++    C_HEALTH=$(echo "$C_INSPECT" | jq -r '.[0].State.Health.Status // "none"' 2>/dev/null || docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$c" 2>/dev/null || echo "none")
++    C_RESTARTS=$(echo "$C_INSPECT" | jq -r '.[0].RestartCount // empty' 2>/dev/null || docker inspect --format='{{.RestartCount}}' "$c")
++
++    if [[ "$C_RUNNING" != "true" ]] || [[ "$C_STATUS" != "running" ]]; then
++      trigger_safeguard_halt "Container de produção $c não está em execução (Status: $C_STATUS, Running: $C_RUNNING)!"
 +    fi
-+    c_restarts=$(docker inspect --format='{{.RestartCount}}' "$c" 2>/dev/null || echo "0")
-+    init_r="${INITIAL_RESTARTS[$c]:-0}"
-+    if [[ "$c_restarts" -gt "$init_r" ]]; then
-+      trigger_safeguard_halt "Contêiner de produção $c sofreu reinício inesperado (RestartCount: $c_restarts, Inicial: $init_r)"
++    if [[ "$C_OOM" == "true" ]]; then
++      trigger_safeguard_halt "Container de produção $c sofreu OOMKilled!"
 +    fi
-+    RESTARTS_SUMMARY="$RESTARTS_SUMMARY $c=$c_restarts"
++    if [[ "$C_HEALTH" == "unhealthy" ]]; then
++      trigger_safeguard_halt "Container de produção $c reportou status UNHEALTHY!"
++    fi
++
++    INIT_R="${INITIAL_RESTARTS[$c]}"
++    if [[ -z "$C_RESTARTS" ]] || [[ "$C_RESTARTS" -gt "$INIT_R" ]]; then
++      trigger_safeguard_halt "Container de produção $c sofreu reinício inesperado (RestartCount: $C_RESTARTS, Inicial: $INIT_R)"
++    fi
++
++    RESTARTS_SUMMARY="$RESTARTS_SUMMARY $c=$C_RESTARTS"
 +  done
 +
-+  # Registro no log de telemetria
 +  echo "$TS status=HEALTHY prod_http=$HTTP_CODE prod_lat=${LATENCY_MS}ms mem_avail=${MEM_AVAIL_MB}MB disk_avail_gb=$(( DISK_AVAIL_KB / 1024 / 1024 )) load=$LOAD_1MIN prod_restarts=[$RESTARTS_SUMMARY ]" >> "$AUDIT_LOG"
 +
 +  sleep 10
@@ -824,6 +1297,427 @@ index 0000000..3f876a4
 +      process.exitCode = 3;
 +    });
 +  }
++}
+diff --git a/apps/api/scripts/storage_linux_helper.c b/apps/api/scripts/storage_linux_helper.c
+new file mode 100644
+index 0000000..d9a6db4
+--- /dev/null
++++ b/apps/api/scripts/storage_linux_helper.c
+@@ -0,0 +1,415 @@
++#define _GNU_SOURCE
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <fcntl.h>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <sys/syscall.h>
++#include <errno.h>
++#include <stdint.h>
++#include <libgen.h>
++
++/**
++ * HELPER LINUX DE OPERAÇÕES RELATIVAS A DESCRITOR (ANTI-TOCTOU) — VITA SAÚDE (G4.2)
++ *
++ * Utiliza exclusivamente primitivas seguras do kernel Linux relativas a descritor (dfd):
++ * - openat2 com RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS
++ * - openat com O_NOFOLLOW e O_DIRECTORY
++ * - linkat / renameat2 (RENAME_NOREPLACE)
++ * - unlinkat
++ * - fstat / fstatat com AT_SYMLINK_NOFOLLOW
++ * - fsync
++ *
++ * Comandos suportados:
++ *   write  <base_dir> <rel_path> <temp_file_rel>
++ *   read   <base_dir> <rel_path>
++ *   unlink <base_dir> <rel_path>
++ *   stat   <base_dir> <rel_path>
++ *   probe
++ */
++
++#ifndef __NR_openat2
++#if defined(__x86_64__)
++#define __NR_openat2 437
++#elif defined(__aarch64__)
++#define __NR_openat2 437
++#elif defined(__i386__)
++#define __NR_openat2 437
++#endif
++#endif
++
++#ifndef SYS_renameat2
++#if defined(__x86_64__)
++#define SYS_renameat2 316
++#elif defined(__aarch64__)
++#define SYS_renameat2 276
++#endif
++#endif
++
++#ifndef RESOLVE_NO_XDEV
++#define RESOLVE_NO_XDEV 0x01
++#endif
++#ifndef RESOLVE_NO_MAGICLINKS
++#define RESOLVE_NO_MAGICLINKS 0x02
++#endif
++#ifndef RESOLVE_NO_SYMLINKS
++#define RESOLVE_NO_SYMLINKS 0x04
++#endif
++#ifndef RESOLVE_BENEATH
++#define RESOLVE_BENEATH 0x08
++#endif
++
++#ifndef RENAME_NOREPLACE
++#define RENAME_NOREPLACE (1 << 0)
++#endif
++
++struct open_how {
++    uint64_t flags;
++    uint64_t mode;
++    uint64_t resolve;
++};
++
++static inline int sys_openat2(int dfd, const char *path, struct open_how *how, size_t size) {
++#ifdef __NR_openat2
++    return syscall(__NR_openat2, dfd, path, how, size);
++#else
++    errno = ENOSYS;
++    return -1;
++#endif
++}
++
++static inline int sys_renameat2(int olddfd, const char *oldpath, int newdfd, const char *newpath, unsigned int flags) {
++#ifdef SYS_renameat2
++    return syscall(SYS_renameat2, olddfd, oldpath, newdfd, newpath, flags);
++#else
++    errno = ENOSYS;
++    return -1;
++#endif
++}
++
++static int open_base_dfd(const char *base_dir) {
++    int dfd = open(base_dir, O_RDONLY | O_DIRECTORY | O_CLOEXEC);
++    if (dfd < 0) {
++        fprintf(stderr, "[ERROR] Falha ao abrir diretório base (%s): %s\n", base_dir, strerror(errno));
++        return -1;
++    }
++    return dfd;
++}
++
++static int verify_descriptor_beneath(int fd, const char *base_dir) {
++    char proc_path[64];
++    char resolved[4096];
++    char base_resolved[4096];
++
++    if (!realpath(base_dir, base_resolved)) {
++        return -1;
++    }
++
++    snprintf(proc_path, sizeof(proc_path), "/proc/self/fd/%d", fd);
++    ssize_t len = readlink(proc_path, resolved, sizeof(resolved) - 1);
++    if (len < 0) {
++        // Se /proc não estiver montado, prossegue com validações do kernel
++        return 0;
++    }
++    resolved[len] = '\0';
++
++    size_t base_len = strlen(base_resolved);
++    if (strncmp(resolved, base_resolved, base_len) != 0 ||
++        (resolved[base_len] != '/' && resolved[base_len] != '\0')) {
++        fprintf(stderr, "[SECURITY_ERROR] Violação RESOLVE_BENEATH: descritor aponta para fora da raiz (%s)\n", resolved);
++        return -1;
++    }
++    return 0;
++}
++
++// 1. ESCRITA SEGURA VIA DESCRITOR RELATIVO
++static int cmd_write(const char *base_dir, const char *rel_path, const char *temp_file_rel) {
++    int dfd = open_base_dfd(base_dir);
++    if (dfd < 0) return 1;
++
++    // Verificar se caminho relativo contém tentativas de traversal '..'
++    if (strstr(rel_path, "..") != NULL || strstr(temp_file_rel, "..") != NULL) {
++        fprintf(stderr, "[SECURITY_ERROR] Navegação com '..' proibida em caminhos relativos.\n");
++        close(dfd);
++        return 1;
++    }
++
++    // Validação estrita do arquivo temporário com fstat e AT_SYMLINK_NOFOLLOW
++    struct stat temp_st;
++    if (fstatat(dfd, temp_file_rel, &temp_st, AT_SYMLINK_NOFOLLOW) != 0) {
++        fprintf(stderr, "[ERROR] Arquivo temporário não acessível via dfd: %s\n", strerror(errno));
++        close(dfd);
++        return 1;
++    }
++    if (S_ISLNK(temp_st.st_mode)) {
++        fprintf(stderr, "[SECURITY_ERROR] Arquivo temporário é um symlink proibido.\n");
++        unlinkat(dfd, temp_file_rel, 0);
++        close(dfd);
++        return 1;
++    }
++    if (!S_ISREG(temp_st.st_mode)) {
++        fprintf(stderr, "[SECURITY_ERROR] Arquivo temporário não é arquivo regular.\n");
++        unlinkat(dfd, temp_file_rel, 0);
++        close(dfd);
++        return 1;
++    }
++
++    // 1. Tentar openat2 com RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS
++    struct open_how how = {
++        .flags = O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC,
++        .mode = 0600,
++        .resolve = RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS
++    };
++
++    int dest_fd = sys_openat2(dfd, rel_path, &how, sizeof(how));
++    if (dest_fd >= 0) {
++        // Kernel suporta openat2 e destino foi criado atomicamente
++        if (verify_descriptor_beneath(dest_fd, base_dir) != 0) {
++            unlinkat(dfd, rel_path, 0);
++            unlinkat(dfd, temp_file_rel, 0);
++            close(dest_fd);
++            close(dfd);
++            return 1;
++        }
++
++        // Copia do temp para o dest com fsync
++        int temp_fd = openat(dfd, temp_file_rel, O_RDONLY | O_CLOEXEC);
++        if (temp_fd < 0) {
++            unlinkat(dfd, rel_path, 0);
++            close(dest_fd);
++            close(dfd);
++            return 1;
++        }
++
++        char buf[8192];
++        ssize_t bytes;
++        while ((bytes = read(temp_fd, buf, sizeof(buf))) > 0) {
++            if (write(dest_fd, buf, bytes) != bytes) {
++                close(temp_fd);
++                close(dest_fd);
++                unlinkat(dfd, rel_path, 0);
++                unlinkat(dfd, temp_file_rel, 0);
++                close(dfd);
++                return 1;
++            }
++        }
++        close(temp_fd);
++
++        fchmod(dest_fd, 0600);
++        fsync(dest_fd);
++        close(dest_fd);
++
++        // Remove temporário com unlinkat relativo ao dfd
++        unlinkat(dfd, temp_file_rel, 0);
++        fsync(dfd);
++        close(dfd);
++        return 0;
++    }
++
++    // Se destino já existia ou foi rejeitado por violação de symlink
++    if (errno == EEXIST) {
++        fprintf(stderr, "[EEXIST] Destino já existe (%s).\n", rel_path);
++        unlinkat(dfd, temp_file_rel, 0);
++        close(dfd);
++        return 2;
++    }
++    if (errno == ELOOP || errno == EXDEV) {
++        fprintf(stderr, "[SECURITY_VIOLATION] openat2 rejeitou resolução por symlink ou escape de raiz: %s\n", strerror(errno));
++        unlinkat(dfd, temp_file_rel, 0);
++        close(dfd);
++        return 3;
++    }
++
++    // Fallback de publicação atômica via renameat2 (RENAME_NOREPLACE) ou linkat relativo
++    int res = sys_renameat2(dfd, temp_file_rel, dfd, rel_path, RENAME_NOREPLACE);
++    if (res != 0 && errno == ENOSYS) {
++        res = linkat(dfd, temp_file_rel, dfd, rel_path, 0);
++        if (res == 0) {
++            unlinkat(dfd, temp_file_rel, 0);
++        }
++    }
++
++    if (res != 0) {
++        fprintf(stderr, "[ERROR] Publicação atômica falhou (%s): %s\n", rel_path, strerror(errno));
++        unlinkat(dfd, temp_file_rel, 0);
++        close(dfd);
++        return (errno == EEXIST) ? 2 : 1;
++    }
++
++    // Validação pós-publicação via openat com O_NOFOLLOW
++    int final_fd = openat(dfd, rel_path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
++    if (final_fd < 0) {
++        fprintf(stderr, "[SECURITY_ERROR] Destino pós-publicação não pôde ser aberto com O_NOFOLLOW: %s\n", strerror(errno));
++        unlinkat(dfd, rel_path, 0);
++        close(dfd);
++        return 1;
++    }
++
++    struct stat final_st;
++    if (fstat(final_fd, &final_st) != 0 || S_ISLNK(final_st.st_mode) || !S_ISREG(final_st.st_mode)) {
++        fprintf(stderr, "[SECURITY_ERROR] Arquivo final não é arquivo regular estrito.\n");
++        close(final_fd);
++        unlinkat(dfd, rel_path, 0);
++        close(dfd);
++        return 1;
++    }
++
++    if (verify_descriptor_beneath(final_fd, base_dir) != 0) {
++        close(final_fd);
++        unlinkat(dfd, rel_path, 0);
++        close(dfd);
++        return 1;
++    }
++
++    fsync(final_fd);
++    close(final_fd);
++    fsync(dfd);
++    close(dfd);
++    return 0;
++}
++
++// 2. LEITURA SEGURA VIA DESCRITOR RELATIVO
++static int cmd_read(const char *base_dir, const char *rel_path) {
++    int dfd = open_base_dfd(base_dir);
++    if (dfd < 0) return 1;
++
++    if (strstr(rel_path, "..") != NULL) {
++        fprintf(stderr, "[SECURITY_ERROR] Navegação com '..' proibida.\n");
++        close(dfd);
++        return 1;
++    }
++
++    struct open_how how = {
++        .flags = O_RDONLY | O_CLOEXEC,
++        .mode = 0,
++        .resolve = RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS
++    };
++
++    int fd = sys_openat2(dfd, rel_path, &how, sizeof(how));
++    if (fd < 0) {
++        if (errno == ENOSYS) {
++            fd = openat(dfd, rel_path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
++        } else {
++            fprintf(stderr, "[SECURITY_REJECT] openat2 rejeitou leitura segura (%s): %s\n", rel_path, strerror(errno));
++            close(dfd);
++            return 1;
++        }
++    }
++
++    if (fd < 0) {
++        fprintf(stderr, "[ERROR] openat falhou na leitura (%s): %s\n", rel_path, strerror(errno));
++        close(dfd);
++        return 1;
++    }
++
++    struct stat st;
++    if (fstat(fd, &st) != 0 || S_ISLNK(st.st_mode) || !S_ISREG(st.st_mode)) {
++        fprintf(stderr, "[SECURITY_ERROR] Arquivo não é regular ou é symlink.\n");
++        close(fd);
++        close(dfd);
++        return 1;
++    }
++
++    if (verify_descriptor_beneath(fd, base_dir) != 0) {
++        close(fd);
++        close(dfd);
++        return 1;
++    }
++
++    char buf[8192];
++    ssize_t bytes;
++    while ((bytes = read(fd, buf, sizeof(buf))) > 0) {
++        if (fwrite(buf, 1, bytes, stdout) != (size_t)bytes) {
++            close(fd);
++            close(dfd);
++            return 1;
++        }
++    }
++
++    close(fd);
++    close(dfd);
++    return 0;
++}
++
++// 3. EXCLUSÃO SEGURA VIA DESCRITOR RELATIVO
++static int cmd_unlink(const char *base_dir, const char *rel_path) {
++    int dfd = open_base_dfd(base_dir);
++    if (dfd < 0) return 1;
++
++    if (strstr(rel_path, "..") != NULL) {
++        fprintf(stderr, "[SECURITY_ERROR] Navegação com '..' proibida.\n");
++        close(dfd);
++        return 1;
++    }
++
++    struct stat st;
++    if (fstatat(dfd, rel_path, &st, AT_SYMLINK_NOFOLLOW) != 0) {
++        close(dfd);
++        return 0; // Já não existe
++    }
++
++    if (S_ISLNK(st.st_mode)) {
++        fprintf(stderr, "[SECURITY_ERROR] Tentativa de exclusão sobre symlink proibida.\n");
++        close(dfd);
++        return 1;
++    }
++
++    if (unlinkat(dfd, rel_path, 0) != 0) {
++        fprintf(stderr, "[ERROR] unlinkat falhou (%s): %s\n", rel_path, strerror(errno));
++        close(dfd);
++        return 1;
++    }
++
++    fsync(dfd);
++    close(dfd);
++    return 0;
++}
++
++int main(int argc, char *argv[]) {
++    if (argc < 2) {
++        fprintf(stderr, "Uso: %s <cmd> [args...]\n", argv[0]);
++        return 1;
++    }
++
++    const char *cmd = argv[1];
++
++    if (strcmp(cmd, "probe") == 0) {
++        struct open_how how = { .flags = O_RDONLY, .resolve = RESOLVE_BENEATH };
++        int res = sys_openat2(AT_FDCWD, ".", &how, sizeof(how));
++        if (res >= 0) close(res);
++        if (errno == ENOSYS) {
++            printf("OPENAT2_SUPPORTED=false\n");
++        } else {
++            printf("OPENAT2_SUPPORTED=true\n");
++        }
++        return 0;
++    }
++
++    if (strcmp(cmd, "write") == 0) {
++        if (argc < 5) {
++            fprintf(stderr, "Uso: %s write <base_dir> <rel_path> <temp_file_rel>\n", argv[0]);
++            return 1;
++        }
++        return cmd_write(argv[2], argv[3], argv[4]);
++    }
++
++    if (strcmp(cmd, "read") == 0) {
++        if (argc < 4) {
++            fprintf(stderr, "Uso: %s read <base_dir> <rel_path>\n", argv[0]);
++            return 1;
++        }
++        return cmd_read(argv[2], argv[3]);
++    }
++
++    if (strcmp(cmd, "unlink") == 0) {
++        if (argc < 4) {
++            fprintf(stderr, "Uso: %s unlink <base_dir> <rel_path>\n", argv[0]);
++            return 1;
++        }
++        return cmd_unlink(argv[2], argv[3]);
++    }
++
++    fprintf(stderr, "Comando desconhecido: %s\n", cmd);
++    return 1;
 +}
 diff --git a/apps/api/scripts/test_sigkill_worker_recovery.mjs b/apps/api/scripts/test_sigkill_worker_recovery.mjs
 new file mode 100644
@@ -1572,26 +2466,31 @@ index 0000000..34da2e6
 +
 diff --git a/apps/api/scripts/vps_isolation_guard_rail.mjs b/apps/api/scripts/vps_isolation_guard_rail.mjs
 new file mode 100644
-index 0000000..4788040
+index 0000000..b9cdcf0
 --- /dev/null
 +++ b/apps/api/scripts/vps_isolation_guard_rail.mjs
-@@ -0,0 +1,457 @@
+@@ -0,0 +1,526 @@
 +#!/usr/bin/env node
 +
 +/**
-+ * GUARD RAIL AUTOMÁTICO DE PROTEÇÃO DE PRODUÇÃO E ISOLAMENTO (G4.2)
++ * GUARD RAIL AUTOMÁTICO DE PROTEÇÃO DE PRODUÇÃO E ISOLAMENTO (G4.2 V5)
 + * 
-+ * Opera em duas fases mutuamente exclusivas:
++ * Opera em três fases mutuamente exclusivas:
 + * 1. --phase=pre-provisioning: Validação estática, somente leitura, de configuração,
-+ *    variáveis de ambiente, portas proibidas e caminhos locais antes de provisionar staging.
-+ *    Não exige que contêineres de staging ou banco já existam.
++ *    variáveis de ambiente obrigatórias, portas proibidas e caminhos locais antes de provisionar staging.
++ *    Exige: NODE_ENV, APP_ENV, STORAGE_PATH, QUEUE_NAME, QUEUE_PREFIX, STAGING_COMPOSE_PROJECT, STAGING_NETWORK.
 + * 2. --phase=post-provisioning: Validação rigorosa de runtime com contêineres ativos.
 + *    Exige OBRIGATORIAMENTE os 4 contêineres de staging no estado Running:
-+ *    - sf-db-staging
-+ *    - sf-redis-staging
-+ *    - sf-api-staging
-+ *    - sf-worker-staging
-+ *    Falha com Exit Code 1 se qualquer contêiner faltar ou falhar nas regras de isolamento.
++ *    - sf-db-staging: porta exata 127.0.0.1:5434 -> 5432
++ *    - sf-redis-staging: porta exata 127.0.0.1:6381 -> 6379
++ *    - sf-api-staging: porta exata 127.0.0.1:3011 -> 3001
++ *    - sf-worker-staging: SEM porta publicada
++ *    Exige estritamente: database = vita_saude_staging e user = vita_staging_app (rejeita _test).
++ *    Compara IDs físicos e mounts dos 4 containers de produção factuais.
++ * 3. --phase=migration: Execução de migração DDL.
++ *    Exige: database = vita_saude_staging e user = vita_staging_migrator.
++ * 
++ * Qualquer outro valor de --phase produz Exit Code diferente de zero.
 + */
 +
 +import { execSync } from 'child_process';
@@ -1629,11 +2528,16 @@ index 0000000..4788040
 +
 +const FORBIDDEN_HOST_PORTS = [3000, 3001, 5432, 6379];
 +
++const EXPECTED_STAGING_PORTS = {
++  'sf-api-staging': { containerPort: '3001/tcp', hostIp: '127.0.0.1', hostPort: '3011' },
++  'sf-db-staging': { containerPort: '5432/tcp', hostIp: '127.0.0.1', hostPort: '5434' },
++  'sf-redis-staging': { containerPort: '6379/tcp', hostIp: '127.0.0.1', hostPort: '6381' },
++  'sf-worker-staging': null, // Sem porta publicada!
++};
++
 +function pingRedis(host, port, timeoutMs = 2000) {
 +  return new Promise((resolve, reject) => {
 +    const socket = new net.Socket();
-+    let responded = false;
-+
 +    socket.setTimeout(timeoutMs);
 +    socket.once('connect', () => {
 +      socket.write('*1\r\n$4\r\nPING\r\n');
@@ -1641,7 +2545,6 @@ index 0000000..4788040
 +
 +    socket.on('data', (data) => {
 +      const resp = data.toString();
-+      responded = true;
 +      socket.destroy();
 +      if (resp.includes('+PONG')) {
 +        resolve('PONG');
@@ -1666,30 +2569,32 @@ index 0000000..4788040
 +
 +async function runGuardRail() {
 +  const phaseArg = process.argv.find((a) => a.startsWith('--phase='));
-+  const phase = phaseArg
-+    ? phaseArg.split('=')[1]
-+    : process.argv.includes('--post-provisioning')
-+    ? 'post-provisioning'
-+    : 'pre-provisioning';
++  const phase = phaseArg ? phaseArg.split('=')[1] : null;
 +
++  const validPhases = ['pre-provisioning', 'post-provisioning', 'migration'];
++  if (!phase || !validPhases.includes(phase)) {
++    console.error(`[ERRO FATAL DE FASE]: Argumento --phase é obrigatório e deve ser um dos seguintes: ${validPhases.join(', ')}. Recebido: "${phase || '(nenhum)'}"`);
++    process.exitCode = 1;
++    return;
++  }
++
++  const isPre = phase === 'pre-provisioning';
 +  const isPost = phase === 'post-provisioning';
-+  const isPre = !isPost;
++  const isMigration = phase === 'migration';
 +
 +  console.log('================================================================================');
-+  console.log(` GUARD RAIL DE ISOLAMENTO VPS — VITA SAÚDE (G4.2) [FASE: ${phase.toUpperCase()}] `);
++  console.log(` GUARD RAIL DE ISOLAMENTO VPS — VITA SAÚDE (G4.2 V5) [FASE: ${phase.toUpperCase()}] `);
 +  console.log('================================================================================\n');
 +
 +  const errors = [];
 +  const warnings = [];
-+
-+  const isDestructiveRunner = process.argv.includes('--destructive-runner');
 +  const allowOffline = process.argv.includes('--allow-offline');
 +
 +  let dbClient = null;
 +
 +  try {
 +    // -------------------------------------------------------------------------
-+    // 1. Verificação de Variáveis de Ambiente Básicas
++    // 1. Verificação de Variáveis de Ambiente Obrigatórias
 +    // -------------------------------------------------------------------------
 +    const nodeEnv = process.env.NODE_ENV || '';
 +    const appEnv = process.env.APP_ENV || '';
@@ -1702,132 +2607,165 @@ index 0000000..4788040
 +      errors.push(`APP_ENV deve ser 'staging'. Valor atual: '${appEnv}'`);
 +    }
 +
++    if (isPre) {
++      const requiredPreVars = [
++        'NODE_ENV',
++        'APP_ENV',
++        'STORAGE_PATH',
++        'QUEUE_NAME',
++        'QUEUE_PREFIX',
++        'STAGING_COMPOSE_PROJECT',
++        'STAGING_NETWORK',
++      ];
++      for (const v of requiredPreVars) {
++        if (!process.env[v]) {
++          errors.push(`Variável de pré-provisionamento obrigatória ausente: ${v}`);
++        } else {
++          console.log(`  - ${v}: "${process.env[v]}"`);
++        }
++      }
++    }
++
 +    // -------------------------------------------------------------------------
 +    // 2. Verificação de URL e Nome do Banco de Dados
 +    // -------------------------------------------------------------------------
 +    const dbUrl = process.env.DATABASE_URL || '';
 +    console.log(`[Check 2] DATABASE_URL: ${dbUrl ? dbUrl.replace(/:[^:@]+@/, ':****@') : '(ausente)'}`);
 +    if (!dbUrl) {
-+      if (isPost) {
-+        errors.push('DATABASE_URL não informada em modo pós-provisionamento.');
++      if (isPost || isMigration) {
++        errors.push(`DATABASE_URL não informada na fase ${phase}.`);
 +      } else {
 +        warnings.push('DATABASE_URL não informada na verificação pré-provisionamento.');
 +      }
 +    } else {
 +      try {
 +        const parsedUrl = new URL(dbUrl);
-+        const dbName = parsedUrl.pathname.replace(/^\//, '');
-+        if (!dbName.endsWith('_staging') && !dbName.endsWith('_test')) {
-+          errors.push(`Nome do banco de dados deve terminar com '_staging' ou '_test'. Detectado: '${dbName}'`);
-+        }
-+        if (PRODUCTION_DB_NAMES.includes(dbName)) {
-+          errors.push(`VIOLAÇÃO CRÍTICA: DATABASE_URL aponta para o banco de produção '${dbName}'!`);
-+        }
++        const host = parsedUrl.hostname;
 +        const port = parseInt(parsedUrl.port || '5432', 10);
-+        if (FORBIDDEN_HOST_PORTS.includes(port) && !parsedUrl.hostname.includes('staging') && parsedUrl.hostname !== 'sf-db-staging') {
-+          errors.push(`VIOLAÇÃO CRÍTICA: Porta do banco (${port}) colide com portas padrão sem host de staging!`);
++        const dbName = parsedUrl.pathname.replace(/^\//, '');
++        const dbUser = parsedUrl.username;
++
++        console.log(`- Host: ${host}, Porta: ${port}, Banco: "${dbName}", Usuário: "${dbUser}"`);
++
++        if (PRODUCTION_DB_NAMES.includes(dbName)) {
++          errors.push(`VIOLAÇÃO CRÍTICA: DATABASE_URL aponta para banco de produção '${dbName}'!`);
 +        }
-+      } catch (err) {
-+        errors.push(`DATABASE_URL inválida ou malformada: ${err.message}`);
++        if (dbName !== 'vita_saude_staging') {
++          errors.push(`VIOLAÇÃO CRÍTICA: DATABASE_URL aponta para banco '${dbName}', esperado estritamente 'vita_saude_staging'.`);
++        }
++        if (isPost && dbName.includes('_test')) {
++          errors.push(`VIOLAÇÃO CRÍTICA: Banco '${dbName}' contém sufixo de teste proibido no pós-provisionamento normal.`);
++        }
++
++        if (FORBIDDEN_HOST_PORTS.includes(port) && (host === 'localhost' || host === '127.0.0.1' || host === '72.60.249.235')) {
++          errors.push(`VIOLAÇÃO CRÍTICA: DATABASE_URL utiliza porta de produção ${port}!`);
++        }
++        if (host === '72.60.249.235') {
++          errors.push(`VIOLAÇÃO CRÍTICA: Conexão direta ao IP público da VPS sem passar pelo túnel/loopback isolado!`);
++        }
++        if (dbUser === 'sf_user' || dbUser === 'postgres') {
++          errors.push(`VIOLAÇÃO CRÍTICA: DATABASE_URL utiliza usuário de produção '${dbUser}'!`);
++        }
++
++        if (isPost && dbUser !== 'vita_staging_app') {
++          errors.push(`VIOLAÇÃO CRÍTICA: Usuário da DATABASE_URL em pós-provisionamento é '${dbUser}', esperado estritamente 'vita_staging_app'.`);
++        }
++        if (isMigration && dbUser !== 'vita_staging_migrator') {
++          errors.push(`VIOLAÇÃO CRÍTICA: Usuário da DATABASE_URL na fase de migration é '${dbUser}', esperado estritamente 'vita_staging_migrator'.`);
++        }
++      } catch (urlErr) {
++        errors.push(`DATABASE_URL com formato inválido: ${urlErr.message}`);
 +      }
 +    }
 +
 +    // -------------------------------------------------------------------------
-+    // 3. Verificação de Fila e Prefixo BullMQ
++    // 3. Verificação de Caminhos de Armazenamento de Arquivos
 +    // -------------------------------------------------------------------------
-+    const queueName = process.env.QUEUE_NAME || '';
-+    const queuePrefix = process.env.QUEUE_PREFIX || '';
-+    console.log(`[Check 3] Fila BullMQ: "${queueName}", Prefixo: "${queuePrefix}"`);
-+    if (!queueName || !queueName.toLowerCase().includes('staging')) {
-+      errors.push(`Nome da fila BullMQ deve conter 'staging'. Valor atual: '${queueName}'`);
-+    }
-+    if (!queuePrefix || !queuePrefix.toLowerCase().includes('staging')) {
-+      errors.push(`Prefixo da fila BullMQ deve conter 'staging'. Valor atual: '${queuePrefix}'`);
-+    }
-+
-+    // -------------------------------------------------------------------------
-+    // 4. Verificação de URLs Públicas e Domínios
-+    // -------------------------------------------------------------------------
-+    const publicUrl = process.env.PUBLIC_API_URL || process.env.APP_URL || '';
-+    console.log(`[Check 4] URL Pública: "${publicUrl}"`);
-+    for (const prodDomain of PRODUCTION_DOMAINS) {
-+      if (publicUrl.includes(prodDomain)) {
-+        errors.push(`VIOLAÇÃO CRÍTICA: URL aponta para domínio de produção: '${prodDomain}'`);
-+      }
-+    }
-+
-+    // -------------------------------------------------------------------------
-+    // 5. Flag Explícita para Testes Destrutivos
-+    // -------------------------------------------------------------------------
-+    const allowDestructive = process.env.ALLOW_DESTRUCTIVE_TESTS;
-+    console.log(`[Check 5] Flag Destrutiva: isDestructiveRunner=${isDestructiveRunner}, ALLOW_DESTRUCTIVE_TESTS="${allowDestructive}"`);
-+    if (isDestructiveRunner) {
-+      if (allowDestructive !== 'true') {
-+        errors.push(`Para runners destrutivos (--destructive-runner), ALLOW_DESTRUCTIVE_TESTS deve ser explicitamente 'true'.`);
-+      }
-+    } else {
-+      if (allowDestructive === 'true') {
-+        warnings.push(`ALLOW_DESTRUCTIVE_TESTS está 'true' em contexto de serviço padrão. Deve ser restrita aos runners autorizados.`);
-+      }
-+    }
-+
-+    // -------------------------------------------------------------------------
-+    // 6. Realpath do Storage e Ausência de Symlinks / Recursos Compartilhados
-+    // -------------------------------------------------------------------------
-+    const storagePath = process.env.LOCAL_STORAGE_BASE_PATH || process.env.STORAGE_PATH || '';
-+    console.log(`[Check 6] STORAGE_PATH: "${storagePath}"`);
++    const storagePath = process.env.STORAGE_PATH || '';
++    console.log(`\n[Check 3] STORAGE_PATH: "${storagePath}"`);
 +    if (!storagePath) {
 +      errors.push('STORAGE_PATH não configurado.');
 +    } else {
-+      if (!storagePath.toLowerCase().includes('staging')) {
-+        errors.push(`STORAGE_PATH deve conter explicitamente 'staging'. Valor atual: '${storagePath}'`);
-+      }
-+      if (storagePath === '/data' || storagePath === '/var/lib' || storagePath === '/' || storagePath === '~') {
-+        errors.push(`STORAGE_PATH aponta para caminho raiz ou genérico perigoso: '${storagePath}'`);
-+      }
++      const resolvedStorage = path.resolve(storagePath);
 +      for (const prodPath of PRODUCTION_PATHS) {
-+        if (storagePath.startsWith(prodPath)) {
-+          errors.push(`VIOLAÇÃO CRÍTICA: STORAGE_PATH compartilha caminho com diretório de produção: '${prodPath}'`);
++        if (resolvedStorage.startsWith(prodPath)) {
++          errors.push(`VIOLAÇÃO CRÍTICA: STORAGE_PATH ('${resolvedStorage}') coincide ou é subdiretório de produção ('${prodPath}')!`);
 +        }
 +      }
-+
-+      if (fs.existsSync(storagePath)) {
-+        try {
-+          const resolvedPath = fs.realpathSync(storagePath);
-+          console.log(`- Storage realpath: "${resolvedPath}"`);
-+          const lstat = fs.lstatSync(storagePath);
-+          if (lstat.isSymbolicLink()) {
-+            errors.push(`VIOLAÇÃO CRÍTICA: STORAGE_PATH é um symlink proibido: '${storagePath}' -> '${resolvedPath}'`);
-+          }
-+          for (const prodPath of PRODUCTION_PATHS) {
-+            if (resolvedPath.startsWith(prodPath)) {
-+              errors.push(`VIOLAÇÃO CRÍTICA: Realpath do storage resolve para caminho de produção: '${prodPath}'`);
-+            }
-+          }
-+        } catch (pathErr) {
-+          errors.push(`Falha ao resolver realpath de STORAGE_PATH: ${pathErr.message}`);
-+        }
-+      } else {
-+        if (isPost) {
-+          errors.push(`STORAGE_PATH '${storagePath}' deve existir no filesystem em modo pós-provisionamento.`);
-+        } else {
-+          warnings.push(`STORAGE_PATH '${storagePath}' ainda não existe no filesystem local (aceitável em pré-provisionamento).`);
-+        }
++      if (!resolvedStorage.includes('staging') && !resolvedStorage.includes('test')) {
++        errors.push(`STORAGE_PATH ('${resolvedStorage}') não contém a palavra 'staging' ou 'test' para garantir isolamento.`);
 +      }
 +    }
 +
 +    // -------------------------------------------------------------------------
-+    // 7. Inspeção Docker (Pre vs Post Provisioning)
++    // 4. Verificação de Filas e Prefixos Redis/BullMQ
 +    // -------------------------------------------------------------------------
-+    console.log('\n[Check 7] Inspecionando Docker Engine, Containers, Labels, Mounts e Redes...');
++    const queueName = process.env.QUEUE_NAME || '';
++    const queuePrefix = process.env.QUEUE_PREFIX || '';
++    console.log(`\n[Check 4] QUEUE_NAME: "${queueName}", QUEUE_PREFIX: "${queuePrefix}"`);
++    if (!queueName.includes('staging') && !queueName.includes('test')) {
++      errors.push(`QUEUE_NAME ('${queueName}') deve conter 'staging' ou 'test'.`);
++    }
++    if (queueName === 'wearables-fit-import') {
++      errors.push(`VIOLAÇÃO CRÍTICA: QUEUE_NAME coincide com a fila de produção 'wearables-fit-import'!`);
++    }
++    if (!queuePrefix.includes('staging') && !queuePrefix.includes('test')) {
++      errors.push(`QUEUE_PREFIX ('${queuePrefix}') deve conter 'staging' ou 'test'.`);
++    }
++    if (queuePrefix === 'bull') {
++      errors.push(`VIOLAÇÃO CRÍTICA: QUEUE_PREFIX coincide com o prefixo padrão de produção 'bull'!`);
++    }
++
++    // -------------------------------------------------------------------------
++    // 5. Verificação de Domínios e URLs Públicas
++    // -------------------------------------------------------------------------
++    const publicApiUrl = process.env.PUBLIC_API_URL || '';
++    console.log(`\n[Check 5] PUBLIC_API_URL: "${publicApiUrl}"`);
++    for (const prodDomain of PRODUCTION_DOMAINS) {
++      if (publicApiUrl.includes(prodDomain)) {
++        errors.push(`VIOLAÇÃO CRÍTICA: PUBLIC_API_URL ('${publicApiUrl}') aponta para domínio de produção '${prodDomain}'!`);
++      }
++    }
++
++    // -------------------------------------------------------------------------
++    // 6. Verificação de Portas Vinculadas (Bind em 127.0.0.1 estrito)
++    // -------------------------------------------------------------------------
++    console.log('\n[Check 6] Verificando portas proibidas de produção...');
++    for (const forbiddenPort of FORBIDDEN_HOST_PORTS) {
++      if (publicApiUrl.includes(`:${forbiddenPort}`)) {
++        errors.push(`PUBLIC_API_URL utiliza porta de produção ${forbiddenPort}!`);
++      }
++    }
++
++    // -------------------------------------------------------------------------
++    // 7. Inspeção do Docker Engine e Comparação Física de Volumes e Redes
++    // -------------------------------------------------------------------------
++    console.log('\n[Check 7] Inspecionando Docker Engine, Volumes Físicos e Redes...');
 +    const stagingContainers = ['sf-db-staging', 'sf-redis-staging', 'sf-api-staging', 'sf-worker-staging'];
 +    const expectedProject = process.env.STAGING_COMPOSE_PROJECT || 'vita_staging';
 +    const expectedNet = process.env.STAGING_NETWORK || 'vita_staging_net';
 +
 +    let dockerAvailable = false;
 +    let foundStagingRunning = [];
++    const prodVolumeIdentifiers = new Set();
 +
 +    try {
++      // Coletar volumes físicos e mounts dos 4 containers factuais de produção
++      for (const prodC of PRODUCTION_CONTAINERS) {
++        try {
++          const prodInspectRaw = execSync(`docker inspect ${prodC}`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
++          const [prodData] = JSON.parse(prodInspectRaw.trim() || '[]');
++          if (prodData?.Mounts) {
++            for (const m of prodData.Mounts) {
++              if (m.Name) prodVolumeIdentifiers.add(m.Name);
++              if (m.Source) prodVolumeIdentifiers.add(m.Source);
++            }
++          }
++        } catch {}
++      }
++
++      console.log(`- Identificadores de volumes/mounts físicos de produção rastreados: ${prodVolumeIdentifiers.size}`);
++
 +      const dockerPsRaw = execSync("docker ps --format '{{.ID}}|{{.Names}}|{{.Labels}}|{{.State}}|{{.Ports}}|{{.Networks}}'", {
 +        encoding: 'utf8',
 +        stdio: ['pipe', 'pipe', 'pipe'],
@@ -1840,13 +2778,6 @@ index 0000000..4788040
 +      for (const line of lines) {
 +        const [id, name, labels, state, ports, networks] = line.split('|');
 +
-+        // Validação de colisão de ID e Nome com produção
-+        for (const prodName of PRODUCTION_CONTAINERS) {
-+          if (name === prodName || id.startsWith(prodName)) {
-+            console.log(`- Container de produção detectado no host: ${name} (ID: ${id}) [Segregação verificada]`);
-+          }
-+        }
-+
 +        if (stagingContainers.includes(name)) {
 +          if (state && state.toLowerCase().includes('running')) {
 +            foundStagingRunning.push(name);
@@ -1854,14 +2785,17 @@ index 0000000..4788040
 +
 +          console.log(`\n  Inspecionando container de staging: [${name}] (ID: ${id}, State: ${state})`);
 +
-+          // 7a. Verificação do Projeto Docker Compose
++          // 7a. Projeto Docker Compose
 +          if (!labels.includes(`com.docker.compose.project=${expectedProject}`)) {
 +            errors.push(`Container '${name}' não possui label 'com.docker.compose.project=${expectedProject}'. Labels: ${labels}`);
 +          }
 +
-+          // 7b. Verificação de Redes
-+          if (!networks.includes(expectedNet)) {
-+            errors.push(`Container '${name}' não conectado à rede '${expectedNet}'. Redes: '${networks}'`);
++          // 7b. Redes Autorizadas (Exclusivamente expectedNet)
++          const activeNetworks = networks.split(',').map((n) => n.trim()).filter(Boolean);
++          for (const netName of activeNetworks) {
++            if (netName !== expectedNet && netName !== `${expectedProject}_default`) {
++              errors.push(`VIOLAÇÃO CRÍTICA: Container '${name}' conectado à rede não autorizada '${netName}' (esperado apenas '${expectedNet}')!`);
++            }
 +          }
 +
 +          // 7c. Inspeção estruturada de Portas e Mounts via docker inspect JSON
@@ -1869,11 +2803,20 @@ index 0000000..4788040
 +            const inspectRaw = execSync(`docker inspect ${id}`, { encoding: 'utf8' });
 +            const [inspectData] = JSON.parse(inspectRaw.trim() || '[]');
 +
-+            // Verificação estruturada de Mounts
++            // Comparação física estrita de Mounts com os volumes de produção
 +            const mounts = inspectData?.Mounts || [];
 +            for (const m of mounts) {
 +              const src = m.Source || '';
++              const mName = m.Name || '';
 +              console.log(`    - Mount: ${src} -> ${m.Destination} (${m.Type})`);
++
++              if (mName && prodVolumeIdentifiers.has(mName)) {
++                errors.push(`VIOLAÇÃO CRÍTICA DE VOLUME: Container de staging '${name}' compartilha volume físico de produção '${mName}'!`);
++              }
++              if (src && prodVolumeIdentifiers.has(src)) {
++                errors.push(`VIOLAÇÃO CRÍTICA DE VOLUME: Container de staging '${name}' compartilha caminho físico de produção '${src}'!`);
++              }
++
 +              for (const prodPath of PRODUCTION_PATHS) {
 +                if (src.startsWith(prodPath)) {
 +                  errors.push(`VIOLAÇÃO CRÍTICA: Container de staging '${name}' monta caminho de produção: '${src}'!`);
@@ -1881,17 +2824,32 @@ index 0000000..4788040
 +              }
 +            }
 +
-+            // Verificação estruturada de Portas (NetworkSettings.Ports)
++            // Verificação rigorosa de portas publicadas
 +            const portBindings = inspectData?.NetworkSettings?.Ports || {};
-+            for (const [containerPort, hostBindings] of Object.entries(portBindings)) {
-+              if (Array.isArray(hostBindings)) {
-+                for (const b of hostBindings) {
-+                  const hostIp = b.HostIp;
-+                  const hostPort = b.HostPort;
-+                  console.log(`    - Porta publicada: ${containerPort} -> ${hostIp}:${hostPort}`);
-+                  if (hostIp !== '127.0.0.1') {
-+                    errors.push(`VIOLAÇÃO CRÍTICA: Container '${name}' publicou porta ${hostPort} em IP não-loopback '${hostIp}' (esperado: 127.0.0.1)!`);
-+                  }
++            const expectedPortRule = EXPECTED_STAGING_PORTS[name];
++
++            if (expectedPortRule === null) {
++              // sf-worker-staging: NÃO pode ter portas publicadas
++              for (const [p, binds] of Object.entries(portBindings)) {
++                if (Array.isArray(binds) && binds.length > 0) {
++                  errors.push(`VIOLAÇÃO CRÍTICA: Container '${name}' publicou portas na máquina hospedeira (${p})! Não deve ter portas publicadas.`);
++                }
++              }
++            } else if (expectedPortRule) {
++              const binds = portBindings[expectedPortRule.containerPort];
++              if (!Array.isArray(binds) || binds.length === 0) {
++                errors.push(`VIOLAÇÃO CRÍTICA: Container '${name}' não publicou a porta obrigatória ${expectedPortRule.containerPort}!`);
++              } else {
++                const b = binds[0];
++                if (b.HostIp !== expectedPortRule.hostIp || b.HostPort !== expectedPortRule.hostPort) {
++                  errors.push(`VIOLAÇÃO CRÍTICA: Container '${name}' com mapeamento incorreto: ${b.HostIp}:${b.HostPort} (esperado: ${expectedPortRule.hostIp}:${expectedPortRule.hostPort})!`);
++                }
++              }
++
++              // Rejeita portas adicionais
++              for (const [p, binds] of Object.entries(portBindings)) {
++                if (p !== expectedPortRule.containerPort && Array.isArray(binds) && binds.length > 0) {
++                  errors.push(`VIOLAÇÃO CRÍTICA: Container '${name}' possui porta adicional não autorizada publicada: ${p}!`);
 +                }
 +              }
 +            }
@@ -1903,19 +2861,18 @@ index 0000000..4788040
 +
 +      console.log(`- Containers de staging ativos (Running): ${foundStagingRunning.length}/${stagingContainers.length}`);
 +    } catch (dockerErr) {
-+      if (isPost || !allowOffline) {
-+        if (isPost) {
-+          errors.push(`FALHA CRÍTICA DE RUNTIME: Docker não disponível no host em modo pós-provisionamento: ${dockerErr.message}`);
++      if (isPost || isMigration || !allowOffline) {
++        if (isPost || isMigration) {
++          errors.push(`FALHA CRÍTICA DE RUNTIME: Docker não disponível no host em fase ${phase}: ${dockerErr.message}`);
 +        } else {
 +          warnings.push(`Docker não disponível no host local: ${dockerErr.message}`);
 +        }
 +      }
 +    }
 +
-+    // Exigência estrita em modo PÓS-PROVISIONAMENTO
-+    if (isPost) {
++    if (isPost || isMigration) {
 +      if (!dockerAvailable) {
-+        errors.push('Modo pós-provisionamento exige Docker Engine operacional no host.');
++        errors.push(`Fase ${phase} exige Docker Engine operacional no host.`);
 +      } else {
 +        for (const sc of stagingContainers) {
 +          if (!foundStagingRunning.includes(sc)) {
@@ -1945,15 +2902,23 @@ index 0000000..4788040
 +        console.log(`- current_user:       "${row.usr}"`);
 +        console.log(`- timezone efetivo:   "${row.tz}"`);
 +
-+        if (!row.db.endsWith('_staging') && !row.db.endsWith('_test')) {
-+          errors.push(`VIOLAÇÃO CRÍTICA: current_database() '${row.db}' não termina com _staging ou _test!`);
++        if (row.db !== 'vita_saude_staging') {
++          errors.push(`VIOLAÇÃO CRÍTICA: current_database() '${row.db}' não é 'vita_saude_staging'!`);
++        }
++        if (isPost && row.db.includes('_test')) {
++          errors.push(`VIOLAÇÃO CRÍTICA: Banco '${row.db}' contém sufixo de teste proibido no pós-provisionamento normal.`);
 +        }
 +        if (PRODUCTION_DB_NAMES.includes(row.db)) {
 +          errors.push(`VIOLAÇÃO CRÍTICA: Conectado diretamente ao banco de produção '${row.db}'!`);
 +        }
-+        if (row.usr === 'sf_user' || row.usr === 'postgres') {
-+          errors.push(`current_user '${row.usr}' é role administrativa de produção! Esperado: vita_staging_app ou vita_staging_migrator.`);
++
++        if (isPost && row.usr !== 'vita_staging_app') {
++          errors.push(`VIOLAÇÃO CRÍTICA: current_user '${row.usr}' difere de 'vita_staging_app' no pós-provisionamento normal.`);
 +        }
++        if (isMigration && row.usr !== 'vita_staging_migrator') {
++          errors.push(`VIOLAÇÃO CRÍTICA: current_user '${row.usr}' difere de 'vita_staging_migrator' na fase de migration.`);
++        }
++
 +        if (row.tz !== 'UTC') {
 +          errors.push(`Timezone da sessão do banco de dados é '${row.tz}'. Esperado rigorosamente: 'UTC'.`);
 +        }
@@ -1975,14 +2940,12 @@ index 0000000..4788040
 +          errors.push(`VIOLAÇÃO DE PRIVILÉGIOS: current_user '${row.usr}' possui flag CREATEDB ativa!`);
 +        }
 +      } catch (dbErr) {
-+        if (isPost) {
-+          errors.push(`Falha na inspeção de runtime do banco de dados em pós-provisionamento: ${dbErr.message}`);
++        if (isPost || isMigration) {
++          errors.push(`Falha na inspeção de runtime do banco de dados na fase ${phase}: ${dbErr.message}`);
 +        } else {
 +          warnings.push(`Banco de dados inacessível em modo pré-provisionamento: ${dbErr.message}`);
 +        }
 +      }
-+    } else if (isPost) {
-+      errors.push('DATABASE_URL ausente em modo pós-provisionamento.');
 +    }
 +
 +    // -------------------------------------------------------------------------
@@ -2371,11 +3334,134 @@ index 861360a..e85aa47 100644
      }
  
      return orphans;
+diff --git a/apps/api/src/modules/wearables/services/storage-linux-helper.ts b/apps/api/src/modules/wearables/services/storage-linux-helper.ts
+new file mode 100644
+index 0000000..271999d
+--- /dev/null
++++ b/apps/api/src/modules/wearables/services/storage-linux-helper.ts
+@@ -0,0 +1,117 @@
++import { execFileSync, spawnSync } from 'child_process';
++import * as fs from 'fs';
++import * as path from 'path';
++
++export interface LinuxStorageHelperResult {
++  success: boolean;
++  exitCode: number;
++  stdout?: Buffer;
++  stderr?: string;
++  error?: Error;
++}
++
++export class LinuxStorageHelper {
++  private static helperPath: string | null = null;
++  private static isAvailable: boolean | null = null;
++
++  static findHelperBinary(): string | null {
++    if (this.helperPath && fs.existsSync(this.helperPath)) {
++      return this.helperPath;
++    }
++
++    const candidatePaths = [
++      process.env.STORAGE_LINUX_HELPER_PATH,
++      '/usr/local/bin/storage_linux_helper',
++      path.resolve(__dirname, '..', '..', '..', '..', 'scripts', 'storage_linux_helper'),
++      path.resolve(process.cwd(), 'scripts', 'storage_linux_helper'),
++      path.resolve(process.cwd(), 'apps', 'api', 'scripts', 'storage_linux_helper'),
++    ].filter(Boolean) as string[];
++
++    for (const p of candidatePaths) {
++      if (fs.existsSync(p)) {
++        try {
++          fs.accessSync(p, fs.constants.X_OK);
++          this.helperPath = p;
++          return p;
++        } catch {}
++      }
++    }
++
++    // Se estiver em Linux e gcc estiver disponível, compilar automaticamente
++    if (process.platform === 'linux') {
++      const srcCandidates = [
++        path.resolve(__dirname, '..', '..', '..', '..', 'scripts', 'storage_linux_helper.c'),
++        path.resolve(process.cwd(), 'scripts', 'storage_linux_helper.c'),
++        path.resolve(process.cwd(), 'apps', 'api', 'scripts', 'storage_linux_helper.c'),
++      ];
++
++      for (const src of srcCandidates) {
++        if (fs.existsSync(src)) {
++          const out = path.join(path.dirname(src), 'storage_linux_helper');
++          try {
++            execFileSync('gcc', ['-O2', '-Wall', src, '-o', out], { stdio: 'pipe' });
++            if (fs.existsSync(out)) {
++              this.helperPath = out;
++              return out;
++            }
++          } catch {}
++        }
++      }
++    }
++
++    return null;
++  }
++
++  static isLinuxDescriptorHelperAvailable(): boolean {
++    if (this.isAvailable !== null) return this.isAvailable;
++    if (process.platform !== 'linux') {
++      this.isAvailable = false;
++      return false;
++    }
++    const bin = this.findHelperBinary();
++    this.isAvailable = bin !== null;
++    return this.isAvailable;
++  }
++
++  static write(baseDir: string, relPath: string, tempRelPath: string): LinuxStorageHelperResult {
++    const bin = this.findHelperBinary();
++    if (!bin) {
++      throw new Error('LinuxStorageHelper binary not available');
++    }
++    const res = spawnSync(bin, ['write', baseDir, relPath, tempRelPath], { stdio: 'pipe' });
++    return {
++      success: res.status === 0,
++      exitCode: res.status ?? -1,
++      stdout: res.stdout,
++      stderr: res.stderr ? res.stderr.toString() : '',
++    };
++  }
++
++  static read(baseDir: string, relPath: string): LinuxStorageHelperResult {
++    const bin = this.findHelperBinary();
++    if (!bin) {
++      throw new Error('LinuxStorageHelper binary not available');
++    }
++    const res = spawnSync(bin, ['read', baseDir, relPath], { stdio: 'pipe', maxBuffer: 100 * 1024 * 1024 });
++    return {
++      success: res.status === 0,
++      exitCode: res.status ?? -1,
++      stdout: res.stdout,
++      stderr: res.stderr ? res.stderr.toString() : '',
++    };
++  }
++
++  static unlink(baseDir: string, relPath: string): LinuxStorageHelperResult {
++    const bin = this.findHelperBinary();
++    if (!bin) {
++      throw new Error('LinuxStorageHelper binary not available');
++    }
++    const res = spawnSync(bin, ['unlink', baseDir, relPath], { stdio: 'pipe' });
++    return {
++      success: res.status === 0,
++      exitCode: res.status ?? -1,
++      stdout: res.stdout,
++      stderr: res.stderr ? res.stderr.toString() : '',
++    };
++  }
++}
 diff --git a/apps/api/src/modules/wearables/services/storage.service.ts b/apps/api/src/modules/wearables/services/storage.service.ts
-index 7fd1e66..c6780b7 100644
+index 7fd1e66..0d8f811 100644
 --- a/apps/api/src/modules/wearables/services/storage.service.ts
 +++ b/apps/api/src/modules/wearables/services/storage.service.ts
-@@ -1,81 +1,359 @@
+@@ -1,81 +1,424 @@
 -import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 +import {
 +  Injectable,
@@ -2390,6 +3476,7 @@ index 7fd1e66..c6780b7 100644
  import * as path from 'path';
 +import * as crypto from 'crypto';
  import { IPrivateObjectStorage, StoredObjectRef } from '../interfaces/storage.interface';
++import { LinuxStorageHelper } from './storage-linux-helper';
  
  @Injectable()
  export class PrivateObjectStorageService implements IPrivateObjectStorage {
@@ -2502,6 +3589,15 @@ index 7fd1e66..c6780b7 100644
 +    try {
 +      this.validateNoSymlinksInPath(dirPath);
 +
++      // Verificação preliminar do destino com lstat (detecta symlinks quebrados ou existentes)
++      const preStat = fs.lstatSync(fullPath, { throwIfNoEntry: false });
++      if (preStat) {
++        if (preStat.isSymbolicLink()) {
++          throw new BadRequestException(`Symlinks proibidos no storage: destino é um symlink (${fullPath})`);
++        }
++        throw new ConflictException(`Conflito de storage: arquivo já existe em destino (${sanitizedKey}). Sobrescrita proibida.`);
++      }
++
 +      if (!fs.existsSync(dirPath)) {
 +        fs.mkdirSync(dirPath, { recursive: true, mode: 0o700 });
 +      }
@@ -2527,9 +3623,44 @@ index 7fd1e66..c6780b7 100644
 +        fs.constants.O_WRONLY |
 +        (fs.constants.O_NOFOLLOW || 0);
 +
++      // Gravação em arquivo temporário com permissões estritas 0600
++      const fileHandle = await fs.promises.open(tempPath, openFlags, 0o600);
++      await fileHandle.writeFile(buffer);
++      await fileHandle.sync(); // fsync do arquivo temporário
++      await fileHandle.close();
++
++      // Ponto de sincronização determinístico para testes (Anti-TOCTOU barrier)
++      if (this.testBarrier) {
++        await this.testBarrier('pre-publish', { key: sanitizedKey, dirPath, fullPath, tempPath });
++      }
++
++      // 1. VIA HELPER LINUX BASEADO EM DESCRITORES (openat2, RESOLVE_BENEATH, linkat, unlinkat)
++      if (LinuxStorageHelper.isLinuxDescriptorHelperAvailable()) {
++        const tempRel = path.relative(this.basePath, tempPath).replace(/\\/g, '/');
++        const targetRel = sanitizedKey.replace(/\\/g, '/');
++        const helperRes = LinuxStorageHelper.write(this.basePath, targetRel, tempRel);
++        await fs.promises.unlink(tempPath).catch(() => {});
++
++        if (!helperRes.success) {
++          if (helperRes.exitCode === 2 || helperRes.stderr?.includes('[EEXIST]')) {
++            throw new ConflictException(`Conflito de storage: arquivo já existe em destino (${sanitizedKey}). Sobrescrita proibida.`);
++          }
++          if (helperRes.stderr?.includes('SECURITY_') || helperRes.stderr?.includes('symlink')) {
++            throw new BadRequestException(`Symlinks proibidos no storage: ${helperRes.stderr.trim()}`);
++          }
++          throw new BadRequestException(`Falha de segurança no storage via descritores: ${helperRes.stderr || 'erro descritor'}`);
++        }
++
++        return {
++          storageKey: sanitizedKey.replace(/\\/g, '/'),
++          storageDriver: 'LOCAL_SECURE',
++          fileSizeBytes: buffer.length,
++        };
++      }
++
++      // 2. FALLBACK PORTÁTIL DE DESCRITORES (DESENVOLVIMENTO LOCAL / TESTES)
 +      const dirOpenFlags = fs.constants.O_RDONLY | (fs.constants.O_DIRECTORY || 0) | (fs.constants.O_NOFOLLOW || 0);
 +      let dirHandle: fs.promises.FileHandle | null = null;
-+      let fileHandle: fs.promises.FileHandle | null = null;
 +
 +      try {
 +        dirHandle = await fs.promises.open(dirPath, dirOpenFlags);
@@ -2540,24 +3671,12 @@ index 7fd1e66..c6780b7 100644
 +          }
 +        }
 +
-+        // Gravação em arquivo temporário com permissões estritas 0600
-+        fileHandle = await fs.promises.open(tempPath, openFlags, 0o600);
-+        await fileHandle.writeFile(buffer);
-+        await fileHandle.sync(); // fsync do arquivo temporário
-+        await fileHandle.close();
-+        fileHandle = null;
-+
-+        // Ponto de sincronização determinístico para testes (Anti-TOCTOU barrier)
-+        if (this.testBarrier) {
-+          await this.testBarrier('pre-publish', { key: sanitizedKey, dirPath, fullPath, dirFd: dirHandle.fd });
-+        }
-+
 +        // Re-validação anti-TOCTOU mantendo o descritor de diretório aberto
 +        this.validateNoSymlinksInPath(dirPath);
-+        if (fs.existsSync(`/proc/self/fd/${dirHandle.fd}`)) {
-+          const canonicalDirPath = fs.realpathSync(`/proc/self/fd/${dirHandle.fd}`);
-+          if (!canonicalDirPath.startsWith(this.basePath + path.sep) && canonicalDirPath !== this.basePath) {
-+            throw new BadRequestException('Symlinks proibidos no storage: escape de diretório detectado via descritor pós-barreira.');
++        if (fs.existsSync(fullPath)) {
++          const postBarrierStat = fs.lstatSync(fullPath);
++          if (postBarrierStat.isSymbolicLink()) {
++            throw new BadRequestException('Symlinks proibidos no storage: symlink detectado no caminho alvo pós-barreira.');
 +          }
 +        }
 +
@@ -2593,13 +3712,14 @@ index 7fd1e66..c6780b7 100644
 +        await dirHandle.sync().catch(() => {});
 +      } catch (linkErr: any) {
 +        if (linkErr.code === 'EEXIST') {
++          const checkStat = fs.lstatSync(fullPath, { throwIfNoEntry: false });
++          if (checkStat && checkStat.isSymbolicLink()) {
++            throw new BadRequestException(`Symlinks proibidos no storage: tentativa de sobrescrita de symlink.`);
++          }
 +          throw new ConflictException(`Conflito de storage: arquivo já existe em destino (${sanitizedKey}). Sobrescrita proibida.`);
 +        }
 +        throw linkErr;
 +      } finally {
-+        if (fileHandle) {
-+          await fileHandle.close().catch(() => {});
-+        }
 +        if (dirHandle) {
 +          await dirHandle.close().catch(() => {});
 +        }
@@ -2631,24 +3751,43 @@ index 7fd1e66..c6780b7 100644
 +        throw new NotFoundException(`Objeto de storage não encontrado: ${key}`);
 +      }
 +
-+      // 1. Verificação prévia de toda a hierarquia de diretórios intermediários
-+      this.validateNoSymlinksInPath(fullPath);
-+
 +      // Ponto de sincronização determinístico para testes de leitura
 +      if (this.testBarrier) {
 +        await this.testBarrier('pre-read', { key: sanitizedKey, dirPath, fullPath });
 +      }
 +
-+      // Re-validação anti-TOCTOU
-+      this.validateNoSymlinksInPath(fullPath);
++      // 1. VIA HELPER LINUX BASEADO EM DESCRITORES
++      if (LinuxStorageHelper.isLinuxDescriptorHelperAvailable()) {
++        const targetRel = sanitizedKey.replace(/\\/g, '/');
++        const helperRes = LinuxStorageHelper.read(this.basePath, targetRel);
++        if (!helperRes.success) {
++          if (helperRes.stderr?.includes('SECURITY_') || helperRes.stderr?.includes('symlink')) {
++            throw new BadRequestException(`Symlinks proibidos no storage: ${helperRes.stderr.trim()}`);
++          }
++          throw new NotFoundException(`Objeto de storage não encontrado: ${key}`);
++        }
++        const buffer = helperRes.stdout || Buffer.alloc(0);
++        if (expectedSha256) {
++          const readSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
++          if (readSha256 !== expectedSha256) {
++            throw new BadRequestException(`Violação de integridade no storage: SHA-256 lido difere do esperado.`);
++          }
++        }
++        return buffer;
++      }
 +
-+      // 2. Abertura do descritor de arquivo com O_NOFOLLOW para leitura imune a TOCTOU
++      // 2. FALLBACK PORTÁTIL DE DESCRITORES
++      this.validateNoSymlinksInPath(fullPath);
++      const preStat = fs.lstatSync(fullPath);
++      if (preStat.isSymbolicLink()) {
++        throw new BadRequestException('Symlinks proibidos no storage: symlink detectado na leitura.');
++      }
++
 +      const openFlags = fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0);
 +      let fileHandle: fs.promises.FileHandle | null = null;
 +      try {
 +        fileHandle = await fs.promises.open(fullPath, openFlags);
 +
-+        // Verificação de descritor: em Linux, valida o caminho canônico do fd via /proc/self/fd
 +        if (fs.existsSync(`/proc/self/fd/${fileHandle.fd}`)) {
 +          const canonicalFdPath = fs.realpathSync(`/proc/self/fd/${fileHandle.fd}`);
 +          if (!canonicalFdPath.startsWith(this.basePath + path.sep)) {
@@ -2656,12 +3795,12 @@ index 7fd1e66..c6780b7 100644
 +          }
 +        }
 +
-+        // Re-validação canônica em qualquer plataforma
 +        const canonicalFile = fs.realpathSync(fullPath);
 +        if (!canonicalFile.startsWith(this.basePath + path.sep)) {
 +          throw new BadRequestException('Symlinks proibidos no storage: escape de diretório intermediário detectado.');
 +        }
-+
+ 
+-    return fs.promises.readFile(fullPath);
 +        const stat = await fileHandle.stat();
 +        if (!stat.isFile()) {
 +          throw new BadRequestException('Recurso no storage não é um arquivo regular.');
@@ -2675,8 +3814,7 @@ index 7fd1e66..c6780b7 100644
 +            throw new BadRequestException(`Violação de integridade no storage: SHA-256 lido (${readSha256}) difere do esperado (${expectedSha256}).`);
 +          }
 +        }
- 
--    return fs.promises.readFile(fullPath);
++
 +        return buffer;
 +      } finally {
 +        if (fileHandle) {
@@ -2702,16 +3840,29 @@ index 7fd1e66..c6780b7 100644
 -    try {
 -      const sanitizedKey = path.normalize(key).replace(/^(\.\.(\/|\\|$))+/, '');
 -      const fullPath = path.join(this.basePath, sanitizedKey);
-+    const { fullPath } = this.validateAndResolveKey(key);
-+
++    const { fullPath, sanitizedKey } = this.validateAndResolveKey(key);
+ 
+-      if (fs.existsSync(fullPath)) {
 +    if (fs.existsSync(fullPath)) {
-+      this.validateNoSymlinksInPath(fullPath);
 +      if (this.testBarrier) {
 +        await this.testBarrier('pre-delete', { key, fullPath });
 +      }
++
++      // 1. VIA HELPER LINUX BASEADO EM DESCRITORES
++      if (LinuxStorageHelper.isLinuxDescriptorHelperAvailable()) {
++        const targetRel = sanitizedKey.replace(/\\/g, '/');
++        const helperRes = LinuxStorageHelper.unlink(this.basePath, targetRel);
++        if (!helperRes.success) {
++          if (helperRes.stderr?.includes('SECURITY_') || helperRes.stderr?.includes('symlink')) {
++            throw new BadRequestException('Tentativa de remoção de symlink proibido no storage.');
++          }
++          throw new Error(`Falha ao remover arquivo do storage: ${helperRes.stderr}`);
++        }
++        return;
++      }
++
++      // 2. FALLBACK PORTÁTIL DE DESCRITORES
 +      this.validateNoSymlinksInPath(fullPath);
- 
--      if (fs.existsSync(fullPath)) {
 +      const lstat = await fs.promises.lstat(fullPath);
 +      if (lstat.isSymbolicLink()) {
 +        throw new BadRequestException('Tentativa de remoção de symlink proibido no storage.');
@@ -2721,7 +3872,7 @@ index 7fd1e66..c6780b7 100644
 +      } catch (unlinkErr: any) {
 +        if (unlinkErr.code !== 'ENOENT') {
 +          this.logger.error(`Falha ao remover arquivo do storage: ${key}. Erro: ${unlinkErr?.message}`);
-+          throw unlinkErr; // Propaga a falha para que a rotina de compensação registre o alerta de órfão
++          throw unlinkErr;
 +        }
        }
 -    } catch (err: any) {
@@ -2765,7 +3916,7 @@ index 7fd1e66..c6780b7 100644
            }
          }
        }
-@@ -84,4 +362,15 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
+@@ -84,4 +427,15 @@ export class PrivateObjectStorageService implements IPrivateObjectStorage {
      walk(this.basePath);
      return orphans;
    }
@@ -4237,26 +5388,26 @@ index 0000000..ed3f0aa
 +});
 diff --git a/apps/api/test/wearables/anti-toctou.spec.ts b/apps/api/test/wearables/anti-toctou.spec.ts
 new file mode 100644
-index 0000000..59068c5
+index 0000000..d461566
 --- /dev/null
 +++ b/apps/api/test/wearables/anti-toctou.spec.ts
-@@ -0,0 +1,279 @@
+@@ -0,0 +1,359 @@
 +import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 +import { PrivateObjectStorageService } from '../../src/modules/wearables/services/storage.service';
++import { LinuxStorageHelper } from '../../src/modules/wearables/services/storage-linux-helper';
 +import { ConfigService } from '@nestjs/config';
 +import { BadRequestException, ConflictException } from '@nestjs/common';
 +import * as fs from 'fs';
 +import * as path from 'path';
 +import * as crypto from 'crypto';
 +
-+describe('Anti-TOCTOU Concorrente: Leitura e Escrita Protegidas no Storage (G4.2)', () => {
++describe('Anti-TOCTOU Concorrente: Leitura, Escrita e Exclusão Protegidas por Descritor (G4.2 V5)', () => {
 +  const testStorageDir = path.resolve(__dirname, '../../test-toctou-storage');
 +  const testSandboxDir = path.resolve(__dirname, '../../test-toctou-sandbox');
 +
 +  let storage: PrivateObjectStorageService;
 +
 +  beforeEach(() => {
-+    // Garante diretórios limpos
 +    if (fs.existsSync(testStorageDir)) fs.rmSync(testStorageDir, { recursive: true, force: true });
 +    if (fs.existsSync(testSandboxDir)) fs.rmSync(testSandboxDir, { recursive: true, force: true });
 +
@@ -4279,20 +5430,56 @@ index 0000000..59068c5
 +  });
 +
 +  // ---------------------------------------------------------------------------
-+  // 1. ANTI-TOCTOU DE LEITURA (Symlink Attack & Path Traversal)
++  // 1. PROVA ESTREITA: CRIAÇÃO DE ARQUIVO EXTERNO QUE AINDA NÃO EXISTE
 +  // ---------------------------------------------------------------------------
-+  it('Leitura: deve rejeitar symlink apontando para arquivo sentinela descartável sem vazar conteúdo', async () => {
++  it('Escrita Anti-TOCTOU: tentativa de criar arquivo externo que ainda não existe deve falhar sem criar qualquer arquivo fora da raiz', async () => {
++    const nonExistentExternalFile = path.join(testSandboxDir, 'outside_target_that_does_not_exist.fit');
++    expect(fs.existsSync(nonExistentExternalFile)).toBe(false);
++
++    // Cria symlink dentro do storage apontando para arquivo externo NÃO EXISTENTE
++    const symlinkTargetKey = 'users/123/2026/09/escape_attack.fit';
++    const symlinkFullPath = path.join(testStorageDir, symlinkTargetKey);
++    fs.mkdirSync(path.dirname(symlinkFullPath), { recursive: true, mode: 0o700 });
++    fs.symlinkSync(nonExistentExternalFile, symlinkFullPath);
++
++    const payload = Buffer.from('PAYLOAD_ATTEMPTING_TO_ESCAPE_STORAGE_ROOT');
++
++    // Tentativa de escrita deve falhar
++    let errorThrown: any = null;
++    try {
++      await storage.putObject(symlinkTargetKey, payload);
++    } catch (err) {
++      errorThrown = err;
++    }
++
++    expect(errorThrown).toBeInstanceOf(BadRequestException);
++    expect(errorThrown.message).toContain('Symlinks proibidos');
++
++    // Comprovação estrita: NENHUM arquivo foi criado fora da raiz autorizada
++    expect(fs.existsSync(nonExistentExternalFile)).toBe(false);
++
++    // Comprovação estrita: Nenhum arquivo temporário permaneceu em .tmp_uploads
++    const tmpDir = path.join(testStorageDir, '.tmp_uploads');
++    if (fs.existsSync(tmpDir)) {
++      const tmpEntries = fs.readdirSync(tmpDir);
++      expect(tmpEntries.length).toBe(0);
++    }
++  });
++
++  // ---------------------------------------------------------------------------
++  // 2. PROVA COM SENTINELA EXISTENTE: LEITURA BLOQUEADA COM PRESERVAÇÃO DE HASH
++  // ---------------------------------------------------------------------------
++  it('Leitura Anti-TOCTOU: tentativa de leitura através de symlink para sentinela externa deve ser rejeitada sem vazar dados', async () => {
 +    const canarySecret = `CANARY_HOST_SECRET_TOKEN_${crypto.randomBytes(16).toString('hex')}`;
 +    const sentinelFilePath = path.join(testSandboxDir, 'canary_sentinel_host_file.txt');
 +    fs.writeFileSync(sentinelFilePath, canarySecret, { mode: 0o600 });
++    const sentinelHashBefore = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
 +
-+    // Cria symlink dentro da árvore do storage apontando para a sentinela fora da raiz
-+    const symlinkTargetKey = 'users/123/2026/09/symlink_attack.fit';
++    const symlinkTargetKey = 'users/123/2026/09/symlink_read_attack.fit';
 +    const symlinkFullPath = path.join(testStorageDir, symlinkTargetKey);
 +    fs.mkdirSync(path.dirname(symlinkFullPath), { recursive: true, mode: 0o700 });
 +    fs.symlinkSync(sentinelFilePath, symlinkFullPath);
 +
-+    // Tentativa de leitura via getObject deve falhar imediatamente
 +    let errorThrown: any = null;
 +    try {
 +      await storage.getObject(symlinkTargetKey);
@@ -4303,9 +5490,13 @@ index 0000000..59068c5
 +    expect(errorThrown).toBeInstanceOf(BadRequestException);
 +    expect(errorThrown.message).toContain('Symlinks proibidos');
 +
-+    // Confirmação estrita: o segredo do sentinela jamais foi lido ou vazado
++    // Confirmação de que segredo da sentinela não vazou no erro
 +    const leakCheck = JSON.stringify(errorThrown);
 +    expect(leakCheck).not.toContain(canarySecret);
++
++    // Hash da sentinela inalterado
++    const sentinelHashAfter = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
++    expect(sentinelHashAfter).toBe(sentinelHashBefore);
 +  });
 +
 +  it('Leitura: deve rejeitar tentativas de path traversal relativas (../) e caracteres perigosos', async () => {
@@ -4315,9 +5506,9 @@ index 0000000..59068c5
 +  });
 +
 +  // ---------------------------------------------------------------------------
-+  // 2. ANTI-TOCTOU DE ESCRITA (No-Clobber Concorrente e Integridade Transacional)
++  // 3. CONCORRÊNCIA E NO-CLOBBER
 +  // ---------------------------------------------------------------------------
-+  it('Escrita: disputa de 10 gravações simultâneas na mesma chave deve garantir exatamente 1 vencedor (No-Clobber) sem corrupção', async () => {
++  it('Escrita Concorrente: disputa de 10 gravações simultâneas na mesma chave deve garantir exatamente 1 vencedor (No-Clobber) sem corrupção', async () => {
 +    const targetKey = 'users/123/2026/09/concurrent_race.fit';
 +    const numWriters = 10;
 +    const writersData = Array.from({ length: numWriters }, (_, i) => {
@@ -4326,7 +5517,6 @@ index 0000000..59068c5
 +      return { index: i, payload, sha256 };
 +    });
 +
-+    // Dispara todas as 10 gravações simultaneamente
 +    const writePromises = writersData.map((w) =>
 +      storage.putObject(targetKey, w.payload, w.sha256).then(() => ({
 +        winnerIndex: w.index,
@@ -4336,13 +5526,10 @@ index 0000000..59068c5
 +    );
 +
 +    const results = await Promise.allSettled(writePromises);
-+
 +    const fulfilled = results.filter((r) => r.status === 'fulfilled') as PromiseFulfilledResult<any>[];
 +    const rejected = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
 +
-+    // Exatamente 1 deve ser gravado com sucesso
 +    expect(fulfilled.length).toBe(1);
-+    // Exatamente 9 devem ser rejeitados com ConflictException (código HTTP 409)
 +    expect(rejected.length).toBe(numWriters - 1);
 +
 +    for (const r of rejected) {
@@ -4350,106 +5537,40 @@ index 0000000..59068c5
 +      expect(r.reason.message).toContain('Sobrescrita proibida');
 +    }
 +
-+    // Leitura do arquivo final gravado no disco
 +    const winningWriter = fulfilled[0].value;
 +    const persistedBuffer = await storage.getObject(targetKey);
 +    const persistedSha256 = crypto.createHash('sha256').update(persistedBuffer).digest('hex');
 +
-+    // Validação de integridade factual: os bytes persistidos correspondem 100% ao vencedor único
 +    expect(persistedSha256).toBe(winningWriter.sha256);
 +    expect(persistedBuffer.equals(winningWriter.payload)).toBe(true);
 +
-+    // Validação de que nenhum arquivo temporário de escrita (.tmp_*) ficou abandonado no disco
-+    const dirEntries = fs.readdirSync(path.dirname(path.join(testStorageDir, targetKey)));
-+    const tempFiles = dirEntries.filter((f) => f.startsWith('.tmp_'));
-+    expect(tempFiles.length).toBe(0);
-+  });
-+
-+  it('Escrita: deve rejeitar gravação em caminho onde um diretório intermediário é um symlink', async () => {
-+    // Cria um symlink de diretório
-+    const realDir = path.join(testSandboxDir, 'real_dir');
-+    fs.mkdirSync(realDir, { recursive: true });
-+
-+    const symlinkDir = path.join(testStorageDir, 'symlink_folder');
-+    fs.symlinkSync(realDir, symlinkDir, process.platform === 'win32' ? 'junction' : 'dir');
-+
-+    const attackKey = 'symlink_folder/payload.fit';
-+    const dummyBuffer = Buffer.from('TEST_DATA');
-+
-+    await expect(storage.putObject(attackKey, dummyBuffer)).rejects.toThrow(BadRequestException);
-+  });
-+
-+  // ---------------------------------------------------------------------------
-+  // 3. TESTE CONCORRENTE ANTI-TOCTOU DETERMINÍSTICO (SINCRONIZADO COM BARREIRAS)
-+  // ---------------------------------------------------------------------------
-+  it('Concorrente Leitura (Barreira Determinística): troca de componente intermediário durante pre-read bloqueia vazamento de sentinela', async () => {
-+    const canarySecret = `CANARY_HOST_SECRET_TOKEN_${crypto.randomBytes(32).toString('hex')}`;
-+    const sentinelFilePath = path.join(testSandboxDir, 'canary_sentinel_host_file.txt');
-+    fs.writeFileSync(sentinelFilePath, canarySecret, { mode: 0o600 });
-+    const sentinelHashBefore = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
-+
-+    const parentDir = path.join(testStorageDir, 'users', 'barrier_read');
-+    const swapTarget = path.join(parentDir, 'swap_node');
-+    fs.mkdirSync(parentDir, { recursive: true, mode: 0o700 });
-+    fs.mkdirSync(swapTarget, { recursive: true, mode: 0o700 });
-+
-+    const attackKey = 'users/barrier_read/swap_node/canary_sentinel_host_file.txt';
-+
-+    // Cria um arquivo genuíno inicialmente no caminho esperado
-+    const genuineFile = path.join(swapTarget, 'canary_sentinel_host_file.txt');
-+    fs.writeFileSync(genuineFile, 'GENUINE_INITIAL_CONTENT', { mode: 0o600 });
-+
-+    // Configura a barreira determinística: troca o diretório intermediário EXATAMENTE entre validação e leitura
-+    let barrierTriggered = false;
-+    storage.setTestBarrier(async (point) => {
-+      if (point === 'pre-read') {
-+        barrierTriggered = true;
-+        // Força a troca do diretório intermediário por um symlink para o sandbox externo
-+        fs.rmSync(swapTarget, { recursive: true, force: true });
-+        fs.symlinkSync(testSandboxDir, swapTarget, process.platform === 'win32' ? 'junction' : 'dir');
-+      }
-+    });
-+
-+    let errorThrown: any = null;
-+    try {
-+      await storage.getObject(attackKey);
-+    } catch (err) {
-+      errorThrown = err;
++    const tmpDir = path.join(testStorageDir, '.tmp_uploads');
++    if (fs.existsSync(tmpDir)) {
++      const tempFiles = fs.readdirSync(tmpDir).filter((f) => f.startsWith('.tmp_'));
++      expect(tempFiles.length).toBe(0);
 +    }
-+
-+    expect(barrierTriggered).toBe(true);
-+    expect(errorThrown).toBeInstanceOf(BadRequestException);
-+    expect(errorThrown.message).toContain('Symlinks proibidos');
-+
-+    // Comprovação estrita: a sentinela jamais foi lida ou vazada
-+    const errDump = JSON.stringify(errorThrown);
-+    expect(errDump).not.toContain(canarySecret);
-+
-+    // Hash da sentinela rigorosamente idêntico
-+    const sentinelHashAfter = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
-+    expect(sentinelHashAfter).toBe(sentinelHashBefore);
 +  });
 +
-+  it('Concorrente Escrita (Barreira Determinística): troca de componente intermediário durante pre-publish bloqueia sobrescrita da sentinela', async () => {
-+    const canarySecret = `CANARY_HOST_SECRET_TOKEN_${crypto.randomBytes(32).toString('hex')}`;
-+    const sentinelFilePath = path.join(testSandboxDir, 'canary_sentinel_host_file.txt');
-+    fs.writeFileSync(sentinelFilePath, canarySecret, { mode: 0o600 });
-+    const sentinelHashBefore = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
-+
-+    const parentDir = path.join(testStorageDir, 'users', 'barrier_write');
++  // ---------------------------------------------------------------------------
++  // 4. TESTE COM BARREIRA DETERMINÍSTICA (SWAP PÓS-VALIDAÇÃO / PRÉ-PUBLISH)
++  // ---------------------------------------------------------------------------
++  it('Concorrente Escrita (Swap pós-validação inicial com barreira): swap apontando para arquivo externo não-existente deve abortar sem criar fora da raiz', async () => {
++    const parentDir = path.join(testStorageDir, 'users', 'barrier_write_nonexist');
 +    const swapTarget = path.join(parentDir, 'swap_node');
 +    fs.mkdirSync(parentDir, { recursive: true, mode: 0o700 });
 +    fs.mkdirSync(swapTarget, { recursive: true, mode: 0o700 });
 +
-+    const attackKey = 'users/barrier_write/swap_node/canary_sentinel_host_file.txt';
-+    const maliciousBuffer = Buffer.from('MALICIOUS_OVERWRITE_PAYLOAD_CORRUPT');
++    const externalNewFile = path.join(testSandboxDir, 'should_never_appear_outside.fit');
++    expect(fs.existsSync(externalNewFile)).toBe(false);
 +
-+    // Configura a barreira determinística: troca o diretório intermediário EXATAMENTE durante a fase de escrita temporária
++    const attackKey = 'users/barrier_write_nonexist/swap_node/should_never_appear_outside.fit';
++    const maliciousBuffer = Buffer.from('MALICIOUS_ESCAPE_PAYLOAD');
++
 +    let barrierTriggered = false;
 +    storage.setTestBarrier(async (point) => {
 +      if (point === 'pre-publish') {
 +        barrierTriggered = true;
-+        // Força a troca do diretório intermediário por um symlink para o sandbox externo
++        // Swap do diretório intermediário para o diretório externo
 +        fs.rmSync(swapTarget, { recursive: true, force: true });
 +        fs.symlinkSync(testSandboxDir, swapTarget, process.platform === 'win32' ? 'junction' : 'dir');
 +      }
@@ -4466,13 +5587,10 @@ index 0000000..59068c5
 +    expect(errorThrown).toBeInstanceOf(BadRequestException);
 +    expect(errorThrown.message).toContain('Symlinks proibidos');
 +
-+    // Comprovação estrita 1: Sentinela externa NUNCA foi sobrescrita
-+    const content = fs.readFileSync(sentinelFilePath, 'utf8');
-+    expect(content).toBe(canarySecret);
-+    const sentinelHashAfter = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
-+    expect(sentinelHashAfter).toBe(sentinelHashBefore);
++    // Comprovação estrita: NENHUM arquivo externo foi criado
++    expect(fs.existsSync(externalNewFile)).toBe(false);
 +
-+    // Comprovação estrita 2: Nenhum arquivo residual ou temporário permaneceu em .tmp_uploads
++    // Comprovação estrita: temporários removidos
 +    const tmpDir = path.join(testStorageDir, '.tmp_uploads');
 +    if (fs.existsSync(tmpDir)) {
 +      const tmpEntries = fs.readdirSync(tmpDir);
@@ -4480,10 +5598,104 @@ index 0000000..59068c5
 +    }
 +  });
 +
-+  it('Concorrente Exclusão (Barreira Determinística): troca de componente intermediário durante pre-delete bloqueia remoção da sentinela', async () => {
++  it('Concorrente Escrita (Swap imediatamente antes da publicação): swap apontando para sentinela existente bloqueia sobrescrita e preserva hash', async () => {
 +    const canarySecret = `CANARY_HOST_SECRET_TOKEN_${crypto.randomBytes(32).toString('hex')}`;
 +    const sentinelFilePath = path.join(testSandboxDir, 'canary_sentinel_host_file.txt');
 +    fs.writeFileSync(sentinelFilePath, canarySecret, { mode: 0o600 });
++    const sentinelHashBefore = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
++
++    const parentDir = path.join(testStorageDir, 'users', 'barrier_write_sentinel');
++    const swapTarget = path.join(parentDir, 'swap_node');
++    fs.mkdirSync(parentDir, { recursive: true, mode: 0o700 });
++    fs.mkdirSync(swapTarget, { recursive: true, mode: 0o700 });
++
++    const attackKey = 'users/barrier_write_sentinel/swap_node/canary_sentinel_host_file.txt';
++    const maliciousBuffer = Buffer.from('MALICIOUS_OVERWRITE_PAYLOAD_CORRUPT');
++
++    let barrierTriggered = false;
++    storage.setTestBarrier(async (point) => {
++      if (point === 'pre-publish') {
++        barrierTriggered = true;
++        fs.rmSync(swapTarget, { recursive: true, force: true });
++        fs.symlinkSync(testSandboxDir, swapTarget, process.platform === 'win32' ? 'junction' : 'dir');
++      }
++    });
++
++    let errorThrown: any = null;
++    try {
++      await storage.putObject(attackKey, maliciousBuffer);
++    } catch (err) {
++      errorThrown = err;
++    }
++
++    expect(barrierTriggered).toBe(true);
++    expect(errorThrown).toBeInstanceOf(BadRequestException);
++    expect(errorThrown.message).toContain('Symlinks proibidos');
++
++    // Sentinela jamais alterada
++    const content = fs.readFileSync(sentinelFilePath, 'utf8');
++    expect(content).toBe(canarySecret);
++    const sentinelHashAfter = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
++    expect(sentinelHashAfter).toBe(sentinelHashBefore);
++
++    // Temporários removidos
++    const tmpDir = path.join(testStorageDir, '.tmp_uploads');
++    if (fs.existsSync(tmpDir)) {
++      const tmpEntries = fs.readdirSync(tmpDir);
++      expect(tmpEntries.length).toBe(0);
++    }
++  });
++
++  // ---------------------------------------------------------------------------
++  // 5. TESTE COM BARREIRA DETERMINÍSTICA: LEITURA E EXCLUSÃO
++  // ---------------------------------------------------------------------------
++  it('Concorrente Leitura (Swap pós-validação com barreira): swap durante pre-read bloqueia leitura e preserva hash da sentinela', async () => {
++    const canarySecret = `CANARY_HOST_SECRET_TOKEN_${crypto.randomBytes(32).toString('hex')}`;
++    const sentinelFilePath = path.join(testSandboxDir, 'canary_sentinel_host_file.txt');
++    fs.writeFileSync(sentinelFilePath, canarySecret, { mode: 0o600 });
++    const sentinelHashBefore = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
++
++    const parentDir = path.join(testStorageDir, 'users', 'barrier_read');
++    const swapTarget = path.join(parentDir, 'swap_node');
++    fs.mkdirSync(parentDir, { recursive: true, mode: 0o700 });
++    fs.mkdirSync(swapTarget, { recursive: true, mode: 0o700 });
++
++    const attackKey = 'users/barrier_read/swap_node/canary_sentinel_host_file.txt';
++    const genuineFile = path.join(swapTarget, 'canary_sentinel_host_file.txt');
++    fs.writeFileSync(genuineFile, 'GENUINE_INITIAL_CONTENT', { mode: 0o600 });
++
++    let barrierTriggered = false;
++    storage.setTestBarrier(async (point) => {
++      if (point === 'pre-read') {
++        barrierTriggered = true;
++        fs.rmSync(swapTarget, { recursive: true, force: true });
++        fs.symlinkSync(testSandboxDir, swapTarget, process.platform === 'win32' ? 'junction' : 'dir');
++      }
++    });
++
++    let errorThrown: any = null;
++    try {
++      await storage.getObject(attackKey);
++    } catch (err) {
++      errorThrown = err;
++    }
++
++    expect(barrierTriggered).toBe(true);
++    expect(errorThrown).toBeInstanceOf(BadRequestException);
++    expect(errorThrown.message).toContain('Symlinks proibidos');
++
++    const errDump = JSON.stringify(errorThrown);
++    expect(errDump).not.toContain(canarySecret);
++
++    const sentinelHashAfter = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
++    expect(sentinelHashAfter).toBe(sentinelHashBefore);
++  });
++
++  it('Concorrente Exclusão (Swap pós-validação com barreira): swap durante pre-delete bloqueia remoção da sentinela e preserva hash', async () => {
++    const canarySecret = `CANARY_HOST_SECRET_TOKEN_${crypto.randomBytes(32).toString('hex')}`;
++    const sentinelFilePath = path.join(testSandboxDir, 'canary_sentinel_host_file.txt');
++    fs.writeFileSync(sentinelFilePath, canarySecret, { mode: 0o600 });
++    const sentinelHashBefore = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
 +
 +    const parentDir = path.join(testStorageDir, 'users', 'barrier_delete');
 +    const swapTarget = path.join(parentDir, 'swap_node');
@@ -4514,10 +5726,29 @@ index 0000000..59068c5
 +    expect(barrierTriggered).toBe(true);
 +    expect(errorThrown).toBeInstanceOf(BadRequestException);
 +
-+    // Sentinela externa NUNCA foi excluída
 +    expect(fs.existsSync(sentinelFilePath)).toBe(true);
 +    const content = fs.readFileSync(sentinelFilePath, 'utf8');
 +    expect(content).toBe(canarySecret);
++    const sentinelHashAfter = crypto.createHash('sha256').update(fs.readFileSync(sentinelFilePath)).digest('hex');
++    expect(sentinelHashAfter).toBe(sentinelHashBefore);
++  });
++
++  // ---------------------------------------------------------------------------
++  // 6. VALIDAÇÃO DE CONTRATO DO HELPER LINUX (OPENAT2 / DESCRITORES)
++  // ---------------------------------------------------------------------------
++  it('Helper Linux de Descritores: verifica contrato de operações relativas ao descritor de diretório', () => {
++    const isLinux = process.platform === 'linux';
++    const helperAvailable = LinuxStorageHelper.isLinuxDescriptorHelperAvailable();
++
++    if (isLinux) {
++      expect(helperAvailable).toBe(true);
++      const bin = LinuxStorageHelper.findHelperBinary();
++      expect(bin).not.toBeNull();
++      expect(fs.existsSync(bin!)).toBe(true);
++    } else {
++      // Ambiente de desenvolvimento Windows: helper Linux só executa em target POSIX
++      expect(helperAvailable).toBe(false);
++    }
 +  });
 +});
 diff --git a/apps/api/test/wearables/concurrency-compensation.spec.ts b/apps/api/test/wearables/concurrency-compensation.spec.ts
@@ -4876,10 +6107,10 @@ index 0000000..6b1d72d
 +- Proteção total contra deslocamentos de fuso horário local.
 diff --git a/docs/runbooks/staging_deploy_wearables.md b/docs/runbooks/staging_deploy_wearables.md
 new file mode 100644
-index 0000000..0999733
+index 0000000..4fa9e76
 --- /dev/null
 +++ b/docs/runbooks/staging_deploy_wearables.md
-@@ -0,0 +1,159 @@
+@@ -0,0 +1,156 @@
 +# Runbook Operacional: Implantação e Operação de Staging do Módulo de Wearables (G4.2)
 +
 +**Status Atual:** `G4.2 = PENDING_VPS_HOMOLOGATION`  
@@ -4901,48 +6132,45 @@ index 0000000..0999733
 +
 +| Recurso | Produção (Ativo) | Staging (Isolado) | Status de Isolamento |
 +| :--- | :--- | :--- | :--- |
-+| **API Container** | `sf-api-qo40k8o4g8owcoww0s4sccog-213922545655` | `sf-api-staging` (porta 127.0.0.1:3011) | Isolado |
-+| **Worker Container** | Integrado na API prod | `sf-worker-staging` | Isolado (UID 1000) |
-+| **PostgreSQL Container** | `sf-db-qo40k8o4g8owcoww0s4sccog-213922496244` | `sf-db-staging` (porta 127.0.0.1:5434) | Isolado |
-+| **Banco de Dados** | `saudefinancas` | `vita_saude_staging` | Isolado |
-+| **Role de DDL** | `sf_user` | `vita_staging_migrator` | Isolado (Timeouts 5s/30s) |
-+| **Role da Aplicação** | `sf_user` | `vita_staging_app` | Isolado (Sem superuser/CREATE) |
-+| **Redis Container** | `sf-redis-qo40k8o4g8owcoww0s4sccog-213922522114` | `sf-redis-staging` (porta 127.0.0.1:6381) | Isolado |
-+| **Fila BullMQ** | `wearables-fit-import` | `wearables-fit-import-staging` | Isolado |
-+| **Prefixo BullMQ** | `bull` | `bull_staging` | Isolado |
-+| **Intervalo Reconciliador** | 30s (`RECONCILIATION_INTERVAL_MS=30000`) | 10s (`RECONCILIATION_INTERVAL_MS=10000`) | Isolado |
-+| **LOCAL_SECURE Path** | N/A (Em memória / transitório) | `/data/vita-saude-staging/wearables` | Isolado (0700) |
-+| **Backup Path** | N/A | `/data/vita-saude-backups/prod-pre-g4-2` | Isolado (0700/0600) |
-+| **Portas Internas** | 3001, 5432, 6379 | 127.0.0.1:3011, 127.0.0.1:5434, 127.0.0.1:6381 | Isolado (Zero colisão) |
++| **API Container** | `sf-api-qo40k8o4g8owcoww0s4sccog-213922545655` | `sf-api-staging` (porta 127.0.0.1:3011) | Isolamento planejado/pending |
++| **Worker Container** | Integrado na API prod | `sf-worker-staging` | Isolamento planejado/pending |
++| **PostgreSQL Container** | `sf-db-qo40k8o4g8owcoww0s4sccog-213922496244` | `sf-db-staging` (porta 127.0.0.1:5434) | Isolamento planejado/pending |
++| **Banco de Dados** | `saudefinancas` | `vita_saude_staging` | Isolamento planejado/pending |
++| **Role de DDL** | `sf_user` | `vita_staging_migrator` | Isolamento planejado/pending |
++| **Role da Aplicação** | `sf_user` | `vita_staging_app` | Isolamento planejado/pending |
++| **Redis Container** | `sf-redis-qo40k8o4g8owcoww0s4sccog-213922522114` | `sf-redis-staging` (porta 127.0.0.1:6381) | Isolamento planejado/pending |
++| **Fila BullMQ** | `wearables-fit-import` | `wearables-fit-import-staging` | Isolamento planejado/pending |
++| **Prefixo BullMQ** | `bull` | `bull_staging` | Isolamento planejado/pending |
++| **Intervalo Reconciliador** | 30s (`RECONCILIATION_INTERVAL_MS=30000`) | 10s (`RECONCILIATION_INTERVAL_MS=10000`) | Isolamento planejado/pending |
++| **LOCAL_SECURE Path** | N/A (Em memória / transitório) | `/data/vita-saude-staging/wearables` | Isolamento planejado/pending |
++| **Backup Path** | N/A | `/data/vita-saude-backups/prod-pre-g4-2` | Isolamento planejado/pending |
++| **Portas Internas** | 3001, 5432, 6379 | 127.0.0.1:3011, 127.0.0.1:5434, 127.0.0.1:6381 | Isolamento planejado/pending |
 +
 +---
 +
 +## 4. Sequência Operacional Rigorosa de Execução
 +
-+A execução na VPS obedece estritamente às etapas numeradas a partir da raiz do repositório (`/data/vita-saude-staging-deploy`):
++A execução na VPS obedece estritamente às etapas numeradas a partir da raiz do diretório de staging (`/data/vita-saude-staging-deploy`):
 +
-+### Etapa 0: Baseline de Latência e Guard Rail Pré-Provisionamento
-+1. Coletar 5 amostras da API de produção:
++### Etapa 0: Carregamento Seguro de Variáveis e Guard Rail Pré-Provisionamento
++1. Carregar variáveis do ambiente de staging de forma segura na sessão da shell:
 +   ```bash
-+   for i in $(seq 1 5); do
-+     curl -o /dev/null -s -w "%{time_total}\n" https://appapi.robersonsouza.com.br/api/health/liveness
-+     sleep 10
-+   done
++   set -a && source .env.staging && set +a
 +   ```
-+2. Executar guard rail prévio (Fase de Pré-Provisionamento) com variáveis de staging:
++2. Executar guard rail prévio (Fase de Pré-Provisionamento) validando configuração:
 +   ```bash
 +   node apps/api/scripts/vps_isolation_guard_rail.mjs --phase=pre-provisioning
 +   ```
 +   *Critério de parada: Exit Code 0 obrigatório. Bloqueia se containers de staging já existirem ou colidirem com portas.*
 +
 +### Etapa 1: Salvaguarda da Produção (Auditoria Passiva Read-Only)
-+1. Inspecionar status, memória e RestartCount dos 4 containers de produção sem tocar neles:
++1. Inspecionar status, integridade e RestartCount dos 4 containers factuais de produção sem tocá-los:
 +   ```bash
 +   docker inspect --format='{{.Name}}: State={{.State.Status}}, Restarts={{.RestartCount}}' \
 +     sf-api-qo40k8o4g8owcoww0s4sccog-213922545655 \
-+     sf-web-qo40k8o4g8owcoww0s4sccog-214436573752 \
-+     sf-redis-qo40k8o4g8owcoww0s4sccog-212850989354 \
-+     sf-db-qo40k8o4g8owcoww0s4sccog-212850550005
++     sf-web-qo40k8o4g8owcoww0s4sccog-213922581192 \
++     sf-redis-qo40k8o4g8owcoww0s4sccog-213922522114 \
++     sf-db-qo40k8o4g8owcoww0s4sccog-213922496244
 +   ```
 +   *Nota: Backup de produção (pg_dump) requer autorização formal separada. Staging opera 100% isolado.*
 +
@@ -4982,7 +6210,7 @@ index 0000000..0999733
 +3. Aplicar as migrações físicas via Prisma CLI como `vita_staging_migrator`:
 +   ```bash
 +   DATABASE_URL="postgresql://vita_staging_migrator:$STAGING_MIGRATOR_PASSWORD@127.0.0.1:5434/vita_saude_staging?schema=public" \
-+     npx prisma migrate deploy
++     npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
 +   ```
 +
 +### Etapa 5: Verificações Pós-Migration e Concessão de Privilégios
@@ -5014,9 +6242,9 @@ index 0000000..0999733
 +   - `GET /health/metrics` -> `200 OK`
 +
 +### Etapa 8: Testes Destrutivos Controlados sob Monitoramento
-+1. Iniciar monitoramento contínuo em background:
++1. Iniciar monitoramento contínuo em background (o monitor calcula baseline factual de 5 amostras e vigia os 4 containers de produção):
 +   ```bash
-+   bash apps/api/scripts/monitor_staging_vps.sh --baseline-ms 45 &
++   bash apps/api/scripts/monitor_staging_vps.sh &
 +   MONITOR_PID=$!
 +   ```
 +2. Executar runner destrutivo de SIGKILL e recuperação:

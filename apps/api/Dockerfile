@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for NestJS API
 
 FROM node:20-alpine AS builder
-RUN apk add --no-cache openssl libc6-compat
+RUN apk add --no-cache openssl libc6-compat gcc musl-dev
 WORKDIR /app
 
 # Copy root and package files
@@ -14,6 +14,11 @@ RUN npm install --legacy-peer-deps
 
 # Copy API source code
 COPY apps/api ./apps/api
+
+# Compile Linux storage helper if C file exists
+RUN if [ -f apps/api/scripts/storage_linux_helper.c ]; then \
+      gcc -O2 -Wall -D_GNU_SOURCE apps/api/scripts/storage_linux_helper.c -o apps/api/scripts/storage_linux_helper; \
+    fi
 
 # Set dummy DATABASE_URL for Prisma Client generation during build
 ENV DATABASE_URL="postgresql://sf_user:build_dummy_secret@sf-db:5432/build_dummy?schema=public"
@@ -38,6 +43,7 @@ RUN npm install --omit=dev --legacy-peer-deps
 # Copy built code, prisma schema, pre-generated Prisma Client and Prisma CLI
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+COPY --from=builder /app/apps/api/scripts ./apps/api/scripts
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
